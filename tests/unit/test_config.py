@@ -9,7 +9,7 @@ import pytest
 
 from bedrock_bench import config
 from bedrock_bench.config import ConfigError
-from bedrock_bench.model import FeatureClass, Fidelity, Gates, Machine, OverrideCategory
+from bedrock_bench.model import Gates, Machine, OverrideCategory
 
 
 def toml(text: str) -> str:
@@ -163,20 +163,10 @@ ARTIFACTS = toml(
     """
 )
 
-FEATURES = toml(
+BENCHMARK = toml(
     """
-    [features.range."5.44"]
-    fidelity = "V1"
-    "terrain.vanilla_generator" = { class = "absent", evidence = "https://example.invalid/pm", note = "own generator" }
-    "chunks.client_side_generation" = { class = "absent", observed_by = "csg_effective" }
-    "entity.mob_ai" = { class = "unknown" }
-
-    [features.range."5"]
-    fidelity = "V2"
-    "player.physics" = { class = "partial", evidence = "https://example.invalid/physics" }
-
-    [features.range."*"]
-    fidelity = "V0"
+    [benchmark]
+    version = "1.0"
     """
 )
 
@@ -198,12 +188,12 @@ def server_file(name: str, body: str, head: str = "schema = 1\n") -> str:
 class TestServerFile:
     def test_bare_name(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, write_file) -> None:
         monkeypatch.setenv("BBENCH_ROOT", str(tmp_path))
-        path = write_file("servers/bds/server.toml", server_file("bds", ARTIFACTS + FEATURES + CONFIG))
+        path = write_file("servers/bds/server.toml", server_file("bds", ARTIFACTS + BENCHMARK + CONFIG))
         write_file("servers/runtimes.toml", "schema = 1\n" + ARTIFACTS)
         assert config.resolve("servers", "bds") == path.resolve()
         assert config.available("servers") == ["bds"]
         assert config.load_artifacts("bds").server == "bds"
-        assert config.load_features("bds").server == "bds"
+        assert config.load_benchmark("bds").version == "1.0"
         file, table = config.load_server_table("bds", "config")
         assert file == path.resolve() and table["harness"]["online-mode"]["value"] == "false"
         runtimes = config.load_artifacts(tmp_path / config.RUNTIMES_FILE)
@@ -211,27 +201,20 @@ class TestServerFile:
         with pytest.raises(ConfigError, match=r"no such server file \(available: bds\)"):
             config.load_artifacts("nukkit")
 
-    def test_features_hash_covers_the_table_only(self, write_file) -> None:
-        base = config.load_features(write_file("a/x/server.toml", server_file("x", FEATURES)))
-        other = config.load_features(write_file("b/x/server.toml", "# note\n" + server_file("x", ARTIFACTS + FEATURES)))
-        edited = FEATURES.replace('fidelity = "V0"', 'fidelity = "V2"')
-        changed = config.load_features(write_file("c/x/server.toml", server_file("x", edited)))
-        assert base.sha256 == other.sha256 != changed.sha256
-
     @pytest.mark.parametrize(
         ("text", "message"),
         [
-            (server_file("y", FEATURES), r"server: must match the folder name 'x'"),
-            (server_file("x", FEATURES, head="schema = 2\n"), r"schema: only schema = 1 is supported"),
-            (server_file("x", FEATURES, head=""), r"schema: is required"),
-            (server_file("x", ARTIFACTS), r"features: is required"),
-            (server_file("x", FEATURES + "[parity]\n"), r"parity: unknown key"),
-            (server_file("x", 'features = "none"\n'), r"features: expected a table"),
+            (server_file("y", BENCHMARK), r"server: must match the folder name 'x'"),
+            (server_file("x", BENCHMARK, head="schema = 2\n"), r"schema: only schema = 1 is supported"),
+            (server_file("x", BENCHMARK, head=""), r"schema: is required"),
+            (server_file("x", ARTIFACTS), r"benchmark: is required"),
+            (server_file("x", BENCHMARK + "[features]\n"), r"features: unknown key"),
+            (server_file("x", 'benchmark = "none"\n'), r"benchmark: expected a table"),
         ],
     )
     def test_rejects(self, write_file, text: str, message: str) -> None:
         with pytest.raises(ConfigError, match=message):
-            config.load_features(write_file("x/server.toml", text))
+            config.load_benchmark(write_file("x/server.toml", text))
 
     def test_error_names_the_table(self, write_file) -> None:
         body = ARTIFACTS.replace("size = 123", 'size = "123"')
@@ -332,42 +315,6 @@ class TestArtifacts:
             config.parse_artifacts({"version": {"1": {"bds": "1"}}}, server="x")
 
 
-class TestFeatures:
-    def test_load_and_row(self, write_file) -> None:
-        f = config.load_features(write_file("servers/pocketmine/server.toml", server_file("pocketmine", FEATURES)))
-        assert f.server == "pocketmine" and len(f.ranges) == 3
-        row = f.row("5.44.3")
-        assert row is not None and row.prefix == "5.44" and row.fidelity is Fidelity.V1
-        cell = row.cells["terrain.vanilla_generator"]
-        assert cell.cls is FeatureClass.ABSENT and cell.note == "own generator"
-        assert row.cells["chunks.client_side_generation"].observed_by == "csg_effective"
-        assert row.cells["entity.mob_ai"].cls is FeatureClass.UNKNOWN
-        assert f.row("5.44").prefix == "5.44"
-        assert f.row("5.441").prefix == "5"
-        assert f.row("5.1").prefix == "5"
-        assert f.row("6.0").prefix == "*"
-
-    def test_no_match(self) -> None:
-        f = config.parse_features({"range": {"1": {"fidelity": "V0"}}}, server="x")
-        assert f.row("2.0") is None
-
-    @pytest.mark.parametrize(
-        ("rng", "message"),
-        [
-            ({"fidelity": "V3"}, r"fidelity: must be one of V0, V1, V2"),
-            ({}, r"fidelity: is required"),
-            ({"fidelity": "V0", "player.flying": {"class": "absent", "evidence": "x"}}, r"unknown feature key"),
-            ({"fidelity": "V0", "player.physics": {"class": "absent"}}, r"needs an evidence link"),
-            ({"fidelity": "V0", "player.physics": {"class": "gone", "evidence": "x"}}, r"class: must be one of"),
-            ({"fidelity": "V0", "player.physics": {"class": "absent", "evidence": "x", "url": "y"}}, r"url: unknown"),
-            ({"fidelity": "V0", "player.physics": {"class": "absent", "observed_by": "Bad-Id"}}, r"observed_by"),
-        ],
-    )
-    def test_rejects(self, rng: dict, message: str) -> None:
-        with pytest.raises(ConfigError, match=message):
-            config.parse_features({"range": {"1.0": rng}}, server="x")
-
-
 # --------------------------------------------------------------------------------------------------------------------
 # Locating files
 # --------------------------------------------------------------------------------------------------------------------
@@ -395,7 +342,7 @@ class TestResolve:
         with pytest.raises(ConfigError, match=r"no such server file \(available: bds\)"):
             config.resolve("servers", "nukkit")
 
-    @pytest.mark.parametrize("kind", ["scenarios", "matrices", "worlds", "machines", "claims", "artifacts", "features"])
+    @pytest.mark.parametrize("kind", ["worlds", "machines", "artifacts"])
     def test_unknown_kind(self, kind: str) -> None:
         with pytest.raises(ValueError):
             config.resolve(kind, "x")

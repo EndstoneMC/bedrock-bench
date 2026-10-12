@@ -152,8 +152,6 @@ class TestContract:
         assert spec.sha256 == "fc944c56be559a1a9df3097b7f7974ea7d644677d7a6c14b2b86d25c070f9c03"
         meta = catalog.versions["0.14.0"].meta
         assert meta["commit"].startswith("058fef833") and meta["protocol"] == 1001
-        row = config.load_features("allay").row("0.14.0")
-        assert row is not None and row.cells["terrain.vanilla_generator"].cls.value == "absent"
 
     def test_dialect_samples(self) -> None:
         with open(LOGS / "allay.toml", "rb") as fh:

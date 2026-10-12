@@ -147,13 +147,11 @@ class TestDialect:
         assert ChorusAdapter.protocol == 2193 and not ChorusAdapter.supports_csg
         assert ChorusAdapter.bot_compat_flags == ()
         assert ChorusAdapter.tick_thread_rule == "first_created"
-        assert ChorusAdapter.features_file == "servers/chorus/server.toml"
 
     def test_pins(self) -> None:
         pin = chorus.SourcePin.load(VERSION)
         assert (pin.commit, pin.protocol, pin.minecraft, pin.rust) == (COMMIT, 2193, "1.26.50", "1.95.0")
         assert config.load_artifacts("chorus").get(VERSION, "windows").url.endswith(f"/archive/{COMMIT}.tar.gz")
-        assert config.load_features("chorus").row(VERSION) is not None
 
     def test_session_log(self) -> None:
         lines = session()

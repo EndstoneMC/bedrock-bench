@@ -26,7 +26,7 @@ from bedrock_bench.adapters.endstone import (
 )
 from bedrock_bench.cache import Cache
 from bedrock_bench.config import ConfigError
-from bedrock_bench.model import FEATURE_KEYS, Arm, Install, OverrideCategory, Placement, RunContext
+from bedrock_bench.model import Arm, Install, OverrideCategory, Placement, RunContext
 from bedrock_bench.workload import WORKLOAD, with_overrides
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -96,7 +96,6 @@ class TestContract:
     def test_registered(self) -> None:
         assert adapters.get("endstone") is EndstoneAdapter
         assert EndstoneAdapter.class_problems() == []
-        assert EndstoneAdapter.features_file == "servers/endstone/server.toml"
         assert EndstoneAdapter.tick_thread_rule == "lowest_tid_name:MC_SERVER"
         assert "crash_reports" in EndstoneAdapter.crash_paths
 
@@ -169,14 +168,6 @@ class TestPins:
         assert len(known_issues(meta, "windows")) == 2
         assert len(known_issues(meta, "linux")) == 1
         assert known_issues(dict(config.load_artifacts("endstone").versions["0.11.14"].meta), "windows") == []
-
-    def test_features(self) -> None:
-        features = config.load_features("endstone")
-        old, new = features.row("0.11.13"), features.row("0.11.14")
-        assert old is not None and new is not None
-        assert (old.fidelity.value, new.fidelity.value) == ("V0", "V1")
-        assert set(old.cells) == set(new.cells) == FEATURE_KEYS
-        assert features.row("0.12.0") is None, "an unpinned release has no parity row"
 
 
 class TestFetch:

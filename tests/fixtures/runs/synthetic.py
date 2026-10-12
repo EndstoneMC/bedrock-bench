@@ -73,7 +73,6 @@ WORKLOAD_6 = with_overrides(
     {
         "bots": {"n": N_BOTS},
         "phases": {"settle": {"min_s": 60.0}},
-        "exercises": ["terrain.vanilla_generator", "player.physics"],
     },
 )
 
@@ -415,7 +414,6 @@ def _run_json(v: Variant) -> dict[str, Any]:
         },
         "overrides": [],
         "config_files": [],
-        "parity": {"file_sha256": None, "range": None, "row": {}, "fidelity": None, "does_less": []},
         "bot": {"module": "loadbot", "protocol": 2193, "sha256": None, "argv": []},
         "workload": WORKLOAD_6.record(),
         "machine": {

@@ -105,7 +105,6 @@ def test_report_has_one_row_per_server(session_run: tuple[FakeBench, subprocess.
     rows = [line for line in results.splitlines() if line.startswith("| `")]
     assert [row.split(" | ")[1] for row in rows] == ["2/2", "2/2"]
     assert FULL in rows[0] and REDUCED in rows[1]
-    assert "## Differences from vanilla BDS" in report
 
 
 def test_report_refuses_mixed_machine_profiles(

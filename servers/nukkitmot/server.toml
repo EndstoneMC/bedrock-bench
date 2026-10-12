@@ -26,37 +26,6 @@ url = "https://motci.cn/job/Nukkit-MOT/job/master/1592/artifact/target/Nukkit-MO
 sha256 = "8215ae3fc0a67da249c83e67ec62dade0dc4dc4f9564f4ca793116347152a9b1"
 size = 98709014
 
-# Nukkit-MOT is a multi-version fork of Nukkit in Java: no Mojang code, its own implementation of most vanilla systems
-# (fidelity V1). Systems it has are `partial`: implemented, without evidence of identical behaviour. The rows observed
-# by a counter were seen with four bots on the pinned build: no movement corrections, no locator-bar packets, whole
-# chunk columns only, and bots keep hovering at the teleport height.
-[features]
-
-[features.range."9cb0aba"]
-fidelity = "V1"
-"terrain.vanilla_generator" = { class = "absent", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/level/generator/Normal.java", note = "own Normal generator; terrain differs from BDS for the same seed" }
-"terrain.any_generator" = { class = "partial", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/tree/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/level/generator" }
-"terrain.structures" = { class = "partial", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/level/generator/Normal.java", note = "own populators for villages, strongholds, temples and other structures" }
-"chunks.client_side_generation" = { class = "absent", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/network/protocol/StartGamePacket.java", observed_by = "csg_effective", note = "the start game flag is never set" }
-"chunks.subchunk_requests" = { class = "absent", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/network/protocol/LevelChunkPacket.java", note = "whole columns in LevelChunk packets; sub-chunk requests are decoded but not handled" }
-"entity.mob_spawning" = { class = "partial", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/utils/SpawnerTask.java", note = "entity-settings.auto-spawn-task" }
-"entity.mob_ai" = { class = "partial", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/tree/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/entity/mob", note = "mobs more than 80 blocks from every player update once per second" }
-"entity.collision_push" = { class = "unknown" }
-"entity.item_entities" = { class = "partial", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/entity/item/EntityItem.java" }
-"player.server_authoritative_movement" = { class = "absent", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/Player.java", observed_by = "corrections_per_bot_s", note = "server-auth movement mode, but no CorrectPlayerMovePrediction packets are ever sent" }
-"player.physics" = { class = "absent", observed_by = "airborne_frac_steady", note = "bots teleported to y=300 keep hovering" }
-"player.hunger_damage" = { class = "partial", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/PlayerFood.java" }
-"player.locator_bar" = { class = "absent", observed_by = "locator_pkts_per_bot_s", note = "the playerwaypoints game rule exists but takes a number" }
-"block.redstone" = { class = "partial", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/block/BlockRedstoneWire.java" }
-"block.random_ticks" = { class = "partial", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/level/Level.java#L1738-L1763", note = "randomtickspeed game rule; chunk-settings.ticking-per-tick (40) caps the chunks ticked per level per tick, so with 100 players each tick covers each player's own chunk and one random chunk within 3 of it" }
-"block.fluids" = { class = "partial", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/block/BlockLiquid.java" }
-"block.falling" = { class = "partial", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/block/BlockFallable.java" }
-"world.lighting" = { class = "partial", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/level/Level.java", note = "chunk-settings.light-updates" }
-"world.dimensions" = { class = "partial", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/Server.java", note = "the Nether and the End are separate levels, loaded at start" }
-"world.autosave" = { class = "vanilla", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/Server.java", note = "performance-settings.ticks-per-autosave" }
-"commands.vanilla_set" = { class = "partial", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/tree/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/command/defaults", note = "selectors, execute, summon, tickingarea and gamerule from the console; no querytarget or loot" }
-"net.encryption" = { class = "vanilla", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/Server.java", note = "not exercised: benchmarks run offline" }
-
 # Values the harness writes into Nukkit-MOT's config files, one table per override category
 # (docs/methodology.md#fairness-and-feature-parity).
 #

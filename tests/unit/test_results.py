@@ -33,11 +33,11 @@ from bedrock_bench.model import (
     WorldInfo,
 )
 from bedrock_bench.sampling.series import MACHINE_COLUMNS, JsonlWriter, SeriesWriter
-from bedrock_bench.workload import WORKLOAD, with_overrides
+from bedrock_bench.workload import WORKLOAD
 from fixtures.runs import synthetic
 
 RUN_ID_PATTERN = re.compile(r"^[0-9]{8}T[0-9]{6}Z-[a-z][a-z0-9_]*@[0-9A-Za-z._+-]+-r[0-9]+-[0-9a-f]{4}$")
-UNIT_WORKLOAD = with_overrides(WORKLOAD, {"exercises": ["player.physics", "terrain.vanilla_generator"]})
+UNIT_WORKLOAD = WORKLOAD
 ARM = Arm(id="bds@1.26.52.3", server="bds", version="1.26.52.3")
 PLACEMENT = Placement(server_cpus=(0, 1), bot_cpus=(2, 3), harness_cpus=(2, 3), priority="normal", kind="physical")
 MACHINE = Machine(
@@ -68,7 +68,6 @@ def record(**changes: Any) -> dict[str, Any]:
         ),
         placement=PLACEMENT,
         install=INSTALL,
-        parity={"file_sha256": None, "range": None, "row": {}, "fidelity": None, "does_less": []},
         bot={"module": "loadbot", "protocol": 2193, "argv": ["loadbot"]},
         origin=Origin(1_000, 1_791_813_480_000),
         idle_foreign_cores=-0.01,
@@ -195,46 +194,6 @@ class TestRecord:
         assert doc["config_files"] == [{"path": "server.properties", "written_sha256": "a" * 64, "after_sha256": None}]
         assert doc["world"] == {"fresh": True, "generator": "vanilla"}
         assert doc["install"]["exe_sha256_before"] == "b" * 64
-
-
-class TestParity:
-    def test_row_covers_every_exercised_feature(self, write_file: Callable[[str, str], Path]) -> None:
-        path = write_file(
-            "configs/x/server.toml",
-            'schema = 1\nserver = "x"\n[features.range."1.2"]\nfidelity = "V1"\n'
-            '"player.physics" = { class = "absent", observed_by = "airborne_frac_steady" }\n'
-            '"block.redstone" = { class = "vanilla", evidence = "https://example.org" }\n',
-        )
-        parity = results.parity_record(path, "1.2.3", UNIT_WORKLOAD)
-        assert parity["range"] == "1.2" and parity["fidelity"] == "V1"
-        assert parity["row"] == {
-            "block.redstone": "vanilla",
-            "player.physics": "absent",
-            "terrain.vanilla_generator": "unknown",
-        }
-        assert parity["does_less"] == ["player.physics", "terrain.vanilla_generator"]
-        assert len(parity["file_sha256"]) == 64
-
-    def test_no_matching_range(self, write_file: Callable[[str, str], Path]) -> None:
-        path = write_file(
-            "configs/x/server.toml",
-            'schema = 1\nserver = "x"\n[features.range."2"]\nfidelity = "V0"\n'
-            '"player.physics" = { class = "vanilla", evidence = "https://example.org" }\n',
-        )
-        parity = results.parity_record(path, "1.0", UNIT_WORKLOAD)
-        assert parity["range"] is None and parity["fidelity"] is None
-        assert set(parity["row"].values()) == {"unknown"}
-
-    def test_missing_file(self, tmp_path: Path) -> None:
-        parity = results.parity_record(tmp_path / "servers" / "none" / "server.toml", "1.0", UNIT_WORKLOAD)
-        assert parity["file_sha256"] is None
-        assert parity["does_less"] == list(UNIT_WORKLOAD.exercises)
-
-    def test_relative_paths_resolve_in_the_checkout(self) -> None:
-        parity = results.parity_record("servers/bds/server.toml", "1.26.52.3", WORKLOAD)
-        assert parity["file_sha256"] is not None
-        assert parity["fidelity"] == "V0"
-        assert (project_root() / "servers" / "bds" / "server.toml").is_file()
 
 
 class TestInterference:

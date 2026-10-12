@@ -143,23 +143,6 @@
         }
       }
     },
-    "parity": {
-      "description": "hash of the [features] table, the matching version range, the class of each exercised feature, fidelity and what the arm does less than vanilla",
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["row"],
-      "properties": {
-        "file_sha256": { "$ref": "#/$defs/sha256_or_null" },
-        "range": { "type": ["string", "null"], "description": "version prefix of the matching [range] table" },
-        "row": {
-          "type": "object",
-          "propertyNames": { "$ref": "#/$defs/feature_key" },
-          "additionalProperties": { "enum": ["vanilla", "partial", "altered", "absent", "unknown"] }
-        },
-        "fidelity": { "enum": ["V0", "V1", "V2", null] },
-        "does_less": { "type": "array", "items": { "$ref": "#/$defs/feature_key" } }
-      }
-    },
     "bot": {
       "description": "bot module, protocol, binary sha256, build, Go and gophertunnel versions, patches and argv",
       "type": "object",
@@ -369,7 +352,7 @@
       "then": {
         "required": [
           "official", "nonstandard", "session", "artifacts", "install", "server", "overrides", "config_files",
-          "parity", "bot", "machine", "placement", "world", "marks", "settle", "interventions", "spread", "health",
+          "bot", "machine", "placement", "world", "marks", "settle", "interventions", "spread", "health",
           "interference", "files"
         ]
       }
@@ -381,7 +364,6 @@
     "version": { "type": "string", "pattern": "^[0-9A-Za-z][0-9A-Za-z._-]*$" },
     "arm_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*@[0-9A-Za-z][0-9A-Za-z._-]*$", "description": "<server>@<version>" },
     "flag": { "type": "string", "pattern": "^[a-z][a-z0-9_]*(:[A-Za-z0-9_.-]+)?$" },
-    "feature_key": { "type": "string", "pattern": "^[a-z]+\\.[a-z_]+$" },
     "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
     "sha256_or_null": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
     "count": { "type": "integer", "minimum": 0 },

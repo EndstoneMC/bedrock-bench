@@ -260,7 +260,6 @@ def _server(runs: Sequence[RunRecord], metrics: Sequence[ReportMetric]) -> dict[
     for record in runs:
         for flag in record.flags:
             flags[flag] = flags.get(flag, 0) + 1
-    last = runs[-1].run
     return {
         "tag": runs[-1].tag,
         "arm": _pick(runs[-1].arm, ("server", "version", "bds", "python", "artifact")),
@@ -279,7 +278,6 @@ def _server(runs: Sequence[RunRecord], metrics: Sequence[ReportMetric]) -> dict[
             for r in runs
         ],
         "flags": dict(sorted(flags.items())),
-        "differences": list(last.get("differences") or ()),
         "overrides": _footnoted_overrides(runs),
         "metrics": {m.column: core_metric([r.metrics.get(m.metric) for r in ok], m.stat) for m in metrics},
     }

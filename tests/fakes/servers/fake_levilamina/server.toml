@@ -1,34 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
-# Declared parity of the fake_levilamina test adapter. Test data for the report, not a real server.
+# The fake_levilamina test adapter: test data, not a real server.
 schema = 1
 server = "fake_levilamina"
 
 [benchmark]
 version = "1.0.0"
-
-[features]
-
-[features.range."*"]
-fidelity = "V0"
-"player.server_authoritative_movement" = { class = "vanilla", observed_by = "corrections_per_bot_s" }
-"player.physics" = { class = "vanilla", evidence = "tests/fakes/fake_server.py" }
-"chunks.client_side_generation" = { class = "vanilla", observed_by = "csg_effective" }
-"block.falling" = { class = "unknown" }
-"block.fluids" = { class = "unknown" }
-"block.random_ticks" = { class = "unknown" }
-"block.redstone" = { class = "unknown" }
-"chunks.subchunk_requests" = { class = "unknown" }
-"commands.vanilla_set" = { class = "unknown" }
-"entity.collision_push" = { class = "unknown" }
-"entity.item_entities" = { class = "unknown" }
-"entity.mob_ai" = { class = "unknown" }
-"entity.mob_spawning" = { class = "unknown" }
-"net.encryption" = { class = "unknown" }
-"player.hunger_damage" = { class = "unknown" }
-"player.locator_bar" = { class = "unknown" }
-"terrain.any_generator" = { class = "unknown" }
-"terrain.structures" = { class = "unknown" }
-"terrain.vanilla_generator" = { class = "unknown" }
-"world.autosave" = { class = "unknown" }
-"world.dimensions" = { class = "unknown" }
-"world.lighting" = { class = "unknown" }

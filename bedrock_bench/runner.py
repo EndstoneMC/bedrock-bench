@@ -203,7 +203,6 @@ def _measure(
         machine=results.machine_record(machine, provenance.machine_fingerprint(), host.machine_facts(topology), tsc_hz),
         placement=placement,
         install=install,
-        parity=results.parity_record(adapter.features_file, arm.version, workload),
         bot=bot.provenance,
         origin=origin,
         idle_foreign_cores=idle_foreign,

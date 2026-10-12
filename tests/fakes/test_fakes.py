@@ -579,7 +579,7 @@ def test_entry_point_registers_every_fake_adapter(tmp_path: Path, monkeypatch: p
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# Fidelity against the real adapters, and the integration workspace
+# Matching the real adapters, and the integration workspace
 # --------------------------------------------------------------------------------------------------------------------
 
 #: Families whose console output is the server's own, not a bench helper's, so the real adapter must read the fake.

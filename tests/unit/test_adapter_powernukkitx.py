@@ -106,7 +106,6 @@ class TestContract:
         catalog = config.load_artifacts("powernukkitx")
         assert catalog.get("3.0.5", "windows").url.endswith("/3.0.5/powernukkitx.jar")
         assert catalog.versions["3.0.5"].meta["commit"].startswith("9813b75")
-        assert config.load_features("powernukkitx").row("3.0.5") is not None
 
     def test_nightly_pin(self) -> None:
         catalog = config.load_artifacts("powernukkitx")
@@ -119,12 +118,6 @@ class TestContract:
         for platform in ("windows", "linux"):
             jdk = runtimes.get(entry.meta["runtime"], platform)
             assert {"home", "java", "javac", "jcmd"} <= set(jdk.extra), platform
-
-    def test_nightly_feature_range(self) -> None:
-        features = config.load_features("powernukkitx")
-        assert features.row(NIGHTLY).prefix == "nightly"
-        assert features.row("nightly.0123abc").prefix == "nightly", "a later nightly keeps the range"
-        assert features.row("3.0.5").prefix == "3.0"
 
     def test_dialect_samples(self) -> None:
         with open(LOGS / "powernukkitx.toml", "rb") as fh:

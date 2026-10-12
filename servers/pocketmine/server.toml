@@ -24,37 +24,6 @@ url = "https://github.com/pmmp/PocketMine-MP/releases/download/5.44.3/PocketMine
 sha256 = "d8b4d87a64124d83659f629c87d6a8e0e142192f6c719fe4684272ff44105539"
 size = 3354057
 
-# PocketMine-MP is an independent implementation of the game in PHP: no Mojang code, no deliberate shortcuts, but many
-# vanilla systems are missing or simpler (fidelity V1). The rows observed by a counter were confirmed in the legacy
-# cross-server runs: no movement corrections, no locator-bar packets, bots keep hovering at the teleport height.
-# Keys without evidence at hand are `unknown`; none of them is exercised by a scenario.
-[features]
-
-[features.range."5.44"]
-fidelity = "V1"
-"terrain.vanilla_generator" = { class = "absent", evidence = "https://github.com/pmmp/PocketMine-MP/tree/5.44.3/src/world/generator", note = "own Normal generator; terrain differs from BDS for the same seed" }
-"terrain.any_generator" = { class = "partial", evidence = "https://github.com/pmmp/PocketMine-MP/tree/5.44.3/src/world/generator", note = "noise terrain with ores and trees" }
-"terrain.structures" = { class = "absent", evidence = "https://github.com/pmmp/PocketMine-MP/tree/5.44.3/src/world/generator" }
-"chunks.client_side_generation" = { class = "absent", evidence = "https://github.com/pmmp/PocketMine-MP/blob/5.44.3/src/network/mcpe/ChunkRequestTask.php", observed_by = "csg_effective" }
-"chunks.subchunk_requests" = { class = "absent", evidence = "https://github.com/pmmp/PocketMine-MP/blob/5.44.3/src/network/mcpe/ChunkRequestTask.php", note = "whole columns in LevelChunk packets" }
-"entity.mob_spawning" = { class = "unknown" }
-"entity.mob_ai" = { class = "unknown" }
-"entity.collision_push" = { class = "unknown" }
-"entity.item_entities" = { class = "unknown" }
-"player.server_authoritative_movement" = { class = "absent", observed_by = "corrections_per_bot_s", note = "no CorrectPlayerMovePrediction packets" }
-"player.physics" = { class = "absent", observed_by = "airborne_frac_steady", note = "bots teleported to y=300 keep hovering" }
-"player.hunger_damage" = { class = "partial", evidence = "https://github.com/pmmp/PocketMine-MP/blob/5.44.3/src/entity/HungerManager.php" }
-"player.locator_bar" = { class = "absent", observed_by = "locator_pkts_per_bot_s" }
-"block.redstone" = { class = "unknown" }
-"block.random_ticks" = { class = "partial", evidence = "https://github.com/pmmp/PocketMine-MP/blob/5.44.3/resources/pocketmine.yml", note = "chunk-ticking.blocks-per-subchunk-per-tick" }
-"block.fluids" = { class = "unknown" }
-"block.falling" = { class = "unknown" }
-"world.lighting" = { class = "unknown" }
-"world.dimensions" = { class = "unknown" }
-"world.autosave" = { class = "vanilla", evidence = "https://github.com/pmmp/PocketMine-MP/blob/5.44.3/resources/pocketmine.yml", note = "ticks-per.autosave" }
-"commands.vanilla_set" = { class = "partial", evidence = "https://github.com/pmmp/PocketMine-MP/tree/5.44.3/src/command/defaults", note = "no gamerule, fill, setblock, summon or querytarget" }
-"net.encryption" = { class = "vanilla", evidence = "https://github.com/pmmp/PocketMine-MP/blob/5.44.3/src/network/mcpe/encryption/EncryptionContext.php", note = "not exercised: benchmarks run offline" }
-
 # Values the harness writes into PocketMine-MP's config files, one table per override category
 # (docs/methodology.md#fairness-and-feature-parity).
 #

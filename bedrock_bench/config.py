@@ -8,8 +8,7 @@ Server files are referenced by path or by bare name. A bare name resolves inside
 ``bds`` -> ``servers/bds/server.toml``. Machine profiles are always paths.
 
 A server file holds ``schema = 1``, an optional ``server`` that must match its folder, and three tables:
-``[artifacts]`` (download pins), ``[features]`` (declared parity) and ``[config]`` (the values written into the
-server's config files, read by its adapter).
+``[artifacts]`` (download pins), ``[benchmark]`` (the default version) and ``[config]`` (target file -> template).
 """
 
 from __future__ import annotations
@@ -30,18 +29,12 @@ from typing import Any
 
 from bedrock_bench.model import (
     ARTIFACT_SOURCES,
-    FEATURE_KEYS,
     PRIORITIES,
     Arm,
     ArtifactCatalog,
     ArtifactSpec,
     ArtifactVersion,
     Benchmark,
-    FeatureCell,
-    FeatureClass,
-    FeatureFile,
-    FeatureRange,
-    Fidelity,
     Gates,
     Machine,
     OverrideCategory,
@@ -63,7 +56,7 @@ _SINGULAR = {
 }
 
 SERVER_FILE = "server.toml"
-SERVER_TABLES = ("artifacts", "features", "config", "benchmark")
+SERVER_TABLES = ("artifacts", "config", "benchmark")
 #: JDK and PHP pins shared by the standalone servers, an ``[artifacts]`` table like a server file's.
 RUNTIMES_FILE = "servers/runtimes.toml"
 
@@ -707,58 +700,6 @@ def _relative_paths(paths: tuple[str, ...]) -> None:
     for item in paths:
         if not item or item.startswith(("/", "\\")) or re.match(r"^[A-Za-z]:", item) or ".." in Path(item).parts:
             raise ValueError(f"must be a relative path inside the archive, got {item!r}")
-
-
-# --------------------------------------------------------------------------------------------------------------------
-# Feature parity files
-# --------------------------------------------------------------------------------------------------------------------
-
-
-def load_features(ref: str | Path) -> FeatureFile:
-    """The ``[features]`` table of a server file."""
-    path, table = load_server_table(ref, "features")
-    return parse_features(table, file=path, server=_input_name(path), where="features")
-
-
-def parse_features(data: Mapping[str, Any], *, file: Path | None = None, server: str, where: str = "") -> FeatureFile:
-    """A ``[features]`` table, hashed alone so that edits elsewhere in the server file keep recorded parity valid."""
-    top = _Table(dict(data), file=file, where=where)
-    ranges_table = top.table("range", required=True)
-    ranges = []
-    for prefix, raw in ranges_table.items():
-        if prefix != "*" and not VERSION_RE.match(prefix):
-            raise ranges_table.error(prefix, "is not a version prefix")
-        ranges.append(_read_feature_range(ranges_table.sub(prefix, raw), prefix))
-    if not ranges:
-        raise ranges_table.error(None, "declares no version ranges")
-    top.finish()
-    return FeatureFile(
-        server=server,
-        path=file if file is not None else Path(f"{server}.toml"),
-        sha256=sha256_json(data),
-        ranges=tuple(ranges),
-    )
-
-
-def _read_feature_range(table: _Table, prefix: str) -> FeatureRange:
-    fidelity = Fidelity(table.get("fidelity", str, choices=tuple(Fidelity)))
-    cells: dict[str, FeatureCell] = {}
-    for key, raw in table.items():
-        if key == "fidelity":
-            continue
-        if key not in FEATURE_KEYS:
-            raise table.error(key, "unknown feature key (see docs/methodology.md#fairness-and-feature-parity)")
-        cell = table.sub(key, raw)
-        cls = FeatureClass(cell.get("class", str, choices=tuple(FeatureClass)))
-        evidence = cell.get("evidence", str, None, pattern=r"^\S.*$")
-        observed_by = cell.get("observed_by", str, None, pattern=METRIC_ID_RE.pattern)
-        note = cell.get("note", str, None)
-        cell.finish()
-        if cls is not FeatureClass.UNKNOWN and evidence is None and observed_by is None:
-            raise cell.error(None, "needs an evidence link or an observed_by metric unless the class is unknown")
-        cells[key] = FeatureCell(key=key, cls=cls, evidence=evidence, observed_by=observed_by, note=note)
-    table.finish()
-    return FeatureRange(prefix=prefix, fidelity=fidelity, cells=cells)
 
 
 def _equals(expected: Any, message: str) -> Callable[[Any], None]:

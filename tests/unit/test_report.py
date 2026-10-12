@@ -33,10 +33,6 @@ RESCUE = {
     "value": "0",
     "reason": "the default limit crashes the server at about 23 s",
 }
-FLAT = [
-    {"text": "own terrain generator", "source": "https://example.invalid/generator"},
-    {"text": "no locator bar"},
-]
 
 
 def metric(value: Any, window: str = "steady", **extra: Any) -> dict[str, Any]:
@@ -52,7 +48,6 @@ def write_run(
     bds: str | None = None,
     status: str = "ok",
     reasons: Sequence[str] = (),
-    differences: Sequence[dict[str, str]] = (),
     overrides: Sequence[dict[str, Any]] = (),
     flags: Sequence[str] = (),
     profile: str | None = None,
@@ -69,7 +64,6 @@ def write_run(
         nonstandard=[],
         arm={"server": server, "version": version, "bds": bds, "python": "3.13" if bds else None, "artifact": None},
         workload=WORKLOAD,
-        differences=list(differences),
     )
     run["overrides"] += list(overrides)
     if profile:
@@ -125,7 +119,6 @@ def session(report_dir: Path, *, pocketmine_fails: bool = True) -> None:
             {} if failed else headline(5.0, 0.0, 1.3, 5120.0, 400.0, tick_cpu_ms_per_tick_steady=NO_TICK),
             status="server_failed" if failed else "ok",
             reasons=["server_alive: exited with code 255"] if failed else (),
-            differences=FLAT,
             overrides=[RESCUE],
         )
 
@@ -168,7 +161,7 @@ class TestRender:
 
     def test_sections_in_paper_order(self, markdown: str) -> None:
         titles = [line for line in markdown.splitlines() if line.startswith("#")]
-        assert titles == ["# Results", "## Environment", "## Results", "## Differences from vanilla BDS", "## Notes"]
+        assert titles == ["# Results", "## Environment", "## Results", "## Notes"]
 
     def test_environment(self, markdown: str) -> None:
         env = section(markdown, "Environment")
@@ -192,11 +185,6 @@ class TestRender:
         assert bds[7:] == ["200 [200, 200]", "300 [300, 300]", "400 [400, 400]", "150 [150, 150]", "317 [317, 317]"]
         pocketmine = table_row(results, "`pocketmine@5.44.3`")
         assert pocketmine[1:4] == ["2/3", "5.00 [5.00, 5.00]", "n/a"]
-
-    def test_differences(self, markdown: str) -> None:
-        text = section(markdown, "Differences from vanilla BDS")
-        assert "`bds@1.26.52.3`: none." in text and "`endstone@0.11.14`: none." in text
-        assert "- own terrain generator ([source](https://example.invalid/generator))\n- no locator bar" in text
 
     def test_notes(self, markdown: str) -> None:
         notes = [line for line in section(markdown, "Notes").splitlines() if line]

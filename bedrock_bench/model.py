@@ -93,24 +93,6 @@ class Availability(StrEnum):
     UNAVAILABLE = "unavailable"  # should exist but could not be computed; ``reason`` says why
 
 
-class FeatureClass(StrEnum):
-    """Declared parity of one feature against vanilla BDS, from a server file's ``[features]`` table."""
-
-    VANILLA = "vanilla"
-    PARTIAL = "partial"
-    ALTERED = "altered"  # deliberate deviation to save work
-    ABSENT = "absent"
-    UNKNOWN = "unknown"  # not allowed in a published table for a key the workload exercises
-
-
-class Fidelity(StrEnum):
-    """Optimisation layer of a server build: vanilla code paths, equivalent behaviour, or changed gameplay."""
-
-    V0 = "V0"
-    V1 = "V1"
-    V2 = "V2"
-
-
 class Gate(StrEnum):
     """Validity gates (docs/methodology.md#statistics-and-run-status).
 
@@ -149,9 +131,7 @@ class Flag(StrEnum):
 
     SETTLE_CAPPED = "settle_capped"
     VIEWS_INCOMPLETE = "views_incomplete"
-    PARITY_MISMATCH = "parity_mismatch"
     BOT_PROTOCOL_DIFFERS = "bot_protocol_differs"
-    TERRAIN_MISMATCH = "terrain_mismatch"
     DIFFERENT_BDS_BUILD = "different_bds_build"
     KNOWN_ISSUE = "known_issue"
     UNPUBLISHED_ARTIFACT = "unpublished_artifact"
@@ -185,34 +165,6 @@ PLATFORMS = ("windows", "linux")
 PLACEMENT_KINDS = ("physical", "vcpu")
 GENERATORS = ("vanilla", "custom", "flat")
 ARTIFACT_SOURCES = ("mojang", "pypi", "github", "maven", "web", "build", "local")
-
-#: Feature keys of the parity matrix (docs/methodology.md#fairness-and-feature-parity); add new keys in both places.
-FEATURE_KEYS = frozenset(
-    {
-        "terrain.vanilla_generator",
-        "terrain.any_generator",
-        "terrain.structures",
-        "chunks.client_side_generation",
-        "chunks.subchunk_requests",
-        "entity.mob_spawning",
-        "entity.mob_ai",
-        "entity.collision_push",
-        "entity.item_entities",
-        "player.server_authoritative_movement",
-        "player.physics",
-        "player.hunger_damage",
-        "player.locator_bar",
-        "block.redstone",
-        "block.random_ticks",
-        "block.fluids",
-        "block.falling",
-        "world.lighting",
-        "world.dimensions",
-        "world.autosave",
-        "commands.vanilla_set",
-        "net.encryption",
-    }
-)
 
 # --------------------------------------------------------------------------------------------------------------------
 # Servers under test
@@ -295,7 +247,7 @@ class Placement:
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# Artifacts and features
+# Artifacts
 # --------------------------------------------------------------------------------------------------------------------
 
 
@@ -336,39 +288,6 @@ class ArtifactCatalog:
             if key in entry.platforms:
                 return entry.platforms[key]
         raise KeyError(f"{self.server} {version}: no artifact for platform {platform!r}")
-
-
-@dataclass(frozen=True)
-class FeatureCell:
-    key: str
-    cls: FeatureClass
-    evidence: str | None = None  # link
-    observed_by: str | None = None  # metric id that observes the feature
-    note: str | None = None
-
-
-@dataclass(frozen=True)
-class FeatureRange:
-    prefix: str  # version prefix ("5.44" matches "5.44" and "5.44.3"); "*" matches every version
-    fidelity: Fidelity
-    cells: Mapping[str, FeatureCell]
-
-
-@dataclass(frozen=True)
-class FeatureFile:
-    server: str
-    path: Path
-    sha256: str
-    ranges: tuple[FeatureRange, ...]
-
-    def row(self, version: str) -> FeatureRange | None:
-        """The range with the longest prefix that matches ``version``."""
-        matches = [
-            rng
-            for rng in self.ranges
-            if rng.prefix == "*" or version == rng.prefix or version.startswith(rng.prefix + ".")
-        ]
-        return max(matches, key=lambda rng: (rng.prefix != "*", len(rng.prefix)), default=None)
 
 
 # --------------------------------------------------------------------------------------------------------------------

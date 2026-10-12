@@ -133,13 +133,6 @@
   "nonstandard": [],
   "official": false,
   "overrides": [],
-  "parity": {
-    "does_less": [],
-    "fidelity": null,
-    "file_sha256": null,
-    "range": null,
-    "row": {}
-  },
   "placement": {
     "bot_cpus": [
       4,
@@ -226,10 +219,6 @@
         "stat_interval_s": 10.0,
         "walk": "circle"
       },
-      "exercises": [
-        "terrain.vanilla_generator",
-        "player.physics"
-      ],
       "grid": {
         "columns": 11,
         "origin": 1280,
@@ -332,7 +321,7 @@
         "seed": 20261010
       }
     },
-    "sha256": "7a7b2a0fc6e3c6d22be4d5b64df509f8609fbe625d57eef17c4c2ce8cce3729b"
+    "sha256": "b0041ba4d937fb443a5a171b9706a00939061b02a528e780f40d222628d1b862"
   },
   "world": {
     "fresh": true,

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import os
-import re
 import tomllib
 import zipfile
 from pathlib import Path
@@ -18,7 +17,6 @@ from bedrock_bench.adapters.bdsfamily import BDS_DIALECT, Properties, load_prope
 from bedrock_bench.cache import Cache
 from bedrock_bench.config import ConfigError
 from bedrock_bench.model import (
-    FEATURE_KEYS,
     Arm,
     LogLine,
     Machine,
@@ -130,7 +128,6 @@ class TestContract:
     def test_registered(self) -> None:
         assert adapters.get("bds") is BdsAdapter
         assert BdsAdapter.class_problems() == []
-        assert BdsAdapter.features_file == "servers/bds/server.toml"
         assert BdsAdapter.protocol == 2193 and BdsAdapter.supports_csg
         assert BdsAdapter.bot_compat_flags == ()
 
@@ -381,18 +378,6 @@ class TestDataFiles:
                 assert spec.url.startswith("https://www.minecraft.net/bedrockdedicatedserver/")
                 assert spec.name == f"bedrock-server-{version}.zip"
                 assert spec.executables == (bdsfamily.exe_name(platform),)
-
-    def test_features_file(self) -> None:
-        features = config.load_features("bds")
-        row = features.row("1.26.52.3")
-        assert row is not None and row.fidelity.value == "V0"
-        assert set(row.cells) == FEATURE_KEYS
-        assert all(cell.cls.value == "vanilla" for cell in row.cells.values())
-
-    def test_methodology_lists_every_feature_key(self) -> None:
-        text = (ROOT / "docs" / "methodology.md").read_text(encoding="utf-8")
-        listed = set(re.findall(r"^\| `([a-z]+\.[a-z_]+)` \|", text, flags=re.MULTILINE))
-        assert listed == FEATURE_KEYS
 
     def test_fetch_needs_eula_for_download(self, adapter: BdsAdapter, tmp_path: Path) -> None:
         with fetch.using(fetch.FetchOptions(report=lambda _: None)), pytest.raises(fetch.EulaNotAccepted):

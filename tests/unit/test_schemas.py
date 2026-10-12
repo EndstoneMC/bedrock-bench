@@ -15,8 +15,6 @@ from bedrock_bench.model import (
     PLACEMENT_KINDS,
     PRIORITIES,
     Availability,
-    FeatureClass,
-    Fidelity,
     OverrideCategory,
     Status,
     sha256_json,
@@ -71,8 +69,6 @@ def test_schema_enums_match_model() -> None:
     assert defs["status"]["enum"] == [s.value for s in Status]
     assert props["overrides"]["items"]["properties"]["category"]["enum"] == [c.value for c in OverrideCategory]
     assert props["artifacts"]["items"]["properties"]["source"]["enum"] == list(ARTIFACT_SOURCES)
-    assert props["parity"]["properties"]["row"]["additionalProperties"]["enum"] == [c.value for c in FeatureClass]
-    assert props["parity"]["properties"]["fidelity"]["enum"][:-1] == [f.value for f in Fidelity]
     assert props["placement"]["properties"]["priority"]["enum"] == list(PRIORITIES)
     assert props["placement"]["properties"]["kind"]["enum"] == list(PLACEMENT_KINDS)
     assert props["harness"]["properties"]["backend"]["enum"] == ["native-windows", "native-linux"]
@@ -149,7 +145,6 @@ class TestRun:
             (lambda r: r["overrides"][0].update(reason=""), "empty reason"),
             (lambda r: r["install"].update(tree_sha256="xyz"), "sha256"),
             (lambda r: r["placement"].update(kind="container"), "placement kind"),
-            (lambda r: r["parity"]["row"].update({"player.physics": "maybe"}), "parity class"),
             (lambda r: r["marks"].update(steady0="late"), "mark type"),
             (lambda r: r["arm"].update(server="Endstone"), "server name"),
         ],

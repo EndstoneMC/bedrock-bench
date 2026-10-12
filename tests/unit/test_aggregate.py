@@ -200,19 +200,6 @@ class TestSummarize:
         assert by_tag(summarize(runs))["endstone@0.11.14"]["flags"] == {"different_bds_build": 3}
         assert by_tag(summarize(_session()))["endstone@0.11.14"]["flags"] == {}
 
-    def test_differences_and_footnoted_overrides(self) -> None:
-        overrides = [
-            {"category": "harness", "file": "a", "key": "k", "default": None, "value": "1", "reason": "r"},
-            {"category": "rescue", "file": "b", "key": "k", "default": "1", "value": "0", "reason": "r"},
-        ]
-        differences = [{"text": "flat worlds only", "source": "https://example.invalid/conf.go"}]
-        run = make_record(
-            run_doc("dragonfly", "1", overrides=overrides, differences=differences), metrics_doc(tps_window_steady=20)
-        )
-        server = summarize([run])["servers"][0]
-        assert server["differences"] == differences
-        assert [o["category"] for o in server["overrides"]] == ["rescue"]
-
     def test_environment(self) -> None:
         env = summarize(_session())["environment"]
         assert env["machine"] == {"cpu": "Test CPU"}

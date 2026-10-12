@@ -244,23 +244,6 @@ def test_unknown_positions_are_none(cls: type[ServerAdapter]) -> None:
     assert make(cls).parse_positions([]) is None
 
 
-@every_adapter
-def test_feature_file_covers_exercised_keys(cls: type[ServerAdapter]) -> None:
-    path = Path(cls.features_file)
-    if not path.is_absolute():
-        path = ROOT / path
-    assert path.is_file(), f"missing feature file {cls.features_file}"
-    features = config.load_features(path)
-    assert features.server == cls.name
-    exercised = {key for workload in workloads_for(cls) for key in workload.exercises}
-    versions = pinned_versions(cls)
-    rows = [(v, features.row(v)) for v in versions] if versions else [(r.prefix, r) for r in features.ranges]
-    for version, row in rows:
-        assert row is not None, f"no feature range covers pinned version {version}"
-        missing = sorted(exercised - set(row.cells))
-        assert not missing, f"range {row.prefix!r} does not declare exercised keys {missing}"
-
-
 # --------------------------------------------------------------------------------------------------------------------
 # Shared behaviour in adapters/base.py and the registry
 # --------------------------------------------------------------------------------------------------------------------
@@ -355,13 +338,6 @@ def test_default_commands_use_vanilla_syntax() -> None:
     assert adapter.cmd_tp("a07", 1280.5, 300, 1920) == "tp a07 1280.5 300 1920"
     assert adapter.cmd_effects("a b")[0].startswith('effect "a b" resistance infinite 255')
     assert quote_player("a07") == "a07"
-
-
-def test_features_file_defaults_to_the_adapter_name() -> None:
-    class Probe(ServerAdapter):
-        name = "probe"
-
-    assert Probe.features_file == "configs/probe/server.toml"
 
 
 def test_crash_artifacts_are_files_modified_since_the_run_started(tmp_path: Path) -> None:

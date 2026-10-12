@@ -531,15 +531,6 @@ class TestDataFiles:
         (tmp_path / "console.go").write_bytes(b"package main\n")
         assert dragonfly.source_sha256(tmp_path) != first
 
-    def test_exercised_features_are_declared_with_evidence(self) -> None:
-        features = config.load_features("dragonfly")
-        row = features.row(VERSION)
-        assert row is not None
-        for key in WORKLOAD.exercises:
-            cell = row.cells[key]
-            assert cell.cls.value != "unknown", key
-            assert cell.evidence or cell.observed_by, key
-
     def test_settings_match_a_real_build(self) -> None:
         """With BBENCH_DFBENCH pointing at a built dfbench, every setting must be a key of its defaults."""
         exe = os.environ.get("BBENCH_DFBENCH")

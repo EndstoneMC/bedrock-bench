@@ -114,7 +114,7 @@ class TestContract:
         assert AltayAdapter.protocol == 2193 and bots.module_for_protocol(AltayAdapter.protocol) == "loadbot"
         assert not AltayAdapter.supports_csg and AltayAdapter.bot_compat_flags == ()
         assert AltayAdapter.tick_thread_rule == "first_created"
-        assert AltayAdapter.features_file == AltayAdapter.config_template == "servers/altay/server.toml"
+        assert AltayAdapter.config_template == "servers/altay/server.toml"
         assert (ROOT / AltayAdapter.helper_source).is_file()
         assert AltayAdapter.helper_source != PocketMineAdapter.helper_source
 
@@ -126,13 +126,6 @@ class TestContract:
         spec = version.platforms["any"]
         assert spec.url.startswith("https://github.com/altayofficial/Altay/releases/download/5.44.7/")
         assert spec.sha256 is not None and spec.size
-
-    def test_parity_evidence_points_at_the_pinned_tag(self) -> None:
-        row = config.load_features("altay").row("5.44.7")
-        assert row is not None and row.fidelity.value == "V1"
-        links = [cell.evidence for cell in row.cells.values() if cell.evidence]
-        assert links and all(link.startswith("https://github.com/altayofficial/Altay/") for link in links)
-        assert all("/5.44.7/" in link for link in links)
 
     def test_dialect_samples(self) -> None:
         samples = tomllib.loads((LOGS / "altay.toml").read_text(encoding="utf-8"))["sample"]

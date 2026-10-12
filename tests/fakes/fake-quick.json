@@ -26,6 +26,5 @@
     "spread": {"query_timeout_s": 3.0},
     "steady": {"delay_s": 0.3, "duration_s": 3.0},
     "teardown": {"bot_quit_timeout_s": 3.0, "stop_timeout_s": 10.0}
-  },
-  "exercises": ["player.server_authoritative_movement", "player.physics"]
+  }
 }

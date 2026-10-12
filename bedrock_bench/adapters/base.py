@@ -196,7 +196,6 @@ class ServerAdapter(abc.ABC):
     """Base class of every server adapter.
 
     A concrete subclass that declares ``name`` is registered automatically (see ``adapters/__init__.py``).
-    ``features_file`` defaults to ``configs/<name>/server.toml``.
     """
 
     name: ClassVar[str]
@@ -204,15 +203,9 @@ class ServerAdapter(abc.ABC):
     protocol: ClassVar[int]  # network protocol; selects the bot build (2193 -> loadbot, 1001 -> legacy1001)
     bot_compat_flags: ClassVar[tuple[str, ...]] = ()  # subset of ALLOWED_COMPAT
     supports_csg: ClassVar[bool] = False
-    features_file: ClassVar[str]
     dialect: ClassVar[Dialect]
     tick_thread_rule: ClassVar[str] = "none"
     crash_paths: ClassVar[tuple[str, ...]] = ()  # files or folders (relative to the server dir, env vars expanded)
-
-    def __init_subclass__(cls, **kwargs: Any) -> None:
-        super().__init_subclass__(**kwargs)
-        if "name" in cls.__dict__ and "features_file" not in cls.__dict__:
-            cls.features_file = f"configs/{cls.name}/server.toml"
 
     def __init__(self, arm: Arm, machine: Machine) -> None:
         self.arm = arm
@@ -237,8 +230,6 @@ class ServerAdapter(abc.ABC):
         extra_flags = set(cls.bot_compat_flags) - ALLOWED_COMPAT
         if extra_flags:
             problems.append(f"bot_compat_flags outside the allowlist {sorted(ALLOWED_COMPAT)}: {sorted(extra_flags)}")
-        if not isinstance(getattr(cls, "features_file", None), str):
-            problems.append("features_file must be a path string")
         if not isinstance(getattr(cls, "dialect", None), Dialect):
             problems.append("dialect must be a Dialect")
         try:

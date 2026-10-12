@@ -12,6 +12,6 @@ integration tests and the adapter contract test use them. Every module here is s
 - ``bench.py``: ``FakeBench``, a temporary workspace that runs ``bbench`` against the fakes.
 - ``fake-quick.json``: the workload of runs against the fakes, four bots and every phase scaled down to seconds.
 - ``scripts/*.json``: behaviour scripts, picked with ``$BBENCH_FAKE_BEHAVIOUR``.
-- ``servers/*/server.toml``: declared parity of the fake adapters, V0 for the BDS family and V1 for the rest.
+- ``servers/*/server.toml``: the ``[benchmark]`` table of each fake adapter.
 - ``test_fakes.py``: self-tests of all of the above.
 """

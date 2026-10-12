@@ -124,7 +124,6 @@ class Workload:
     server: ServerParams = ServerParams()
     probe: ProbeParams = ProbeParams()
     phases: tuple[PhaseSpec, ...] = ()
-    exercises: tuple[str, ...] = ()  # feature keys whose parity rows the report shows
 
     def phase(self, name: str) -> PhaseSpec | None:
         for spec in self.phases:
@@ -162,14 +161,6 @@ WORKLOAD = Workload(
         PhaseSpec("steady", delay_s=15.0, duration_s=90.0),
         PhaseSpec("teardown", options=TEARDOWN_OPTIONS),
     ),
-    exercises=(
-        "terrain.vanilla_generator",
-        "chunks.subchunk_requests",
-        "player.server_authoritative_movement",
-        "player.physics",
-        "player.locator_bar",
-        "world.autosave",
-    ),
 )
 
 SMOKE = Workload(
@@ -189,7 +180,6 @@ SMOKE = Workload(
         PhaseSpec("steady", delay_s=5.0, duration_s=20.0),
         PhaseSpec("teardown", options={**TEARDOWN_OPTIONS, "stop_timeout_s": 60.0}),
     ),
-    exercises=WORKLOAD.exercises,
 )
 
 
@@ -204,7 +194,6 @@ def from_params(name: str, params: Mapping[str, Any]) -> Workload:
         name=name,
         **{key: _build(cls, params.get(key) or {}) for key, cls in sections.items()},
         phases=tuple(_build(PhaseSpec, p) for p in params.get("phases") or ()),
-        exercises=tuple(params.get("exercises") or ()),
     )
 
 
@@ -222,8 +211,6 @@ def with_overrides(base: Workload, data: Mapping[str, Any]) -> Workload:
     for key, value in data.items():
         if key == "phases":
             values["phases"] = tuple(_phase_overrides(spec, value.get(spec.name) or {}) for spec in base.phases)
-        elif key == "exercises":
-            values["exercises"] = tuple(value)
         else:
             values[key] = dataclasses.replace(getattr(base, key), **value)
     return dataclasses.replace(base, **values)

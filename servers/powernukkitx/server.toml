@@ -38,64 +38,6 @@ name = "powernukkitx-nightly-86f70bc.jar"
 sha256 = "2eb036d350860f2cff8962b94beeeee1e4794e6bb279ed1e55ba74315bcf3843"
 size = 95174280
 
-# PowerNukkitX is a Nukkit fork that reimplements much more of vanilla gameplay in Java: mobs with AI, redstone,
-# fluids, dimensions. No Mojang code and no deliberate shortcuts, but its own implementation (fidelity V1). Systems it
-# has are `partial`: implemented, without evidence of identical behaviour. The rows observed by a counter were
-# confirmed in the legacy cross-server runs: no movement corrections, no locator-bar packets, bots keep hovering at the
-# teleport height. The nightly range covers every nightly.<commit> pin. Its rows were checked at 86f70bc, the observed
-# ones with four bots.
-[features]
-
-[features.range."3.0"]
-fidelity = "V1"
-"terrain.vanilla_generator" = { class = "absent", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/tree/9813b75a973aa93d3c29c49c85742a0c1beee3de/src/main/java/org/powernukkitx/level/generator", note = "own generator; terrain differs from BDS for the same seed" }
-"terrain.any_generator" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/tree/9813b75a973aa93d3c29c49c85742a0c1beee3de/src/main/java/org/powernukkitx/level/generator" }
-"terrain.structures" = { class = "unknown" }
-"chunks.client_side_generation" = { class = "absent", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/9813b75a973aa93d3c29c49c85742a0c1beee3de/src/main/java/org/powernukkitx/level/Level.java", observed_by = "csg_effective" }
-"chunks.subchunk_requests" = { class = "absent", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/9813b75a973aa93d3c29c49c85742a0c1beee3de/src/main/java/org/powernukkitx/level/Level.java", note = "whole columns in LevelChunk packets" }
-"entity.mob_spawning" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/9813b75a973aa93d3c29c49c85742a0c1beee3de/src/main/java/org/powernukkitx/config/category/GameplaySettings.java", note = "enableEntitySpawning" }
-"entity.mob_ai" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/9813b75a973aa93d3c29c49c85742a0c1beee3de/src/main/java/org/powernukkitx/config/category/GameplaySettings.java", note = "enableMobAi" }
-"entity.collision_push" = { class = "unknown" }
-"entity.item_entities" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/9813b75a973aa93d3c29c49c85742a0c1beee3de/src/main/java/org/powernukkitx/config/category/GameplaySettings.java", note = "enableItemDrops" }
-"player.server_authoritative_movement" = { class = "absent", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/9813b75a973aa93d3c29c49c85742a0c1beee3de/src/main/java/org/powernukkitx/config/category/PlayerSettings.java", observed_by = "corrections_per_bot_s", note = "checkMovement is on, but no CorrectPlayerMovePrediction packets are sent" }
-"player.physics" = { class = "absent", observed_by = "airborne_frac_steady", note = "bots teleported to y=300 keep hovering" }
-"player.hunger_damage" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/9813b75a973aa93d3c29c49c85742a0c1beee3de/src/main/java/org/powernukkitx/config/category/GameplaySettings.java", note = "enableHunger" }
-"player.locator_bar" = { class = "absent", observed_by = "locator_pkts_per_bot_s" }
-"block.redstone" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/9813b75a973aa93d3c29c49c85742a0c1beee3de/src/main/java/org/powernukkitx/config/category/GameplaySettings.java", note = "enableRedstone" }
-"block.random_ticks" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/9813b75a973aa93d3c29c49c85742a0c1beee3de/src/main/java/org/powernukkitx/config/category/GameplaySettings.java", note = "enableBlockRandomTicking" }
-"block.fluids" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/9813b75a973aa93d3c29c49c85742a0c1beee3de/src/main/java/org/powernukkitx/config/category/GameplaySettings.java", note = "enableLiquidFlow" }
-"block.falling" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/9813b75a973aa93d3c29c49c85742a0c1beee3de/src/main/java/org/powernukkitx/config/category/GameplaySettings.java", note = "enableBlockGravity" }
-"world.lighting" = { class = "unknown" }
-"world.dimensions" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/9813b75a973aa93d3c29c49c85742a0c1beee3de/src/main/java/org/powernukkitx/level/Level.java", note = "the Nether and End are levels of the same world folder" }
-"world.autosave" = { class = "vanilla", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/9813b75a973aa93d3c29c49c85742a0c1beee3de/src/main/java/org/powernukkitx/config/category/BaseSettings.java", note = "autoSave, autosaveDelay" }
-"commands.vanilla_set" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/tree/9813b75a973aa93d3c29c49c85742a0c1beee3de/src/main/java/org/powernukkitx/command/defaults", note = "no querytarget or loot" }
-"net.encryption" = { class = "vanilla", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/9813b75a973aa93d3c29c49c85742a0c1beee3de/src/main/java/org/powernukkitx/config/category/NetworkSettings.java", note = "not exercised: benchmarks run offline" }
-
-[features.range."nightly"]
-fidelity = "V1"
-"terrain.vanilla_generator" = { class = "absent", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/tree/86f70bc341849788007b751728670f7e9a7c1e72/src/main/java/org/powernukkitx/level/generator", note = "own generator; terrain differs from BDS for the same seed" }
-"terrain.any_generator" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/tree/86f70bc341849788007b751728670f7e9a7c1e72/src/main/java/org/powernukkitx/level/generator" }
-"terrain.structures" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/86f70bc341849788007b751728670f7e9a7c1e72/src/main/java/org/powernukkitx/level/generator/populator/placement/StructurePlacement.java", note = "own structure placement" }
-"chunks.client_side_generation" = { class = "absent", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/86f70bc341849788007b751728670f7e9a7c1e72/src/main/java/org/powernukkitx/network/process/PlayerSessionHolder.java#L347", observed_by = "csg_effective", note = "StartGame sends seed -1" }
-"chunks.subchunk_requests" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/86f70bc341849788007b751728670f7e9a7c1e72/src/main/java/org/powernukkitx/level/Level.java#L5904-L5907", note = "only for clients that claim client-side generation on LevelDB worlds; spread100 bots get whole columns" }
-"entity.mob_spawning" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/86f70bc341849788007b751728670f7e9a7c1e72/src/main/java/org/powernukkitx/config/category/GameplaySettings.java", note = "enableEntitySpawning" }
-"entity.mob_ai" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/86f70bc341849788007b751728670f7e9a7c1e72/src/main/java/org/powernukkitx/config/category/GameplaySettings.java", note = "enableMobAi" }
-"entity.collision_push" = { class = "unknown" }
-"entity.item_entities" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/86f70bc341849788007b751728670f7e9a7c1e72/src/main/java/org/powernukkitx/config/category/GameplaySettings.java", note = "enableItemDrops" }
-"player.server_authoritative_movement" = { class = "absent", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/86f70bc341849788007b751728670f7e9a7c1e72/src/main/java/org/powernukkitx/config/category/PlayerSettings.java", observed_by = "corrections_per_bot_s", note = "checkMovement is on, but no CorrectPlayerMovePrediction packets are sent" }
-"player.physics" = { class = "absent", observed_by = "airborne_frac_steady", note = "bots teleported to y=300 keep hovering" }
-"player.hunger_damage" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/86f70bc341849788007b751728670f7e9a7c1e72/src/main/java/org/powernukkitx/config/category/GameplaySettings.java", note = "enableHunger" }
-"player.locator_bar" = { class = "absent", observed_by = "locator_pkts_per_bot_s" }
-"block.redstone" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/86f70bc341849788007b751728670f7e9a7c1e72/src/main/java/org/powernukkitx/config/category/GameplaySettings.java", note = "enableRedstone" }
-"block.random_ticks" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/86f70bc341849788007b751728670f7e9a7c1e72/src/main/java/org/powernukkitx/config/category/GameplaySettings.java", note = "enableBlockRandomTicking" }
-"block.fluids" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/86f70bc341849788007b751728670f7e9a7c1e72/src/main/java/org/powernukkitx/config/category/GameplaySettings.java", note = "enableLiquidFlow" }
-"block.falling" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/86f70bc341849788007b751728670f7e9a7c1e72/src/main/java/org/powernukkitx/config/category/GameplaySettings.java", note = "enableBlockGravity" }
-"world.lighting" = { class = "unknown" }
-"world.dimensions" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/86f70bc341849788007b751728670f7e9a7c1e72/src/main/java/org/powernukkitx/level/Level.java", note = "the Nether and End are levels of the same world folder" }
-"world.autosave" = { class = "vanilla", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/86f70bc341849788007b751728670f7e9a7c1e72/src/main/java/org/powernukkitx/config/category/BaseSettings.java", note = "autoSave, autosaveDelay" }
-"commands.vanilla_set" = { class = "partial", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/tree/86f70bc341849788007b751728670f7e9a7c1e72/src/main/java/org/powernukkitx/command/defaults", note = "no querytarget or loot" }
-"net.encryption" = { class = "vanilla", evidence = "https://github.com/PowerNukkitX/PowerNukkitX/blob/86f70bc341849788007b751728670f7e9a7c1e72/src/main/java/org/powernukkitx/config/category/NetworkSettings.java", note = "not exercised: benchmarks run offline" }
-
 # Values the harness writes into PowerNukkitX's pnx.yml, one table per override category
 # (docs/methodology.md#fairness-and-feature-parity).
 #

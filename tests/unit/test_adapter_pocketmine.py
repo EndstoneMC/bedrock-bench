@@ -125,14 +125,12 @@ class TestContract:
         assert PocketMineAdapter.protocol == 1001 and not PocketMineAdapter.supports_csg
         assert PocketMineAdapter.bot_compat_flags == ()
         assert PocketMineAdapter.tick_thread_rule == "first_created"
-        assert PocketMineAdapter.features_file == "servers/pocketmine/server.toml"
 
     def test_pins(self) -> None:
         catalog = config.load_artifacts("pocketmine")
         assert catalog.get("5.44.3", "windows").sha256 == catalog.get("5.44.3", "linux").sha256
         runtime = catalog.versions["5.44.3"].meta["runtime"]
         assert runtime in config.load_artifacts(config.project_root() / config.RUNTIMES_FILE).versions
-        assert config.load_features("pocketmine").row("5.44.3") is not None
 
     def test_dialect_samples(self) -> None:
         with open(LOGS / "pocketmine.toml", "rb") as fh:

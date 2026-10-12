@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Render a summary as ``report.md``, laid out like the results section of a benchmark paper.
 
-An Environment table, one Results table with a row per server, each server's differences from vanilla BDS, and
+An Environment table, one Results table with a row per server, and
 one-line notes: every run that is not ok, every flag, every ``rescue`` and ``nonvanilla`` override (rule R6) and every
 metric an ok run could not provide. There is no composite score.
 
@@ -135,7 +135,6 @@ def render(summary: Mapping[str, Any]) -> str:
         blocks += ["## Publication check", "\n".join(f"- Refused: {p}" for p in problems) or "Passed."]
     columns = summary.get("columns") or ()
     blocks += ["## Results", "Median [min, max] over the ok runs.", _results(servers, columns)]
-    blocks += ["## Differences from vanilla BDS", *_differences(servers)]
     notes = _notes(summary, servers)
     if notes:
         blocks += ["## Notes", "\n".join(f"- {n}" for n in notes)]
@@ -181,21 +180,6 @@ def _results(servers: Sequence[Mapping[str, Any]], columns: Sequence[Mapping[str
         for server in servers
     ]
     return "\n".join(_table(header, rows, numeric=True))
-
-
-def _differences(servers: Sequence[Mapping[str, Any]]) -> list[str]:
-    blocks = []
-    for server in servers:
-        items = server.get("differences") or ()
-        if not items:
-            blocks.append(f"`{server['tag']}`: none.")
-            continue
-        lines = [f"`{server['tag']}`:", ""]
-        for item in items:
-            source = f" ([source]({item['source']}))" if item.get("source") else ""
-            lines.append(f"- {item['text']}{source}")
-        blocks.append("\n".join(lines))
-    return blocks
 
 
 def _notes(summary: Mapping[str, Any], servers: Sequence[Mapping[str, Any]]) -> list[str]:

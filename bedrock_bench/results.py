@@ -45,11 +45,10 @@ from typing import IO, Any
 
 from bedrock_bench import ANALYSIS_VERSION, METRICS_SCHEMA, RUN_SCHEMA, SCHEMA_MINOR
 from bedrock_bench.clock import NS_PER_S, Origin, utc_compact
-from bedrock_bench.config import ConfigError, load_features, load_schema, project_root
+from bedrock_bench.config import ConfigError, load_schema
 from bedrock_bench.model import (
     MARKS,
     ExitCode,
-    FeatureClass,
     Install,
     Layout,
     Machine,
@@ -301,34 +300,6 @@ def machine_record(
     return {key: merged[key] for key in _MACHINE_KEYS if key in merged}
 
 
-def parity_record(features_file: str | Path, version: str, workload: Workload) -> dict[str, Any]:
-    """The ``parity`` block: the declared feature row for this version, covering every feature the workload exercises.
-
-    An exercised feature the file does not declare, or a missing feature file, reads as ``unknown``.
-    """
-    path = Path(features_file)
-    if not path.is_absolute():
-        path = project_root() / path
-    unknown = {key: FeatureClass.UNKNOWN.value for key in workload.exercises}
-    try:
-        features = load_features(path)
-    except ConfigError as exc:
-        log.warning("no usable feature file: %s", exc)
-        return {"file_sha256": None, "range": None, "row": unknown, "fidelity": None, "does_less": list(unknown)}
-    rng = features.row(version)
-    row = dict(unknown)
-    if rng is not None:
-        row.update({key: cell.cls.value for key, cell in rng.cells.items()})
-    does_less = [key for key in workload.exercises if row.get(key) != FeatureClass.VANILLA.value]
-    return {
-        "file_sha256": features.sha256,
-        "range": rng.prefix if rng is not None else None,
-        "row": dict(sorted(row.items())),
-        "fidelity": rng.fidelity.value if rng is not None else None,
-        "does_less": does_less,
-    }
-
-
 def empty_spread(source: str | None = None) -> dict[str, Any]:
     return {
         "source": source,
@@ -349,7 +320,6 @@ def new_record(
     machine: Mapping[str, Any],
     placement: Placement,
     install: Install,
-    parity: Mapping[str, Any],
     bot: Mapping[str, Any],
     origin: Origin,
     idle_foreign_cores: float | None,
@@ -376,7 +346,6 @@ def new_record(
         "server": {"pid": None, "aux_pids": [], "banner_version": None, "facts": {}},
         "overrides": [],
         "config_files": [],
-        "parity": dict(parity),
         "bot": dict(bot),
         "workload": workload.record(),
         "machine": dict(machine),
@@ -772,7 +741,6 @@ __all__ = [
     "make_run_id",
     "make_session_id",
     "new_record",
-    "parity_record",
     "placement_record",
     "validate_cli",
 ]

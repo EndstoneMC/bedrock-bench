@@ -814,9 +814,6 @@ class Session:
         record["interference"]["windows"] = interference_record(self.run_dir, self.origin, windows)
         if self.bot.provenance.get("module") != HEADLINE_BOT:
             self.result.flags.add(Flag.BOT_PROTOCOL_DIFFERS.value)
-        terrain = [key for key in self.workload.exercises if key.startswith("terrain.")]
-        if terrain and (record.get("world") or {}).get("generator") == "flat":
-            self.result.flags.add(Flag.TERRAIN_MISMATCH.value)
 
     def _collect_health(self) -> None:
         health = self.record["health"]

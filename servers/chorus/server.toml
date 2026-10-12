@@ -33,36 +33,6 @@ url = "https://github.com/bedrock-crustaceans/chorus/archive/95ca8355f5961619ff2
 sha256 = "0a1a1e7e9222977f466c59fa34e31649a734af4bed40d01052b77131763a7168"
 size = 541065
 
-# Chorus: an independent Bedrock server written in Rust on bedrock-rs and Bevy ECS. It shares no code with BDS and
-# implements much less than vanilla (fidelity V1). Source links point at the pinned commit; the observed rows were
-# checked in a 4-bot boot.
-[features]
-
-[features.range."95ca835"]
-fidelity = "V1"
-"terrain.vanilla_generator" = { class = "absent", evidence = "https://github.com/bedrock-crustaceans/chorus/blob/95ca8355f5961619ff2949b01ef85a5c6f13e492/src/registry/mod.rs#L97", note = "own port of the Java Edition overworld generator; terrain differs from BDS for the same seed" }
-"terrain.any_generator" = { class = "partial", evidence = "https://github.com/bedrock-crustaceans/chorus/tree/95ca8355f5961619ff2949b01ef85a5c6f13e492/crates/worldgen/src/overworld", note = "noise terrain with biomes, caves, ores and trees" }
-"terrain.structures" = { class = "partial", evidence = "https://github.com/bedrock-crustaceans/chorus/blob/95ca8355f5961619ff2949b01ef85a5c6f13e492/crates/worldgen/src/overworld/java/features/biome_features.rs#L6-L21", note = "dungeons, fossils and other small features; no villages, temples or strongholds" }
-"chunks.client_side_generation" = { class = "absent", evidence = "https://github.com/bedrock-crustaceans/chorus/blob/95ca8355f5961619ff2949b01ef85a5c6f13e492/src/network/handler/setup.rs#L179", observed_by = "csg_effective" }
-"chunks.subchunk_requests" = { class = "absent", evidence = "https://github.com/bedrock-crustaceans/chorus/blob/95ca8355f5961619ff2949b01ef85a5c6f13e492/src/world/chunks.rs#L171-L266", note = "whole columns in LevelChunk packets, as cache blobs when the client enables the blob cache" }
-"entity.mob_spawning" = { class = "absent", evidence = "https://github.com/bedrock-crustaceans/chorus/tree/95ca8355f5961619ff2949b01ef85a5c6f13e492/src/actor", note = "no mobs; the only actors besides players are dropped items" }
-"entity.mob_ai" = { class = "absent", evidence = "https://github.com/bedrock-crustaceans/chorus/tree/95ca8355f5961619ff2949b01ef85a5c6f13e492/src/actor", note = "no mobs" }
-"entity.collision_push" = { class = "absent", evidence = "https://github.com/bedrock-crustaceans/chorus/blob/95ca8355f5961619ff2949b01ef85a5c6f13e492/src/actor/physics.rs#L133", note = "item physics collides with blocks only" }
-"entity.item_entities" = { class = "partial", evidence = "https://github.com/bedrock-crustaceans/chorus/blob/95ca8355f5961619ff2949b01ef85a5c6f13e492/src/actor/item.rs#L247-L258", note = "items fall, merge and despawn; independent implementation" }
-"player.server_authoritative_movement" = { class = "absent", evidence = "https://github.com/bedrock-crustaceans/chorus/blob/95ca8355f5961619ff2949b01ef85a5c6f13e492/src/network/handler/play.rs#L144-L166", observed_by = "corrections_per_bot_s", note = "client positions are accepted as sent" }
-"player.physics" = { class = "absent", evidence = "https://github.com/bedrock-crustaceans/chorus/blob/95ca8355f5961619ff2949b01ef85a5c6f13e492/src/network/handler/play.rs#L144-L166", observed_by = "airborne_frac_steady", note = "bots teleported to y=300 keep hovering" }
-"player.hunger_damage" = { class = "absent", evidence = "https://github.com/bedrock-crustaceans/chorus/blob/95ca8355f5961619ff2949b01ef85a5c6f13e492/src/network/handler/play.rs#L88-L90", note = "health and hunger are sent once at join and never change" }
-"player.locator_bar" = { class = "absent", observed_by = "locator_pkts_per_bot_s" }
-"block.redstone" = { class = "absent", evidence = "https://github.com/bedrock-crustaceans/chorus/tree/95ca8355f5961619ff2949b01ef85a5c6f13e492/crates/block/src/impl", note = "block definitions only" }
-"block.random_ticks" = { class = "absent", evidence = "https://github.com/bedrock-crustaceans/chorus/blob/95ca8355f5961619ff2949b01ef85a5c6f13e492/src/network/handler/setup.rs#L137", note = "no random block ticks; StartGame sends a tick range of 0" }
-"block.fluids" = { class = "absent", evidence = "https://github.com/bedrock-crustaceans/chorus/blob/95ca8355f5961619ff2949b01ef85a5c6f13e492/crates/block/src/impl/flowing_water.rs", note = "block definitions only; water and lava do not flow" }
-"block.falling" = { class = "absent", evidence = "https://github.com/bedrock-crustaceans/chorus/blob/95ca8355f5961619ff2949b01ef85a5c6f13e492/src/actor/physics.rs#L133", note = "only dropped items fall" }
-"world.lighting" = { class = "absent", evidence = "https://github.com/bedrock-crustaceans/chorus/tree/95ca8355f5961619ff2949b01ef85a5c6f13e492/crates/level/src", note = "no sky or block light is computed" }
-"world.dimensions" = { class = "absent", evidence = "https://github.com/bedrock-crustaceans/chorus/blob/95ca8355f5961619ff2949b01ef85a5c6f13e492/src/registry/mod.rs#L94-L106", note = "only the overworld is registered" }
-"world.autosave" = { class = "partial", evidence = "https://github.com/bedrock-crustaceans/chorus/blob/95ca8355f5961619ff2949b01ef85a5c6f13e492/crates/core/src/config.rs#L283-L289", note = "saves only chunks that changed (level.chunk_saving = modified, the default)" }
-"commands.vanilla_set" = { class = "absent", evidence = "https://github.com/bedrock-crustaceans/chorus/tree/95ca8355f5961619ff2949b01ef85a5c6f13e492/src/command/impl", note = "17 own commands; chorusbench adds the console commands the harness sends" }
-"net.encryption" = { class = "vanilla", evidence = "https://github.com/bedrock-crustaceans/chorus/blob/95ca8355f5961619ff2949b01ef85a5c6f13e492/crates/core/src/config.rs#L185-L189", note = "not exercised: benchmarks run offline" }
-
 # chorus.toml, by override category (.github/CONTRIBUTING.md#servertoml). Unlisted keys keep the defaults
 # 'chorusbench -defaults' prints, and `type` overrides the type of the default a value replaces.
 [config.file."chorus.toml"]

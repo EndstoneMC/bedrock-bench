@@ -36,12 +36,10 @@ from bedrock_bench.cache import Cache
 from bedrock_bench.config import ConfigError
 from bedrock_bench.fetch import FetchError
 from bedrock_bench.model import (
-    FEATURE_KEYS,
     Arm,
     ArtifactRef,
     ArtifactSpec,
     ArtifactVersion,
-    FeatureClass,
     Install,
     Layout,
     OverrideCategory,
@@ -164,7 +162,6 @@ class TestContract:
     def test_registered(self) -> None:
         assert adapters.get("levilamina") is LeviLaminaAdapter
         assert LeviLaminaAdapter.class_problems() == []
-        assert LeviLaminaAdapter.features_file == "servers/levilamina/server.toml"
         assert LeviLaminaAdapter.platforms == frozenset({"windows"})
         assert LeviLaminaAdapter.protocol == 2193
         assert LeviLaminaAdapter.tick_thread_rule == "lowest_tid_name:MC_SERVER"
@@ -246,19 +243,6 @@ class TestPins:
         spec = pinned_packages()[name].spec
         with pytest.raises(fetch.EulaNotAccepted, match="levimc"):
             fetch.obtain(spec, Cache(tmp_path / "cache"), fetch.FetchOptions(accept_eula=False))
-
-    def test_features(self) -> None:
-        features = config.load_features("levilamina")
-        row = features.row(VERSION)
-        assert row is not None and row.fidelity.value == "V1"
-        assert set(row.cells) == FEATURE_KEYS
-        assert all(cell.cls is FeatureClass.VANILLA for cell in row.cells.values())
-        assert features.row("26.52.0") is None, "an unpinned release has no parity row"
-
-    def test_the_workload_is_fully_declared(self) -> None:
-        row = config.load_features("levilamina").row(VERSION)
-        assert row is not None
-        assert set(WORKLOAD.exercises) <= set(row.cells)
 
     def test_templates(self) -> None:
         levilamina = load_template("LeviLamina.Config.json")

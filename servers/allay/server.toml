@@ -24,37 +24,6 @@ url = "https://github.com/AllayMC/Allay/releases/download/0.14.0/allay-server-0.
 sha256 = "fc944c56be559a1a9df3097b7f7974ea7d644677d7a6c14b2b86d25c070f9c03"
 size = 43956861
 
-# Allay is an independent implementation of the game in Java: no Mojang code and no deliberate shortcuts, but its own
-# implementation of each system (fidelity V1). It generates only flat and void worlds. Systems it has are `partial`:
-# implemented, without evidence of identical behaviour. Links point at the 0.14.0 commit. The rows observed by a
-# counter are declared from the source; no bot has joined Allay yet.
-[features]
-
-[features.range."0.14"]
-fidelity = "V1"
-"terrain.vanilla_generator" = { class = "absent", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/registry/loader/WorldGeneratorFactoryRegistryLoader.java#L18-L19", note = "flat and void worlds only" }
-"terrain.any_generator" = { class = "absent", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/registry/loader/WorldGeneratorFactoryRegistryLoader.java#L18-L19", note = "the only generators are flat and void" }
-"terrain.structures" = { class = "absent", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/registry/loader/WorldGeneratorFactoryRegistryLoader.java#L18-L19" }
-"chunks.client_side_generation" = { class = "absent", observed_by = "csg_effective" }
-"chunks.subchunk_requests" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/ServerSettings.java#L210-L211", note = "implemented behind world-settings.use-sub-chunk-sending-system, off by default and left off: whole columns in LevelChunk packets" }
-"entity.mob_spawning" = { class = "absent", evidence = "https://github.com/AllayMC/Allay/tree/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/world", note = "no natural spawner; the doMobSpawning game rule is declared but not read" }
-"entity.mob_ai" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/entity/type/EntityTypeInitializer.java#L194", note = "chicken, cow, pig, sheep and zombie only" }
-"entity.collision_push" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/world/physics/AllayEntityPhysicsEngine.java#L258", note = "own physics engine; players are moved by their clients" }
-"entity.item_entities" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/entity/component/item/EntityItemBaseComponentImpl.java#L48", note = "items merge; own physics engine" }
-"player.server_authoritative_movement" = { class = "absent", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/network/processor/ingame/PlayerAuthInputPacketProcessor.java#L392-L420", observed_by = "corrections_per_bot_s", note = "client positions are accepted as sent" }
-"player.physics" = { class = "absent", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/entity/component/player/EntityPlayerPhysicsComponentImpl.java#L30", observed_by = "airborne_frac_steady", note = "player movement is computed by the client" }
-"player.hunger_damage" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/entity/component/player/EntityPlayerBaseComponentImpl.java#L136-L138", note = "hunger and damage exist; fall damage follows client-reported movement" }
-"player.locator_bar" = { class = "absent", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/api/src/main/java/org/allaymc/api/world/gamerule/GameRule.java#L49", observed_by = "locator_pkts_per_bot_s", note = "the locatorBar game rule only reaches the client" }
-"block.redstone" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/tree/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/block/component/redstone" }
-"block.random_ticks" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/world/chunk/AllayUnsafeChunk.java#L180", note = "randomTickSpeed game rule" }
-"block.fluids" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/block/component/liquid/BlockLiquidBaseComponentImpl.java" }
-"block.falling" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/block/component/fallable/BlockFallableComponentImpl.java" }
-"world.lighting" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/world/light/AllayLightEngine.java", note = "computed on light threads of its own" }
-"world.dimensions" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/world/AllayWorldPool.java#L406", note = "a Nether or End can only be flat or void; the benchmark world has only an overworld" }
-"world.autosave" = { class = "vanilla", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/world/chunk/AllayUnsafeChunk.java#L139-L145", note = "each loaded chunk is written every chunk-auto-save-cycle ticks on its own timer" }
-"commands.vanilla_set" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/tree/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/command/defaults", note = "no querytarget, loot or tickingarea; kill, summon, setblock and difficulty run only for an entity" }
-"net.encryption" = { class = "vanilla", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/ServerSettings.java#L114-L115", note = "not exercised: benchmarks run offline" }
-
 # Values the harness writes into Allay's server-settings.yml, one table per override category
 # (docs/methodology.md#fairness-and-feature-parity).
 #

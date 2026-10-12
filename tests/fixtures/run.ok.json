@@ -92,21 +92,6 @@
       "after_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
     }
   ],
-  "parity": {
-    "file_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-    "range": "0.11",
-    "row": {
-      "terrain.vanilla_generator": "vanilla",
-      "chunks.client_side_generation": "vanilla",
-      "chunks.subchunk_requests": "vanilla",
-      "player.server_authoritative_movement": "vanilla",
-      "player.physics": "vanilla",
-      "player.locator_bar": "vanilla",
-      "world.autosave": "vanilla"
-    },
-    "fidelity": "V1",
-    "does_less": []
-  },
   "bot": {
     "module": "loadbot",
     "protocol": 2193,
@@ -247,14 +232,6 @@
             "crash_log_lines": 200
           }
         }
-      ],
-      "exercises": [
-        "terrain.vanilla_generator",
-        "chunks.subchunk_requests",
-        "player.server_authoritative_movement",
-        "player.physics",
-        "player.locator_bar",
-        "world.autosave"
       ]
     }
   },

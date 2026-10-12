@@ -120,7 +120,6 @@ class TestContract:
         catalog = config.load_artifacts("nukkit")
         assert catalog.get("b3caad6", "linux").url.startswith("https://repo.opencollab.dev/")
         assert catalog.versions["b3caad6"].meta["commit"].startswith("b3caad6")
-        assert config.load_features("nukkit").row("b3caad6") is not None
 
     def test_dialect_samples(self) -> None:
         with open(LOGS / "nukkit.toml", "rb") as fh:

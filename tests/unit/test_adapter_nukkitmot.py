@@ -150,7 +150,6 @@ class TestContract:
         assert catalog.get("9cb0aba", "linux").url.startswith("https://motci.cn/job/Nukkit-MOT/job/master/1592/")
         meta = catalog.versions["9cb0aba"].meta
         assert meta["commit"].startswith("9cb0aba") and meta["build"] == 1592 and meta["protocol"] == 2193
-        assert config.load_features("nukkitmot").row("9cb0aba") is not None
 
     def test_dialect_samples(self) -> None:
         with open(LOGS / "nukkitmot.toml", "rb") as fh:

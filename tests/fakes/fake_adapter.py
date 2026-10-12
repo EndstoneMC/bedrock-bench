@@ -210,7 +210,6 @@ class FakeAdapter(ServerAdapter):
             family = FAMILIES[cls.family]
             cls.dialect = dialect_for(family)
             cls.supports_csg = family.supports_csg
-            cls.features_file = str(SERVERS_DIR / cls.name / "server.toml")
 
     def __init__(self, arm: Arm, machine: Machine, behaviour: str | None = None) -> None:
         super().__init__(arm, machine)
