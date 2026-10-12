@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Every server on the spread100 headline: 100 spread bots, client-side generation off, the same scenario, bot flags
 # and placement for every arm (docs/methodology.md#fairness-and-feature-parity). Nukkit, Nukkit-MOT and PowerNukkitX
-# also run spread100-pregen, which separates chunk delivery from their slow generation; build their templates first with
+# also run spread100-pregen, which separates chunk delivery from generation; build their templates first with
 #   bbench prepare-world nukkit@b3caad6 --scenario spread100-pregen
 #   bbench prepare-world nukkitmot@9cb0aba --scenario spread100-pregen
 #   bbench prepare-world powernukkitx@3.0.5 --scenario spread100-pregen
@@ -10,7 +10,8 @@
 # The PowerNukkitX nightly runs next to 3.0.5 to measure the beta branch. Upstream replaces its jar, so keep a copy.
 # Chorus is left out: every run at 95ca835 is invalid, because its player list gives the bots decode errors.
 #
-# levilamina runs on Windows only; on Linux, pick the other arms with --only.
+# levilamina runs on Windows only, so this is a Windows experiment. pocketmine and allay need legacy1001, which
+# builds only once its gophertunnel fork tag is published (bots/README.md#patches).
 [matrix]
 name = "cross-server"
 scenarios = ["spread100", "spread100-pregen"]

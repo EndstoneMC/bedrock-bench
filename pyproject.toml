@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "bedrock-bench"
 dynamic = ["version"]
-description = "Reproducible, fair benchmarks for Minecraft Bedrock servers"
+description = "bedrock-bench: a load benchmark for Minecraft Bedrock servers"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.11"

@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
-# The legacy BENCHMARK.md comparison: endstone@0.11.14 against the vanilla build it hosts and the previous release,
-# with client-side generation on. BDS-hosted servers only, never in a cross-server table
-# (docs/methodology.md#client-side-generation-off-in-every-ranking-scenario).
+# spread100 with client-side generation on, for BDS-hosted servers only; never in a cross-server table
+# (docs/methodology.md#client-side-generation-off-in-every-ranking-scenario). endstone@0.11.14 against the vanilla
+# build it hosts and the previous release, in the setting of Endstone's 0.11.14 BENCHMARK.md
+# (https://github.com/EndstoneMC/endstone/blob/v0.11.14/BENCHMARK.md).
 [matrix]
 name = "endstone-0.11.14-csg"
 scenarios = ["spread100-csg"]
@@ -9,7 +10,7 @@ repeats = 3
 order = "rotate"
 cooldown_s = 60.0
 rerun_invalid = 1
-priority_override = "above_normal"  # as in the legacy runs; recorded in every run
+priority_override = "above_normal"  # the priority of the runs behind that BENCHMARK.md
 
 [[arm]]
 server = "bds@1.26.52.3"

@@ -194,7 +194,7 @@ def resolve_entry(entry: str) -> EntryPoint:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="bbench",
-        description="Reproducible, fair benchmarks for Minecraft Bedrock servers.",
+        description="A load benchmark for Minecraft Bedrock servers.",
         epilog="Run 'bbench <command> --help' for the options of one command.",
     )
     parser.add_argument("--version", action="version", version=f"bbench {__version__}")

@@ -30,7 +30,8 @@ uv run bbench --version
 ```
 
 `uv sync` creates `.venv` with the Python version in `.python-version` and the development tools. `bbench` reads its
-inputs from `configs/` in the checkout it was imported from, or from `$BBENCH_ROOT` when that is set.
+inputs from `configs/` in the checkout it was imported from, or from `$BBENCH_ROOT` when that is set. Other pages write
+`bbench` without `uv run`; activate `.venv` or add the prefix.
 
 Build the load bot:
 
@@ -71,8 +72,13 @@ Before a measured run:
   siblings of server CPUs. `doctor` warns about both.
 - **Microsoft Defender.** Real-time scanning of the cache and the run directory costs CPU during runs. Add exclusions
   for the cache root and `runs/` if your policy allows.
-- **Path length on Windows.** Server trees must stay under the 260-character path limit, and fetch refuses an install
-  that would not fit. If your user profile path is long, set `BBENCH_CACHE` to a short directory such as `C:\bb`.
+- **Path length on Windows.** Server trees must stay under the 259-character path limit, and fetch refuses an install
+  that would not fit. Enabling long paths in Windows does not help every program a server runs. The deepest BDS file
+  is 124 characters, so keep the cache root under about 115: if your user profile path is long, set `BBENCH_CACHE` to
+  a short directory such as `C:\bb`.
+- **Loopback exemption on Windows.** Before every start, Endstone's launcher checks that the Minecraft app may connect
+  to loopback and asks for elevation if not, which stalls an unattended run. For a matrix with an Endstone arm, add the
+  exemption once from an elevated prompt, as [its server page](../configs/servers/endstone/README.md#setup) shows.
 - **Priority on Linux.** The `endstone-0.11.14` matrices run servers at `above_normal`, which on Linux needs root,
   `CAP_SYS_NICE` or a raised `RLIMIT_NICE`. Any Windows user may set it.
 - **One benchmark at a time.** Every run holds the machine lock, `machine.lock` in the cache. Benchmarks that share a
@@ -99,7 +105,9 @@ comments below, with `auto` CPU sets.
   the cores and at least 4 logical CPUs, but never more than half the cores. The server gets the rest. SMT siblings stay
   together.
 
-For explicit CPU lists, copy this example to a file such as `my-machine.toml` and edit it. Every key is optional.
+For explicit CPU lists, copy this example to a file such as `local/my-machine.toml` and edit it. Every key is optional.
+Any file in the checkout that git does not track or ignore marks every run `dirty_harness`, and `--publish` refuses
+those runs. `local/` is ignored, so keep machine profiles and claims files there.
 
 ```toml
 # Intel Core i7-14700F: 8 performance cores with SMT (CPUs 0-15), 12 efficiency cores (CPUs 16-27).
@@ -125,7 +133,7 @@ bot_cpu_frac_max = 0.85  # busiest the bot CPUs may be in a measured window
 Check what it resolves to:
 
 ```shell
-uv run bbench doctor --machine my-machine.toml
+uv run bbench doctor --machine local/my-machine.toml
 ```
 
 - The machine label is the file name without `.toml` (`my-machine`), unless the file sets `label`. It is recorded in
@@ -168,8 +176,8 @@ each answers and how long it takes. For E1:
 
 ```shell
 uv run bbench fetch endstone-0.11.14 --accept-eula
-uv run bbench run endstone-0.11.14 --machine my-machine.toml --dry-run
-uv run bbench run endstone-0.11.14 --machine my-machine.toml
+uv run bbench run endstone-0.11.14 --machine local/my-machine.toml --dry-run
+uv run bbench run endstone-0.11.14 --machine local/my-machine.toml
 uv run bbench report runs/endstone-0.11.14
 ```
 
@@ -182,8 +190,10 @@ uv run bbench report runs/endstone-0.11.14
   the run directories at any time.
 - A `spread100` run takes about 10 to 20 minutes, most of it waiting for the views to settle. The phase lengths are in
   [`configs/scenarios/spread100.toml`](../configs/scenarios/spread100.toml).
-- Each server runs once per experiment, on one machine and one platform. LeviLamina runs on Windows only. On Linux,
-  run the other arms of the cross-server matrix by repeating `--only <arm id>` for each of them.
+- An experiment runs on one machine and one OS; it is not repeated per platform. The repeats (3, rotated) all run on
+  that machine.
+- LeviLamina runs on Windows only, so E3 and E4 are Windows experiments. On Linux, `--only` can run the other arms of
+  the cross-server matrix, but that partial run is not E3.
 
 The cross-server matrix has two extra steps. PocketMine-MP and Allay need the protocol 1001 bot, and Nukkit, Nukkit-MOT
 and PowerNukkitX also run `spread100-pregen`, which needs a world template built first:
@@ -196,9 +206,19 @@ uv run bbench prepare-world powernukkitx@3.0.5 --scenario spread100-pregen
 uv run bbench prepare-world powernukkitx@nightly.86f70bc --scenario spread100-pregen
 ```
 
+`legacy1001` builds only once its gophertunnel fork tag is published ([bots/README.md](../bots/README.md#patches)).
+Until then, `bbench run cross-server` stops at the PocketMine-MP arm, so run the other arms with one `--only` per arm:
+
+```shell
+uv run bbench run cross-server --machine local/my-machine.toml --only bds@1.26.52.3 --only endstone@0.11.14 \
+  --only bds@1.26.51.1 --only levilamina@26.51.6 --only altay@5.44.7 --only nukkit@b3caad6 \
+  --only nukkit@b3caad6+no-watchdog --only nukkitmot@9cb0aba --only nukkitmot@9cb0aba+no-watchdog \
+  --only powernukkitx@3.0.5 --only powernukkitx@nightly.86f70bc --only dragonfly@1793369
+```
+
 Other `run` options:
 
-- `--repeats N` overrides the matrix's repeat count. Publication needs at least 3 `ok` runs per arm
+- `--repeats N` overrides the matrix's repeat count. Publication needs at least 3 `ok` runs per cell (arm and scenario)
   ([docs/methodology.md#publishing-and-claims](methodology.md#publishing-and-claims)).
 - `--order` takes `rotate`, `sequential` or `seeded:N`.
 - `--out DIR` writes results under DIR instead of `runs/`.
@@ -253,7 +273,7 @@ To recompute, check or publish:
 ```shell
 uv run bbench analyze runs/endstone-0.11.14/<run id>
 uv run bbench validate runs/endstone-0.11.14
-uv run bbench report runs/endstone-0.11.14 --claims my-claims.toml
+uv run bbench report runs/endstone-0.11.14 --claims local/my-claims.toml
 uv run bbench report runs/endstone-0.11.14 --publish
 ```
 

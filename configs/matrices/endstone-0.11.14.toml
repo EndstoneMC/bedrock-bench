@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # endstone@0.11.14 against the vanilla build it hosts and the previous release, on the spread100 headline
-# (client-side generation off). Add "chaos" to scenarios for the robustness runs; chaos adds 15 minutes per run.
+# (client-side generation off).
 [matrix]
 name = "endstone-0.11.14"
 scenarios = ["spread100"]
@@ -8,7 +8,9 @@ repeats = 3
 order = "rotate"
 cooldown_s = 60.0
 rerun_invalid = 1
-priority_override = "above_normal"  # as in the legacy runs; recorded in every run
+# The priority of the runs behind Endstone's 0.11.14 BENCHMARK.md
+# (https://github.com/EndstoneMC/endstone/blob/v0.11.14/BENCHMARK.md).
+priority_override = "above_normal"
 
 [[arm]]
 server = "bds@1.26.52.3"
