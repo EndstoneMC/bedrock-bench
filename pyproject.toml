@@ -48,7 +48,7 @@ path = "bedrock_bench/__init__.py"
 packages = ["bedrock_bench"]
 
 [tool.hatch.build.targets.sdist]
-exclude = ["/legacy", "/runs", "/cache", "/bots/bin"]
+exclude = ["/legacy", "/runs", "/cache", "/bots/bin", "/docs/blog"]
 
 [tool.pytest.ini_options]
 minversion = "8.0"
