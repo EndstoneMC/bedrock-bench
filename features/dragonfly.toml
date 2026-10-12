@@ -1,0 +1,33 @@
+# Dragonfly: an independent Bedrock server written in Go. It shares no code with BDS. Features it implements are
+# declared partial unless their behaviour is known to match vanilla; source links point at the pinned commit.
+#
+# Fidelity V1: Dragonfly does not skip work it implements to go faster, but it implements much less than vanilla. The
+# rows below say what is missing; observed counters check the ones a spread run can see.
+
+schema = 1
+server = "dragonfly"
+
+[range."1793369"]
+fidelity = "V1"
+"terrain.vanilla_generator" = { class = "absent", evidence = "https://github.com/df-mc/dragonfly/blob/1793369709ceed934675d69e86ff6c828e4216c8/server/conf.go#L394-L407", note = "flat worlds only" }
+"terrain.any_generator" = { class = "absent", evidence = "https://github.com/df-mc/dragonfly/blob/1793369709ceed934675d69e86ff6c828e4216c8/server/conf.go#L394-L407", note = "the only generator is flat" }
+"terrain.structures" = { class = "absent", evidence = "https://github.com/df-mc/dragonfly/blob/1793369709ceed934675d69e86ff6c828e4216c8/server/conf.go#L394-L407" }
+"chunks.client_side_generation" = { class = "absent", observed_by = "csg_effective" }
+"chunks.subchunk_requests" = { class = "vanilla", evidence = "https://github.com/df-mc/dragonfly/blob/1793369709ceed934675d69e86ff6c828e4216c8/server/session/handler_sub_chunk_request.go" }
+"entity.mob_spawning" = { class = "absent", evidence = "https://github.com/df-mc/dragonfly/tree/1793369709ceed934675d69e86ff6c828e4216c8/server/entity", note = "no mobs" }
+"entity.mob_ai" = { class = "absent", evidence = "https://github.com/df-mc/dragonfly/tree/1793369709ceed934675d69e86ff6c828e4216c8/server/entity", note = "no mobs" }
+"entity.collision_push" = { class = "absent", evidence = "https://github.com/df-mc/dragonfly/blob/1793369709ceed934675d69e86ff6c828e4216c8/server/entity/movement.go#L118-L122" }
+"entity.item_entities" = { class = "partial", evidence = "https://github.com/df-mc/dragonfly/blob/1793369709ceed934675d69e86ff6c828e4216c8/server/entity/item_behaviour.go#L117-L152", note = "items merge and despawn; independent implementation" }
+"player.server_authoritative_movement" = { class = "absent", evidence = "https://github.com/df-mc/dragonfly/blob/1793369709ceed934675d69e86ff6c828e4216c8/server/session/handler_player_auth_input.go#L28-L67", observed_by = "corrections_per_bot_s", note = "client positions are accepted as sent" }
+"player.physics" = { class = "absent", evidence = "https://github.com/df-mc/dragonfly/blob/1793369709ceed934675d69e86ff6c828e4216c8/server/session/handler_player_auth_input.go#L28-L67", observed_by = "airborne_frac_steady", note = "bots teleported to y=300 keep hovering" }
+"player.hunger_damage" = { class = "partial", evidence = "https://github.com/df-mc/dragonfly/blob/1793369709ceed934675d69e86ff6c828e4216c8/server/player/player.go#L558-L586", note = "hunger and damage exist; fall damage follows client-reported movement" }
+"player.locator_bar" = { class = "absent", observed_by = "locator_pkts_per_bot_s" }
+"block.redstone" = { class = "partial", evidence = "https://github.com/df-mc/dragonfly/blob/1793369709ceed934675d69e86ff6c828e4216c8/server/world/redstone.go" }
+"block.random_ticks" = { class = "partial", evidence = "https://github.com/df-mc/dragonfly/blob/1793369709ceed934675d69e86ff6c828e4216c8/server/world/tick.go#L127", note = "fixed rate set at world creation, no randomtickspeed game rule" }
+"block.fluids" = { class = "partial", evidence = "https://github.com/df-mc/dragonfly/blob/1793369709ceed934675d69e86ff6c828e4216c8/server/block/liquid.go", note = "independent implementation" }
+"block.falling" = { class = "partial", evidence = "https://github.com/df-mc/dragonfly/blob/1793369709ceed934675d69e86ff6c828e4216c8/server/block/sand.go#L29-L31", note = "independent implementation" }
+"world.lighting" = { class = "partial", evidence = "https://github.com/df-mc/dragonfly/blob/1793369709ceed934675d69e86ff6c828e4216c8/server/world/chunk/light.go", note = "independent implementation" }
+"world.dimensions" = { class = "partial", evidence = "https://github.com/df-mc/dragonfly/blob/1793369709ceed934675d69e86ff6c828e4216c8/server/conf.go#L394-L407", note = "Nether and End exist as flat worlds" }
+"world.autosave" = { class = "vanilla", evidence = "https://github.com/df-mc/dragonfly/blob/1793369709ceed934675d69e86ff6c828e4216c8/server/world/conf.go#L102-L104", note = "interval aligned with BDS through Bench.SaveIntervalSeconds" }
+"commands.vanilla_set" = { class = "absent", evidence = "https://github.com/df-mc/dragonfly/blob/1793369709ceed934675d69e86ff6c828e4216c8/server/cmd/doc.go", note = "a command framework without vanilla commands; dfbench adds the console commands the harness sends" }
+"net.encryption" = { class = "vanilla", evidence = "https://github.com/df-mc/dragonfly/blob/1793369709ceed934675d69e86ff6c828e4216c8/server/conf.go#L255-L257", note = "not exercised: benchmarks run offline" }

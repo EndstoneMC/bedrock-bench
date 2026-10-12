@@ -1,0 +1,23 @@
+[Network]
+Address = "127.0.0.1:19672"
+
+[Players]
+MaximumChunkRadius = 10
+MaxCount = 200
+SaveData = true
+
+[Server]
+Name = "bedrock-bench"
+AuthEnabled = false
+
+[World]
+SaveData = true
+Folder = "bench"
+
+[Bench]
+LogLevel = "info"
+IdleTicking = true
+TickRange = 4
+Difficulty = "easy"
+GameMode = "survival"
+SaveIntervalSeconds = 300

@@ -1,0 +1,67 @@
+# Synthetic console lines in the format dfbench prints (servers/dragonfly), one per dialect role. Roles are described
+# in bds.toml. dragonfly-session.log is a whole synthetic session in the same format; dragonfly-crash.log ends in a Go
+# panic, which Go prints without a prefix.
+adapter = "dragonfly"
+
+[[sample]]
+role = "ready"
+line = "2026/01/01 12:00:00.105301 INFO Server started."
+
+[[sample]]
+role = "version"
+line = "2026/01/01 12:00:00.104512 INFO Dragonfly version 1793369 (module v0.11.6-0.20260920163020-1793369709ce, Minecraft 1.26.50, protocol 2193, go1.26.3, GOMAXPROCS 8)"
+value = "1793369"
+
+[[sample]]
+role = "version"
+line = "2026/01/01 12:00:00.104512 INFO Dragonfly version 0.11.5 (module v0.11.5, Minecraft 1.26.50, protocol 2193, go1.26.3, GOMAXPROCS 8)"
+value = "0.11.5"
+
+[[sample]]
+role = "player_in_world"
+line = "2026/01/01 12:00:20.410102 INFO Player spawned: a00"
+value = "a00"
+
+[[sample]]
+role = "player_in_world"
+line = "2026/01/01 12:00:20.410102 INFO Player spawned: A Player"
+value = "A Player"
+
+[[sample]]
+role = "tick"
+line = "2026/01/01 12:00:10.000514 INFO Gametime is 198"
+value = 198
+
+[[sample]]
+role = "level"
+line = "2026/01/01 12:00:00.100001 DEBUG Loading dimension... dimension=overworld"
+value = "debug"
+
+[[sample]]
+role = "level"
+line = "2026/01/01 12:00:00.100002 WARN config: no listeners set, no connections will be accepted"
+value = "warn"
+
+[[sample]]
+role = "level"
+line = "2026/01/01 12:01:30.000110 ERROR No targets matched: a09"
+value = "error"
+
+[[sample]]
+role = "level"
+line = "2026/01/01 12:01:30.000110 ERROR+2 a custom slog level above error"
+value = "error"
+
+[[sample]]
+role = "strip"
+line = "2026/01/01 12:00:00.105033 INFO Dragonfly server started. mc-version=1.26.50 go-version=go1.26.3 commit="
+value = "Dragonfly server started. mc-version=1.26.50 go-version=go1.26.3 commit="
+
+[[sample]]
+role = "strip"
+line = "a00 joined the game"
+value = "a00 joined the game"
+
+[[sample]]
+role = "not_benign"
+line = "2026/01/01 12:01:30.050201 ERROR Unknown command: querytarget. Type help for a list of commands."

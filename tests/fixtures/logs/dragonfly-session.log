@@ -1,0 +1,43 @@
+2026/01/01 12:00:00.101204 INFO Opened dimension. dimension=overworld name=World
+2026/01/01 12:00:00.102311 INFO Opened dimension. dimension=nether name=World
+2026/01/01 12:00:00.103420 INFO Opened dimension. dimension=end name=World
+2026/01/01 12:00:00.104512 INFO Dragonfly version 1793369 (module v0.11.6-0.20260920163020-1793369709ce, Minecraft 1.26.50, protocol 2193, go1.26.3, GOMAXPROCS 8)
+2026/01/01 12:00:00.104570 INFO Bench settings: tick range 4, difficulty easy, game mode survival, autosave every 5m0s, idle ticking true, log level info
+2026/01/01 12:00:00.105033 INFO Dragonfly server started. mc-version=1.26.50 go-version=go1.26.3 commit=
+2026/01/01 12:00:00.105248 INFO RakNet listener running. addr=127.0.0.1:19672
+2026/01/01 12:00:00.105301 INFO Server started.
+2026/01/01 12:00:10.000514 INFO Gametime is 198
+2026/01/01 12:00:15.000733 INFO Gametime is 298
+a00 joined the game
+2026/01/01 12:00:20.410102 INFO Player spawned: a00
+2026/01/01 12:00:20.461020 INFO Gave resistance 255 to a00
+2026/01/01 12:00:20.511044 INFO Gave fire_resistance 1 to a00
+2026/01/01 12:00:20.561090 INFO Gave water_breathing 1 to a00
+2026/01/01 12:00:20.611132 INFO Gave saturation 255 to a00
+2026/01/01 12:00:20.661175 INFO Teleported a00 to 1280 300 1280
+a01 joined the game
+2026/01/01 12:00:20.712093 INFO Player spawned: a01
+2026/01/01 12:00:20.762101 INFO Gave resistance 255 to a01
+2026/01/01 12:00:20.812150 INFO Gave fire_resistance 1 to a01
+2026/01/01 12:00:20.862199 INFO Gave water_breathing 1 to a01
+2026/01/01 12:00:20.912240 INFO Gave saturation 255 to a01
+2026/01/01 12:00:20.962288 INFO Teleported a01 to 1920 300 1280
+2026/01/01 12:00:25.000941 INFO Gametime is 398
+2026/01/01 12:01:20.100102 INFO Gave resistance 255 to 2 players
+2026/01/01 12:01:20.150121 INFO Gave fire_resistance 1 to 2 players
+2026/01/01 12:01:20.200140 INFO Gave water_breathing 1 to 2 players
+2026/01/01 12:01:20.250159 INFO Gave saturation 255 to 2 players
+2026/01/01 12:01:20.300402 INFO Positions: 2
+2026/01/01 12:01:20.300420 INFO Position: 0 1283.06 300.00 1281.38 a00
+2026/01/01 12:01:20.300431 INFO Position: 0 1922.94 300.00 1278.62 a01
+2026/01/01 12:01:25.001126 INFO Gametime is 1698
+2026/01/01 12:01:30.000110 ERROR No targets matched: a09
+2026/01/01 12:01:30.050201 ERROR Unknown command: querytarget. Type help for a list of commands.
+2026/01/01 12:01:30.100302 INFO There are 2/200 players online:
+2026/01/01 12:01:30.100311 INFO a00, a01
+2026/01/01 12:02:00.000201 INFO Stopping the server
+2026/01/01 12:02:00.000310 INFO Server closing...
+a00 left the game
+a01 left the game
+2026/01/01 12:02:00.420118 INFO Server closed. uptime=2m0.31s
+2026/01/01 12:02:00.420230 INFO Server stopped.

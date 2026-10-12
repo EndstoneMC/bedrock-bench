@@ -1,0 +1,8 @@
+2026/01/01 12:00:00.104512 INFO Dragonfly version 1793369 (module v0.11.6-0.20260920163020-1793369709ce, Minecraft 1.26.50, protocol 2193, go1.26.3, GOMAXPROCS 8)
+2026/01/01 12:00:00.105301 INFO Server started.
+2026/01/01 12:00:20.410102 INFO Player spawned: a00
+panic: runtime error: index out of range [16] with length 16
+
+goroutine 412 [running]:
+main.main()
+	main.go:1 +0x1d
