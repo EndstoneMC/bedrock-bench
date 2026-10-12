@@ -331,9 +331,9 @@ class TestResolve:
 
     def test_dotted_name_is_a_name(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("BBENCH_ROOT", str(tmp_path))
-        (tmp_path / "configs" / "a.b").mkdir(parents=True)
-        (tmp_path / "configs" / "a.b" / "server.toml").write_text("schema = 1\n")
-        assert config.resolve("servers", "a.b") == tmp_path.resolve() / "configs" / "a.b" / "server.toml"
+        (tmp_path / "servers" / "a.b").mkdir(parents=True)
+        (tmp_path / "servers" / "a.b" / "server.toml").write_text("schema = 1\n")
+        assert config.resolve("servers", "a.b") == config.server_dir("a.b") / "server.toml"
 
     def test_missing_lists_available(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("BBENCH_ROOT", str(tmp_path))

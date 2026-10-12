@@ -47,18 +47,20 @@ ENV_ROOT = "BBENCH_ROOT"
 #: JSON schemas of the result files, shipped as package data.
 SCHEMA_DIR = Path(__file__).resolve().parent / "schemas"
 
+#: One folder per server, relative to the project root; see :func:`server_dir`.
+SERVERS_DIR = "servers"
+SERVER_FILE = "server.toml"
+SERVER_TABLES = ("artifacts", "config", "benchmark")
+#: JDK and PHP pins shared by the standalone servers, an ``[artifacts]`` table like a server file's.
+RUNTIMES_FILE = f"{SERVERS_DIR}/runtimes.toml"
+
 #: Where each input kind that resolves by name lives, relative to the project root.
 CONFIG_PATHS = {
-    "servers": "servers/{}/server.toml",
+    "servers": f"{SERVERS_DIR}/{{}}/{SERVER_FILE}",
 }
 _SINGULAR = {
     "servers": "server file",
 }
-
-SERVER_FILE = "server.toml"
-SERVER_TABLES = ("artifacts", "config", "benchmark")
-#: JDK and PHP pins shared by the standalone servers, an ``[artifacts]`` table like a server file's.
-RUNTIMES_FILE = "servers/runtimes.toml"
 
 NAME_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 SERVER_RE = re.compile(r"^[a-z][a-z0-9_]*$")
@@ -108,6 +110,11 @@ def project_root() -> Path:
     if (candidate / "pyproject.toml").is_file() and (candidate / "configs").is_dir():
         return candidate
     return Path.cwd()
+
+
+def server_dir(name: str) -> Path:
+    """``servers/<name>/``: the server's server.toml, config templates and helper sources."""
+    return project_root() / SERVERS_DIR / name
 
 
 def resolve(kind: str, ref: str | Path) -> Path:

@@ -320,7 +320,7 @@ def preflight(machine: Machine, placement: Placement, topology: host.Topology) -
 def tag_arm(tag: str) -> Arm:
     """The arm a tag names. The server's benchmark default brings its ``bds`` and ``python``."""
     arm = config.arm_from_ref(tag)
-    if not (config.project_root() / config.CONFIG_PATHS["servers"].format(arm.server)).is_file():
+    if not (config.server_dir(arm.server) / config.SERVER_FILE).is_file():
         return arm
     default = config.load_benchmark(arm.server)
     return default.arm if default.version == arm.version else arm
