@@ -27,9 +27,9 @@ The new rows pointed at memory. The check that asks whether a block reacts to ra
 
 To find the block at a random position, the server follows a short chain of dependent memory reads, from the chunk down through its section and block storage to the block itself. Each read needs the result of the one before. For a position nobody has touched recently, each read goes all the way to main memory. By the time a chunk comes round again, its data has long left the cache. At about 140 ns per pick, the loop spent most of its time waiting.
 
-A modern processor can usually hide some of that wait by starting the next iteration's reads early. Here it could not. The random number generator that chooses each position wrote its seed in a way that forces the processor to finish every outstanding memory read first. So each pick's cache misses queued up behind the previous pick's.
+A modern processor can usually hide some of that wait by starting the next pick's reads early. Here it could not. One expensive instruction in the loop stalled the processor on every pick, so each pick's cache misses queued up behind the previous pick's.
 
-That changed how we estimated fixes. The cost of a pick was roughly the number of dependent misses times the memory latency. Trimming instructions would barely move it. The misses had to overlap. Our first step was a small patch that removed the wait on the seed write.
+That changed how we estimated fixes. The cost of a pick was roughly the number of dependent misses times the memory latency. Trimming instructions would barely move it. The misses had to overlap. Our first step was a small patch that removed that stall.
 
 ## The plan we did not build
 
@@ -43,9 +43,9 @@ There was also upkeep to consider. Replacing code inside a compiled function wou
 
 ## Reading ahead
 
-What shipped is a single hook. Just before the random-tick loop, the chunk tick runs mob spawning. We hook the chunk tick and run a warm-up right after spawning finishes. The warm-up copies the random seed, runs the same position math the loop is about to run, and asks the processor to start loading the memory for those picks all at once, one link of the chain at a time. It handles up to 256 picks per chunk, which covers every pick at the default random tick speed.
+What shipped is a cache warm-up that runs for each chunk before its random ticks. It copies the random seed, runs the same position math the loop is about to run, and asks the processor to start loading the memory for those picks all at once, one link of the chain at a time. It handles up to 256 picks per chunk, which covers every pick at the default random tick speed.
 
-Then the original loop runs exactly as it always did. The data it needs is already on its way into the cache.
+Then the original loop runs exactly as it always did. The data it needs is already on its way into the cache, so most of the memory waits overlap instead of queueing.
 
 The warm-up only reads memory. It never advances the game's seed and never changes which blocks tick or in what order. A wrong prediction would cost speed and nothing else.
 
@@ -55,7 +55,7 @@ The Windows and Linux builds gave us one surprise. They compute the block positi
 
 We did not give the warm-up its own A/B run, so we have no clean before and after for it alone. Our estimate from the profile was 8 to 12 ms per tick at 100 players, because about 17 of the 22 ms were misses waiting in line behind each other.
 
-The seed patch went in first (`036a4adc8`) and the warm-up followed (`6e7417c00`). We expected the warm-up to cover most of what the patch saved, so we dropped the patch before the release (`f1f0b65f1`). A later 100-player run without it stayed within run-to-run noise of the build that had both, about 15 ms per second, or under 1 ms per tick. That run also carried four network changes, so it is not a clean test of the patch alone. Still, we saw no measurable change on the main thread.
+The stall patch went in first (`036a4adc8`) and the warm-up followed (`6e7417c00`). We expected the warm-up to cover most of what the patch saved, so we dropped the patch before the release (`f1f0b65f1`). A later 100-player run without it stayed within run-to-run noise of the build that had both, about 15 ms per second, or under 1 ms per tick. That run also carried four network changes, so it is not a clean test of the patch alone. Still, we saw no measurable change on the main thread.
 
 The warm-up is one of about ten performance changes in Endstone 0.11.14. Together those changes take the main thread from about 105 ms per tick on vanilla BDS to 43 ms on Windows and 46.5 ms on Linux, and steady TPS from about 9.4 to 20.
 
