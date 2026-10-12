@@ -1,0 +1,31 @@
+# LeviLamina loads into Mojang's BDS binary of the pinned build, so gameplay is BDS's own. It also swaps the server's
+# memory allocator for mimalloc and drops some malformed packets, which keeps behaviour for well-formed clients the same
+# (fidelity V1). Rows cover LeviLamina alone; docs/servers/levilamina.md lists what the LeviOptimize variants change.
+
+schema = 1
+server = "levilamina"
+
+[range."26.51"]
+fidelity = "V1"
+"terrain.vanilla_generator" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6", note = "bds@1.26.51.1" }
+"terrain.any_generator" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6" }
+"terrain.structures" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6" }
+"chunks.client_side_generation" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6", observed_by = "csg_effective" }
+"chunks.subchunk_requests" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6", note = "oversized requests are dropped (vulnerabilityFixes.subChunkRequest); the bot's requests are far below the limit" }
+"entity.mob_spawning" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6" }
+"entity.mob_ai" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6" }
+"entity.collision_push" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6" }
+"entity.item_entities" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6" }
+"player.server_authoritative_movement" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6", observed_by = "corrections_per_bot_s" }
+"player.physics" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6", observed_by = "airborne_frac_steady" }
+"player.hunger_damage" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6" }
+"player.locator_bar" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6", observed_by = "locator_pkts_per_bot_s" }
+"block.redstone" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6" }
+"block.random_ticks" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6" }
+"block.fluids" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6" }
+"block.falling" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6" }
+"world.lighting" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6" }
+"world.dimensions" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6" }
+"world.autosave" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6" }
+"commands.vanilla_set" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6", note = "cheat commands are enabled by LeviLamina's default config (forceEnableCheatCommands)" }
+"net.encryption" = { class = "vanilla", evidence = "https://github.com/LiteLDev/LeviLamina/releases/tag/v26.51.6", note = "not exercised: benchmarks run offline" }

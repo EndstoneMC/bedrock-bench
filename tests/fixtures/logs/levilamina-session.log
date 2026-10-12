@@ -1,0 +1,52 @@
+12:00:00.100 INFO [PreLoader] Loading records from data...
+12:00:00.400 INFO [PreLoader] Preloading: LeviLamina <LeviLamina.dll>
+12:00:00.450 INFO [PreLoader] LeviLamina Loaded.
+12:00:00.460 IFO [LeviLamina] Loading mods...
+12:00:00.470 IFO [LeviLamina] Loading ExampleMod v1.0.0
+12:00:00.480 IFO [LeviLamina] 1 mod(s) loaded
+12:00:00.500 IFO [Server] setting up server logging...
+12:00:00.501 IFO [Server] Starting Server
+12:00:00.501 IFO [Server] Version: 1.26.51.1(ProtocolVersion 2193) with LeviLamina-26.51.6
+12:00:00.505 IFO [Server] Level Name: bench
+12:00:00.900 WRN [Server] Content logging to console is disabled.
+12:00:00.901 IFO [Server]
+12:00:00.901 IFO [Server] #####################################################
+12:00:00.901 IFO [Server] #              CREATING VANILLA WORLD               #
+12:00:00.901 IFO [Server] #####################################################
+12:00:05.000 IFO [Server] IPv4 supported, port: 19672: Used for gameplay
+12:00:05.050 IFO [Server] Server started in (5.0s)! For help, type "help" or "?"
+12:00:05.050 ERR [Server] ================ TRANSPORT TYPE ERROR  ===================
+12:00:05.050 ERR [Server] Your current connection type is not set to NetherNet.
+12:00:05.050 ERR [Server] Players will not be able to connect to your game without NetherNet.
+12:00:05.050 ERR [Server] To switch, set 'transport=nethernet' in server.properties.
+12:00:05.050 ERR [Server] For more information, please reference the included bedrock_server_how_to.html file.
+12:00:05.050 ERR [Server] =======================================================
+12:00:05.100 IFO [CrashLogger] CrashLogger enabled successfully
+12:00:05.100 IFO [LeviLamina] Enabling mods...
+12:00:05.110 DBG [ExampleMod] Enabled in debug mode
+12:00:05.300 IFO [Server] Gametime is 4
+12:00:10.300 IFO [Server] Gametime is 104
+12:00:12.000 IFO [Server] Player connected: a00, xuid:
+12:00:13.000 IFO [Server] Player Spawned: a00 xuid: , pfid:
+12:00:13.100 IFO [Server] Gave Resistance * 255 to a00 for an infinite duration
+12:00:13.200 IFO [Server] Teleported a00 to 1280.50, 300.00, 1280.50
+12:00:20.000 IFO [Server] Target data: [
+12:00:20.000 IFO [Server]    {
+12:00:20.000 IFO [Server]       "dimension" : 0,
+12:00:20.000 IFO [Server]       "id" : -4294967295,
+12:00:20.000 IFO [Server]       "position" : {
+12:00:20.000 IFO [Server]          "x" : 1280.5,
+12:00:20.000 IFO [Server]          "y" : 71.62001037597656,
+12:00:20.000 IFO [Server]          "z" : 1280.5
+12:00:20.000 IFO [Server]       },
+12:00:20.000 IFO [Server]       "uniqueId" : "-4294967295",
+12:00:20.000 IFO [Server]       "yRot" : 12.5
+12:00:20.000 IFO [Server]    }
+12:00:20.000 IFO [Server] ]
+12:00:21.000 IFO [Server] Game rule randomtickspeed has been updated to 3
+12:00:22.000 ERR [Server] Unknown command: status. Please check that the command exists and that you have permission to use it.
+12:00:23.000 FTL [Server] Something went badly wrong
+12:00:30.000 IFO [Server] Server stop requested.
+12:00:30.010 IFO [Server] Stopping server...
+12:00:30.020 IFO [LeviLamina] Disabling mods...
+Quit correctly
