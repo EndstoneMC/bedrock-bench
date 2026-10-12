@@ -4,8 +4,9 @@
 Every loader rejects unknown keys, so a typo fails loudly instead of falling back to a default. Failures raise
 :class:`ConfigError` naming the file and the dotted key; the CLI turns them into exit code 2.
 
-Inputs are referenced either by path or by bare name. A bare name resolves inside the project checkout, for example
-``spread100`` -> ``scenarios/spread100.toml``.
+Scenarios, matrices, artifact pins and feature files are referenced by path or by bare name. A bare name resolves
+inside the project checkout, for example ``spread100`` -> ``scenarios/spread100.toml``. Machine profiles and claims
+files are always paths.
 """
 
 from __future__ import annotations
@@ -32,7 +33,6 @@ from bedrock_bench.model import (
     GAMEMODES,
     PHASES,
     PRIORITIES,
-    RUNTIMES,
     WORLD_SOURCES,
     Arm,
     ArtifactCatalog,
@@ -61,15 +61,16 @@ from bedrock_bench.model import (
 
 ENV_ROOT = "BBENCH_ROOT"
 
-#: Config directories at the project root, one per input kind.
-CONFIG_KINDS = ("scenarios", "matrices", "machines", "artifacts", "features", "claims")
+#: JSON schemas of the result files, shipped as package data.
+SCHEMA_DIR = Path(__file__).resolve().parent / "schemas"
+
+#: Config directories at the project root, one per input kind that resolves by name.
+CONFIG_KINDS = ("scenarios", "matrices", "artifacts", "features")
 _SINGULAR = {
     "scenarios": "scenario",
     "matrices": "matrix",
-    "machines": "machine profile",
     "artifacts": "artifact file",
     "features": "feature file",
-    "claims": "claims file",
 }
 
 NAME_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
@@ -112,7 +113,7 @@ class ConfigError(ValueError):
 
 
 def project_root() -> Path:
-    """The checkout that holds ``scenarios/``, ``servers/``, ``schemas/`` and friends.
+    """The checkout that holds ``scenarios/``, ``matrices/``, ``servers/`` and friends.
 
     ``$BBENCH_ROOT`` wins; otherwise the checkout this package was imported from; otherwise the working directory.
     """
@@ -120,7 +121,7 @@ def project_root() -> Path:
     if override:
         return Path(override).expanduser().resolve()
     candidate = Path(__file__).resolve().parents[2]
-    if (candidate / "pyproject.toml").is_file() and (candidate / "schemas").is_dir():
+    if (candidate / "pyproject.toml").is_file() and (candidate / "scenarios").is_dir():
         return candidate
     return Path.cwd()
 
@@ -145,10 +146,18 @@ def available(kind: str) -> list[str]:
     return sorted(p.stem for p in folder.glob("*.toml")) if folder.is_dir() else []
 
 
+def input_file(ref: str | Path, what: str) -> Path:
+    """An input that is always given as a path, such as a machine profile or a claims file."""
+    path = Path(ref)
+    if not path.is_file():
+        raise ConfigError(f"no such {what}", file=path)
+    return path
+
+
 def schema_path(name: str) -> Path:
-    """Path of a JSON schema, e.g. ``schema_path("run")`` -> ``schemas/run.schema.json``."""
+    """Path of a JSON schema shipped in the package, e.g. ``schema_path("run")`` -> ``schemas/run.schema.json``."""
     filename = name if name.endswith(".json") else f"{name}.schema.json"
-    return project_root() / "schemas" / filename
+    return SCHEMA_DIR / filename
 
 
 def load_schema(name: str) -> dict[str, Any]:
@@ -785,10 +794,10 @@ def _explain_arm_key(key: str) -> str | None:
 
 
 def load_machine(ref: str | Path | None) -> Machine:
-    """Load a machine profile; ``None`` gives the defaults of ``machines/example.toml``."""
+    """Load a machine profile from a path; ``None`` gives the built-in defaults with ``auto`` CPU sets."""
     if ref is None:
         return default_machine()
-    path = resolve("machines", ref)
+    path = input_file(ref, "machine profile")
     return parse_machine(load_toml(path), file=path, label=path.stem)
 
 
@@ -806,7 +815,6 @@ def parse_machine(data: Mapping[str, Any], *, file: Path | None = None, label: s
     priority = placement.get("priority", str, "normal", choices=PRIORITIES)
     placement.finish()
     runtime = top.table("runtime")
-    kind = runtime.get("kind", str, "native", choices=RUNTIMES)
     port = runtime.get("port", int, 19672, minimum=1024, maximum=65534)
     jvm_heap = runtime.get("jvm_heap", str, "8G", pattern=HEAP_RE.pattern)
     runtime.finish()
@@ -828,11 +836,10 @@ def parse_machine(data: Mapping[str, Any], *, file: Path | None = None, label: s
         bot_cpus=bot_cpus,
         harness_cpus=harness_cpus,
         priority=priority,
-        runtime=kind,
         port=port,
         jvm_heap=jvm_heap,
         gates=gates,
-        profile_sha256=_profile_sha256(server_cpus, bot_cpus, harness_cpus, priority, kind, jvm_heap, gates),
+        profile_sha256=_profile_sha256(server_cpus, bot_cpus, harness_cpus, priority, jvm_heap, gates),
         label=label,
     )
 
@@ -851,7 +858,6 @@ def with_priority(machine: Machine, priority: str | None) -> Machine:
             machine.bot_cpus,
             machine.harness_cpus,
             priority,
-            machine.runtime,
             machine.jvm_heap,
             machine.gates,
         ),
@@ -859,7 +865,7 @@ def with_priority(machine: Machine, priority: str | None) -> Machine:
 
 
 def _profile_sha256(
-    server_cpus: str, bot_cpus: str, harness_cpus: str, priority: str, runtime: str, jvm_heap: str, gates: Gates
+    server_cpus: str, bot_cpus: str, harness_cpus: str, priority: str, jvm_heap: str, gates: Gates
 ) -> str:
     """Hash of everything in a profile that can change a measurement. Label and port are left out."""
     return sha256_json(
@@ -870,7 +876,7 @@ def _profile_sha256(
                 "harness_cpus": harness_cpus,
                 "priority": priority,
             },
-            "runtime": {"kind": runtime, "jvm_heap": jvm_heap},
+            "runtime": {"jvm_heap": jvm_heap},
             "gates": to_json(gates),
         }
     )
@@ -1039,7 +1045,7 @@ def _equals(expected: Any, message: str) -> Callable[[Any], None]:
 
 
 def load_claims(ref: str | Path) -> ClaimSet:
-    path = resolve("claims", ref)
+    path = input_file(ref, "claims file")
     return parse_claims(load_toml(path), file=path)
 
 

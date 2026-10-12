@@ -55,7 +55,6 @@ if TYPE_CHECKING:
     from bedrock_bench.cache import Cache
 
 DEFAULT_PYTHON = "3.13"
-DOCKER_IMAGE = "endstone"
 REQUIREMENTS_DIR = "servers/endstone/requirements"
 BSTATS_TEMPLATE = "servers/endstone/plugins/bstats/config.toml"
 BSTATS_FILE = "plugins/bstats/config.toml"
@@ -82,7 +81,7 @@ ENDSTONE_DIALECT = bds_dialect(
 
 class EndstoneAdapter(BdsFamily):
     name: ClassVar[str] = "endstone"
-    platforms: ClassVar[frozenset[str]] = frozenset({"windows", "linux", "docker"})
+    platforms: ClassVar[frozenset[str]] = frozenset({"windows", "linux"})
     dialect: ClassVar[Dialect] = ENDSTONE_DIALECT
     thread_groups: ClassVar[Mapping[str, str]] = {**BdsFamily.thread_groups, "crash_reporter": r"^sentry"}
     crash_paths: ClassVar[tuple[str, ...]] = ("crash_reports", ".sentry-native", "%LOCALAPPDATA%/CrashDumps")
@@ -92,7 +91,7 @@ class EndstoneAdapter(BdsFamily):
 
     def __init__(self, arm: Arm, machine: Machine) -> None:
         super().__init__(arm, machine)
-        if arm.variant == GLIBC_ALLOC and machine.runtime != "docker" and host_os() != "linux":
+        if arm.variant == GLIBC_ALLOC and host_os() != "linux":
             raise ConfigError(f"variant {GLIBC_ALLOC} only exists on Linux")
 
     # ---- fetch ----------------------------------------------------------------------------------------------------
@@ -114,10 +113,6 @@ class EndstoneAdapter(BdsFamily):
             "version_marker": str(meta.get("version_marker") or version_marker(bds_version)),
             "known_issues": known_issues(meta, platform),
         }
-        if self.machine.runtime == "docker":
-            # The Docker image installs Endstone itself; only the server files come from here.
-            return Install(bds.root, bds.tree_sha256, bds.artifacts, extra={**common, "venv": None, "python": None})
-
         python = self.arm.python or str(meta.get("python") or DEFAULT_PYTHON)
         if not re.match(r"^3\.\d+$", python):
             raise ConfigError(f"python must look like 3.13, got {python!r}")
@@ -271,20 +266,11 @@ class EndstoneAdapter(BdsFamily):
     def launch(self, layout: Layout) -> LaunchSpec:
         env_set, env_remove, _ = self._environment()
         self._server_exe = self.executable(layout)
-        image = None
-        if self.machine.runtime == "docker":
-            python = "python"
-            image = DOCKER_IMAGE
-        else:
-            if not layout.extra.get("python"):
-                raise ConfigError("this layout has no Endstone environment; fetch the arm natively first")
-            python = str(layout.extra["python"])
         return LaunchSpec(
-            argv=(python, "-m", "endstone", "-y", "--no-interactive", "-s", "."),
+            argv=(str(layout.extra["python"]), "-m", "endstone", "-y", "--no-interactive", "-s", "."),
             cwd=layout.server_dir,
             env_set=env_set,
             env_remove=env_remove,
-            image=image,
         )
 
     def server_process(

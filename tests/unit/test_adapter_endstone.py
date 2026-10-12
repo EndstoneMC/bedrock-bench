@@ -311,7 +311,6 @@ class TestPrepareAndLaunch:
         assert spec.env_set["PYTHONSAFEPATH"] == "1"
         assert {"PYTHONPATH", "PYTHONHOME", "VIRTUAL_ENV"} <= set(spec.env_remove)
         assert ("LD_PRELOAD" in spec.env_remove) == (system == "linux")
-        assert spec.image is None
 
     def test_glibc_variant(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(bdsfamily, "host_os", lambda: "linux")
@@ -329,20 +328,6 @@ class TestPrepareAndLaunch:
             EndstoneAdapter(arm(variant="glibc-alloc"), config.default_machine())
         with pytest.raises(ConfigError, match="no variant"):
             EndstoneAdapter(arm(variant="turbo"), config.default_machine())
-
-    def test_docker_launch(self, tmp_path: Path) -> None:
-        machine = config.parse_machine({"runtime": {"kind": "docker"}})
-        adapter = EndstoneAdapter(arm(), machine)
-        layout = adapter.prepare(fake_install(tmp_path, adapter), make_ctx(tmp_path))
-        spec = adapter.launch(layout)
-        assert spec.argv[0] == "python" and spec.image == "endstone"
-
-    def test_launch_needs_an_environment(self, adapter: EndstoneAdapter, tmp_path: Path) -> None:
-        install = fake_install(tmp_path, adapter)
-        install = Install(install.root, install.tree_sha256, install.artifacts, {**install.extra, "python": None})
-        layout = adapter.prepare(install, make_ctx(tmp_path))
-        with pytest.raises(ConfigError):
-            adapter.launch(layout)
 
 
 class FakeProcess:

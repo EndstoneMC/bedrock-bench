@@ -1,4 +1,0 @@
-# Build context of a manual build from the project root: only what the Dockerfile reads.
-*
-!docker/debian-snapshot.sh
-!servers/endstone/requirements/

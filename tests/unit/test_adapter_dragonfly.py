@@ -417,15 +417,6 @@ class TestFetch:
         assert again.tree_sha256 == install.tree_sha256
         assert len(project["go"].builds()) == 1, "a cached build is reused"
 
-    def test_docker_builds_linux_and_describes_a_host_build(self, project: dict[str, Any], tmp_path: Path) -> None:
-        machine = config.parse_machine({"runtime": {"kind": "docker"}})
-        install = make_adapter(machine).fetch(Cache(tmp_path / "cache"))
-        assert install.extra["exe"] == "dfbench"
-        targets = {(env or {}).get("GOOS") for _, env in project["go"].builds()}
-        assert "linux" in targets
-        if bots.Target.host().goos != "linux":
-            assert len(project["go"].builds()) == 2
-
     def test_checksum_mismatch(self, project: dict[str, Any], tmp_path: Path) -> None:
         project["go"].go_sum = "h1:other="
         with pytest.raises(fetch.FetchError, match="checksum"):
@@ -549,20 +540,13 @@ class TestPrepare:
 
 
 class TestLaunchAndFacts:
-    def test_native_launch(self, tmp_path: Path) -> None:
+    def test_launch(self, tmp_path: Path) -> None:
         adapter = make_adapter()
         layout = adapter.prepare(make_install(tmp_path), make_ctx(tmp_path))
         spec = adapter.launch(layout)
         assert spec.argv == (str(layout.server_dir / layout.extra["exe"]), "-config", "config.toml")
         assert spec.cwd == layout.server_dir
         assert {"GOMAXPROCS", "GOGC", "GOMEMLIMIT", "GODEBUG"} <= set(spec.env_remove)
-        assert spec.image is None
-
-    def test_docker_launch(self, tmp_path: Path) -> None:
-        adapter = make_adapter(config.parse_machine({"runtime": {"kind": "docker"}}))
-        layout = adapter.prepare(make_install(tmp_path), make_ctx(tmp_path))
-        spec = adapter.launch(layout)
-        assert spec.argv[0] == f"./{layout.extra['exe']}" and spec.image == dragonfly.DOCKER_IMAGE
 
     def test_facts(self, tmp_path: Path) -> None:
         adapter = make_adapter()

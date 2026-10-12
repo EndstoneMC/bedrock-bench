@@ -403,8 +403,6 @@ def build_template(
     )
     layout = adapter.prepare(install, ctx)
     spec = adapter.launch(layout)
-    if spec.image is not None:
-        raise ConfigError("prepare-world runs servers natively; use a machine profile with runtime.kind = native")
     started = time.monotonic()
     launched = process.launch(spec, placement, role="server")
     console = Console(
@@ -550,8 +548,6 @@ def prepare_world(args: argparse.Namespace) -> int:
     if scenario.world.source != "template":
         raise ConfigError(f'scenario {scenario.name} does not use a world template ([world] source = "template")')
     machine = config.load_machine(args.machine)
-    if machine.runtime != "native":
-        raise ConfigError("prepare-world runs servers natively; use a machine profile with runtime.kind = native")
     adapter = adapters.create(arm, machine)
     cache = Cache()
     final = cache.template_dir(arm.server, arm.version, scenario.name)

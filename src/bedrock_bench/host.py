@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import argparse
 import contextlib
-import importlib.util
 import json
 import math
 import platform as _stdlib_platform
@@ -505,20 +504,6 @@ def check_go() -> Check:
     return Check("go", "ok", match.group(0))
 
 
-def check_docker(machine: Machine) -> list[Check]:
-    text = _tool_version(["docker", "version", "--format", "{{.Server.Version}}"])
-    if text is None or not re.match(r"^\d", text):
-        return [Check("docker", "fail", "runtime.kind is docker but the Docker engine is not reachable")]
-    checks = [Check("docker", "ok", f"Docker engine {text}")]
-    if importlib.util.find_spec("bedrock_bench.platform.docker") is not None:
-        from bedrock_bench.platform import docker as docker_runtime
-
-        extra = getattr(docker_runtime, "doctor_checks", None)
-        if extra is not None:
-            checks.extend(extra(machine))
-    return checks
-
-
 def check_power() -> Check:
     settings = platform.current().power_settings()
     text = power_description(settings) or "unknown"
@@ -668,8 +653,6 @@ def run_doctor(machine: Machine, *, idle_s: float | None = None, progress: bool 
 
     checks.append(check_ports(machine.port))
     checks.append(check_go())
-    if machine.runtime == "docker":
-        checks.extend(check_docker(machine))
     return DoctorReport(machine, topology, placement, checks, idle)
 
 

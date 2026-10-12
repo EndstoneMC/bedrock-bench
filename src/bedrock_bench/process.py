@@ -10,8 +10,6 @@ they see at start-up. So:
 - **Linux**: affinity and nice are set in ``preexec_fn`` between ``fork`` and ``exec``, and every thread and child
   inherits them. The child starts its own session, so the whole tree can be killed as one process group.
 
-Container launches (``LaunchSpec.image``) belong to ``platform/docker.py``.
-
 ``LaunchSpec.stdin_lines`` are not written here: every console write goes through the console's journal.
 """
 
@@ -191,8 +189,6 @@ def launch(
     Pipes are binary; the caller flushes stdin after each write. With ``kill_on_close`` (Windows) the process tree
     dies with the harness.
     """
-    if spec.image is not None:
-        raise LaunchError("container launches go through bedrock_bench.platform.docker")
     planned_cpus: tuple[int, ...] | None = None
     planned_priority = "normal"
     if placement is not None:

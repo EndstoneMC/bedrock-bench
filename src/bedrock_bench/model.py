@@ -181,8 +181,7 @@ WINDOWS = ("idle", "join", "settle", "load", "steady", "chaos")
 LOG_LEVELS = ("debug", "info", "warn", "error", "fatal")
 
 PRIORITIES = ("normal", "above_normal")
-RUNTIMES = ("native", "docker")
-PLATFORMS = ("windows", "linux", "docker")
+PLATFORMS = ("windows", "linux")
 PLACEMENT_KINDS = ("physical", "vcpu")
 WORLD_SOURCES = ("fresh", "template")
 GENERATORS = ("vanilla", "custom", "flat")
@@ -387,7 +386,7 @@ class Scenario:
 
 @dataclass(frozen=True)
 class Gates:
-    """Interference limits from ``machines/<name>.toml``; a run that breaks one is invalid."""
+    """Interference limits from the machine profile; a run that breaks one is invalid."""
 
     idle_check_s: float = 15.0
     foreign_cores_mean: float = 0.25
@@ -404,7 +403,6 @@ class Machine:
     bot_cpus: str
     harness_cpus: str
     priority: str
-    runtime: str
     port: int
     jvm_heap: str
     gates: Gates
@@ -502,7 +500,7 @@ class FeatureFile:
 
 @dataclass(frozen=True)
 class Claim:
-    """A relational statement checked against a report (``claims/<name>.toml``)."""
+    """A relational statement checked against a report (``bbench report --claims <file>``)."""
 
     id: str
     text: str
@@ -590,7 +588,6 @@ class LaunchSpec:
     cwd: Path
     env_set: Mapping[str, str] = field(default_factory=dict)
     env_remove: tuple[str, ...] = ()
-    image: str | None = None  # Docker image for the docker runtime
     stdin_lines: tuple[str, ...] = ()  # written once right after launch, before any other console input
 
 

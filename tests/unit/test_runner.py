@@ -20,6 +20,7 @@ from typing import Any
 import pytest
 
 from bedrock_bench import runner
+from bedrock_bench.adapters.base import host_os
 from bedrock_bench.cache import Cache
 from bedrock_bench.config import ConfigError, load_machine, load_scenario, parse_matrix, parse_scenario
 from bedrock_bench.grid import cell
@@ -180,15 +181,13 @@ class TestPreflight:
     def test_platform(self) -> None:
         machine = load_machine(None)
         adapter = FakeBds(Arm("fake_bds@1.0.0", "fake_bds", "1.0.0"), machine)
-        runner.check_platform(adapter, machine)
-        with pytest.raises(ConfigError, match="docker"):
-            runner.check_platform(adapter, dataclasses.replace(machine, runtime="docker"))
+        runner.check_platform(adapter)
 
         class Elsewhere(FakeBds):
-            platforms = frozenset({"docker"})
+            platforms = frozenset({"windows", "linux"} - {host_os()}) or frozenset({"windows"})
 
         with pytest.raises(ConfigError, match="does not run on"):
-            runner.check_platform(Elsewhere(adapter.arm, machine), machine)
+            runner.check_platform(Elsewhere(adapter.arm, machine))
 
     def test_a_taken_port_is_refused(self) -> None:
         from bedrock_bench import host
@@ -352,5 +351,5 @@ class TestSmokeProblems:
         assert problems == ["chaos command 'weather clear' was never sent"]
 
 
-def test_backend_names_the_runtime() -> None:
-    assert runner.backend(load_machine(None)).startswith("native-")
+def test_backend_names_the_platform() -> None:
+    assert runner.backend() == f"native-{host_os()}"

@@ -150,7 +150,7 @@ def execute(request: RunRequest) -> RunResult:
     """Run one arm once. Returns exit code 3 without a run directory when an environment check refuses."""
     arm, scenario, machine = request.arm, request.scenario, request.machine
     adapter = adapters.create(arm, machine)
-    check_platform(adapter, machine)
+    check_platform(adapter)
     if scenario.has_phase("chaos"):
         chaos_runner()
     try:
@@ -209,7 +209,7 @@ def _measure(
     arm, scenario, machine = request.arm, request.scenario, request.machine
     run_dir = results.RunDir.create(request.matrix_dir, arm.id, scenario.name, request.repeat)
     _say(f"run {run_dir.run_id}: {arm.id} on {scenario.name}")
-    harness = provenance.harness_info(backend(machine))
+    harness = provenance.harness_info(backend())
     nonstandard = []
     flags = set()
     if arm.artifact is not None:
@@ -312,15 +312,13 @@ def _remove_work_dir(work_dir: Path) -> None:
             time.sleep(0.5)
 
 
-def backend(machine: Machine) -> str:
+def backend() -> str:
     """The ``harness.backend`` of run.json."""
-    return "docker-linux" if machine.runtime == "docker" else f"native-{platform.name()}"
+    return f"native-{platform.name()}"
 
 
-def check_platform(adapter: ServerAdapter, machine: Machine) -> None:
+def check_platform(adapter: ServerAdapter) -> None:
     """Refuse an arm its adapter cannot run here (a ConfigError, exit 2)."""
-    if machine.runtime == "docker":
-        raise ConfigError("runtime.kind = docker is not supported by this runner yet; use runtime.kind = native")
     here = host_os()
     if here not in adapter.platforms:
         supported = ", ".join(sorted(adapter.platforms))
@@ -473,7 +471,7 @@ def run_matrix(args: argparse.Namespace) -> int:
     scenarios = {name: config.load_scenario(name) for name in matrix.scenarios}
     for arm in {run.arm.id: run.arm for run in plan}.values():
         adapter = adapters.create(arm, machine)
-        check_platform(adapter, machine)
+        check_platform(adapter)
         for name in matrix.scenarios_for(arm):
             if scenarios[name].has_phase("chaos"):
                 chaos_runner()
@@ -562,7 +560,7 @@ def _child_command(args: argparse.Namespace, matrix: Matrix, run: PlannedRun, ou
         str(out),
     ]
     if args.machine:
-        command += ["--machine", str(config.resolve("machines", args.machine).resolve())]
+        command += ["--machine", str(config.input_file(args.machine, "machine profile").resolve())]
     return command
 
 

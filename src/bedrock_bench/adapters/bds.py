@@ -18,13 +18,10 @@ from bedrock_bench.model import Install, LaunchSpec, Layout
 if TYPE_CHECKING:
     from bedrock_bench.cache import Cache
 
-#: Image key the Docker backend resolves through artifacts/images.toml.
-DOCKER_IMAGE = "bds"
-
 
 class BdsAdapter(BdsFamily):
     name: ClassVar[str] = "bds"
-    platforms: ClassVar[frozenset[str]] = frozenset({"windows", "linux", "docker"})
+    platforms: ClassVar[frozenset[str]] = frozenset({"windows", "linux"})
     dialect: ClassVar[Dialect] = BDS_DIALECT
 
     def fetch(self, cache: Cache) -> Install:
@@ -39,5 +36,4 @@ class BdsAdapter(BdsFamily):
             cwd=layout.server_dir,
             env_set={"LD_LIBRARY_PATH": "."},
             env_remove=("LD_PRELOAD",),
-            image=DOCKER_IMAGE if self.machine.runtime == "docker" else None,
         )

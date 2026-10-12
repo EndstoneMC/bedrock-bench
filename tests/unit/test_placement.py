@@ -254,11 +254,6 @@ def test_build_env_is_pure() -> None:
     assert base["PYTHONPATH"] == "x"
 
 
-def test_container_specs_are_refused(tmp_path: Path) -> None:
-    with pytest.raises(LaunchError, match="docker"):
-        launch(LaunchSpec(argv=("x",), cwd=tmp_path, image="debian"))
-
-
 @pytest.mark.skipif(not WINDOWS, reason="CREATE_SUSPENDED is Windows only")
 def test_suspended_until_resumed() -> None:
     win = platform.current()

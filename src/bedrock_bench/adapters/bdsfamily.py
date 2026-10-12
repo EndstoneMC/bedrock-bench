@@ -328,10 +328,8 @@ def _positions_from(text: str) -> list[PlayerPos] | None:
 # --------------------------------------------------------------------------------------------------------------------
 
 
-def bds_platform(machine: Machine) -> str:
-    """``windows`` or ``linux``: which BDS build this machine runs. The Docker runtime always runs the Linux one."""
-    if machine.runtime == "docker":
-        return "linux"
+def bds_platform() -> str:
+    """``windows`` or ``linux``: which BDS build this machine runs."""
     system = host_os()
     if system not in ("windows", "linux"):
         raise ConfigError(f"BDS runs on Windows and Linux only, not on {system}")
@@ -422,7 +420,7 @@ class BdsFamily(ServerAdapter):
 
     @property
     def platform(self) -> str:
-        return bds_platform(self.machine)
+        return bds_platform()
 
     # ---- prepare --------------------------------------------------------------------------------------------------
 

@@ -24,7 +24,6 @@ import re
 import shutil
 import stat
 import subprocess
-import tempfile
 import tomllib
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -61,7 +60,6 @@ DEFAULTS = "defaults.toml"  # 'dfbench -defaults' of the build, kept in the inst
 BUILD_INFO = "build.json"  # 'dfbench -version' of the build and the module it links, kept in the install
 FACTS = "dfbench.json"  # written by dfbench when the server starts
 SERVER_NAME = "bedrock-bench"
-DOCKER_IMAGE = "dragonfly"  # image key the Docker backend resolves through artifacts/images.toml
 
 #: Go runtime settings that would change how the server runs; a run never inherits them from the user's shell.
 GO_RUNTIME_ENV = ("GOMAXPROCS", "GOGC", "GOMEMLIMIT", "GODEBUG")
@@ -449,26 +447,15 @@ def build_dfbench(
             f"pinned {pin.ref.url} (sha256 {pin.ref.sha256}); download modules through https://proxy.golang.org"
         )
 
-    def build(into: Path, for_target: bots.Target) -> Path:
-        exe = into / exe_name(for_target)
-        command = bots.build_command(go, __version__, source_sha256(src)[:12], exe)
-        run_command(
-            command,
-            what=f"go build of dfbench for {for_target}",
-            cwd=src,
-            env=_go_env(for_target),
-            timeout_s=BUILD_TIMEOUT_S,
-        )
-        return exe
-
-    expected = {"target": target, "expect_version": expect_version, "expect_protocol": expect_protocol}
-    exe = build(out_dir, target)
-    if target == bots.Target.host():
-        describe_binary(exe, out_dir, **expected)
-        return
-    # A binary for another platform cannot describe itself here; a host build of the same source can.
-    with tempfile.TemporaryDirectory(prefix="dfbench-host-") as tmp:
-        describe_binary(build(Path(tmp), bots.Target.host()), out_dir, **expected)
+    exe = out_dir / exe_name(target)
+    run_command(
+        bots.build_command(go, __version__, source_sha256(src)[:12], exe),
+        what=f"go build of dfbench for {target}",
+        cwd=src,
+        env=_go_env(target),
+        timeout_s=BUILD_TIMEOUT_S,
+    )
+    describe_binary(exe, out_dir, target=target, expect_version=expect_version, expect_protocol=expect_protocol)
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -496,20 +483,18 @@ def _offset(value: float) -> str:
 
 class DragonflyAdapter(ServerAdapter):
     name: ClassVar[str] = "dragonfly"
-    platforms: ClassVar[frozenset[str]] = frozenset({"windows", "linux", "docker"})
+    platforms: ClassVar[frozenset[str]] = frozenset({"windows", "linux"})
     protocol: ClassVar[int] = 2193
     dialect: ClassVar[Dialect] = DRAGONFLY_DIALECT
     tick_thread_rule: ClassVar[str] = "none"
 
     @property
     def target(self) -> bots.Target:
-        """The Go target the server runs on: this machine, or Linux under the Docker runtime."""
+        """The Go target the server runs on: this machine."""
         try:
             host = bots.Target.host()
         except bots.BotError as exc:
             raise ConfigError(str(exc)) from None
-        if self.machine.runtime == "docker":
-            return bots.Target("linux", host.goarch)
         if host.goos not in ("windows", "linux"):
             raise ConfigError(f"Dragonfly runs on Windows and Linux here, not on {host_os()}")
         return host
@@ -541,8 +526,6 @@ class DragonflyAdapter(ServerAdapter):
 
     def _adopt(self, cache: Cache, target: bots.Target) -> Install:
         assert self.arm.artifact is not None
-        if target != bots.Target.host():
-            raise ConfigError("a prebuilt dfbench artifact must run on this machine")
         original, ref = fetch.adopt_local(self.arm.artifact, cache)
         root = cache.install_dir("dragonfly", self.arm.version, target.slug, "artifact", ref.sha256)
 
@@ -627,13 +610,10 @@ class DragonflyAdapter(ServerAdapter):
         return WorldInfo(fresh=True, generator="flat", path=level_dir)
 
     def launch(self, layout: Layout) -> LaunchSpec:
-        exe = layout.extra["exe"]
-        docker = self.machine.runtime == "docker"
         return LaunchSpec(
-            argv=(f"./{exe}" if docker else str(self.executable(layout)), "-config", CONFIG),
+            argv=(str(self.executable(layout)), "-config", CONFIG),
             cwd=layout.server_dir,
             env_remove=GO_RUNTIME_ENV,
-            image=DOCKER_IMAGE if docker else None,
         )
 
     def executable(self, layout: Layout) -> Path:
