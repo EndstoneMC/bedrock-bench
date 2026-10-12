@@ -242,7 +242,7 @@ def same_value(written: str, found: str | None) -> bool:
 
 FORMATS = ("properties", "yaml")
 KINDS = ("str", "int", "bool", "map")
-_ENTRY_KEYS = frozenset({"value", "default", "reason", "type", "variants", "skip_variants"})
+_ENTRY_KEYS = frozenset({"value", "default", "reason", "type"})
 
 
 @dataclass(frozen=True)
@@ -256,13 +256,6 @@ class ConfigPin:
     reason: str
     default: str | None = None  # the server's default when the shipped file does not contain the key
     kind: str = "str"  # YAML type: str, int, bool or map
-    variants: tuple[str, ...] = ()  # applied only with one of these variants
-    skip_variants: tuple[str, ...] = ()  # not applied with these variants
-
-    def applies(self, variant: str | None) -> bool:
-        if self.variants and variant not in self.variants:
-            return False
-        return variant is None or variant not in self.skip_variants
 
     def render(self, context: Mapping[str, str]) -> str:
         if self.kind == "map":
@@ -284,26 +277,25 @@ class ConfigPlan:
     def files(self) -> list[str]:
         return list(self.formats)
 
-    def pins_for(self, file: str, variant: str | None) -> list[ConfigPin]:
-        return [pin for pin in self.pins if pin.file == file and pin.applies(variant)]
+    def pins_for(self, file: str) -> list[ConfigPin]:
+        return [pin for pin in self.pins if pin.file == file]
 
 
-def load_config_plan(path: Path, *, variants: Iterable[str] = ()) -> ConfigPlan:
+def load_config_plan(path: Path) -> ConfigPlan:
     """Read the ``[config]`` table of ``configs/<server>/server.toml``.
 
     ``[config.file."<path>"]`` tables name each file and its ``format``; their sub-tables, one per override category,
-    hold ``key = { value, reason, default?, type?, variants?, skip_variants? }`` entries.
+    hold ``key = { value, reason, default?, type? }`` entries.
     """
-    known_variants = frozenset(variants)
     path, formats, entries = config.load_config_table(path)
     for name, fmt in formats.items():
         if fmt not in FORMATS:
             where = f'config.file."{name}".format'
             raise ConfigError(f"format must be one of {', '.join(FORMATS)}", file=path, key=where)
-    pins = [_read_pin(path, e.where, e.file, e.key, e.category, e.entry, known_variants) for e in entries]
+    pins = [_read_pin(path, e.where, e.file, e.key, e.category, e.entry) for e in entries]
     seen: set[tuple[str, str]] = set()
     for pin in pins:
-        if (pin.file, pin.key) in seen and not (pin.variants or pin.skip_variants):
+        if (pin.file, pin.key) in seen:
             raise ConfigError(f"{pin.key} appears twice in {pin.file}", file=path)
         seen.add((pin.file, pin.key))
     return ConfigPlan(formats=formats, pins=tuple(pins))
@@ -316,11 +308,10 @@ def _read_pin(
     key: str,
     category: OverrideCategory,
     entry: Any,
-    known_variants: frozenset[str],
 ) -> ConfigPin:
     if not isinstance(entry, dict) or not {"value", "reason"} <= set(entry) or set(entry) - _ENTRY_KEYS:
         raise ConfigError(
-            'must be { value = "...", reason = "..." } with optional default, type, variants, skip_variants',
+            'must be { value = "...", reason = "..." } with optional default and type',
             file=path,
             key=where,
         )
@@ -332,15 +323,6 @@ def _read_pin(
     kind = entry.get("type", "str")
     if kind not in KINDS:
         raise ConfigError(f"type must be one of {', '.join(KINDS)}", file=path, key=where)
-    lists = {}
-    for name in ("variants", "skip_variants"):
-        items = entry.get(name, [])
-        if not isinstance(items, list) or not all(isinstance(v, str) for v in items):
-            raise ConfigError(f"{name} must be a list of variant names", file=path, key=where)
-        unknown = sorted(set(items) - known_variants)
-        if unknown:
-            raise ConfigError(f"{name} names unknown variants {unknown}", file=path, key=where)
-        lists[name] = tuple(items)
     return ConfigPin(
         file=file,
         key=key,
@@ -349,8 +331,6 @@ def _read_pin(
         reason=reason,
         default=default,
         kind=kind,
-        variants=lists["variants"],
-        skip_variants=lists["skip_variants"],
     )
 
 
@@ -380,7 +360,7 @@ def config_context(ctx: RunContext) -> dict[str, str]:
 
 
 def write_config(
-    plan: ConfigPlan, file: str, server_dir: Path, shipped: str | None, context: Mapping[str, str], variant: str | None
+    plan: ConfigPlan, file: str, server_dir: Path, shipped: str | None, context: Mapping[str, str]
 ) -> tuple[list[Override], dict[str, str]]:
     """Write one config file: the shipped text (or nothing) with the plan's values set.
 
@@ -393,7 +373,7 @@ def write_config(
     written: dict[str, str] = {}
     if fmt == "properties":
         props = Properties.parse(shipped) if shipped is not None else Properties()
-        for pin in plan.pins_for(file, variant):
+        for pin in plan.pins_for(file):
             value = pin.render(context)
             current = props.get(pin.key)
             default = current if current is not None else pin.default
@@ -404,7 +384,7 @@ def write_config(
         props.dump(target)
         return overrides, written
     text = shipped if shipped is not None else ""
-    for pin in plan.pins_for(file, variant):
+    for pin in plan.pins_for(file):
         value = yaml_value(pin.render(context), pin.kind)
         current = _yaml_current(text, pin.key)
         default = current if current is not None else pin.default
@@ -671,7 +651,7 @@ class StandaloneServer(ServerAdapter):
             cls.config_template = f"configs/{cls.name}/server.toml"
 
     def config_plan(self) -> ConfigPlan:
-        return load_config_plan(config.project_root() / self.config_template, variants=self.variants)
+        return load_config_plan(config.project_root() / self.config_template)
 
     # ---- fetch ----------------------------------------------------------------------------------------------------
 
@@ -738,7 +718,7 @@ class StandaloneServer(ServerAdapter):
         for file in plan.files():
             shipped_path = install.root / DEFAULTS_PART / file
             shipped = shipped_path.read_text(encoding="utf-8") if shipped_path.is_file() else None
-            changed, values = write_config(plan, file, server_dir, shipped, context, self.arm.variant)
+            changed, values = write_config(plan, file, server_dir, shipped, context)
             overrides += changed
             written[file] = values
             files.append(ConfigFile(file, sha256_file(server_dir / file)))

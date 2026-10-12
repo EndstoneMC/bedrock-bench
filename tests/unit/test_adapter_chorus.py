@@ -146,7 +146,6 @@ class TestDialect:
         assert ChorusAdapter.protocol == 2193 and not ChorusAdapter.supports_csg
         assert ChorusAdapter.bot_compat_flags == ()
         assert ChorusAdapter.tick_thread_rule == "first_created"
-        assert ChorusAdapter.variants == {}
         assert ChorusAdapter.features_file == "configs/chorus/server.toml"
 
     def test_pins(self) -> None:

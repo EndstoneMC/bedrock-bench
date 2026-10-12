@@ -35,13 +35,11 @@ from bedrock_bench.adapters.bdsfamily import BdsFamily, bds_dialect, fetch_bds, 
 from bedrock_bench.cache import short_key
 from bedrock_bench.config import ConfigError
 from bedrock_bench.model import (
-    Arm,
     ArtifactVersion,
     ConfigFile,
     Install,
     LaunchSpec,
     Layout,
-    Machine,
     Override,
     OverrideCategory,
     RunContext,
@@ -60,7 +58,6 @@ BSTATS_TEMPLATE = "configs/endstone/bstats.toml"
 BSTATS_FILE = "plugins/bstats/config.toml"
 VERSION_MARKER_FILE = "version.txt"
 ENVIRONMENT = "<environment>"
-GLIBC_ALLOC = "glibc-alloc"
 
 #: ``[12:00:00 INFO]: text`` or ``[12:00:00 INFO]: [logger] text``, the same for the launcher and the server.
 ENDSTONE_PREFIX = re.compile(r"^\s*\[\d{2}:\d{2}:\d{2} (?P<level>[A-Z]+)\]:(?: |$)(?:\[(?P<logger>[^\]\s][^\]]*)\] )?")
@@ -85,14 +82,6 @@ class EndstoneAdapter(BdsFamily):
     dialect: ClassVar[Dialect] = ENDSTONE_DIALECT
     thread_groups: ClassVar[Mapping[str, str]] = {**BdsFamily.thread_groups, "crash_reporter": r"^sentry"}
     crash_paths: ClassVar[tuple[str, ...]] = ("crash_reports", ".sentry-native", "%LOCALAPPDATA%/CrashDumps")
-    variants: ClassVar[Mapping[str, str]] = {
-        GLIBC_ALLOC: "Linux only: preload glibc's allocator instead of the mimalloc Endstone bundles",
-    }
-
-    def __init__(self, arm: Arm, machine: Machine) -> None:
-        super().__init__(arm, machine)
-        if arm.variant == GLIBC_ALLOC and host_os() != "linux":
-            raise ConfigError(f"variant {GLIBC_ALLOC} only exists on Linux")
 
     # ---- fetch ----------------------------------------------------------------------------------------------------
 
@@ -100,11 +89,6 @@ class EndstoneAdapter(BdsFamily):
         entry = self._catalog_entry()
         meta = dict(entry.meta) if entry is not None else {}
         bds_version = self._bds_version(meta)
-        if self.arm.variant == GLIBC_ALLOC and meta.get("linux_allocator", "mimalloc") != "mimalloc":
-            raise ConfigError(
-                f"variant {GLIBC_ALLOC} needs a release whose launcher preloads mimalloc; "
-                f"endstone {self.arm.version} already runs on glibc's allocator"
-            )
         platform = self.platform
         bds = fetch_bds(cache, bds_version, platform)
         common = {
@@ -244,23 +228,10 @@ class EndstoneAdapter(BdsFamily):
             for key in removed
         ]
         if self.platform == "linux":
-            if self.arm.variant == GLIBC_ALLOC:
-                env_set["LD_PRELOAD"] = "libc.so.6"
-                overrides.append(
-                    Override(
-                        OverrideCategory.PARITY,
-                        ENVIRONMENT,
-                        "LD_PRELOAD",
-                        None,
-                        "libc.so.6",
-                        "glibc's allocator, as vanilla BDS uses, instead of the bundled mimalloc",
-                    )
-                )
-            else:
-                removed.append("LD_PRELOAD")
-                overrides.append(
-                    Override(harness, ENVIRONMENT, "LD_PRELOAD", None, "(unset)", "no allocator preloaded by accident")
-                )
+            removed.append("LD_PRELOAD")
+            overrides.append(
+                Override(harness, ENVIRONMENT, "LD_PRELOAD", None, "(unset)", "no allocator preloaded by accident")
+            )
         return env_set, tuple(removed), overrides
 
     def launch(self, layout: Layout) -> LaunchSpec:
@@ -303,8 +274,6 @@ class EndstoneAdapter(BdsFamily):
 
     def facts(self, layout: Layout, proc: psutil.Process) -> dict[str, Any]:
         facts = super().facts(layout, proc)
-        if self.arm.variant == GLIBC_ALLOC:
-            facts["allocator"] = "glibc"
         facts.update(
             {
                 "endstone_version": layout.extra.get("endstone_version"),

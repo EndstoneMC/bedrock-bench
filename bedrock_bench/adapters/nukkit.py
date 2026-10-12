@@ -60,7 +60,6 @@ SHIPPED_CONFIG = "lang/eng/nukkit.yml"
 PLUGIN_SOURCE = "configs/nukkit"  # plugin.yml and *.java
 PLUGIN_FILE = "plugins/BenchTick.jar"
 DEFAULT_RUNTIME = "jdk-21.0.12.1"
-NO_WATCHDOG = "no-watchdog"
 
 #: ``13:58:00 [INFO ] text`` (the level padded to five characters); log4j's own start-up warning is
 #: ``2026-10-10T22:29:18.168Z main WARN text``.
@@ -92,9 +91,6 @@ class NukkitAdapter(JavaServer):
     bot_compat_flags: ClassVar[tuple[str, ...]] = ("-fake-xuid",)
     dialect: ClassVar[Dialect] = NUKKIT_DIALECT
     server_file: ClassVar[str] = JAR
-    variants: ClassVar[Mapping[str, str]] = {
-        NO_WATCHDOG: "debug level 2, which turns off Nukkit's watchdog (and prints debug messages)",
-    }
 
     # ---- fetch ----------------------------------------------------------------------------------------------------
 
@@ -171,7 +167,7 @@ class NukkitAdapter(JavaServer):
         facts = self.jvm_facts(layout)
         facts.update(
             {
-                "watchdog": "off (debug level 2)" if self.arm.variant == NO_WATCHDOG else "on",
+                "watchdog": "on",
                 "async_workers": "auto (one per available processor)",
                 "usage_statistics": "off",
             }

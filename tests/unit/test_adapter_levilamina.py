@@ -22,18 +22,11 @@ from bedrock_bench.adapters.levilamina import (
     LEVILAMINA_CHANGES,
     LEVILAMINA_CONFIG,
     LEVILAMINA_DIALECT,
-    LEVIOPTIMIZE,
-    LEVIOPTIMIZE_ALL,
-    LEVIOPTIMIZE_ALL_REASONS,
-    LEVIOPTIMIZE_CONFIG,
-    LEVIOPTIMIZE_MANIFEST,
-    LEVIOPTIMIZE_TEMPLATES,
     MOD_EXE,
     PRELOADER_CONFIG,
     LeviLaminaAdapter,
     Package,
     flatten,
-    json_diff,
     load_template,
     packages_of,
     place_package,
@@ -65,12 +58,11 @@ BDS_VERSION = "1.26.51.1"
 SHIPPED_PROPERTIES = "server-name=Dedicated Server\nonline-mode=true\nview-distance=32\nlevel-name=Bedrock level\n"
 
 
-def arm(variant: str | None = None, **changes: Any) -> Arm:
+def arm(**changes: Any) -> Arm:
     fields: dict[str, Any] = {
-        "id": f"levilamina@{VERSION}" + (f"+{variant}" if variant else ""),
+        "id": f"levilamina@{VERSION}",
         "server": "levilamina",
         "version": VERSION,
-        "variant": variant,
         "bds": BDS_VERSION,
     }
     fields.update(changes)
@@ -156,8 +148,8 @@ def downloads(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> FakeDownloads:
     return state
 
 
-def fetch_and_prepare(tmp_path: Path, variant: str | None = None) -> tuple[LeviLaminaAdapter, Install, Layout]:
-    run_arm = arm(variant)
+def fetch_and_prepare(tmp_path: Path) -> tuple[LeviLaminaAdapter, Install, Layout]:
+    run_arm = arm()
     adapter = LeviLaminaAdapter(run_arm, config.default_machine())
     install = adapter.fetch(Cache(tmp_path / "cache"))
     layout = adapter.prepare(install, make_ctx(tmp_path, run_arm))
@@ -176,7 +168,6 @@ class TestContract:
         assert LeviLaminaAdapter.protocol == 2193
         assert LeviLaminaAdapter.tick_thread_rule == "lowest_tid_name:MC_SERVER"
         assert "logs/crash" in LeviLaminaAdapter.crash_paths
-        assert set(LeviLaminaAdapter.variants) == {LEVIOPTIMIZE, LEVIOPTIMIZE_ALL}
 
     def test_thread_groups(self) -> None:
         groups = {label: re.compile(pattern) for label, pattern in LeviLaminaAdapter.thread_groups.items()}
@@ -236,10 +227,7 @@ class TestContract:
     def test_constructs_on_any_host(self, system: str, monkeypatch: pytest.MonkeyPatch) -> None:
         """The runner refuses other platforms; construction never does, so the contract test runs everywhere."""
         monkeypatch.setattr(levilamina_module, "host_os", lambda: system)
-        for variant in (None, *LeviLaminaAdapter.variants):
-            assert LeviLaminaAdapter(arm(variant), config.default_machine()).platform == "windows"
-        with pytest.raises(ConfigError, match="no variant"):
-            LeviLaminaAdapter(arm("turbo"), config.default_machine())
+        assert LeviLaminaAdapter(arm(), config.default_machine()).platform == "windows"
 
 
 class TestPins:
@@ -250,7 +238,7 @@ class TestPins:
         assert dict(entry.meta) == {"bds": BDS_VERSION, "allocator": "mimalloc"}
         assert BDS_VERSION in config.load_artifacts("bds").versions
         packages = packages_of(entry, catalog.path)
-        assert set(packages) == {*BASE_PACKAGES, LEVIOPTIMIZE}
+        assert set(packages) == set(BASE_PACKAGES)
         for package in packages.values():
             spec = package.spec
             assert spec.sha256 and spec.size and spec.source == "github", package.name
@@ -285,25 +273,6 @@ class TestPins:
             assert flatten(levilamina)[change.path] is True, f"{change.path} is on in LeviLamina's defaults"
             assert change.value is False and change.category is OverrideCategory.HARNESS
         assert load_template("PreLoaderConfig.json")["modsPath"] == "./plugins/"
-        defaults = load_template(LEVIOPTIMIZE_TEMPLATES[LEVIOPTIMIZE])
-        everything = load_template(LEVIOPTIMIZE_TEMPLATES[LEVIOPTIMIZE_ALL])
-        diff = json_diff(defaults, everything)
-        assert set(diff) == set(LEVIOPTIMIZE_ALL_REASONS)
-        assert set(diff.values()) == {("false", "true")}
-        assert flatten(everything)["features.optPushEntity.maxPushTimes"] == -1, "the push cap stays off"
-
-    def test_matrix(self) -> None:
-        matrix = config.load_matrix("levilamina-26.51")
-        assert [a.id for a in matrix.arms] == [
-            f"bds@{BDS_VERSION}",
-            f"levilamina@{VERSION}",
-            f"levilamina@{VERSION}+{LEVIOPTIMIZE}",
-            f"levilamina@{VERSION}+{LEVIOPTIMIZE_ALL}",
-        ]
-        for matrix_arm in matrix.arms[1:]:
-            assert matrix_arm.bds == BDS_VERSION
-            LeviLaminaAdapter(matrix_arm, config.default_machine())
-        assert matrix.priority_override is None
 
 
 def _version(**tables: dict[str, Any]) -> ArtifactVersion:
@@ -425,7 +394,6 @@ class TestFetch:
             assert (root / path).is_file(), path
         assert not (root / "bedrock_server.exe").exists(), "PeEditor keeps the original only as .bak"
         assert not (root / "README.md").exists() and not (root / ".unpack").exists()
-        assert not (root / "plugins" / "LeviOptimize").exists()
         assert not (root / MOD_EXE).stat().st_mode & 0o222, "the install is read-only"
         assert downloads.obtained == list(BASE_PACKAGES)
         assert len(downloads.peeditor_runs) == 1
@@ -436,16 +404,6 @@ class TestFetch:
         assert [a.source for a in install.artifacts] == ["local", *["github"] * len(BASE_PACKAGES)]
 
         assert adapter.fetch(cache) == install and len(downloads.peeditor_runs) == 1, "a second fetch reuses it"
-
-    def test_variants_add_levioptimize(self, tmp_path: Path, downloads: FakeDownloads) -> None:
-        cache = Cache(tmp_path / "cache")
-        base = LeviLaminaAdapter(arm(), config.default_machine()).fetch(cache)
-        default = LeviLaminaAdapter(arm(LEVIOPTIMIZE), config.default_machine()).fetch(cache)
-        everything = LeviLaminaAdapter(arm(LEVIOPTIMIZE_ALL), config.default_machine()).fetch(cache)
-        assert (default.root / "plugins" / "LeviOptimize" / "levioptimize.dll").is_file()
-        assert default.root != base.root and everything.root == default.root, "both variants share one install"
-        assert default.extra["packages"][LEVIOPTIMIZE] == "0.17.0"
-        assert len(downloads.peeditor_runs) == 2
 
     def test_local_levilamina(self, tmp_path: Path, downloads: FakeDownloads) -> None:
         local = package_zip(pinned_packages()["levilamina"], tmp_path / "levilamina-dev.zip")
@@ -473,41 +431,12 @@ class TestPrepareAndLaunch:
         for override in json_overrides.values():
             assert (override.category, override.default, override.value) == (OverrideCategory.HARNESS, "true", "false")
         assert not [o for o in layout.overrides if o.category is OverrideCategory.NONVANILLA]
-        assert not (server / LEVIOPTIMIZE_CONFIG).exists()
         assert adapter.readback(layout) == []
-
-    def test_prepare_levioptimize(self, tmp_path: Path, downloads: FakeDownloads) -> None:
-        adapter, _, layout = fetch_and_prepare(tmp_path, LEVIOPTIMIZE)
-        nonvanilla = [o for o in layout.overrides if o.category is OverrideCategory.NONVANILLA]
-        assert [(o.file, o.key, o.value) for o in nonvanilla] == [(LEVIOPTIMIZE_MANIFEST, "version", "0.17.0")]
-        written = json.loads((layout.server_dir / LEVIOPTIMIZE_CONFIG).read_text(encoding="utf-8"))
-        assert written == load_template(LEVIOPTIMIZE_TEMPLATES[LEVIOPTIMIZE])
-        assert layout.config_files[-1].path == LEVIOPTIMIZE_CONFIG
-        assert layout.extra["levioptimize_config"] == "LeviOptimize.default.json"
-        assert adapter.readback(layout) == []
-
-    def test_prepare_levioptimize_all(self, tmp_path: Path, downloads: FakeDownloads) -> None:
-        _, _, layout = fetch_and_prepare(tmp_path, LEVIOPTIMIZE_ALL)
-        nonvanilla = {o.key: o for o in layout.overrides if o.file == LEVIOPTIMIZE_CONFIG}
-        assert set(nonvanilla) == set(LEVIOPTIMIZE_ALL_REASONS)
-        for key, override in nonvanilla.items():
-            assert override.category is OverrideCategory.NONVANILLA
-            assert (override.default, override.value) == ("false", "true")
-            assert override.reason == LEVIOPTIMIZE_ALL_REASONS[key]
-        assert any(o.file == LEVIOPTIMIZE_MANIFEST for o in layout.overrides)
-        written = json.loads((layout.server_dir / LEVIOPTIMIZE_CONFIG).read_text(encoding="utf-8"))
-        assert written["features"]["optMovingBlock"] is True
-
-    def test_variant_needs_its_install(self, tmp_path: Path, downloads: FakeDownloads) -> None:
-        base = LeviLaminaAdapter(arm(), config.default_machine()).fetch(Cache(tmp_path / "cache"))
-        variant = LeviLaminaAdapter(arm(LEVIOPTIMIZE), config.default_machine())
-        with pytest.raises(ConfigError, match="no LeviOptimize"):
-            variant.prepare(base, make_ctx(tmp_path, variant.arm))
 
     def test_readback(self, tmp_path: Path, downloads: FakeDownloads) -> None:
-        adapter, _, layout = fetch_and_prepare(tmp_path, LEVIOPTIMIZE)
+        adapter, _, layout = fetch_and_prepare(tmp_path)
         server = layout.server_dir
-        saved = server / LEVIOPTIMIZE_CONFIG
+        saved = server / LEVILAMINA_CONFIG
         saved.write_text(json.dumps(json.loads(saved.read_text(encoding="utf-8")), indent=2), encoding="utf-8")
         assert adapter.readback(layout) == [], "a server that saves the same values in another layout is fine"
 
@@ -528,12 +457,11 @@ class TestPrepareAndLaunch:
         assert adapter.server_process(SimpleNamespace(pid=1)).pid == 1  # type: ignore[arg-type]
 
     def test_facts(self, tmp_path: Path, downloads: FakeDownloads) -> None:
-        adapter, _, layout = fetch_and_prepare(tmp_path, LEVIOPTIMIZE_ALL)
+        adapter, _, layout = fetch_and_prepare(tmp_path)
         proc = SimpleNamespace(memory_maps=lambda grouped=True: [SimpleNamespace(path="C:/srv/LeviLamina.dll")])
         facts = adapter.facts(layout, proc)  # type: ignore[arg-type]
         assert facts["allocator"] == "mimalloc", "declared: mimalloc is linked into LeviLamina.dll"
-        assert facts["levilamina_version"] == VERSION and facts["packages"][LEVIOPTIMIZE] == "0.17.0"
-        assert facts["levioptimize_config"] == "LeviOptimize.all.json"
+        assert facts["levilamina_version"] == VERSION and facts["packages"]["levilamina"] == VERSION
         assert facts["usage_statistics"] == "off" and facts["crash_upload"] == "off"
         assert facts["csg_setting"] is False and facts["bds_version"] == BDS_VERSION
 

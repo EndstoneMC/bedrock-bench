@@ -93,6 +93,3 @@ format = "yaml"
 "performance-settings.ticks-per-autosave" = { value = "{autosave_ticks}", type = "int", default = "6000", reason = "the same autosave interval on every server" }
 "chunk-settings.ticking-radius" = { value = "{tick_distance}", type = "int", default = "3", reason = "the scenario's simulation distance; it only bounds where the capped chunks are picked" }
 "player-settings.save-player-data" = { value = "{save_player_data}", type = "bool", default = "true", reason = "player data is saved, as on every server" }
-
-[config.file."nukkit-mot.yml".rescue]
-"performance-settings.thread-watchdog" = { value = "false", type = "bool", default = "true", variants = ["no-watchdog"], reason = "the watchdog stops the server once one tick takes 60 s" }

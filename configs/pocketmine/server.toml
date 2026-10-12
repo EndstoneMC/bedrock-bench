@@ -93,4 +93,4 @@ format = "yaml"
 "player.save-player-data" = { value = "{save_player_data}", type = "bool", reason = "player data is saved, as on every server" }
 
 [config.file."pocketmine.yml".rescue]
-"memory.main-hard-limit" = { value = "0", type = "int", skip_variants = ["stock"], reason = "with the shipped 1024 MB limit the server stops itself about 23 s into the 100-bot join" }
+"memory.main-hard-limit" = { value = "0", type = "int", reason = "with the shipped 1024 MB limit the server stops itself about 23 s into the 100-bot join" }

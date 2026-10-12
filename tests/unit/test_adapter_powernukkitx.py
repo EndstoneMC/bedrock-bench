@@ -102,7 +102,6 @@ class TestContract:
         assert PowerNukkitXAdapter.protocol == 2193 and not PowerNukkitXAdapter.supports_csg
         assert PowerNukkitXAdapter.bot_compat_flags == ("-fake-xuid",)
         assert PowerNukkitXAdapter.tick_thread_rule == "java_main"
-        assert PowerNukkitXAdapter.variants == {}
 
     def test_pins(self) -> None:
         catalog = config.load_artifacts("powernukkitx")

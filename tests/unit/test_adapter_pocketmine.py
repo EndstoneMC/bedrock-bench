@@ -78,8 +78,8 @@ def make_ctx(tmp_path: Path, adapter: PocketMineAdapter, **world: Any) -> RunCon
     )
 
 
-def make_adapter(variant: str | None = None) -> PocketMineAdapter:
-    arm = config.arm_from_ref("pocketmine@5.44.3", variant=variant)
+def make_adapter() -> PocketMineAdapter:
+    arm = config.arm_from_ref("pocketmine@5.44.3")
     return PocketMineAdapter(arm, config.default_machine())
 
 
@@ -124,7 +124,6 @@ class TestContract:
         assert PocketMineAdapter.protocol == 1001 and not PocketMineAdapter.supports_csg
         assert PocketMineAdapter.bot_compat_flags == ()
         assert PocketMineAdapter.tick_thread_rule == "first_created"
-        assert set(PocketMineAdapter.variants) == {"stock"}
         assert PocketMineAdapter.features_file == "configs/pocketmine/server.toml"
 
     def test_pins(self) -> None:
@@ -241,14 +240,6 @@ class TestFetchAndPrepare:
         (server / "pocketmine.yml").write_text("memory:\n  main-hard-limit: 1024\n", encoding="utf-8")
         problems = adapter.readback(layout)
         assert any("memory.main-hard-limit was written as '0' and read back as '1024'" in p for p in problems)
-
-    def test_stock_variant_keeps_the_memory_limit(self, install: Install, tmp_path: Path) -> None:
-        adapter = make_adapter("stock")
-        layout = adapter.prepare(install, make_ctx(tmp_path, adapter))
-        assert not [o for o in layout.overrides if o.category is OverrideCategory.RESCUE]
-        yml = yaml_scalars((layout.server_dir / "pocketmine.yml").read_text(encoding="utf-8"))
-        assert yml["memory.main-hard-limit"] == "1024"
-        assert adapter.facts(layout, None)["main_thread_hard_limit_mb"] == "1024 (shipped)"  # type: ignore[arg-type]
 
     def test_refuses_a_used_work_dir(self, install: Install, tmp_path: Path) -> None:
         (tmp_path / "work" / "worlds" / "bench").mkdir(parents=True)

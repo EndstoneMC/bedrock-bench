@@ -48,8 +48,8 @@ worlds:
 JCMD_OUTPUT = '"main" #1 [4242] prio=5 os_prio=0 cpu=5.00ms elapsed=9.00s tid=0x1 nid=4242 runnable\n'
 
 
-def make_adapter(variant: str | None = None) -> NukkitAdapter:
-    arm = config.arm_from_ref("nukkit@b3caad6", variant=variant)
+def make_adapter() -> NukkitAdapter:
+    arm = config.arm_from_ref("nukkit@b3caad6")
     return NukkitAdapter(arm, config.default_machine())
 
 
@@ -114,7 +114,6 @@ class TestContract:
         assert NukkitAdapter.protocol == 2193 and not NukkitAdapter.supports_csg
         assert NukkitAdapter.bot_compat_flags == ("-fake-xuid",)
         assert NukkitAdapter.tick_thread_rule == "java_main"
-        assert set(NukkitAdapter.variants) == {"no-watchdog"}
 
     def test_pins(self) -> None:
         catalog = config.load_artifacts("nukkit")
@@ -173,7 +172,7 @@ class TestPrepare:
         assert yml["level-settings.auto-tick-rate"] == "false"
         assert yml["chunk-ticking.tick-radius"] == "4"
         assert yml["worlds"] == "{}" and "generator" not in yml_text
-        assert yml["debug.level"] == "1", "the watchdog stays on without the variant"
+        assert yml["debug.level"] == "1", "the watchdog stays on"
         assert yaml_scalars((server / "plugins" / "bStats" / "config.yml").read_text(encoding="utf-8")) == {
             "enabled": "false"
         }
@@ -186,14 +185,6 @@ class TestPrepare:
         assert not [o for o in layout.overrides if o.category is OverrideCategory.RESCUE]
         assert [c.path for c in layout.config_files] == ["server.properties", "nukkit.yml", "plugins/bStats/config.yml"]
         assert adapter.readback(layout) == []
-
-    def test_no_watchdog_variant(self, install: Install, tmp_path: Path) -> None:
-        adapter = make_adapter("no-watchdog")
-        layout = adapter.prepare(install, make_ctx(tmp_path, adapter))
-        assert yaml_scalars((layout.server_dir / "nukkit.yml").read_text(encoding="utf-8"))["debug.level"] == "2"
-        rescue = [o for o in layout.overrides if o.category is OverrideCategory.RESCUE]
-        assert [(o.key, o.default, o.value) for o in rescue] == [("debug.level", "1", "2")]
-        assert adapter.facts(layout, None)["watchdog"].startswith("off")  # type: ignore[arg-type]
 
     def test_launch(self, install: Install, tmp_path: Path) -> None:
         adapter = make_adapter()

@@ -18,8 +18,8 @@ server = "levilamina"
 #   place      archive path -> server path; a path ending in "/" copies a directory
 #   eula       "levimc": covered by the LeviMC closed-source EULA (PreLoader, PeEditor); fetch needs --accept-eula
 #
-# The levioptimize package is installed only for the levioptimize and levioptimize-all variants. The translations
-# package (levilamina-loc) is not installed; LeviLamina's messages are then in English, their source language.
+# The translations package (levilamina-loc) is not installed; LeviLamina's messages are then in English, their source
+# language.
 [artifacts]
 source = "github"
 
@@ -64,16 +64,9 @@ size = 30122614
 release = "26.51.1-server.7"
 place = { "bedrock_runtime_data" = "bedrock_runtime_data" }
 
-[artifacts.version."26.51.6".windows-levioptimize]
-url = "https://github.com/LiteLDev/LeviOptimize/releases/download/v0.17.0/LeviOptimize-server-windows-x64.zip"
-sha256 = "ecb4ef45b447643e090f71cc055a70891717d9cd5e80c07df3b40379daf80dec"
-size = 1622847
-release = "0.17.0"
-place = { "LeviOptimize/" = "plugins/LeviOptimize/" }
-
 # LeviLamina loads into Mojang's BDS binary of the pinned build, so gameplay is BDS's own. It also swaps the server's
 # memory allocator for mimalloc and drops some malformed packets, which keeps behaviour for well-formed clients the same
-# (fidelity V1). Rows cover LeviLamina alone; README.md next to this file lists what the LeviOptimize variants change.
+# (fidelity V1).
 [features]
 
 [features.range."26.51"]

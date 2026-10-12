@@ -80,8 +80,8 @@ JCMD_MAIN = (
 )
 
 
-def make_adapter(variant: str | None = None) -> NukkitMotAdapter:
-    return NukkitMotAdapter(config.arm_from_ref("nukkitmot@9cb0aba", variant=variant), config.default_machine())
+def make_adapter() -> NukkitMotAdapter:
+    return NukkitMotAdapter(config.arm_from_ref("nukkitmot@9cb0aba"), config.default_machine())
 
 
 def make_ctx(tmp_path: Path, adapter: NukkitMotAdapter) -> RunContext:
@@ -143,7 +143,6 @@ class TestContract:
         assert NukkitMotAdapter.protocol == 2193 and not NukkitMotAdapter.supports_csg
         assert NukkitMotAdapter.bot_compat_flags == (), "offline UUIDs come from the name"
         assert NukkitMotAdapter.tick_thread_rule == "java_main"
-        assert set(NukkitMotAdapter.variants) == {"no-watchdog"}
 
     def test_pins(self) -> None:
         catalog = config.load_artifacts("nukkitmot")
@@ -217,7 +216,7 @@ class TestPrepare:
         assert yml["performance-settings.auto-tick-rate"] == "false"
         assert yml["chunk-settings.ticking-radius"] == "4"
         assert yml["custom-block-settings.auto-download-vanilla-palette"] == "false"
-        assert "performance-settings.thread-watchdog" not in yml, "the watchdog stays on without the variant"
+        assert "performance-settings.thread-watchdog" not in yml, "the watchdog stays on"
         by_key = {(o.file, o.key): o for o in layout.overrides}
         assert by_key[("server.properties", "view-distance")].default == "8"
         assert by_key[("nukkit-mot.yml", "network-settings.nethernet.enabled")].category is OverrideCategory.HARNESS
@@ -237,17 +236,6 @@ class TestPrepare:
         flipped = REWRITTEN_YML.replace("enabled: false", "enabled: true")
         (layout.server_dir / "nukkit-mot.yml").write_text(flipped, encoding="utf-8")
         assert any("nethernet.enabled" in p for p in adapter.readback(layout))
-
-    def test_no_watchdog_variant(self, install: Install, tmp_path: Path) -> None:
-        adapter = make_adapter("no-watchdog")
-        layout = adapter.prepare(install, make_ctx(tmp_path, adapter))
-        yml = yaml_scalars((layout.server_dir / "nukkit-mot.yml").read_text(encoding="utf-8"))
-        assert yml["performance-settings.thread-watchdog"] == "false"
-        rescue = [o for o in layout.overrides if o.category is OverrideCategory.RESCUE]
-        assert [(o.key, o.default, o.value) for o in rescue] == [
-            ("performance-settings.thread-watchdog", "true", "false")
-        ]
-        assert adapter.facts(layout, None)["watchdog"] == "off"  # type: ignore[arg-type]
 
     def test_launch(self, install: Install, tmp_path: Path) -> None:
         adapter = make_adapter()

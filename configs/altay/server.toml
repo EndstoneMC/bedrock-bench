@@ -94,4 +94,4 @@ format = "yaml"
 "player.save-player-data" = { value = "{save_player_data}", type = "bool", reason = "player data is saved, as on every server" }
 
 [config.file."pocketmine.yml".rescue]
-"memory.main-hard-limit" = { value = "0", type = "int", skip_variants = ["stock"], reason = "PocketMine-MP stops itself about 23 s into the 100-bot join at the shipped 1024 MB limit, and Altay ships the same limit" }
+"memory.main-hard-limit" = { value = "0", type = "int", reason = "PocketMine-MP stops itself about 23 s into the 100-bot join at the shipped 1024 MB limit, and Altay ships the same limit" }

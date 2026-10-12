@@ -90,9 +90,6 @@ format = "yaml"
 "player.save-player-data" = { value = "{save_player_data}", type = "bool", reason = "player data is saved, as on every server" }
 worlds = { value = "{}", type = "map", reason = "one overworld level: the shipped list adds a level named world next to the benchmark level" }
 
-[config.file."nukkit.yml".rescue]
-"debug.level" = { value = "2", type = "int", variants = ["no-watchdog"], reason = "Nukkit's watchdog runs only below debug level 2; by default it stops the server once a tick takes 60 s, as the first autosave of a fresh 100-bot world does. Level 2 also prints debug messages" }
-
 [config.file."plugins/bStats/config.yml"]
 format = "yaml"
 

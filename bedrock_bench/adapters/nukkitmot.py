@@ -55,7 +55,6 @@ JAR = "nukkit-mot.jar"
 PLUGIN_SOURCE = "configs/nukkitmot"  # plugin.yml and *.java
 PLUGIN_FILE = "plugins/BenchTick.jar"
 DEFAULT_RUNTIME = "jdk-21.0.12.1"
-NO_WATCHDOG = "no-watchdog"
 
 #: Lines as PowerNukkitX prints them: ``18:41:10 [main] [INFO] text``, and log4j's own ISO-stamped start-up warning.
 NUKKITMOT_DIALECT = Dialect(
@@ -76,9 +75,6 @@ class NukkitMotAdapter(JavaServer):
     protocol: ClassVar[int] = 2193
     dialect: ClassVar[Dialect] = NUKKITMOT_DIALECT
     server_file: ClassVar[str] = JAR
-    variants: ClassVar[Mapping[str, str]] = {
-        NO_WATCHDOG: "the thread watchdog off, which otherwise stops the server once one tick takes 60 s",
-    }
 
     # ---- fetch ----------------------------------------------------------------------------------------------------
 
@@ -153,7 +149,7 @@ class NukkitMotAdapter(JavaServer):
         facts = self.jvm_facts(layout)
         facts.update(
             {
-                "watchdog": "off" if self.arm.variant == NO_WATCHDOG else "on (60 s)",
+                "watchdog": "on (60 s)",
                 "async_workers": "auto (one per available processor plus one, at least 4)",
                 "virtual_threads": "on",
                 "movement": "server-auth as shipped",

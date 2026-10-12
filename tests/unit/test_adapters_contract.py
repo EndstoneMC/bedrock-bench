@@ -14,7 +14,6 @@ from __future__ import annotations
 import inspect
 import os
 import re
-import sys
 import time
 import tomllib
 from collections.abc import Iterator
@@ -35,7 +34,7 @@ from bedrock_bench.adapters.base import (
     quote_player,
 )
 from bedrock_bench.config import ConfigError, project_root
-from bedrock_bench.model import PLATFORMS, Layout, Machine, ThreadInfo, WorldInfo
+from bedrock_bench.model import Layout, Machine, ThreadInfo, WorldInfo
 from fakes import fake_server
 from fakes.bench import FAKE_SCENARIOS, register_entry_point
 from fakes.fake_adapter import FAKE_ADAPTERS, FakeAdapter, FakeBds
@@ -79,9 +78,9 @@ def pinned_versions(cls: type[ServerAdapter]) -> list[str]:
     return sorted(config.load_artifacts(path).versions)
 
 
-def make(cls: type[ServerAdapter], variant: str | None = None, machine: Machine | None = None) -> ServerAdapter:
+def make(cls: type[ServerAdapter], machine: Machine | None = None) -> ServerAdapter:
     version = (pinned_versions(cls) or ["0.0.0"])[0]
-    arm = config.arm_from_ref(f"{cls.name}@{version}", variant=variant)
+    arm = config.arm_from_ref(f"{cls.name}@{version}")
     return cls(arm, machine or config.default_machine())
 
 
@@ -160,26 +159,8 @@ def test_bot_compat_flags_are_allowlisted(cls: type[ServerAdapter]) -> None:
 
 
 @every_adapter
-def test_construction_and_variants(cls: type[ServerAdapter], monkeypatch: pytest.MonkeyPatch) -> None:
+def test_construction(cls: type[ServerAdapter]) -> None:
     assert make(cls).arm.server == cls.name
-    for variant in cls.variants:
-        constructs = any(_constructs(cls, variant, system, monkeypatch) for system in PLATFORMS)
-        assert constructs, f"variant {variant!r} never constructs"
-    with pytest.raises(ConfigError, match="no-such-variant"):
-        make(cls, "no-such-variant")
-
-
-def _constructs(cls: type[ServerAdapter], variant: str, system: str, monkeypatch: pytest.MonkeyPatch) -> bool:
-    """Whether the variant constructs on ``system``; a variant may be limited to some platforms."""
-    module = sys.modules[cls.__module__]
-    if hasattr(module, "host_os"):
-        monkeypatch.setattr(module, "host_os", lambda: system)
-    try:
-        adapter = make(cls, variant)
-    except ConfigError as exc:
-        assert "no variant" not in str(exc), f"declared variant {variant!r} is rejected as unknown"
-        return False
-    return adapter.arm.variant == variant
 
 
 @every_adapter

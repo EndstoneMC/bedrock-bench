@@ -23,7 +23,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from bedrock_bench.config import ConfigError
 from bedrock_bench.model import (
     LOG_LEVELS,
     PLATFORMS,
@@ -50,7 +49,6 @@ ALLOWED_COMPAT = frozenset({"-fake-xuid"})
 TICK_THREAD_RULES = ("none", "java_main", "first_created")
 
 ADAPTER_NAME_RE = re.compile(r"^[a-z][a-z0-9_]*$")
-VARIANT_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 
 
 def host_os() -> str:
@@ -211,7 +209,6 @@ class ServerAdapter(abc.ABC):
     tick_thread_rule: ClassVar[str] = "none"
     thread_groups: ClassVar[Mapping[str, str]] = {}  # group label -> thread name regex; diagnostic only
     crash_paths: ClassVar[tuple[str, ...]] = ()  # files or folders (relative to the server dir, env vars expanded)
-    variants: ClassVar[Mapping[str, str]] = {}  # variant name -> what it changes; an arm may only use these
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
@@ -219,9 +216,6 @@ class ServerAdapter(abc.ABC):
             cls.features_file = f"configs/{cls.name}/server.toml"
 
     def __init__(self, arm: Arm, machine: Machine) -> None:
-        if arm.variant is not None and arm.variant not in self.variants:
-            known = ", ".join(sorted(self.variants)) or "none"
-            raise ConfigError(f"{self.name} has no variant {arm.variant!r} (known: {known})")
         self.arm = arm
         self.machine = machine
 
@@ -257,9 +251,6 @@ class ServerAdapter(abc.ABC):
                 re.compile(pattern)
             except re.error as exc:
                 problems.append(f"thread_groups[{label!r}] does not compile: {exc}")
-        bad_variants = [v for v in cls.variants if not VARIANT_RE.match(v)]
-        if bad_variants:
-            problems.append(f"variant names must match {VARIANT_RE.pattern}: {bad_variants}")
         return problems
 
     # ---- lifecycle ------------------------------------------------------------------------------------------------

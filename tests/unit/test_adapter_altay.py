@@ -65,8 +65,8 @@ def make_phar(path: Path, files: dict[str, bytes]) -> Path:
     return path
 
 
-def make_adapter(variant: str | None = None) -> AltayAdapter:
-    return AltayAdapter(config.arm_from_ref("altay@5.44.7", variant=variant), config.default_machine())
+def make_adapter() -> AltayAdapter:
+    return AltayAdapter(config.arm_from_ref("altay@5.44.7"), config.default_machine())
 
 
 def make_ctx(tmp_path: Path, adapter: AltayAdapter) -> RunContext:
@@ -113,7 +113,6 @@ class TestContract:
         assert AltayAdapter.protocol == 2193 and bots.module_for_protocol(AltayAdapter.protocol) == "loadbot"
         assert not AltayAdapter.supports_csg and AltayAdapter.bot_compat_flags == ()
         assert AltayAdapter.tick_thread_rule == "first_created"
-        assert set(AltayAdapter.variants) == {"stock"}
         assert AltayAdapter.features_file == AltayAdapter.config_template == "configs/altay/server.toml"
         assert (ROOT / AltayAdapter.helper_source).is_file()
         assert AltayAdapter.helper_source != PocketMineAdapter.helper_source
@@ -216,14 +215,6 @@ class TestFetchAndPrepare:
         facts = adapter.facts(layout, None)  # type: ignore[arg-type]
         assert facts["transport"] == "raknet" and facts["usage_statistics"] == "off"
         assert facts["crash_upload"] == "off" and facts["auto_updater"] == "off"
-
-    def test_stock_variant_keeps_the_memory_limit(self, install: Install, tmp_path: Path) -> None:
-        adapter = make_adapter("stock")
-        layout = adapter.prepare(install, make_ctx(tmp_path, adapter))
-        assert not [o for o in layout.overrides if o.category is OverrideCategory.RESCUE]
-        yml = yaml_scalars((layout.server_dir / "pocketmine.yml").read_text(encoding="utf-8"))
-        assert yml["memory.main-hard-limit"] == "1024"
-
 
 class TestCommands:
     def test_same_commands_as_pocketmine(self) -> None:

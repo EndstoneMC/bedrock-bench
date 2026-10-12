@@ -14,11 +14,10 @@ from __future__ import annotations
 
 import dataclasses
 import re
-from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from bedrock_bench.adapters.base import Dialect
-from bedrock_bench.adapters.pocketmine import PMMP_DIALECT, STOCK, PocketMineAdapter
+from bedrock_bench.adapters.pocketmine import PMMP_DIALECT, PocketMineAdapter
 from bedrock_bench.model import Layout
 
 if TYPE_CHECKING:
@@ -39,9 +38,6 @@ class AltayAdapter(PocketMineAdapter):
     helper_source: ClassVar[str] = "configs/altay/BenchHelper.php"
     packet_limiter: ClassVar[str] = "RakNet"
     packet_limit: ClassVar[str] = "2147483647"
-    variants: ClassVar[Mapping[str, str]] = {
-        STOCK: "Altay's shipped memory limits, including the 1024 MB hard limit of the main thread",
-    }
 
     def facts(self, layout: Layout, proc: psutil.Process) -> dict[str, Any]:
         written = layout.extra.get("written", {}).get("pocketmine.yml", {})

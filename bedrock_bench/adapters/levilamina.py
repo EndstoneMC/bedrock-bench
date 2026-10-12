@@ -1,18 +1,16 @@
 # SPDX-License-Identifier: Apache-2.0
-"""LeviLamina, a mod loader for BDS on Windows, with the LeviOptimize mod as an optional variant.
+"""LeviLamina, a mod loader for BDS on Windows.
 
 Fetch assembles one install per package set. It starts from the BDS build the release depends on
 (``configs/bds/server.toml``, verified exactly as for vanilla BDS), adds the packages pinned in
 ``configs/levilamina/server.toml``, each placed where its own tooth.json puts it, and then runs
 ``PeEditor.exe -mb`` as ``lip install`` does: PeEditor writes ``bedrock_server_mod.exe``, a copy of the server binary
 that loads PreLoader and through it LeviLamina, and renames the original to ``bedrock_server.exe.bak``. PeEditor runs
-once, while the install is staged, so the install's tree hash covers the executable every run starts. LeviOptimize is
-part of the install only for the LeviOptimize variants.
+once, while the install is staged, so the install's tree hash covers the executable every run starts.
 
-Prepare writes the pinned PreLoader, LeviLamina and LeviOptimize configs from ``configs/levilamina`` into
-every run, with crash report upload and usage statistics switched off. LeviLamina merges an older config over its
-defaults when its config version changes, and LeviOptimize saves its config when the server stops, so a file left
-from another install or run could carry other values.
+Prepare writes the pinned PreLoader and LeviLamina configs from ``configs/levilamina`` into every run, with crash
+report upload and usage statistics switched off. LeviLamina merges an older config over its defaults when its config
+version changes, so a file left from another install could carry other values.
 
 Launch runs ``bedrock_server_mod.exe``; it is the measured process. See configs/levilamina/README.md.
 """
@@ -61,24 +59,9 @@ UNPACK_DIR = ".unpack"
 
 PRELOADER_CONFIG = "PreLoaderConfig.json"
 LEVILAMINA_CONFIG = "plugins/LeviLamina/config/Config.json"
-LEVIOPTIMIZE_CONFIG = "plugins/LeviOptimize/config/config.json"
-LEVIOPTIMIZE_MANIFEST = "plugins/LeviOptimize/manifest.json"
 
-#: Packages every arm installs, in placement order.
+#: Packages every install gets, in placement order.
 BASE_PACKAGES = ("levilamina", "preloader", "peeditor", "crashlogger", "runtime-data")
-LEVIOPTIMIZE = "levioptimize"
-LEVIOPTIMIZE_ALL = "levioptimize-all"
-#: The LeviOptimize config each variant runs with (files in configs/levilamina).
-LEVIOPTIMIZE_TEMPLATES: Mapping[str, str] = {
-    LEVIOPTIMIZE: "LeviOptimize.default.json",
-    LEVIOPTIMIZE_ALL: "LeviOptimize.all.json",
-}
-#: What each LeviOptimize switch that levioptimize-all turns on changes.
-LEVIOPTIMIZE_ALL_REASONS: Mapping[str, str] = {
-    "features.optMovingBlock": "block entities moved by a piston reach clients without their contents while moving",
-    "features.optSeenPercent": "an explosion's exposure test is computed once per position and tick, then reused",
-    "features.optPushEntity.enable": "entity push options apply: pushes by a zero vector are skipped",
-}
 
 # --------------------------------------------------------------------------------------------------------------------
 # Console dialect
@@ -263,10 +246,6 @@ class LeviLaminaAdapter(BdsFamily):
         "levilamina_logger": r"^logger\[",
     }
     crash_paths: ClassVar[tuple[str, ...]] = ("logs/crash", "%LOCALAPPDATA%/CrashDumps")
-    variants: ClassVar[Mapping[str, str]] = {
-        LEVIOPTIMIZE: "LeviOptimize with its fresh-install defaults (nonvanilla)",
-        LEVIOPTIMIZE_ALL: "LeviOptimize with every optimization switched on; changes gameplay (nonvanilla)",
-    }
 
     @property
     def platform(self) -> str:
@@ -286,7 +265,7 @@ class LeviLaminaAdapter(BdsFamily):
         meta = dict(entry.meta)
         bds_version = self._bds_version(meta)
         packages = packages_of(entry, catalog.path)
-        wanted = [*BASE_PACKAGES, *([LEVIOPTIMIZE] if self.arm.variant in LEVIOPTIMIZE_TEMPLATES else [])]
+        wanted = list(BASE_PACKAGES)
         missing = [name for name in wanted if name not in packages]
         if missing:
             raise ConfigError(f"levilamina {self.arm.version}: no windows-{missing[0]} table", file=catalog.path)
@@ -370,38 +349,10 @@ class LeviLaminaAdapter(BdsFamily):
             )
         write(LEVILAMINA_CONFIG, levilamina)
 
-        variant = self.arm.variant
-        if variant in LEVIOPTIMIZE_TEMPLATES:
-            levioptimize = install.extra.get("packages", {}).get(LEVIOPTIMIZE)
-            if levioptimize is None:
-                raise ConfigError(f"this install has no LeviOptimize; fetch it for {self.arm.id}")
-            overrides.append(
-                Override(
-                    OverrideCategory.NONVANILLA,
-                    LEVIOPTIMIZE_MANIFEST,
-                    "version",
-                    None,
-                    levioptimize,
-                    "the LeviOptimize mod is loaded; its defaults drop map tracking of players who disconnect "
-                    "and add a timing command",
-                )
-            )
-            defaults = load_template(LEVIOPTIMIZE_TEMPLATES[LEVIOPTIMIZE])
-            chosen = load_template(LEVIOPTIMIZE_TEMPLATES[variant])
-            for path, (default, value) in json_diff(defaults, chosen).items():
-                reason = LEVIOPTIMIZE_ALL_REASONS.get(path)
-                if reason is None:
-                    raise ConfigError(f"{LEVIOPTIMIZE_TEMPLATES[variant]}: no reason recorded for changing {path}")
-                overrides.append(
-                    Override(OverrideCategory.NONVANILLA, LEVIOPTIMIZE_CONFIG, path, default, value, reason)
-                )
-            write(LEVIOPTIMIZE_CONFIG, chosen)
-
         extra = {
             "json_configs": written,
             "levilamina_version": install.extra.get("levilamina_version"),
             "packages": dict(install.extra.get("packages", {})),
-            "levioptimize_config": LEVIOPTIMIZE_TEMPLATES.get(variant) if variant else None,
             "allocator": install.extra.get("allocator"),
         }
         return overrides, files, extra
@@ -439,7 +390,6 @@ class LeviLaminaAdapter(BdsFamily):
             {
                 "levilamina_version": layout.extra.get("levilamina_version"),
                 "packages": dict(layout.extra.get("packages") or {}),
-                "levioptimize_config": layout.extra.get("levioptimize_config"),
                 "usage_statistics": "off",
                 "crash_upload": "off",
                 "crash_logger": "LeviLamina starts CrashLogger.exe as a separate process attached to the server",

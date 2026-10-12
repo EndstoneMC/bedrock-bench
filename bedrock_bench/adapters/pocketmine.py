@@ -62,7 +62,6 @@ SHIPPED_CONFIG = "resources/pocketmine.yml"
 HELPER_SOURCE = "configs/pocketmine/BenchHelper.php"
 HELPER_FILE = "plugins/BenchHelper.php"
 DEFAULT_RUNTIME = "php-8.2-pm5-524"
-STOCK = "stock"
 
 #: ``[13:58:00.123] [Server thread/INFO]: text``. Replies to console commands are printed as ``Command output | text``.
 PMMP_PREFIX = re.compile(
@@ -103,9 +102,6 @@ class PocketMineAdapter(StandaloneServer):
     #: The network layer whose per-IP packet limit the helper lifts, and the limit it sets.
     packet_limiter: ClassVar[str] = "RakLib"
     packet_limit: ClassVar[str] = "unlimited"
-    variants: ClassVar[Mapping[str, str]] = {
-        STOCK: "PocketMine-MP's shipped memory limits, including the 1024 MB hard limit of the main thread",
-    }
 
     # ---- fetch ----------------------------------------------------------------------------------------------------
 

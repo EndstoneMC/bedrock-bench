@@ -139,7 +139,6 @@ class TestPins:
             meta = dict(entry.meta)
             assert meta["bds"] in bds.versions, version
             assert meta["version_marker"] == version_marker(meta["bds"])
-            assert meta["linux_allocator"] in ("glibc", "mimalloc")
             for platform in ("windows", "linux"):
                 spec = entry.platforms[f"{platform}-cp313"]
                 assert spec.sha256 and spec.size and spec.source == "pypi"
@@ -183,14 +182,6 @@ class TestFetch:
     def test_unpinned_version(self, tmp_path: Path) -> None:
         adapter = EndstoneAdapter(arm(version="0.9.0", id="endstone@0.9.0"), config.default_machine())
         with pytest.raises(ConfigError, match="not pinned"):
-            adapter.fetch(Cache(tmp_path / "cache"))
-
-    def test_glibc_variant_needs_mimalloc_release(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setattr(endstone_module, "host_os", lambda: "linux")
-        adapter = EndstoneAdapter(
-            arm(version="0.11.13", id="endstone@0.11.13+glibc-alloc", variant="glibc-alloc"), config.default_machine()
-        )
-        with pytest.raises(ConfigError, match="already runs on glibc"):
             adapter.fetch(Cache(tmp_path / "cache"))
 
     def test_bds_mismatch(self, tmp_path: Path) -> None:
@@ -310,24 +301,6 @@ class TestPrepareAndLaunch:
         assert spec.env_set["PYTHONSAFEPATH"] == "1"
         assert {"PYTHONPATH", "PYTHONHOME", "VIRTUAL_ENV"} <= set(spec.env_remove)
         assert ("LD_PRELOAD" in spec.env_remove) == (system == "linux")
-
-    def test_glibc_variant(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setattr(bdsfamily, "host_os", lambda: "linux")
-        monkeypatch.setattr(endstone_module, "host_os", lambda: "linux")
-        adapter = EndstoneAdapter(arm(variant="glibc-alloc"), config.default_machine())
-        layout = adapter.prepare(fake_install(tmp_path, adapter), make_ctx(tmp_path))
-        spec = adapter.launch(layout)
-        assert spec.env_set["LD_PRELOAD"] == "libc.so.6" and "LD_PRELOAD" not in spec.env_remove
-        preload = next(o for o in layout.overrides if o.key == "LD_PRELOAD")
-        assert preload.category is OverrideCategory.PARITY
-
-    def test_glibc_variant_is_linux_only(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setattr(endstone_module, "host_os", lambda: "windows")
-        with pytest.raises(ConfigError, match="Linux"):
-            EndstoneAdapter(arm(variant="glibc-alloc"), config.default_machine())
-        with pytest.raises(ConfigError, match="no variant"):
-            EndstoneAdapter(arm(variant="turbo"), config.default_machine())
-
 
 class FakeProcess:
     def __init__(self, exe: str, children: list[FakeProcess] | None = None, running: bool = True) -> None:

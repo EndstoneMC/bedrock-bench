@@ -144,8 +144,7 @@ format = "yaml"
 worlds = { value = "{}", type = "map", reason = "one level" }
 
 [config.file."config.yml".rescue]
-"debug.level" = { value = "2", type = "int", default = "1", variants = ["quiet"], reason = "watchdog" }
-"memory.limit" = { value = "0", type = "int", default = "1024", skip_variants = ["stock"], reason = "limit" }
+"memory.limit" = { value = "0", type = "int", default = "1024", reason = "limit" }
 """
 
 
@@ -153,7 +152,7 @@ worlds = { value = "{}", type = "map", reason = "one level" }
 def plan(tmp_path: Path) -> ConfigPlan:
     path = tmp_path / "config.toml"
     path.write_text(PLAN, encoding="utf-8")
-    return load_config_plan(path, variants=("quiet", "stock"))
+    return load_config_plan(path)
 
 
 CONTEXT = {"port": "19672", "server_cpu_count": "8"}
@@ -164,13 +163,7 @@ PARITY_A = '[config.file."a".parity]\n'
 class TestConfigPlan:
     def test_load(self, plan: ConfigPlan) -> None:
         assert plan.files() == ["server.properties", "config.yml"]
-        assert [p.key for p in plan.pins_for("config.yml", None)] == [
-            "settings.async-workers",
-            "worlds",
-            "memory.limit",
-        ]
-        assert [p.key for p in plan.pins_for("config.yml", "quiet")][-2:] == ["debug.level", "memory.limit"]
-        assert "memory.limit" not in [p.key for p in plan.pins_for("config.yml", "stock")]
+        assert [p.key for p in plan.pins_for("config.yml")] == ["settings.async-workers", "worlds", "memory.limit"]
 
     @pytest.mark.parametrize(
         ("body", "message"),
@@ -181,7 +174,7 @@ class TestConfigPlan:
             (YAML_A + '[config.file."a".tuning]\nk = { value = "1", reason = "r" }\n', "unknown table"),
             (YAML_A + PARITY_A + 'k = { value = "1" }\n', "reason"),
             (YAML_A + PARITY_A + 'k = { value = "1", reason = "r", type = "list" }\n', "type"),
-            (YAML_A + PARITY_A + 'k = { value = "1", reason = "r", variants = ["nope"] }\n', "unknown variants"),
+            (YAML_A + PARITY_A + 'k = { value = "1", reason = "r", variants = ["nope"] }\n', "optional default"),
             (YAML_A + PARITY_A + 'k = { value = "1", reason = "r" }\n'
              '[config.file."a".harness]\nk = { value = "2", reason = "r" }\n', "twice"),
             ('schema = 1\n[artifacts]\n', "config: is required"),
@@ -194,7 +187,7 @@ class TestConfigPlan:
             load_config_plan(path)
 
     def test_properties_from_scratch(self, plan: ConfigPlan, tmp_path: Path) -> None:
-        overrides, written = write_config(plan, "server.properties", tmp_path, None, CONTEXT, None)
+        overrides, written = write_config(plan, "server.properties", tmp_path, None, CONTEXT)
         assert written == {"server-port": "19672", "flag": "on"}
         assert [(o.key, o.default, o.value, o.category) for o in overrides] == [
             ("server-port", "19132", "19672", OverrideCategory.HARNESS)
@@ -203,26 +196,18 @@ class TestConfigPlan:
 
     def test_yaml_on_a_shipped_file(self, plan: ConfigPlan, tmp_path: Path) -> None:
         shipped = "settings:\n  async-workers: auto\nmemory:\n  limit: 1024\nworlds:\n  world:\n    generator: normal\n"
-        overrides, written = write_config(plan, "config.yml", tmp_path, shipped, CONTEXT, None)
+        overrides, written = write_config(plan, "config.yml", tmp_path, shipped, CONTEXT)
         by_key = {o.key: o for o in overrides}
         assert by_key["settings.async-workers"].default == "auto" and by_key["settings.async-workers"].value == "8"
         assert by_key["worlds"].default == "world" and by_key["worlds"].value == "{}"
         assert by_key["memory.limit"].category is OverrideCategory.RESCUE
-        assert "debug.level" not in by_key
         text = (tmp_path / "config.yml").read_text(encoding="utf-8")
         assert yaml_scalars(text) == {"settings.async-workers": "8", "memory.limit": "0", "worlds": "{}"}
         assert written == {"settings.async-workers": "8", "worlds": "{}", "memory.limit": "0"}
 
-    def test_variant_pins(self, plan: ConfigPlan, tmp_path: Path) -> None:
-        overrides, _ = write_config(plan, "config.yml", tmp_path, "memory:\n  limit: 1024\n", CONTEXT, "quiet")
-        assert {o.key: o.default for o in overrides}["debug.level"] == "1"
-        overrides, written = write_config(plan, "config.yml", tmp_path, "memory:\n  limit: 1024\n", CONTEXT, "stock")
-        assert "memory.limit" not in written
-        assert yaml_scalars((tmp_path / "config.yml").read_text(encoding="utf-8"))["memory.limit"] == "1024"
-
     def test_read_back(self, plan: ConfigPlan, tmp_path: Path) -> None:
-        _, props = write_config(plan, "server.properties", tmp_path, None, CONTEXT, None)
-        _, yml = write_config(plan, "config.yml", tmp_path, None, CONTEXT, None)
+        _, props = write_config(plan, "server.properties", tmp_path, None, CONTEXT)
+        _, yml = write_config(plan, "config.yml", tmp_path, None, CONTEXT)
         written = {"server.properties": props, "config.yml": yml}
         assert read_back(plan, tmp_path, written) == []
         # A server that rewrites its files in its own style (booleans as true, strings unquoted) still reads back.
@@ -237,20 +222,19 @@ class TestConfigPlan:
 
     def test_bad_placeholder(self, plan: ConfigPlan, tmp_path: Path) -> None:
         with pytest.raises(ConfigError, match="placeholder"):
-            write_config(plan, "server.properties", tmp_path, None, {}, None)
+            write_config(plan, "server.properties", tmp_path, None, {})
 
     @pytest.mark.parametrize("server", ["pocketmine", "nukkit", "powernukkitx"])
     def test_committed_plans_render(self, server: str, tmp_path: Path) -> None:
         from bedrock_bench import adapters
 
         cls = adapters.get(server)
-        plan = load_config_plan(ROOT / cls.config_template, variants=cls.variants)
+        plan = load_config_plan(ROOT / cls.config_template)
         context = {key: "1" for key in ("port", "port_v6", "view_distance", "tick_distance", "max_players")}
         context |= {"difficulty_id": "1", "gamemode_id": "0", "gamemode_upper": "SURVIVAL", "level_name": "bench"}
         context |= {"seed": "20261010", "autosave_ticks": "6000", "save_player_data": "true", "server_cpu_count": "8"}
-        for variant in (None, *cls.variants):
-            for file in plan.files():
-                write_config(plan, file, tmp_path / str(variant), None, context, variant)
+        for file in plan.files():
+            write_config(plan, file, tmp_path, None, context)
 
 
 # --------------------------------------------------------------------------------------------------------------------

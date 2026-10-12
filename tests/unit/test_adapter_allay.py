@@ -146,7 +146,6 @@ class TestContract:
         assert AllayAdapter.bot_compat_flags == ()
         assert AllayAdapter.generator == "flat"
         assert AllayAdapter.tick_thread_rule == "name:World Thread #bench"
-        assert AllayAdapter.variants == {}
 
     def test_pins(self) -> None:
         catalog = config.load_artifacts("allay")
