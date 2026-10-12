@@ -2,8 +2,7 @@
 
 [Nukkit](https://github.com/CloudburstMC/Nukkit) (CloudburstMC) is a Bedrock server written in Java, licensed under
 GPL-3.0. It shares no code with Mojang's server and implements a subset of vanilla gameplay with its own world
-generator. Its `[features]` rows in [server.toml](server.toml) are fidelity V1, so reports list it under "Reduced
-fidelity". Nukkit publishes no releases, so a version is the 7-character commit of a snapshot build.
+generator. Nukkit publishes no releases, so a version is the 7-character commit of a snapshot build.
 
 Adapter: [nukkit.py](../../bedrock_bench/adapters/nukkit.py). Helper plugin: [plugin.yml](plugin.yml) and
 [BenchTick.java](BenchTick.java).
@@ -44,7 +43,7 @@ The JDK, not a JRE, is pinned because of `javac` and `jcmd`.
   number.
 - Positions: `positions` (helper) prints `positions: N`, then one `position: <name> <x> <y> <z> <dimension>` line per
   player.
-- The banner `This server is running Nukkit version git-<commit>` must name the arm's commit.
+- The banner `This server is running Nukkit version git-<commit>` must name the tag's commit.
 - The bots get `-fake-xuid`, the one allowlisted identity flag. Nukkit derives a player's UUID from the XUID in the
   login, so offline bots without one would share a UUID and each new bot would kick the previous one.
 
@@ -76,10 +75,9 @@ Held in the adapter:
   the main thread and can take longer; the run is then a `server_failed` result.
 - Nukkit applies no gravity to clients, so bots teleported to the spread height stay there. With `allow-flight=off` it
   kicks them for flying; `allow-flight=on` only stops the kick.
-- It sends no movement corrections and no locator-bar packets. The `[features]` rows say so, and
-  `corrections_per_bot_s`, `locator_pkts_per_bot_s` and `airborne_frac_steady` check it in every run.
-- During a 100-bot join it can take up to two minutes between a bot's login and its spawn, which the scenario's spawn
-  timeout allows for.
+- It sends no movement corrections and no locator-bar packets.
+- During a 100-bot join it can take up to two minutes between a bot's login and its spawn, which the spawn timeout
+  allows for.
 - It generates its own terrain from the seed, which never matches BDS terrain. It sends whole chunk columns in
   `LevelChunk` packets, with no sub-chunk requests, and never lets clients generate terrain, so every bot receives the
   full view disc.

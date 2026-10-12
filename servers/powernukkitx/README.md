@@ -2,9 +2,8 @@
 
 [PowerNukkitX](https://github.com/PowerNukkitX/PowerNukkitX) is a Nukkit fork written in Java, licensed under
 LGPL-3.0, that reimplements much more of vanilla gameplay: mobs with AI, redstone, fluids, dimensions. It shares no code
-with Mojang's server. Its `[features]` rows in [server.toml](server.toml) are fidelity V1, with the systems it has marked
-`partial`, so reports list it under "Reduced fidelity". Two versions are pinned: the 3.0.5 release, and
-`nightly.86f70bc`, the CI build of the `beta` branch at commit 86f70bc.
+with Mojang's server. Two versions are pinned: the 3.0.5 release, and `nightly.86f70bc`, the CI build of the `beta`
+branch at commit 86f70bc.
 
 Adapter: [powernukkitx.py](../../bedrock_bench/adapters/powernukkitx.py). There is no helper plugin.
 
@@ -77,8 +76,7 @@ processor, which with the server pinned is the server's CPU set. The nightly als
   `LevelChunk` packets, with no sub-chunk requests, and never lets clients generate terrain, so every bot receives the
   full view disc. The nightly sends sub-chunks only to clients whose login claims client-side generation support.
 - It checks movement (`checkMovement`), but sends no movement corrections and no locator-bar packets, and bots
-  teleported to the spread height keep hovering there. The `[features]` rows say so, and `corrections_per_bot_s`,
-  `locator_pkts_per_bot_s` and `airborne_frac_steady` check it in every run.
+  teleported to the spread height keep hovering there.
 - It has busy threads besides `main`, so tick-thread CPU covers only part of its work; process CPU covers all of it.
 - The nightly runs on JDK 25 and 3.0.5 on JDK 21, so a comparison of the two includes the JDK change. On JDK 25 the
   JVM prints a few `WARNING:` lines at start without a time stamp or level.

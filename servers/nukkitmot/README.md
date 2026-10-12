@@ -2,7 +2,6 @@
 
 [Nukkit-MOT](https://github.com/MemoriesOfTime/Nukkit-MOT) (MemoriesOfTime) is a multi-version fork of Nukkit, written
 in Java and licensed under LGPL-3.0. It accepts clients from protocol 113 up to 2193 and generates its own terrain.
-Its `[features]` rows in [server.toml](server.toml) are fidelity V1, so reports list it under "Reduced fidelity".
 Nukkit-MOT publishes rolling builds of its master branch, so a version is the 7-character commit of one Jenkins build.
 
 Adapter: [nukkitmot.py](../../bedrock_bench/adapters/nukkitmot.py). Helper plugin: [plugin.yml](plugin.yml) and
@@ -42,7 +41,7 @@ The jar ships no config files, so there is no `defaults/` copy.
   prints the day time, which wraps at 24000.
 - Positions: `positions` (helper) prints `positions: N`, then one `position: <name> <x> <y> <z> <dimension>` line per
   player.
-- The line `Enabling Nukkit-MOT vgit-<commit>` must name the arm's commit.
+- The line `Enabling Nukkit-MOT vgit-<commit>` must name the tag's commit.
 - The bots need no `-fake-xuid`: an offline player's UUID comes from the name.
 
 ## Configuration changes
@@ -73,7 +72,6 @@ chunk sends per player per tick. The Nether and the End load at start as separat
 - Nukkit-MOT applies no gravity to clients, so bots teleported to the spread height stay there. With
   `allow-flight=off` it kicks them for flying.
 - Its movement mode is `server-auth`, but it sends no movement corrections. It sends no locator-bar packets either.
-  `corrections_per_bot_s`, `locator_pkts_per_bot_s` and `airborne_frac_steady` check this in every run.
 - It generates its own terrain from the seed, which never matches BDS terrain. It sends whole chunk columns in
   `LevelChunk` packets, at most 4 per player per tick, and never lets clients generate terrain.
 - At every start it asks the GitHub API for the latest master commit; no setting turns this off. Once master moves
