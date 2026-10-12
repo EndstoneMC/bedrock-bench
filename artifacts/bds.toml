@@ -7,7 +7,7 @@
 server = "bds"
 source = "mojang"
 
-# Vanilla baseline of the Endstone 0.11.14 comparison; Endstone 0.11.13 and 0.11.14 host this build.
+# Vanilla baseline of the endstone@0.11.14 comparison; endstone@0.11.13 and endstone@0.11.14 host this build.
 [version."1.26.52.3".windows]
 url = "https://www.minecraft.net/bedrockdedicatedserver/bin-win/bedrock-server-1.26.52.3.zip"
 sha256 = "2c9b98d07d2504786996f2335980e88bd969b4a77514925e75471a1349995825"
@@ -22,7 +22,7 @@ size = 94927522
 executables = ["bedrock_server"]
 eula = "minecraft"
 
-# Same-build baseline for LeviLamina 26.51.
+# Same-build baseline for levilamina@26.51.6.
 [version."1.26.51.1".windows]
 url = "https://www.minecraft.net/bedrockdedicatedserver/bin-win/bedrock-server-1.26.51.1.zip"
 sha256 = "a1c1ebefde3036223234179f7c1eab4b445b4727f0482a0554818c9bcaf8e4a5"

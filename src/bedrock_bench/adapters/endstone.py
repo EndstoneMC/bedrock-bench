@@ -170,7 +170,7 @@ class EndstoneAdapter(BdsFamily):
     def _bds_version(self, meta: Mapping[str, Any]) -> str:
         pinned = meta.get("bds")
         if self.arm.bds and pinned and self.arm.bds != pinned:
-            raise ConfigError(f"endstone {self.arm.version} runs BDS {pinned}, but the arm asks for {self.arm.bds}")
+            raise ConfigError(f"{self.arm.ref} runs bds@{pinned}, but the arm asks for bds@{self.arm.bds}")
         version = self.arm.bds or pinned
         if not version:
             raise ConfigError(f"endstone {self.arm.version}: say which BDS version it runs (arm key 'bds')")

@@ -45,7 +45,7 @@ def bds_zip(path: Path) -> Path:
 
 
 def arm(**changes: Any) -> Arm:
-    fields: dict[str, Any] = {"id": "endstone-0.11.14", "server": "endstone", "version": "0.11.14", "python": "3.13"}
+    fields: dict[str, Any] = {"id": "endstone@0.11.14", "server": "endstone", "version": "0.11.14", "python": "3.13"}
     fields.update(changes)
     return Arm(**fields)
 
@@ -182,21 +182,21 @@ class TestPins:
 
 class TestFetch:
     def test_unpinned_version(self, tmp_path: Path) -> None:
-        adapter = EndstoneAdapter(arm(version="0.9.0", id="endstone-0.9.0"), config.default_machine())
+        adapter = EndstoneAdapter(arm(version="0.9.0", id="endstone@0.9.0"), config.default_machine())
         with pytest.raises(ConfigError, match="not pinned"):
             adapter.fetch(Cache(tmp_path / "cache"))
 
     def test_glibc_variant_needs_mimalloc_release(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(endstone_module, "host_os", lambda: "linux")
         adapter = EndstoneAdapter(
-            arm(version="0.11.13", id="endstone-0.11.13", variant="glibc-alloc"), config.default_machine()
+            arm(version="0.11.13", id="endstone@0.11.13+glibc-alloc", variant="glibc-alloc"), config.default_machine()
         )
         with pytest.raises(ConfigError, match="already runs on glibc"):
             adapter.fetch(Cache(tmp_path / "cache"))
 
     def test_bds_mismatch(self, tmp_path: Path) -> None:
         adapter = EndstoneAdapter(arm(bds="1.26.51.1"), config.default_machine())
-        with pytest.raises(ConfigError, match="runs BDS 1.26.52.3"):
+        with pytest.raises(ConfigError, match="runs bds@1.26.52.3"):
             adapter.fetch(Cache(tmp_path / "cache"))
 
     def test_venv_commands_with_lock(self, tmp_path: Path) -> None:

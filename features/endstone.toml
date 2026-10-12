@@ -8,7 +8,7 @@ server = "endstone"
 
 [range."0.11.13"]
 fidelity = "V0"
-"terrain.vanilla_generator" = { class = "vanilla", evidence = "https://github.com/EndstoneMC/endstone/blob/v0.11.13/CHANGELOG.md", note = "BDS 1.26.52.3" }
+"terrain.vanilla_generator" = { class = "vanilla", evidence = "https://github.com/EndstoneMC/endstone/blob/v0.11.13/CHANGELOG.md", note = "bds@1.26.52.3" }
 "terrain.any_generator" = { class = "vanilla", evidence = "https://github.com/EndstoneMC/endstone/blob/v0.11.13/CHANGELOG.md" }
 "terrain.structures" = { class = "vanilla", evidence = "https://github.com/EndstoneMC/endstone/blob/v0.11.13/CHANGELOG.md" }
 "chunks.client_side_generation" = { class = "vanilla", evidence = "https://github.com/EndstoneMC/endstone/blob/v0.11.13/CHANGELOG.md", observed_by = "csg_effective" }
@@ -33,7 +33,7 @@ fidelity = "V0"
 
 [range."0.11.14"]
 fidelity = "V1"
-"terrain.vanilla_generator" = { class = "vanilla", evidence = "https://github.com/EndstoneMC/endstone/blob/v0.11.14/CHANGELOG.md", note = "BDS 1.26.52.3; changelog: terrain generates faster" }
+"terrain.vanilla_generator" = { class = "vanilla", evidence = "https://github.com/EndstoneMC/endstone/blob/v0.11.14/CHANGELOG.md", note = "bds@1.26.52.3; changelog: terrain generates faster" }
 "terrain.any_generator" = { class = "vanilla", evidence = "https://github.com/EndstoneMC/endstone/blob/v0.11.14/CHANGELOG.md" }
 "terrain.structures" = { class = "vanilla", evidence = "https://github.com/EndstoneMC/endstone/blob/v0.11.14/CHANGELOG.md" }
 "chunks.client_side_generation" = { class = "vanilla", evidence = "https://github.com/EndstoneMC/endstone/blob/v0.11.14/CHANGELOG.md", observed_by = "csg_effective", note = "changelog: faster exploring with client-side generation" }

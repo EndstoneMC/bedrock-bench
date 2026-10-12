@@ -88,7 +88,7 @@ def line(text: str, t_ns: int = 0) -> LogLine:
 
 @pytest.fixture
 def adapter() -> BdsAdapter:
-    return BdsAdapter(Arm(id="bds-1.26.52.3", server="bds", version="1.26.52.3"), config.default_machine())
+    return BdsAdapter(Arm(id="bds@1.26.52.3", server="bds", version="1.26.52.3"), config.default_machine())
 
 
 @pytest.fixture

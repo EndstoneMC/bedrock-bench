@@ -12,8 +12,8 @@ Adapter: `src/bedrock_bench/adapters/bds.py`, with the behaviour shared by all B
 
 | Version | Platforms | Used by |
 |---|---|---|
-| 1.26.52.3 | Windows, Linux | Endstone 0.11.13 and 0.11.14 comparison (`matrices/endstone-0.11.14.toml`) |
-| 1.26.51.1 | Windows, Linux | same-build baseline for LeviLamina 26.51 |
+| 1.26.52.3 | Windows, Linux | `endstone@0.11.13` and `endstone@0.11.14` comparison (`matrices/endstone-0.11.14.toml`) |
+| 1.26.51.1 | Windows, Linux | same-build baseline for `levilamina@26.51.6` |
 
 URLs, sizes and sha256 are pinned in `artifacts/bds.toml`. A zip that does not match its pin is refused. Mojang
 removes old builds from its download site after a while; keep a copy and pass it with `--artifact-dir`, where it is
@@ -62,7 +62,7 @@ the same ones. A value equal to the shipped one is written and read back after t
 | `max-players` | `10` | `200` | parity | room for every bot, plus rejoins |
 | `level-name` | `Bedrock level` | `bench` | parity | fixed world folder, checked absent before launch |
 | `level-seed` | empty (random) | `20261010` | parity | same terrain on every server |
-| `client-side-chunk-generation-enabled` | `true` | scenario: `true` in `spread100`, `false` in `spread100-equal` | parity (only when `false`) | see below |
+| `client-side-chunk-generation-enabled` | `true` | scenario: `false` in `spread100`, `true` in `spread100-csg` | parity (only when `false`) | see below |
 | `tick-distance` | `4` | `4` | none | |
 | `gamemode` | `survival` | `survival` | none | |
 | `difficulty` | `easy` | `easy` | none | |
@@ -109,9 +109,9 @@ Things to know when reading the numbers:
   schedules the work, not a sampling artefact.
 - The Linux and Windows builds do not send identical locator-bar packet counts for the same workload; compare
   `locator_pkts_per_bot_s` within one operating system only.
-- With client-side chunk generation on (`spread100`), clients generate distant terrain themselves and the server
-  sends far fewer chunks than the full view. Servers that do not support it send the whole view, which is why
-  `spread100-equal`, with it off everywhere, is the only cross-server ranking scenario.
+- With client-side chunk generation on (`spread100-csg`), clients generate distant terrain themselves and the server
+  sends far fewer chunks than the full view. Servers that do not support it send the whole view, which is why every
+  ranking scenario, `spread100` included, turns it off.
 
 ## Crashes
 

@@ -15,7 +15,7 @@ Configuration notes for the pinned releases: `servers/endstone/README.md`.
 | 0.11.13 | 1.26.52.3 | 3.13 | glibc | Windows: the hidden DevTools window keeps a core busy; both: the scheduler's idle threads use CPU |
 | 0.11.14 | 1.26.52.3 | 3.13 | mimalloc (preloaded by the launcher) | none |
 
-Both are compared with vanilla BDS 1.26.52.3, the build they host, so no `different_bds_build` flag applies. Known
+Both are compared with `bds@1.26.52.3`, the build they host, so no `different_bds_build` flag applies. Known
 issues come from Endstone's changelog and appear as `known_issue` footnotes; their CPU cost is part of the measured
 numbers and is never subtracted. Wheels are pinned per platform and CPython version (3.11 to 3.14) in
 `artifacts/endstone.toml`; an arm picks one with `python = "3.13"`.
@@ -28,7 +28,7 @@ bbench fetch endstone@0.11.14 --accept-eula
 
 Fetching needs [uv](https://docs.astral.sh/uv/). It does three things:
 
-1. Verifies and installs BDS 1.26.52.3 exactly as for vanilla BDS (`docs/servers/bds.md`), under the same EULA rule.
+1. Verifies and installs `bds@1.26.52.3` exactly as for vanilla BDS (`docs/servers/bds.md`), under the same EULA rule.
 2. Downloads the Endstone wheel for this platform and Python from PyPI and checks it against its pinned sha256.
 3. Builds a virtual environment in the cache (`venv/endstone-<version>-cp<python>-<hash>`): the wheel's
    dependencies from `servers/endstone/requirements/<version>.txt` with `--require-hashes`, then the verified wheel
@@ -49,7 +49,7 @@ for elevation during a run (see `servers/endstone/README.md` for the command).
 ```
 
 - The launcher compares `version.txt` in the server directory with the BDS build it supports. The adapter writes the
-  marker (`26.52` for BDS 1.26.52.3), so the launcher uses the verified copy instead of downloading BDS again. The
+  marker (`26.52` for `bds@1.26.52.3`), so the launcher uses the verified copy instead of downloading BDS again. The
   sha256 of `bedrock_server` is taken before and after the run; a difference would show that the launcher replaced it.
 - The launcher's environment gets `PYTHONSAFEPATH=1`, `PYTHONIOENCODING=utf-8`, `PYTHONUNBUFFERED=1` and
   `PYTHONDONTWRITEBYTECODE=1`, and loses `PYTHONPATH`, `PYTHONHOME`, `VIRTUAL_ENV` and, on Linux, `LD_PRELOAD`.
