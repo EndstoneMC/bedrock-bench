@@ -10,12 +10,14 @@ it to the harness, and where the results land. Run every command from the checko
 - [uv](https://docs.astral.sh/uv/) and Python 3.11 or newer. The only runtime dependency is `psutil`.
 - Go 1.25 or newer to build the load bot. Dragonfly needs Go 1.26 or newer, because fetch builds its helper from
   source.
+- Rust 1.95.0 through [rustup](https://rustup.rs/) and a C compiler (the MSVC build tools on Windows), only for
+  Chorus, which fetch also builds from source.
 - At least 4 logical CPUs for the bots, on top of the CPUs the server gets.
 - Network access the first time each server is fetched and the bot is built.
 
-Nothing else needs installing. Nukkit, PowerNukkitX and PocketMine-MP run on the JDK and PHP builds pinned in
-[`configs/servers/runtimes.toml`](../configs/servers/runtimes.toml), which fetch downloads. Endstone gets its own
-virtual environment, built with uv. LeviLamina runs on Windows only.
+Nothing else needs installing. Nukkit, Nukkit-MOT, PowerNukkitX, Allay, PocketMine-MP and Altay run on the JDK and
+PHP builds pinned in [`configs/servers/runtimes.toml`](../configs/servers/runtimes.toml), which fetch downloads.
+Endstone gets its own virtual environment, built with uv. LeviLamina runs on Windows only.
 [README.md#supported-servers](../README.md#supported-servers) lists every server and its pinned version.
 
 ## Installation
@@ -36,11 +38,11 @@ Build the load bot:
 uv run bbench bots build
 ```
 
-This builds every bot module into `bots/bin/<os>-<arch>/`: `loadbot` for every server except PocketMine-MP, and
-`legacy1001`, the protocol 1001 bot that PocketMine-MP needs
-([bots/README.md#protocol-1001](../bots/README.md#protocol-1001)). `--module loadbot` or `--module legacy1001` builds
-one. On a released version, `uv run bbench bots fetch` downloads the matching release binary instead and checks it
-against the release's `SHA256SUMS`.
+This builds `loadbot`, the bot for every server except PocketMine-MP and Allay, into `bots/bin/<os>-<arch>/`. Those
+two need `legacy1001`, the protocol 1001 bot, built with `--module legacy1001` once its gophertunnel fork tag is
+published ([bots/README.md#protocol-1001](../bots/README.md#protocol-1001)). On a released version,
+`uv run bbench bots fetch` downloads the matching release binary instead and checks it against the release's
+`SHA256SUMS`.
 
 Downloads and installs go to the cache: `%LOCALAPPDATA%\bedrock-bench` on Windows, `~/.cache/bedrock-bench` on Linux
 (or `$XDG_CACHE_HOME/bedrock-bench`), or `$BBENCH_CACHE` when set. Results go to `runs/` in the working directory.
@@ -183,13 +185,15 @@ uv run bbench report runs/endstone-0.11.14
 - Each server runs once per experiment, on one machine and one platform. LeviLamina runs on Windows only. On Linux,
   run the other arms of the cross-server matrix by repeating `--only <arm id>` for each of them.
 
-The cross-server matrix has two extra steps. PocketMine-MP needs the protocol 1001 bot, and Nukkit and PowerNukkitX also
-run `spread100-pregen`, which needs a world template built first:
+The cross-server matrix has two extra steps. PocketMine-MP and Allay need the protocol 1001 bot, and Nukkit, Nukkit-MOT
+and PowerNukkitX also run `spread100-pregen`, which needs a world template built first:
 
 ```shell
 uv run bbench bots build --module legacy1001
 uv run bbench prepare-world nukkit@b3caad6 --scenario spread100-pregen
+uv run bbench prepare-world nukkitmot@9cb0aba --scenario spread100-pregen
 uv run bbench prepare-world powernukkitx@3.0.5 --scenario spread100-pregen
+uv run bbench prepare-world powernukkitx@nightly.86f70bc --scenario spread100-pregen
 ```
 
 Other `run` options:

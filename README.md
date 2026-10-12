@@ -19,11 +19,20 @@ starts and what to watch for.
 | [Endstone](https://github.com/EndstoneMC/endstone) | C++ on BDS | `endstone@0.11.13`<br>`endstone@0.11.14` | [`configs/servers/endstone/`](configs/servers/endstone/) | Installed from PyPI with hash-locked dependencies. Runs inside `bds@1.26.52.3`. Variant `glibc-alloc` (Linux only). |
 | [LeviLamina](https://github.com/LiteLDev/LeviLamina) | C++ on BDS | `levilamina@26.51.6` | [`configs/servers/levilamina/`](configs/servers/levilamina/) | Windows only. Runs inside `bds@1.26.51.1`. Two packages need the LeviMC EULA (`--accept-eula`). Variants `levioptimize` and `levioptimize-all`. |
 | [PocketMine-MP](https://github.com/pmmp/PocketMine-MP) | PHP | `pocketmine@5.44.3` | [`configs/servers/pocketmine/`](configs/servers/pocketmine/) | Speaks protocol 1001, so it needs the [protocol 1001 bot](bots/README.md#protocol-1001). Variant `stock`. |
+| [Altay](https://github.com/altayofficial/Altay) | PHP | `altay@5.44.7` | [`configs/servers/altay/`](configs/servers/altay/) | Fork of PocketMine-MP 5 that speaks protocol 2193. Variant `stock`. |
 | [Nukkit](https://github.com/CloudburstMC/Nukkit) | Java | `nukkit@b3caad6` | [`configs/servers/nukkit/`](configs/servers/nukkit/) | Snapshot build, versioned by commit. Variant `no-watchdog`. |
-| [PowerNukkitX](https://github.com/PowerNukkitX/PowerNukkitX) | Java | `powernukkitx@3.0.5` | [`configs/servers/powernukkitx/`](configs/servers/powernukkitx/) | |
+| [Nukkit-MOT](https://github.com/MemoriesOfTime/Nukkit-MOT) | Java | `nukkitmot@9cb0aba` | [`configs/servers/nukkitmot/`](configs/servers/nukkitmot/) | Jenkins build 1592, versioned by commit. Jenkins keeps few builds, so keep a copy of the jar for `--artifact-dir`. Variant `no-watchdog`. |
+| [PowerNukkitX](https://github.com/PowerNukkitX/PowerNukkitX) | Java | `powernukkitx@3.0.5`<br>`powernukkitx@nightly.86f70bc` | [`configs/servers/powernukkitx/`](configs/servers/powernukkitx/) | The nightly runs on JDK 25. Upstream replaces the nightly jar with every build, so keep a copy for `--artifact-dir`. |
+| [Allay](https://github.com/AllayMC/Allay) | Java | `allay@0.14.0` | [`configs/servers/allay/`](configs/servers/allay/) | Speaks protocol 1001, so it needs the [protocol 1001 bot](bots/README.md#protocol-1001). Flat worlds only. |
 | [Dragonfly](https://github.com/df-mc/dragonfly) | Go | `dragonfly@1793369` | [`configs/servers/dragonfly/`](configs/servers/dragonfly/) | `bbench fetch` builds it from source, so it needs Go 1.26 or newer. The one server CI runs. |
+| [Chorus](https://github.com/bedrock-crustaceans/chorus) | Rust | `chorus@95ca835` | [`configs/servers/chorus/`](configs/servers/chorus/) | `bbench fetch` builds it from source, so it needs Rust 1.95.0. Its player list gives the bots decode errors, so every run at this commit is invalid and it is not in E3. |
 
-PocketMine-MP, Nukkit and PowerNukkitX run on the PHP and JDK builds pinned in
+Evaluated, not supported: [MiNET](https://github.com/NiclasOlofsson/MiNET) (needs a NetherNet bot),
+[JSPrismarine](https://github.com/JSPrismarine/JSPrismarine) (protocol 748, client-authoritative movement),
+[SerenityJS](https://github.com/SerenityJS/serenity) (protocol 975, rejects the bots' login and stalls without console
+input) and Sculk (discontinued, a login and chat skeleton with no world).
+
+PocketMine-MP, Altay, Nukkit, Nukkit-MOT, PowerNukkitX and Allay run on the PHP and JDK builds pinned in
 [`configs/servers/runtimes.toml`](configs/servers/runtimes.toml). To add a server, see
 [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md#adding-a-server).
 
@@ -34,6 +43,7 @@ bedrock-bench runs servers on Windows 10/11 x64 and Linux x86_64. macOS can anal
 - Python 3.11 or newer and [uv](https://docs.astral.sh/uv/). The only runtime dependency is psutil.
 - Go 1.25 or newer to build the load bots, and 1.26 or newer for Dragonfly. On a released version, `bbench bots fetch`
   downloads the load bot instead and checks it against the release's `SHA256SUMS`.
+- Rust 1.95.0 through [rustup](https://rustup.rs/) and a C compiler, only to fetch Chorus.
 - At least 4 logical CPUs for the bots on top of the CPUs the server gets.
 
 ```shell
@@ -71,7 +81,7 @@ scenario files, bot flags and CPU placement.
 |---|---|---|---|---|---|---|
 | E1 | Endstone against the BDS build it hosts, client-side generation off | [`endstone-0.11.14.toml`](configs/matrices/endstone-0.11.14.toml) | `bds@1.26.52.3`, `endstone@0.11.13`, `endstone@0.11.14` | [`spread100`](configs/scenarios/spread100.toml) | 3 × 3 | 1.5–3 h |
 | E2 | E1 with client-side generation on | [`endstone-0.11.14-csg.toml`](configs/matrices/endstone-0.11.14-csg.toml) | as E1 | [`spread100-csg`](configs/scenarios/spread100-csg.toml) | 3 × 3 | 1.5–3 h |
-| E3 | Every server on the same workload | [`cross-server.toml`](configs/matrices/cross-server.toml) | all seven, 9 arms | [`spread100`](configs/scenarios/spread100.toml), [`spread100-pregen`](configs/scenarios/spread100-pregen.toml) | 12 × 3 | 7–13 h |
+| E3 | Every server on the same workload | [`cross-server.toml`](configs/matrices/cross-server.toml) | every server but Chorus, 14 arms | [`spread100`](configs/scenarios/spread100.toml), [`spread100-pregen`](configs/scenarios/spread100-pregen.toml) | 20 × 3 | 11–21 h |
 | E4 | LeviLamina and LeviOptimize against the BDS build they host | [`levilamina-26.51.toml`](configs/matrices/levilamina-26.51.toml) | `bds@1.26.51.1`, `levilamina@26.51.6` and its 2 variants | [`spread100`](configs/scenarios/spread100.toml) | 4 × 3 | 2–4 h |
 | E5 | Robustness under 15 minutes of seeded chaos, never ranked | E1 with `chaos` added to `scenarios` | as E1 | [`chaos`](configs/scenarios/chaos.toml) | 3 × 3 | 4–5.5 h |
 
@@ -95,8 +105,9 @@ not once per platform. A report never mixes machines, and `bbench run` refuses t
 machine profile to an existing results directory.
 
 - E3: build the world templates first with `uv run bbench prepare-world nukkit@b3caad6 --scenario spread100-pregen` and
-  the same for `powernukkitx@3.0.5`. The PocketMine-MP arm needs `uv run bbench bots build --module legacy1001`.
-  Reports group arms by declared fidelity and never rank across groups.
+  the same for `nukkitmot@9cb0aba`, `powernukkitx@3.0.5` and `powernukkitx@nightly.86f70bc`. The PocketMine-MP and
+  Allay arms need `uv run bbench bots build --module legacy1001`. Reports group arms by declared fidelity and never
+  rank across groups.
 - E3 and E4 need Windows, because LeviLamina runs on Windows only.
 - E5: add `"chaos"` to `scenarios` in `configs/matrices/endstone-0.11.14.toml`, as its header says, and run it like E1.
   That runs E1 and E5 together. [`chaos-portable`](configs/scenarios/chaos-portable.toml) has the actions every server

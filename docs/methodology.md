@@ -57,10 +57,10 @@ invalid, because the bot did not see everything the server sent.
 
 **World.** A fresh world is absent before launch and generated during the run (`world_fresh` checks it). A template
 scenario loads a world the server built beforehand with its own pipeline (`bbench prepare-world <server@version>
---scenario spread100-pregen`): a bot tour by default, a helper plugin on Nukkit. A template is accepted only when every
-cell reaches `world.min_coverage` of its view disc, and its tree hash is recorded in each run that uses it. Templates
-stay in the local cache. They are never committed, published or shared between servers, because world formats are not
-interchangeable. Fresh and template worlds are different scenarios, so they never share a table.
+--scenario spread100-pregen`): a bot tour by default, a helper plugin on Nukkit and Nukkit-MOT. A template is accepted
+only when every cell reaches `world.min_coverage` of its view disc, and its tree hash is recorded in each run that uses
+it. Templates stay in the local cache. They are never committed, published or shared between servers, because world
+formats are not interchangeable. Fresh and template worlds are different scenarios, so they never share a table.
 
 **Chaos.** Chaos runs after steady and looks for crashes, stalls, lost players and memory growth under rapid admin
 actions. The action catalogue is [`configs/scenarios/chaos-actions.toml`](../configs/scenarios/chaos-actions.toml).
@@ -191,7 +191,7 @@ that remains is visible.
   `[config]` table of `configs/servers/<server>/server.toml` (BDS-hosted servers use the BDS one), and `run.json`
   records every change. Difficulty is easy on every server, the BDS default.
 - Equal resources: one fixed heap for every JVM server (`-Xms` equals `-Xmx`, from the machine profile), PocketMine-MP
-  async workers equal to the server CPU count, and BDS `max-threads` left at its default and recorded.
+  and Altay async workers equal to the server CPU count, and BDS `max-threads` left at its default and recorded.
 - Telemetry, crash upload, usage statistics and auto-update are off where a switch exists.
 - All bots connect from 127.0.0.1, which trips per-IP flood guards real players never hit. Adapters raise them as
   `harness` overrides, except LeviLamina's, which stays at its default. `dropped == 0` is checked.
@@ -484,9 +484,9 @@ The load generator decides what work a server is asked to do: how often clients 
 how they move. With a bot build or flag set per server, a difference between two servers could come from the bots.
 All bot behaviour lives in one Go module, `bots/core`, and each protocol gets a thin frontend, because Go cannot link
 two versions of gophertunnel into one module: `bots/loadbot` for the current protocol and `bots/legacy1001` for
-PocketMine-MP. Every arm gets identical flags (R2). Adapters may add only allowlisted identity flags (`-fake-xuid`),
-which the contract test enforces, and a server's needs are met with those flags or adapter-side config, never by
-changing what the bot does for one server. Patches follow [bots/README.md](../bots/README.md#patches).
+PocketMine-MP and Allay. Every arm gets identical flags (R2). Adapters may add only allowlisted identity flags
+(`-fake-xuid`), which the contract test enforces, and a server's needs are met with those flags or adapter-side config,
+never by changing what the bot does for one server. Patches follow [bots/README.md](../bots/README.md#patches).
 
 ### No composite score
 
@@ -505,9 +505,9 @@ and never ranked across servers.
 ### Client-side generation off in every ranking scenario
 
 With client-side generation on, a supporting client builds terrain from the seed and BDS sends only part of each view.
-PocketMine-MP, Nukkit, PowerNukkitX and Dragonfly cannot do it, so with it on, chunk work differs several-fold between
-server families, and Endstone's numbers would mean different work in different tables. Every ranking scenario runs it
-off in the server config and the bot, Endstone included, so every server builds the full view disc, 317 columns at view
+Only BDS and the servers that run inside it do this, so with it on, chunk work differs several-fold between server
+families, and Endstone's numbers would mean different work in different tables. Every ranking scenario runs it off in
+the server config and the bot, Endstone included, so every server builds the full view disc, 317 columns at view
 distance 10. `spread100-csg` keeps it on only to reproduce Endstone's earlier figures on BDS-hosted servers, and
 `report --publish` refuses it in a cross-server table.
 
