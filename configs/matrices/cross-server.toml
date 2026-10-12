@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Every server on the spread100 headline: 100 spread bots, client-side generation off, the same scenario, bot flags
-# and placement for every arm (docs/FAIRNESS.md). Nukkit and PowerNukkitX also run spread100-pregen, which separates
-# chunk delivery from their slow generation; build their templates first with
+# and placement for every arm (docs/methodology.md#fairness-and-feature-parity). Nukkit and PowerNukkitX also run
+# spread100-pregen, which separates chunk delivery from their slow generation; build their templates first with
 #   bbench prepare-world nukkit@b3caad6 --scenario spread100-pregen
 #   bbench prepare-world powernukkitx@3.0.5 --scenario spread100-pregen
 # Reports group arms by declared fidelity and never rank across groups.

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 """``bbench run`` over a matrix: rotate order, one subprocess and directory per run, refusal to mix machine
-profiles in one matrix directory, and a report that groups arms by declared fidelity (rule R10, ADR 0002).
+profiles in one matrix directory, and a report that groups arms by declared fidelity (rule R10, no composite score).
 
 The matrix has a full-fidelity arm (``fake_bds``, every exercised feature vanilla) and a reduced one
 (``fake_dragonfly``, physics and movement validation absent), each run twice.

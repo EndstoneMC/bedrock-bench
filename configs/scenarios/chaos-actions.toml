@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
-# The chaos action catalogue, read by bedrock_bench.chaos (docs/WORKLOADS.md). Not a scenario: chaos scenarios pick
-# actions from it in [phases.chaos] actions.
+# The chaos action catalogue, read by bedrock_bench.chaos (docs/methodology.md#workload). Not a scenario: chaos
+# scenarios pick actions from it in [phases.chaos] actions.
 #
 # [command.<name>] is a console command a server's chaos dialect may render (ServerAdapter.chaos_dialect). The renderer
 # takes exactly the listed parameters as keyword arguments; "player" is a bot name. The adapter contract test renders

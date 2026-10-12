@@ -109,7 +109,10 @@ class Fidelity(StrEnum):
 
 
 class Gate(StrEnum):
-    """Validity gates (SPEC.md section 9). ``status`` is the outcome a failed gate forces, or None for a warning."""
+    """Validity gates (docs/methodology.md#statistics-and-run-status).
+
+    ``status`` is the outcome a failed gate forces, or None for a warning.
+    """
 
     HARNESS_OK = "harness_ok"
     PROBE_MONOTONIC = "probe_monotonic"
@@ -315,7 +318,7 @@ class WorldParams:
 
 @dataclass(frozen=True)
 class ServerParams:
-    """Gameplay settings every adapter maps onto its own config (docs/FAIRNESS.md)."""
+    """Gameplay settings every adapter maps onto its own config (docs/methodology.md#fairness-and-feature-parity)."""
 
     csg: bool  # client-side chunk generation on servers that support it; bots get -csg when True
     view_distance: int = 10

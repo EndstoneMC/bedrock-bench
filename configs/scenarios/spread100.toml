@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# The headline workload for every server, Endstone included (docs/WORKLOADS.md).
+# The headline workload for every server, Endstone included (docs/methodology.md#workload).
 # 100 bots, one per grid cell, client-side generation off: every server generates and sends the full view disc.
 name = "spread100"
 description = "100 spread bots, view distance 10, client-side generation off; the cross-server headline"

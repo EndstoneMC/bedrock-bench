@@ -480,7 +480,6 @@ class TestDataFiles:
                 for cell in rng.cells.values():
                     assert cell.observed_by is None or cell.observed_by in known, (server, cell.key)
 
-    @pytest.mark.xfail(reason="the feature key table moves to docs/methodology.md", strict=False)
     def test_methodology_lists_every_feature_key(self) -> None:
         text = (ROOT / "docs" / "methodology.md").read_text(encoding="utf-8")
         listed = set(re.findall(r"^\| `([a-z]+\.[a-z_]+)` \|", text, flags=re.MULTILINE))

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
-# The legacy BENCHMARK.md comparison, client-side generation on (docs/REPRODUCING-endstone-0.11.14.md).
-# Check the published figures with:
-#   bbench report runs/endstone-0.11.14-csg --claims endstone-0.11.14-csg
+# The legacy BENCHMARK.md comparison: endstone@0.11.14 against the vanilla build it hosts and the previous release,
+# with client-side generation on. BDS-hosted servers only, never in a cross-server table
+# (docs/methodology.md#client-side-generation-off-in-every-ranking-scenario).
 [matrix]
 name = "endstone-0.11.14-csg"
 scenarios = ["spread100-csg"]
