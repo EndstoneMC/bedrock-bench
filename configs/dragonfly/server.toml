@@ -3,6 +3,10 @@
 schema = 1
 server = "dragonfly"
 
+# What `bbench run` measures when it is given no tag.
+[benchmark]
+version = "1793369"
+
 # Dragonfly builds. Dragonfly is a Go library without binary releases: 'bbench fetch dragonfly@<version>' builds the
 # dfbench helper from the Go module in this folder, which links the Dragonfly module pinned here. Its go.mod must
 # require the same module version; fetch refuses the build otherwise.

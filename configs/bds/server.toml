@@ -3,6 +3,10 @@
 schema = 1
 server = "bds"
 
+# What `bbench run` measures when it is given no tag.
+[benchmark]
+version = "1.26.52.3"
+
 # Bedrock Dedicated Server builds, as published by Mojang. Downloading them needs the Minecraft EULA accepted
 # (bbench fetch --accept-eula, or BBENCH_ACCEPT_MINECRAFT_EULA=1). Nothing from these archives is ever committed.
 #

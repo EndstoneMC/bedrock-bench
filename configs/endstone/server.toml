@@ -3,6 +3,12 @@
 schema = 1
 server = "endstone"
 
+# What `bbench run` measures when it is given no tag.
+[benchmark]
+version = "0.11.14"
+bds = "1.26.52.3"
+python = "3.13"
+
 # Endstone releases from PyPI. One table per release says which BDS build it hosts; one sub-table per platform and
 # CPython version pins the wheel. The wheel's dependencies are locked with hashes in requirements-<version>.txt next to
 # this file.

@@ -3,6 +3,12 @@
 schema = 1
 server = "chorus"
 
+# What `bbench run` measures when it is given no tag.
+[benchmark]
+version = "95ca835"
+include = false
+reason = "its player list gives the bots decode errors"
+
 # Chorus builds. Chorus has no releases or tags: 'bbench fetch chorus@<version>' builds chorusbench, the Rust program
 # in this folder, which links Chorus at the pinned commit. Cargo.toml must name that commit and Cargo.lock must hash to
 # `cargo_lock`; fetch refuses the build otherwise. Cargo.lock pins every git dependency by commit and every crate by

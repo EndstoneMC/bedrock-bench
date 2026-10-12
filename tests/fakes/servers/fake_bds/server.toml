@@ -3,6 +3,9 @@
 schema = 1
 server = "fake_bds"
 
+[benchmark]
+version = "1.0.0"
+
 [features]
 
 [features.range."*"]

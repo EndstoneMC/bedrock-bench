@@ -3,6 +3,10 @@
 schema = 1
 server = "levilamina"
 
+# What `bbench run` measures when it is given no tag.
+[benchmark]
+version = "26.51.6"
+
 # LeviLamina releases for Windows and the packages each one installs, all GitHub release assets. The BDS build comes
 # from configs/bds/server.toml, so a LeviLamina arm and its vanilla baseline run the same verified BDS zip.
 #

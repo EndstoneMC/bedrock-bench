@@ -41,6 +41,7 @@ from bedrock_bench.model import (
     ArtifactCatalog,
     ArtifactSpec,
     ArtifactVersion,
+    Benchmark,
     BotParams,
     FeatureCell,
     FeatureClass,
@@ -79,7 +80,7 @@ _SINGULAR = {
 }
 
 SERVER_FILE = "server.toml"
-SERVER_TABLES = ("artifacts", "features", "config")
+SERVER_TABLES = ("artifacts", "features", "config", "benchmark")
 #: JDK and PHP pins shared by the standalone servers, an ``[artifacts]`` table like a server file's.
 RUNTIMES_FILE = "configs/runtimes.toml"
 
@@ -908,6 +909,26 @@ def load_server_table(ref: str | Path, table: str) -> tuple[Path, dict[str, Any]
     tables = {key: top.table(key, required=key == table) for key in SERVER_TABLES}
     top.finish()
     return path, tables[table].data
+
+
+def load_benchmark(ref: str | Path) -> Benchmark:
+    """The ``[benchmark]`` table of a server file: the default version, and whether ``bbench run`` includes it."""
+    path, data = load_server_table(ref, "benchmark")
+    table = _Table(data, file=path, where="benchmark")
+    version = table.get("version", str, pattern=VERSION_RE.pattern)
+    bds = table.get("bds", str, None, pattern=VERSION_RE.pattern)
+    python = table.get("python", str, None, pattern=PYTHON_RE.pattern)
+    include = table.get("include", bool, True)
+    reason = table.get("reason", str, None, pattern=r"^\S")
+    table.finish()
+    if include == (reason is not None):
+        raise table.error("reason", "is required with include = false, and only then")
+    return Benchmark(_input_name(path), version, bds=bds, python=python, include=include, reason=reason)
+
+
+def benchmark_defaults() -> list[Benchmark]:
+    """The ``[benchmark]`` table of every server folder in configs/, by name."""
+    return [load_benchmark(name) for name in available("servers")]
 
 
 # --------------------------------------------------------------------------------------------------------------------

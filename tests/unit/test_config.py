@@ -572,6 +572,62 @@ class TestServerFile:
             config.load_artifacts(write_file("x/server.toml", server_file("x", body)))
 
 
+#: The benchmark default of every server, from the cleanup brief.
+BENCHMARK_DEFAULTS = {
+    "bds": ("1.26.52.3", None, None),
+    "endstone": ("0.11.14", "1.26.52.3", "3.13"),
+    "levilamina": ("26.51.6", None, None),
+    "pocketmine": ("5.44.3", None, None),
+    "altay": ("5.44.7", None, None),
+    "nukkit": ("b3caad6", None, None),
+    "nukkitmot": ("9cb0aba", None, None),
+    "powernukkitx": ("nightly.86f70bc", None, None),
+    "allay": ("0.14.0", None, None),
+    "dragonfly": ("1793369", None, None),
+    "chorus": ("95ca835", None, None),
+}
+
+
+class TestBenchmark:
+    def test_every_server_has_its_default(self) -> None:
+        defaults = {b.server: b for b in config.benchmark_defaults()}
+        assert set(defaults) == set(BENCHMARK_DEFAULTS) == set(config.available("servers"))
+        for server, (version, bds, python) in BENCHMARK_DEFAULTS.items():
+            default = defaults[server]
+            assert (default.version, default.bds, default.python) == (version, bds, python), server
+            assert version in config.load_artifacts(server).versions, f"{server}@{version} is not pinned"
+            if bds is not None:
+                assert bds in config.load_artifacts("bds").versions
+        excluded = {s: b.reason for s, b in defaults.items() if not b.include}
+        assert excluded == {"chorus": "its player list gives the bots decode errors"}
+
+    def test_arm(self) -> None:
+        arm = config.load_benchmark("endstone").arm
+        assert (arm.id, arm.server, arm.version, arm.bds, arm.python) == (
+            "endstone@0.11.14",
+            "endstone",
+            "0.11.14",
+            "1.26.52.3",
+            "3.13",
+        )
+
+    @pytest.mark.parametrize(
+        ("body", "message"),
+        [
+            ("", "benchmark: is required"),
+            ('[benchmark]\nbds = "1.26.52.3"\n', r"benchmark\.version: is required"),
+            ("[benchmark]\nversion = 1\n", r"benchmark\.version: expected a string"),
+            ('[benchmark]\nversion = "1"\ninclude = false\n', r"benchmark\.reason: is required with include = false"),
+            ('[benchmark]\nversion = "1"\nreason = "slow"\n', r"benchmark\.reason: is required with include = false"),
+            ('[benchmark]\nversion = "1"\npython = "2.7"\n', r"benchmark\.python: invalid value"),
+            ('[benchmark]\nversion = "1"\nvariant = "x"\n', r"benchmark\.variant: unknown key"),
+        ],
+    )
+    def test_rejects(self, write_file, body: str, message: str) -> None:
+        with pytest.raises(ConfigError, match=message):
+            config.load_benchmark(write_file("x/server.toml", server_file("x", body)))
+
+
 class TestArtifacts:
     def test_load(self, write_file) -> None:
         catalog = config.load_artifacts(write_file("configs/bds/server.toml", server_file("bds", ARTIFACTS)))

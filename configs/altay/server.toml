@@ -3,6 +3,10 @@
 schema = 1
 server = "altay"
 
+# What `bbench run` measures when it is given no tag.
+[benchmark]
+version = "5.44.7"
+
 # Altay release phars from GitHub, verified against the sha256 GitHub publishes for each release asset.
 # `runtime` names the PHP build in configs/runtimes.toml; `protocol` and `minecraft` are what the release
 # speaks.

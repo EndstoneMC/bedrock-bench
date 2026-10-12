@@ -3,6 +3,10 @@
 schema = 1
 server = "powernukkitx"
 
+# What `bbench run` measures when it is given no tag.
+[benchmark]
+version = "nightly.86f70bc"
+
 # PowerNukkitX jars from GitHub, verified against the sha256 GitHub publishes for each release asset.
 # A release jar reports its version as <version>-SNAPSHOT with the commit it was built from; `commit` is that commit.
 # A nightly jar reports nightly-SNAPSHOT with its commit, which reads as the version nightly.<commit>. The nightly tag

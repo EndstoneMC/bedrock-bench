@@ -242,6 +242,22 @@ class Arm:
 
 
 @dataclass(frozen=True)
+class Benchmark:
+    """The ``[benchmark]`` table of a server file: the build ``bbench run`` measures when no tag is given."""
+
+    server: str
+    version: str
+    bds: str | None = None
+    python: str | None = None
+    include: bool = True
+    reason: str | None = None  # why the server is left out; set exactly when include is false
+
+    @property
+    def arm(self) -> Arm:
+        return Arm(f"{self.server}@{self.version}", self.server, self.version, bds=self.bds, python=self.python)
+
+
+@dataclass(frozen=True)
 class Matrix:
     """``configs/matrices/<name>.toml``: which arms run which scenarios, how often and in which order."""
 
