@@ -2,7 +2,7 @@
 title: "We thought the mobs would break it"
 date: 2026-10-12
 summary: "Our paper model put mob despawn checks at up to 15 ms per tick on a 100-player server, and the profiler measured about 0.7 ms."
-tags: [performance, lighting, mob-spawning, profiling, bds]
+tags: [performance, lighting, mob-spawning, profiling, bds, endstone-0.11.14]
 ---
 
 Our earlier load tests ran on worlds with mob spawning, the daylight cycle and lighting updates switched off. The systems a survival server leans on hardest had never shown up in our profiles.

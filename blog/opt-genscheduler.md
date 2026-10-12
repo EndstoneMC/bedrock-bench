@@ -2,7 +2,7 @@
 title: "Choosing which chunk to build next"
 date: 2026-10-12
 summary: "With 100 spread-out players, Bedrock's chunk generation spent more time deciding what to build than building it, and the change that sped up loading turned out to be in a different place."
-tags: [performance, chunk-generation, worldgen, endstone, profiling]
+tags: [performance, chunk-generation, worldgen, profiling, endstone-0.11.14]
 ---
 
 When we started load-testing with 100 players spread across a fresh world, terrain arrived slowly. Players teleported to their spots, and some waited several minutes for the ground under their feet. The generation workers looked busy the whole time, so our first guess was that worldgen is simply expensive.
@@ -33,7 +33,7 @@ Vanilla's order also varies already. Ties in the score are common, and the Windo
 
 ## The fix we designed
 
-Our plan had two parts. The first was to rebuild the scoring list once after all players have ticked, instead of once per player per tick. At 100 players that removes 99 rebuilds per tick. It shipped in 0.11.14 in the same commit as the chunk-sending fixes (`099d6f028`).
+Our plan had two parts. The first was to rebuild the scoring list once after all players have ticked, instead of once per player per tick. At 100 players that removes 99 rebuilds per tick. It shipped in 0.11.14 in the same commit as the chunk-sending fixes (`099d6f028`), which [Parking the chunks that are not ready](opt-publisher.md) describes.
 
 The second was an exact, lock-free copy of the scoring. The player list is only rewritten on the main thread, so we could copy it after each rewrite and let workers score against the copy without the lock. For each chunk, a cheap lower bound rules out every player who cannot beat the current best, and the full formula runs only for the 3 to 6 players who can.
 
@@ -51,7 +51,7 @@ We sampled the stack of every generation worker about 35 times a second through 
 
 The surprise was in the per-worker view. Workers 0 and 1 were busy 95% of the time. Worker 2 was busy about half the time, and worker 3 only during the first 30 seconds. Workers 4, 5 and 6 never ran a single task. Busy workers spent about 1% of their time waiting on locks.
 
-The cause was the pool's wake rule. When a task is queued, the pool wakes another worker only if the queue already holds a sizeable backlog for every worker that is awake. With short generation tasks, that means dozens of queued tasks per awake worker. The chunk scheduler launches only about 40 tasks at a time. So two or three workers did the work while the rest slept.
+The cause was the pool's wake rule, which [Seven terrain workers, and most of them asleep](client-vs-server.md) covers from the thread-count side. When a task is queued, the pool wakes another worker only if the queue already holds a sizeable backlog for every worker that is awake. With short generation tasks, that means dozens of queued tasks per awake worker. The chunk scheduler launches only about 40 tasks at a time. So two or three workers did the work while the rest slept.
 
 ## Waking the pool
 

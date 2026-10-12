@@ -37,7 +37,7 @@ It captured the whole system. Decoded to text, a trace grew by about 17 MB for e
 
 The first time we decoded a trace, the machine got busy in a way that had nothing to do with the server. Windows Defender had noticed gigabytes of fresh text on disk and was scanning all of it on 2 to 3 cores. We stopped writing the text. The decoder now streams straight into our parser, so Defender has nothing to read, and a 75-second trace decodes in about 50 seconds.
 
-A few percent of the samples landed in memory that no module claimed. That puzzle became [another post](codegen.md).
+The smaller fixed costs it found, such as security checks and memory allocation, are in [We went looking for a compiler problem](codegen.md).
 
 ## Counting ticks from the console
 

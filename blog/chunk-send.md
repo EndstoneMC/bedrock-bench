@@ -5,7 +5,7 @@ summary: "We followed a chunk from the generation workers to the player and foun
 tags: [performance, chunks, networking, bds, endstone-0.11.14]
 ---
 
-On 10 October we were profiling a vanilla Bedrock Dedicated Server 1.26.51 with 60 headless players spread across a fresh world, so that no two shared a chunk. We had just fixed the autosave picker, which had been the biggest cost on the main thread. With it gone, 60 players held 20 TPS once they had settled. The join wave was another matter. While players waited for their terrain, sending chunks to players took 41% of the main thread, about 9.6 ms per tick.
+On 10 October we were profiling a vanilla Bedrock Dedicated Server 1.26.51 with 60 headless players spread across a fresh world, so that no two shared a chunk. We had just fixed [the autosave picker](chunk-storage.md), which had been the biggest cost on the main thread. With it gone, 60 players held 20 TPS once they had settled. The join wave was another matter. While players waited for their terrain, sending chunks to players took 41% of the main thread, about 9.6 ms per tick.
 
 So we set out to follow a single chunk from the generation workers to a player.
 
@@ -45,7 +45,7 @@ The generation priority refresh now runs once per tick per dimension instead of 
 
 ## The result
 
-We first measured the fix as a prototype on vanilla 1.26.51, alongside three other prototypes. In the 100-player A/B test, with both sides profiled after the players had settled, the send loop dropped from 11.5 ms per tick to 0.35 ms. It shipped in Endstone 0.11.14 as commit 099d6f028.
+We first measured the fix as a prototype on vanilla 1.26.51, alongside three other prototypes. In the 100-player A/B test, with both sides profiled after the players had settled, the send loop dropped from 11.5 ms per tick to 0.35 ms. It shipped in Endstone 0.11.14 as commit 099d6f028. [Parking the chunks that are not ready](opt-publisher.md) has the details of how parking stays exact.
 
 We also checked that nothing else moved. During a long chaos run of joins, kicks, teleports and dimension changes, an instrumented build compared vanilla's code with ours on every call for chunk publishing, player lookup and the locator bar: 745 million checks on Windows and 833 million on Linux. Parking never held back a chunk vanilla would have sent. Tie order did change: on Linux, 149,125 of 371,264 checked sends went out in a different order from vanilla, all among chunks at exactly the same distance. The locator bar differed on Linux only because vanilla's Linux build merges some pairs of players through a weak hash, and ours does not.
 

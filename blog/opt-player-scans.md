@@ -2,7 +2,7 @@
 title: "Walking the player list 2,500 times a tick"
 date: 2026-10-12
 summary: "Between 60 and 100 spread players, one small loop over the player list grew 2.7 times in cost, and Endstone 0.11.14 now walks a cached copy that gives the same answers."
-tags: [performance, profiling, players, endstone]
+tags: [performance, profiling, players, endstone-0.11.14]
 ---
 
 In [an earlier post](chunk-storage.md) we fixed the autosave picker, which had been taking 45% of the main thread. With that fix loaded into vanilla BDS, 60 players spread across a fresh world ran at 20 TPS. At 100 players the same server fell to 10.4 TPS, and the main thread spent about 96 ms on every tick. Some growth was expected. We wanted to know what had grown faster than the player count.
@@ -11,7 +11,7 @@ In [an earlier post](chunk-storage.md) we fixed the autosave picker, which had b
 
 The sampling profiler kept landing on one small piece of code. It answers a simple question: which players are in this dimension? It walks the whole player list and hands each matching player to whoever asked.
 
-A lot of code asks. Mobs ask when they push into each other, when they decide whether to despawn, and when they look for a player holding food. Spawner blocks ask. Minecarts ask. Every packet about an entity whose data changed asks, players included, so the server can decide who should receive it. Each player checks once a tick for anything it is touching, and that check walks the list too. We counted about 20 distinct callers in the profile.
+A lot of code asks, and [Every mob was asking about every player](hotpath-overheads.md) follows those callers from the mobs' side. Mobs ask when they push into each other, when they decide whether to despawn, and when they look for a player holding food. Spawner blocks ask. Minecarts ask. Every packet about an entity whose data changed asks, players included, so the server can decide who should receive it. Each player checks once a tick for anything it is touching, and that check walks the list too. We counted about 20 distinct callers in the profile.
 
 Each visit does a few bookkeeping checks to confirm the player is still in the game and in this dimension before the caller's own code runs.
 

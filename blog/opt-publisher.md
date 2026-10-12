@@ -5,7 +5,7 @@ summary: "Players waiting for new terrain made the server re-check thousands of 
 tags: [performance, chunks, chunk-sending, bds, endstone-0.11.14]
 ---
 
-In [an earlier post](chunk-storage.md) we fixed the autosave picker, which had been taking about 45% of the main thread. With that fix loaded into vanilla 1.26.51 as a prototype patch, 60 spread-out players held 20 TPS. The steady state looked healthy. The join did not. While players waited for their terrain, one part of the main thread took 41% of its time, about 9.6 ms per tick. That part was chunk publishing, the code that sends finished chunks to each player.
+In [an earlier post](chunk-storage.md) we fixed the autosave picker, which had been taking about 45% of the main thread. With that fix loaded into vanilla 1.26.51 as a prototype patch, 60 spread-out players held 20 TPS. The steady state looked healthy. The join did not. While players waited for their terrain, one part of the main thread took 41% of its time, about 9.6 ms per tick. That part was chunk publishing, the code that sends finished chunks to each player. [Where the chunks wait](chunk-send.md) tells how we traced a chunk's path to this loop.
 
 Our target load was 100 players spread across a fresh world, view distance 10, simulation distance 4, client-side chunk generation on. Vanilla managed 10.75 TPS there, with 93 ms of main thread per tick.
 

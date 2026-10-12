@@ -2,7 +2,7 @@
 title: "22 ms to find 0.73 ms of work: warming the cache for random ticks"
 date: 2026-10-12
 summary: "Random ticks were the largest single cost on our 100-player server, most of it spent waiting on memory, so Endstone 0.11.14 starts those memory reads early and leaves the random-tick loop as it was."
-tags: [performance, random-ticks, endstone, cpu-cache, profiling]
+tags: [performance, random-ticks, cpu-cache, profiling, endstone-0.11.14]
 ---
 
 Random ticks are how a Minecraft world changes on its own. Every tick, the server picks a few random blocks in each chunk near a player and gives each one a chance to act. Grass spreads, crops grow, leaves decay and ice melts. Most picks land on stone or air, and nothing happens.
@@ -13,7 +13,7 @@ We expected random ticks to be cheap. Once we had fixed autosave, they turned ou
 
 Our benchmark spreads 100 players across a fresh world at simulation distance 4. Each player keeps 57 chunks ticking, so the server random-ticks about 5,700 chunks every tick. At the default random tick speed on ordinary terrain, that comes to about 25 picks per chunk, or roughly 140,000 block picks per tick.
 
-At first the autosave picker hid all of this. At 60 players it was eating close to half the main thread. Once we fixed that, the chunk tick, where random ticks live, rose to the top of every steady 100-player profile at between a quarter and just over a third of the tick.
+At first [the autosave picker](chunk-storage.md) hid all of this. At 60 players it was eating close to half the main thread. Once we fixed that, the chunk tick, where random ticks live, rose to the top of every steady 100-player profile at between a quarter and just over a third of the tick.
 
 One of those profiles gave us the numbers in the title. The whole chunk tick took 32.5 ms per tick. About 22 ms of that was random ticking. The blocks that actually did something accounted for 0.73 ms. Everything else went into picking blocks and finding out they had nothing to do.
 

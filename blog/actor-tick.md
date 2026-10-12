@@ -1,8 +1,8 @@
 ---
-title: "What Decides Whether a Cow Ticks"
+title: "What decides whether a cow ticks"
 date: 2026-10-12
 summary: "We mapped how the Bedrock server decides which mobs tick and what an idle mob does every tick, then chose which levers Endstone could pull without changing gameplay."
-tags: [performance, entities, mobs, bedrock, endstone]
+tags: [performance, entities, mobs, bds, endstone-0.11.14]
 ---
 
 With the [autosave picker that slowed down with every chunk](chunk-storage.md) fixed, our 60-player test server held 20 TPS with the main thread at about 48 ms per tick. The budget at 20 TPS is 50 ms, so there was almost no headroom left.
@@ -19,11 +19,11 @@ They run on the main server thread, one after another, in a fixed order. We star
 
 Mob behaviour no longer lives inside each mob. Goal selection and movement are separate passes over every mob that needs them. A mob's tick is spread across many systems, so no single line in a profile holds it.
 
-Writing the order down led to our first wrong turn. One of our tools stops after a fixed length and gives no sign that it has. The main tick is long enough to run past that limit, so we only ever saw its first half. The entity systems live in the second half.
+Writing the order down led to our first wrong turn. One of our analysis tools quietly cut long output short, and the main tick is long enough to hit that limit. We only ever saw its first half. The entity systems live in the second half.
 
 For a while we believed the main tick never ran the entity systems, and that mobs had to be updated from somewhere else. Had we kept going, our map would have started with no mobs in the main tick at all.
 
-Once we raised the limit, the entity systems were right there in the half we had missed. The check that would have caught it is short: compare where the output ends with where the code should end. We run it on every output now.
+Once we raised the limit, the entity systems were right there in the half we had missed. We now check every tool's output for a silent cut-off before we trust it.
 
 ## One flag per tick
 

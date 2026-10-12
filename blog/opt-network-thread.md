@@ -1,8 +1,8 @@
 ---
-title: "One Network Thread Is Plenty"
+title: "One network thread is plenty"
 date: 2026-10-12
 summary: "After login, one thread sends every packet a Bedrock server writes, and we kept it at one thread while cutting its load in the busiest minute of a 100-player join from 238 to 62 ms per second."
-tags: [performance, networking, compression, profiling, endstone]
+tags: [performance, networking, compression, profiling, endstone-0.11.14]
 ---
 
 During a 100-player join on our 0.11 development build, one thread kept showing up near the top of the profile. It was busy 238 milliseconds out of every second. Next to it, the terrain generation workers had seven threads between them. This one was alone, and its name in the profiler made us think it handled web requests.
@@ -57,7 +57,7 @@ That did not make the 238 ms free. During a join, every player's chunks wait in 
 
 Encryption was a rounding error on Windows, about 1 percent of the thread's time. On Linux the server's crypto runs without CPU-specific fast paths, so it costs noticeably more there. On Windows, our stack sampler kept finding packet compression with zlib on the thread's stacks.
 
-We already had a faster compressor. Our development branch had swapped zlib for libdeflate on that path in August, and the 0.11 line did not have it yet. Both produce the same deflate format, so the client cannot tell the difference, and our tests check both directions against real zlib. On 39.7 MB of recorded gameplay traffic, split into 3,465 batches, libdeflate at level 6 was 4.6 times faster than zlib set up the way vanilla uses it, for output 0.40 percent larger.
+We already had a faster compressor, first spotted in the profile described in [We went looking for a compiler problem](codegen.md). Our development branch had swapped zlib for libdeflate on that path in August, and the 0.11 line did not have it yet. Both produce the same deflate format, so the client cannot tell the difference, and our tests check both directions against real zlib. On 39.7 MB of recorded gameplay traffic, split into 3,465 batches, libdeflate at level 6 was 4.6 times faster than zlib set up the way vanilla uses it, for output 0.40 percent larger.
 
 On a synthetic corpus, libdeflate was only 1.85 times faster. Real Minecraft batches are repetitive enough that the gap more than doubles on live traffic.
 

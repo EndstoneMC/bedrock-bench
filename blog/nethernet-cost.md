@@ -1,5 +1,5 @@
 ---
-title: "Where NetherNet Will Cost Us"
+title: "Where NetherNet will cost us"
 date: 2026-10-12
 summary: "Before NetherNet becomes the only way onto a Bedrock server, we went looking for where its per-player cost will come from and found a Windows wait loop whose cost, on paper, grows with the square of the player count."
 tags: [nethernet, networking, performance, windows]
@@ -7,7 +7,7 @@ tags: [nethernet, networking, performance, windows]
 
 Every benchmark run against BDS 1.26.52 opens with the same error in the log. It says NetherNet is the only supported transport type in this release and that players will not be able to connect without it. Nothing enforces it yet, and our load bots still join over RakNet. Sooner or later every server will be on NetherNet, though, so we wanted to know where its per-player cost will land before that happens.
 
-NetherNet is Bedrock's WebRTC transport, from the same family of protocols a browser uses for a video call. A client finds the server through a signaling step, opens a path through NAT with ICE and STUN, and then sends game packets over an encrypted data channel on UDP. The data channel's timers run as tasks on the same network thread that services the sockets, so most of what follows happens on that one thread.
+NetherNet is Bedrock's WebRTC transport, from the same family of protocols a browser uses for a video call. A client finds the server through a signaling step, opens a path through NAT with ICE and STUN, and then sends game packets over an encrypted data channel on UDP. The data channel's timers run as tasks on the same network thread that services the sockets, so most of what follows happens on that one thread. That thread is the subject of [One network thread is plenty](opt-network-thread.md).
 
 Our first guess was the encryption, which we have not measured yet. The first large cost we found was in the code that waits for traffic, which nobody profiles because it is supposed to be idle.
 

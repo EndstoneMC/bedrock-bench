@@ -2,7 +2,7 @@
 title: "What the server was really simulating"
 date: 2026-10-12
 summary: "We set out to measure what block simulation costs on a busy Bedrock server, and the biggest entry in the profile turned out to be the autosave."
-tags: [performance, profiling, random-ticks, redstone, autosave]
+tags: [performance, profiling, random-ticks, redstone, autosave, endstone-0.11.14]
 ---
 
 In early October we put 60 bots on a vanilla Bedrock Dedicated Server 1.26.51 running on Windows. We spread them across a fresh world so that no two shared a chunk, and let them walk. The server settled at about 11 TPS. The main thread spent around 85 ms on every tick. At 20 TPS the budget is 50.
@@ -19,7 +19,7 @@ From then on, whenever we asked which chunks a loop touches, we worked it out fr
 
 The redstone pass took 7.8% of the main thread in a fresh natural world where nobody had built a single circuit. Most of that time went into checking whether chunks were fully loaded.
 
-Reading the loop that evaluates circuits did not explain it. The answer came from asking how chunks get into that loop in the first place. Every chunk signs up with the redstone system when it loads, whether or not it holds any redstone. So the redstone pass spans the whole loaded area, which with spread players is far larger than the ticking area. The sign-up itself costs about 0.75 ms of main-thread time for each chunk that loads.
+Reading the loop that evaluates circuits did not explain it. The answer came from asking how chunks get into that loop in the first place. Every chunk signs up with the redstone system when it loads, whether or not it holds any redstone. So the redstone pass spans the whole loaded area, which with spread players is far larger than the ticking area. The sign-up itself costs about 0.75 ms of main-thread time for each chunk that loads. [Two chunks a second](opt-chunk-load.md) follows that cost further.
 
 Block entities held the same surprise. The server keeps a list of block entities to tick, and we assumed it held only the furnaces and hoppers with something to do. The check that decides who goes on the list says yes to every block entity.
 
@@ -51,4 +51,4 @@ With the autosave out of the way, the profile finally showed block simulation on
 
 ## What came next
 
-Random ticks and the redstone pass became our next targets, and random ticks got cheaper in 0.11.14 as well. Our release benchmark puts 100 spread players on a slightly newer BDS, 1.26.52. On Windows, vanilla holds 9.40 TPS with 105 ms of main-thread time per tick. Endstone 0.11.14, with the picker fix and the rest of that release, holds 20.0 TPS at 43 ms. On Linux the same benchmark goes from 9.46 TPS to 20.0.
+Random ticks and the redstone pass became our next targets, and random ticks got cheaper in 0.11.14 as well ([22 ms to find 0.73 ms of work](opt-random-ticks.md)). The autosave fix is told in more detail in [The autosave picker that slowed down with every chunk](chunk-storage.md). Our release benchmark puts 100 spread players on a slightly newer BDS, 1.26.52. On Windows, vanilla holds 9.40 TPS with 105 ms of main-thread time per tick. Endstone 0.11.14, with the picker fix and the rest of that release, holds 20.0 TPS at 43 ms. On Linux the same benchmark goes from 9.46 TPS to 20.0.

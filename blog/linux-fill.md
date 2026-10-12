@@ -31,7 +31,7 @@ Our first Linux chaos run on that build read 17.2 TPS at normal tick speed. The 
 
 ## The check that failed on Linux
 
-The locator bar is the row of dots at the top of the screen that shows where other players are. To keep it right, the server looks at every ordered pair of players, a viewer and the player being viewed, on every tick. Our 0.11.14 change skips the pairs where it can prove nothing would be sent and hands every other pair to vanilla's own code.
+The locator bar is the row of dots at the top of the screen that shows where other players are. To keep it right, the server looks at every ordered pair of players, a viewer and the player being viewed, on every tick. Our 0.11.14 change skips the pairs where it can prove nothing would be sent and hands every other pair to vanilla's own code. [9,900 pairs a tick](opt-locator.md) covers that change in full.
 
 On Windows the instrumented build had found nothing. On Linux, player lookup and chunk publishing came back clean as well. The locator bar did not. In one 15-minute chaos run, 24 million of 101 million locator bar checks disagreed with vanilla.
 

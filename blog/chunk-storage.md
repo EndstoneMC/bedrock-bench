@@ -47,4 +47,4 @@ We then ported the same change to Endstone, and it shipped in 0.11.14 for both W
 
 This was the first of several fixes. With the picker out of the way, random block ticks became the largest cost at about a third of the main thread, and redstone came next even in a world with no redstone in it. Removing 45% of the main thread had reordered everything below it, so we profiled again before touching anything else.
 
-Those fixes are stories for other posts. Together they brought Endstone 0.11.14 to 20 TPS with 100 spread players. That benchmark used a lighter setup, view distance 10 and simulation distance 4 on 1.26.52, and on the same machine with the same settings vanilla managed 9.4.
+Those fixes are stories for other posts, starting with [22 ms to find 0.73 ms of work](opt-random-ticks.md). [What the server was really simulating](block-sim.md) tells this same autosave story from the block simulation side. Together they brought Endstone 0.11.14 to 20 TPS with 100 spread players. That benchmark used a lighter setup, view distance 10 and simulation distance 4 on 1.26.52, and on the same machine with the same settings vanilla managed 9.4.

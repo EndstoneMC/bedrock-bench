@@ -2,7 +2,7 @@
 title: "Putting four other Bedrock servers through our 100-bot test"
 date: 2026-10-12
 summary: "We ran the load test behind Endstone 0.11.14 against PocketMine-MP, Nukkit, PowerNukkitX and Dragonfly, and most of the work went into keeping the bots connected."
-tags: [benchmarks, performance, pocketmine-mp, nukkit, powernukkitx, dragonfly]
+tags: [benchmarks, performance, pocketmine-mp, nukkit, powernukkitx, dragonfly, endstone-0.11.14]
 ---
 
 Endstone 0.11.14 holds 20 TPS with 100 players spread across a fresh world. Vanilla BDS manages about 9.4 on the same machine. We wanted to know how that compares with the servers people pick when they want speed.
@@ -59,6 +59,6 @@ The bots record every packet they receive, and that record changed how we read t
 
 On BDS each bot gets about 2.9 movement corrections per second, which is why it falls and lands. On all four other servers the bots hovered at y=301.6 for the whole run. None of them sent a single correction, and none of them implements the locator bar.
 
-None of them supports client-side chunk generation either. In every run where views filled, the median bot received between 453 and 480 unique chunks. On Endstone a bot receives about 103, because the client builds the rest of the terrain itself.
+None of them supports client-side chunk generation either. In every run where views filled, the median bot received between 453 and 480 unique chunks. On Endstone a bot receives about 103, because the client builds the rest of the terrain itself. [Seven terrain workers, and most of them asleep](client-vs-server.md) explains how client-side generation came to be on by default.
 
 A TPS figure only means something next to the work behind it. In the harness we are building now, every result will carry movement corrections and chunks per player, and servers that simulate different things will not be ranked against each other.
