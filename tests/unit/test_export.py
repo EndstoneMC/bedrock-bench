@@ -12,7 +12,8 @@ from pathlib import Path
 import pytest
 
 from bedrock_bench import cli
-from bedrock_bench.report import export
+from bedrock_bench.config import load_report_metrics
+from bedrock_bench.report import SUMMARY_FILE, export, write
 from fixtures.runs import synthetic
 
 OK_RUNS = ("synthetic-dip", "synthetic-midnight", "synthetic-steady")
@@ -33,13 +34,14 @@ def run_id(name: str) -> str:
 def report_dir(tmp_path: Path) -> Path:
     for name in synthetic.NAMES:
         shutil.copytree(synthetic.HERE / name, tmp_path / name)
-    export.write(tmp_path)
+    write(tmp_path)
     return tmp_path
 
 
 def test_summary_has_one_row_per_tag_with_median_min_max_over_ok_runs(report_dir: Path) -> None:
     columns, rows = read(report_dir / export.SUMMARY_CSV)
-    assert tuple(columns) == export.SUMMARY_COLUMNS
+    metrics = [f"{m.column}_{stat}" for m in load_report_metrics() for stat in ("median", "min", "max")]
+    assert columns == ["server", "version", "runs_ok", "runs_total", *metrics]
     assert len(rows) == 1
     row = rows[0]
     assert (row["server"], row["version"]) == ("synthetic", "1.0")
@@ -53,7 +55,16 @@ def test_summary_has_one_row_per_tag_with_median_min_max_over_ok_runs(report_dir
     assert float(row["view_load_p50_s_median"]) == pytest.approx(37.2155)
     assert float(row["view_load_max_s_max"]) == pytest.approx(37.434)
     assert float(row["view_load_chunks_per_s_median"]) == pytest.approx(27.4615)
-    assert float(row["chunks_per_player_median"]) == pytest.approx(297.5)
+    assert float(row["chunks_in_view_per_player_median"]) == pytest.approx(297.5)
+
+
+def test_summary_csv_holds_the_numbers_of_summary_json(report_dir: Path) -> None:
+    server = json.loads((report_dir / SUMMARY_FILE).read_text(encoding="utf-8"))["servers"][0]
+    row = read(report_dir / export.SUMMARY_CSV)[1][0]
+    for name, stat in server["metrics"].items():
+        for key in ("median", "min", "max"):
+            expected = "" if stat.get(key) is None else round(stat[key], 4)
+            assert row[f"{name}_{key}"] == str(expected), name
 
 
 def test_tps_rows_are_seconds_since_all_bots_joined(report_dir: Path) -> None:
@@ -84,7 +95,7 @@ def test_a_run_without_metrics_counts_as_not_ok(tmp_path: Path) -> None:
     shutil.copytree(synthetic.HERE / "synthetic-steady", tmp_path / "a")
     shutil.copytree(synthetic.HERE / "synthetic-dip", tmp_path / "b")
     (tmp_path / "b" / "metrics.json").unlink()
-    export.write(tmp_path)
+    write(tmp_path)
     _, rows = read(tmp_path / export.SUMMARY_CSV)
     assert (rows[0]["runs_ok"], rows[0]["runs_total"]) == ("1", "2")
     _, tps_rows = read(tmp_path / export.TPS_CSV)
@@ -93,10 +104,10 @@ def test_a_run_without_metrics_counts_as_not_ok(tmp_path: Path) -> None:
 
 def test_metrics_nobody_measured_are_empty_cells(tmp_path: Path) -> None:
     shutil.copytree(synthetic.HERE / "synthetic-death", tmp_path / "death")
-    export.write(tmp_path)
+    write(tmp_path)
     _, rows = read(tmp_path / export.SUMMARY_CSV)
     assert (rows[0]["runs_ok"], rows[0]["runs_total"]) == ("0", "1")
-    assert rows[0]["tps_median"] == rows[0]["chunks_per_player_max"] == ""
+    assert rows[0]["tps_median"] == rows[0]["chunks_in_view_per_player_max"] == ""
     assert read(tmp_path / export.TPS_CSV)[1] == []
 
 

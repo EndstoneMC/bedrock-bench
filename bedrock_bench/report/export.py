@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """CSV files for the figures, written next to report.md.
 
-- ``summary.csv``: one row per server tag, with the core metrics as median, min and max over the ok runs.
+- ``summary.csv``: the summary's numbers, one row per server tag, with each core metric as median, min and max over
+  the ok runs.
 - ``tps.csv``: the TPS of every probe sample, against seconds since all bots joined.
 - ``view_load.csv``: seconds from each player's teleport until it holds 90% of its view, empty if it never did.
 
@@ -11,15 +12,13 @@ Only ``ok`` runs enter the numbers, as in the report. ``scripts/plot_results.py`
 from __future__ import annotations
 
 import csv
-import json
-import statistics
-from collections.abc import Mapping
-from dataclasses import dataclass
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
 from bedrock_bench.metrics import load, tps, window
 from bedrock_bench.model import ProbeSample, Status
+from bedrock_bench.report.aggregate import RunRecord
 from bedrock_bench.results import BOTS_FILE, SERIES_DIR
 from bedrock_bench.sampling import series
 
@@ -27,128 +26,66 @@ SUMMARY_CSV = "summary.csv"
 TPS_CSV = "tps.csv"
 VIEW_LOAD_CSV = "view_load.csv"
 
-#: summary.csv column name -> (metrics.json id, key inside a distribution value)
-CORE_METRICS: dict[str, tuple[str, str | None]] = {
-    "tps": ("tps_window_steady", None),
-    "tick_cpu_ms_per_tick": ("tick_cpu_ms_per_tick_steady", None),
-    "process_cpu_cores": ("process_cores_steady", None),
-    "memory_mib": ("private_mib_steady", None),
-    "view_load_lowest_tps": ("tps_load_low5", None),
-    "view_load_p50_s": ("view_t90_own_s", "median"),
-    "view_load_p90_s": ("view_t90_own_s", "p90"),
-    "view_load_max_s": ("view_t90_own_s", "max"),
-    "view_load_chunks_per_s": ("chunks_per_s_load", None),
-    "chunks_per_player": ("chunks_per_bot", "median"),
-}
-
 KEY_COLUMNS = ("server", "version")
-SUMMARY_COLUMNS = (
-    *KEY_COLUMNS,
-    "runs_ok",
-    "runs_total",
-    *(f"{name}_{stat}" for name in CORE_METRICS for stat in ("median", "min", "max")),
-)
+STATS = ("median", "min", "max")
 TPS_COLUMNS = ("run_id", *KEY_COLUMNS, "t_s", "tps")
 VIEW_LOAD_COLUMNS = ("run_id", *KEY_COLUMNS, "player", "view_load_s")
 
 
-@dataclass(frozen=True)
-class Run:
-    path: Path
-    run: Mapping[str, Any]  # run.json, or run.partial.json for a run that did not finish
-    metrics: Mapping[str, Any] | None  # metrics.json of a finished run
-
-    @property
-    def run_id(self) -> str:
-        return str(self.run.get("run_id") or self.path.name)
-
-    @property
-    def key(self) -> tuple[str, str]:
-        arm = self.run.get("arm") or {}
-        return str(arm.get("server") or ""), str(arm.get("version") or "")
-
-    @property
-    def ok(self) -> bool:
-        return self.metrics is not None and self.metrics.get("status") == Status.OK.value
+def summary_columns(summary: Mapping[str, Any]) -> list[str]:
+    columns = [f"{c['column']}_{stat}" for c in summary["columns"] for stat in STATS]
+    return [*KEY_COLUMNS, "runs_ok", "runs_total", *columns]
 
 
-def find_runs(report_dir: Path) -> list[Run]:
-    """The run directories directly below ``report_dir``."""
-    runs = []
-    for child in sorted(p for p in Path(report_dir).iterdir() if p.is_dir()):
-        finished = (child / "run.json").is_file()
-        run_file = child / ("run.json" if finished else "run.partial.json")
-        if not run_file.is_file():
-            continue
-        metrics_file = child / "metrics.json"
-        metrics = _read_json(metrics_file) if finished and metrics_file.is_file() else None
-        runs.append(Run(child, _read_json(run_file), metrics))
-    return runs
-
-
-def summary_rows(runs: list[Run]) -> list[list[Any]]:
-    groups: dict[tuple[str, str], list[Run]] = {}
-    for run in runs:
-        groups.setdefault(run.key, []).append(run)
+def summary_rows(summary: Mapping[str, Any]) -> list[list[Any]]:
     rows = []
-    for key in sorted(groups):
-        ok = [run for run in groups[key] if run.ok]
-        row: list[Any] = [*key, len(ok), len(groups[key])]
-        for metric_id, part in CORE_METRICS.values():
-            values = [v for run in ok if (v := metric_value(run, metric_id, part)) is not None]
-            row += [statistics.median(values), min(values), max(values)] if values else [None] * 3
+    for server in summary["servers"]:
+        row = [server["arm"].get("server"), server["arm"].get("version"), server["n_ok"], server["n_total"]]
+        row += [server["metrics"][c["column"]].get(stat) for c in summary["columns"] for stat in STATS]
         rows.append(row)
     return rows
 
 
-def metric_value(run: Run, metric_id: str, part: str | None) -> float | None:
-    entry = ((run.metrics or {}).get("metrics") or {}).get(metric_id) or {}
-    if entry.get("availability") != "measured":
-        return None
-    value = entry.get("value")
-    if part is not None:
-        value = value.get(part) if isinstance(value, Mapping) else None
-    return value if isinstance(value, (int, float)) and not isinstance(value, bool) else None
+def _key(record: RunRecord) -> list[Any]:
+    return [record.run_id, record.arm.get("server"), record.arm.get("version")]
 
 
-def tps_rows(run: Run) -> list[list[Any]]:
-    joined = (run.run.get("marks") or {}).get("alljoined")
-    probe_file = run.path / SERIES_DIR / series.PROBE_FILE
+def tps_rows(record: RunRecord) -> list[list[Any]]:
+    joined = (record.run.get("marks") or {}).get("alljoined")
+    probe_file = record.path / SERIES_DIR / series.PROBE_FILE
     if joined is None or not probe_file.is_file():
         return []
-    origin = int((run.run.get("time") or {}).get("origin_mono_ns", 0))
+    origin = int((record.run.get("time") or {}).get("origin_mono_ns", 0))
     probe = [ProbeSample(s.send_ns - origin, s.rx_ns - origin, s.tick) for s in series.read_probe(probe_file)]
-    return [[run.run_id, *run.key, t - joined, rate] for t, rate in tps.series(probe)]
+    return [[*_key(record), t - joined, rate] for t, rate in tps.series(probe)]
 
 
-def view_load_rows(run: Run) -> list[list[Any]]:
-    bounds = window(run.run, "load")
-    bots_file = run.path / BOTS_FILE
+def view_load_rows(record: RunRecord) -> list[list[Any]]:
+    bounds = window(record.run, "load")
+    bots_file = record.path / BOTS_FILE
     if bounds is None or not bots_file.is_file():
         return []
-    time_info = run.run.get("time") or {}
+    time_info = record.run.get("time") or {}
     events = load.timed_events(
         series.read_jsonl(bots_file),
         int(time_info.get("origin_mono_ns", 0)),
         int(time_info.get("origin_epoch_ms", 0)),
     )
     t90 = load.view(events, bounds[1]).t90_own
-    return [[run.run_id, *run.key, player, t90.get(player)] for player in sorted(load.first_per_bot(events, "tp"))]
+    return [[*_key(record), player, t90.get(player)] for player in sorted(load.first_per_bot(events, "tp"))]
 
 
-def write(report_dir: Path) -> list[Path]:
-    """Write the three CSV files into ``report_dir`` and return their paths."""
-    report_dir = Path(report_dir)
-    runs = find_runs(report_dir)
-    ok = sorted((run for run in runs if run.ok), key=lambda run: run.run_id)
+def write(report_dir: Path, summary: Mapping[str, Any], runs: Sequence[RunRecord]) -> list[Path]:
+    """Write the three CSV files into ``report_dir`` from the summary and its loaded runs; return their paths."""
+    ok = sorted((r for r in runs if r.status is Status.OK and r.path is not None), key=lambda r: r.run_id)
     tables = (
-        (SUMMARY_CSV, SUMMARY_COLUMNS, summary_rows(runs)),
-        (TPS_CSV, TPS_COLUMNS, [row for run in ok for row in tps_rows(run)]),
-        (VIEW_LOAD_CSV, VIEW_LOAD_COLUMNS, [row for run in ok for row in view_load_rows(run)]),
+        (SUMMARY_CSV, summary_columns(summary), summary_rows(summary)),
+        (TPS_CSV, TPS_COLUMNS, [row for record in ok for row in tps_rows(record)]),
+        (VIEW_LOAD_CSV, VIEW_LOAD_COLUMNS, [row for record in ok for row in view_load_rows(record)]),
     )
     paths = []
     for name, columns, rows in tables:
-        path = report_dir / name
+        path = Path(report_dir) / name
         with path.open("w", encoding="utf-8", newline="") as fh:
             writer = csv.writer(fh, lineterminator="\n")
             writer.writerow(columns)
@@ -165,9 +102,4 @@ def _cell(value: Any) -> Any:
     return value
 
 
-def _read_json(path: Path) -> dict[str, Any]:
-    with path.open(encoding="utf-8") as fh:
-        return json.load(fh)
-
-
-__all__ = ["CORE_METRICS", "SUMMARY_COLUMNS", "TPS_COLUMNS", "VIEW_LOAD_COLUMNS", "find_runs", "write"]
+__all__ = ["SUMMARY_CSV", "TPS_COLUMNS", "TPS_CSV", "VIEW_LOAD_COLUMNS", "VIEW_LOAD_CSV", "summary_columns", "write"]

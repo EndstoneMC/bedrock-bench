@@ -22,6 +22,7 @@ from bedrock_bench.model import ExitCode
 from bedrock_bench.report import export, markdown
 from bedrock_bench.report.aggregate import (
     ReportError,
+    RunRecord,
     load_runs,
     publish_problems,
     statuses,
@@ -50,7 +51,11 @@ class Report:
 
 def build(report_dir: Path, *, publish: bool = False) -> tuple[dict[str, Any], str, tuple[str, ...] | None]:
     """Summary, markdown and publication problems for a directory of runs, without writing anything."""
-    summary = summarize(load_runs(Path(report_dir)))
+    return _build(load_runs(Path(report_dir)), publish)
+
+
+def _build(runs: list[RunRecord], publish: bool) -> tuple[dict[str, Any], str, tuple[str, ...] | None]:
+    summary = summarize(runs)
     problems = tuple(publish_problems(summary)) if publish else None
     if problems is not None:
         summary["publish"] = {"problems": list(problems)}
@@ -60,12 +65,13 @@ def build(report_dir: Path, *, publish: bool = False) -> tuple[dict[str, Any], s
 def write(report_dir: Path, *, publish: bool = False) -> Report:
     """Write ``summary.json``, ``report.md`` and the CSV files into ``report_dir``. Run directories are not touched."""
     report_dir = Path(report_dir)
-    summary, text, problems = build(report_dir, publish=publish)
+    runs = load_runs(report_dir)
+    summary, text, problems = _build(runs, publish)
     summary_path = report_dir / SUMMARY_FILE
     report_path = report_dir / REPORT_FILE
     write_summary(summary, summary_path)
     report_path.write_text(text, encoding="utf-8", newline="\n")
-    export.write(report_dir)
+    export.write(report_dir, summary, runs)
     return Report(summary, text, summary_path, report_path, problems)
 
 

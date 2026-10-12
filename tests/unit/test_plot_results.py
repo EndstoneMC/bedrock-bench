@@ -16,7 +16,7 @@ from pathlib import Path
 import pytest
 
 from bedrock_bench.config import available, project_root
-from bedrock_bench.report import export
+from bedrock_bench.report import export, write
 from fixtures.runs import synthetic
 
 pytest.importorskip("matplotlib")
@@ -30,14 +30,14 @@ def load_script():
 
 
 def session(directory: Path, servers: Sequence[str], names: Sequence[str] = synthetic.NAMES) -> Path:
-    """The fixture runs, copied once per server with the server swapped in run.json, and their CSV files."""
+    """The fixture runs, copied once per server with the server swapped in run.json, and their report."""
     for server in servers:
         for name in names:
             run_dir = shutil.copytree(synthetic.HERE / name, directory / f"{server}-{name}")
             run = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
             run["arm"]["server"] = server
             (run_dir / "run.json").write_text(json.dumps(run), encoding="utf-8")
-    export.write(directory)
+    write(directory)
     return directory
 
 

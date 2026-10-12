@@ -13,11 +13,8 @@ import pytest
 
 from bedrock_bench import cli
 from bedrock_bench.config import project_root
-from bedrock_bench.metrics import registry
 from bedrock_bench.report import REPORT_FILE, SUMMARY_FILE, build, write
-from bedrock_bench.report.export import CORE_METRICS
 from bedrock_bench.report.markdown import (
-    COLUMNS,
     availability_text,
     flag_text,
     format_number,
@@ -185,10 +182,10 @@ class TestRender:
         )
         assert table_row(env, "Bots")[1] == "loadbot, protocol 2193, gophertunnel v1.62.0"
 
-    def test_results_table(self, markdown: str) -> None:
+    def test_results_table(self, report_dir: Path, markdown: str) -> None:
         results = section(markdown, "Results")
         header = table_row(results, "Server")
-        assert header == ["Server", "Runs ok", *(c.header for c in COLUMNS)]
+        assert header == ["Server", "Runs ok", *(c["title"] for c in build(report_dir)[0]["columns"])]
         bds = table_row(results, "`bds@1.26.52.3`")
         assert bds[1:4] == ["3/3", "12.00 [11.80, 12.20]", "84.0 [83.0, 85.0]"]
         assert bds[4:6] == ["1.50 [1.50, 1.50]", "4096 [4096, 4096]"]
@@ -260,12 +257,6 @@ class TestFormatting:
         assert format_stat({"median": 64.0, "min": 64.0, "max": 64.0, "n": 1}) == "64.0"
         assert format_stat({"n": 0, "availability": "not_applicable"}) == "n/a"
         assert format_stat({"n": 0, "availability": "unavailable"}) == "-"
-
-    def test_columns_follow_the_csv_and_the_registry(self) -> None:
-        assert [c.key for c in COLUMNS] == list(CORE_METRICS)
-        for metric_id, part in CORE_METRICS.values():
-            declared = registry.get(metric_id)
-            assert part is None or part in declared.stats, metric_id
 
 
 # --------------------------------------------------------------------------------------------------------------------

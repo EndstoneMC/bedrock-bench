@@ -23,8 +23,8 @@ from pathlib import Path
 from typing import Any
 
 from bedrock_bench import ANALYSIS_VERSION, __version__
+from bedrock_bench.config import ReportMetric, load_report_metrics
 from bedrock_bench.model import Availability, Flag, OverrideCategory, Status, canonical_json
-from bedrock_bench.report.export import CORE_METRICS
 
 SUMMARY_SCHEMA = "bedrock-bench/summary/2"
 
@@ -52,6 +52,7 @@ class RunRecord:
     run: Mapping[str, Any]
     metrics: Mapping[str, Any]  # metric id -> metrics.json entry; empty without metrics.json
     analysis_version: int | None  # of metrics.json
+    path: Path | None = None  # the run directory
 
     @property
     def arm(self) -> Mapping[str, Any]:
@@ -81,13 +82,15 @@ def load_runs(report_dir: Path) -> list[RunRecord]:
         run = _read_json(run_file)
         metrics_file = child / "metrics.json"
         metrics_doc = _read_json(metrics_file) if finished and metrics_file.is_file() else None
-        records.append(make_record(run, metrics_doc, finished=finished))
+        records.append(make_record(run, metrics_doc, finished=finished, path=child))
     if not records:
         raise ReportError(f"{report_dir.as_posix()}: no run directories (expected <run_id>/run.json)")
     return records
 
 
-def make_record(run: Mapping[str, Any], metrics_doc: Mapping[str, Any] | None, *, finished: bool = True) -> RunRecord:
+def make_record(
+    run: Mapping[str, Any], metrics_doc: Mapping[str, Any] | None, *, finished: bool = True, path: Path | None = None
+) -> RunRecord:
     """Build a :class:`RunRecord` from parsed run.json (or run.partial.json) and metrics.json documents."""
     run_id = str(run.get("run_id") or "?")
     flags = list(run.get("flags") or ())
@@ -111,6 +114,7 @@ def make_record(run: Mapping[str, Any], metrics_doc: Mapping[str, Any] | None, *
         run=run,
         metrics=(metrics_doc or {}).get("metrics") or {},
         analysis_version=(metrics_doc or {}).get("analysis_version"),
+        path=path,
     )
 
 
@@ -189,7 +193,8 @@ def summarize(runs: Sequence[RunRecord]) -> dict[str, Any]:
     by_tag: dict[str, list[RunRecord]] = {}
     for record in runs:
         by_tag.setdefault(record.tag, []).append(record)
-    servers = [_server(sorted(by_tag[tag], key=lambda r: r.run_id)) for tag in sorted(by_tag)]
+    metrics = load_report_metrics()
+    servers = [_server(sorted(by_tag[tag], key=lambda r: r.run_id), metrics) for tag in sorted(by_tag)]
     _flag_missing_builds(servers)
     return {
         "schema": SUMMARY_SCHEMA,
@@ -199,6 +204,7 @@ def summarize(runs: Sequence[RunRecord]) -> dict[str, Any]:
         "n_runs": len(runs),
         "status_counts": {status.value: sum(r.status is status for r in runs) for status in Status},
         "environment": _environment(runs, servers),
+        "columns": [{"column": m.column, "title": m.title, "decimals": m.decimals} for m in metrics],
         "servers": servers,
     }
 
@@ -248,7 +254,7 @@ def _environment(runs: Sequence[RunRecord], servers: Sequence[Mapping[str, Any]]
     }
 
 
-def _server(runs: Sequence[RunRecord]) -> dict[str, Any]:
+def _server(runs: Sequence[RunRecord], metrics: Sequence[ReportMetric]) -> dict[str, Any]:
     ok = [r for r in runs if r.status is Status.OK]
     flags: dict[str, int] = {}
     for record in runs:
@@ -275,10 +281,7 @@ def _server(runs: Sequence[RunRecord]) -> dict[str, Any]:
         "flags": dict(sorted(flags.items())),
         "differences": list(last.get("differences") or ()),
         "overrides": _footnoted_overrides(runs),
-        "metrics": {
-            name: core_metric([r.metrics.get(metric_id) for r in ok], part)
-            for name, (metric_id, part) in CORE_METRICS.items()
-        },
+        "metrics": {m.column: core_metric([r.metrics.get(m.metric) for r in ok], m.stat) for m in metrics},
     }
 
 

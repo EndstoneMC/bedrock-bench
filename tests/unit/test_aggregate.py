@@ -9,6 +9,8 @@ from typing import Any
 
 import pytest
 
+from bedrock_bench.config import load_report_metrics
+from bedrock_bench.metrics import registry
 from bedrock_bench.report.aggregate import (
     ReportError,
     core_metric,
@@ -177,25 +179,21 @@ class TestSummarize:
         assert servers["endstone@0.11.14"]["arm"]["bds"] == "1.26.52.3"
 
     def test_every_core_metric_is_present(self) -> None:
-        metrics = by_tag(summarize(_session()))["bds@1.26.52.3"]["metrics"]
-        assert list(metrics) == [
-            "tps",
-            "tick_cpu_ms_per_tick",
-            "process_cpu_cores",
-            "memory_mib",
-            "view_load_lowest_tps",
-            "view_load_p50_s",
-            "view_load_p90_s",
-            "view_load_max_s",
-            "view_load_chunks_per_s",
-            "chunks_per_player",
-        ]
+        summary = summarize(_session())
+        metrics = by_tag(summary)["bds@1.26.52.3"]["metrics"]
+        assert list(metrics) == [c["column"] for c in summary["columns"]]
+        assert [c["column"] for c in summary["columns"]] == [m.column for m in load_report_metrics()]
         assert metrics["memory_mib"] == {
             "values": [None, None, None],
             "n": 0,
             "availability": "unavailable",
             "reasons": ["not computed"],
         }
+
+    def test_core_metrics_name_registered_metrics(self) -> None:
+        for metric in load_report_metrics():
+            declared = registry.get(metric.metric)
+            assert metric.stat is None or metric.stat in declared.stats, metric.column
 
     def test_hosted_build_missing_from_the_report(self) -> None:
         runs = [r for r in _session() if r.arm["server"] == "endstone"]

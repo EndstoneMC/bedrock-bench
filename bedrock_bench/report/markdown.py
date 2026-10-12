@@ -5,40 +5,17 @@ An Environment table, one Results table with a row per server, each server's dif
 one-line notes: every run that is not ok, every flag, every ``rescue`` and ``nonvanilla`` override (rule R6) and every
 metric an ok run could not provide. There is no composite score.
 
-The renderer reads only the summary, so ``report.md`` can always be regenerated from ``summary.json``.
+The renderer reads only the summary, so ``report.md`` can always be regenerated from ``summary.json``. The Results
+columns are the summary's ``columns``, from configs/benchmark.toml.
 """
 
 from __future__ import annotations
 
 import math
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
 from typing import Any
 
 from bedrock_bench.model import Flag, Gate, OverrideCategory
-
-
-@dataclass(frozen=True)
-class Column:
-    """One Results column: a key of ``CORE_METRICS``, its header with the unit, and the decimals it prints."""
-
-    key: str
-    header: str
-    decimals: int | None = None  # None: three significant digits
-
-
-COLUMNS: tuple[Column, ...] = (
-    Column("tps", "TPS", 2),
-    Column("tick_cpu_ms_per_tick", "Tick-thread CPU per tick (ms)"),
-    Column("process_cpu_cores", "Server CPU (cores)", 2),
-    Column("memory_mib", "Memory (MiB)", 0),
-    Column("view_load_lowest_tps", "Lowest TPS while views load", 2),
-    Column("view_load_p50_s", "View load, median player (s)"),
-    Column("view_load_p90_s", "View load, p90 player (s)"),
-    Column("view_load_max_s", "View load, slowest player (s)"),
-    Column("view_load_chunks_per_s", "Chunk rate while views load (chunks/s)"),
-    Column("chunks_per_player", "Chunks sent per player", 0),
-)
 
 _FLAG_TEXT: dict[str, str] = {
     Flag.SETTLE_CAPPED: "the settle phase hit its time cap before chunk delivery slowed down{runs}",
@@ -156,7 +133,8 @@ def render(summary: Mapping[str, Any]) -> str:
     if "publish" in summary:
         problems = summary["publish"].get("problems") or ()
         blocks += ["## Publication check", "\n".join(f"- Refused: {p}" for p in problems) or "Passed."]
-    blocks += ["## Results", "Median [min, max] over the ok runs.", _results(servers)]
+    columns = summary.get("columns") or ()
+    blocks += ["## Results", "Median [min, max] over the ok runs.", _results(servers, columns)]
     blocks += ["## Differences from vanilla BDS", *_differences(servers)]
     notes = _notes(summary, servers)
     if notes:
@@ -192,13 +170,13 @@ def _environment(summary: Mapping[str, Any], servers: Sequence[Mapping[str, Any]
     return ["## Environment", "\n".join(_table(["", ""], rows, numeric=False))]
 
 
-def _results(servers: Sequence[Mapping[str, Any]]) -> str:
-    header = ["Server", "Runs ok", *(c.header for c in COLUMNS)]
+def _results(servers: Sequence[Mapping[str, Any]], columns: Sequence[Mapping[str, Any]]) -> str:
+    header = ["Server", "Runs ok", *(c["title"] for c in columns)]
     rows = [
         [
             f"`{server['tag']}`",
             f"{server['n_ok']}/{server['n_total']}",
-            *(format_stat(server["metrics"].get(c.key) or {}, c.decimals) for c in COLUMNS),
+            *(format_stat(server["metrics"].get(c["column"]) or {}, c.get("decimals")) for c in columns),
         ]
         for server in servers
     ]
@@ -241,11 +219,11 @@ def _notes(summary: Mapping[str, Any], servers: Sequence[Mapping[str, Any]]) -> 
             for flag, count in server["flags"].items()
         ]
         notes += [f"{tag}: {override_text(o)}" for o in server.get("overrides") or ()]
-        for column in COLUMNS:
-            text = availability_text(column.header, server["metrics"].get(column.key) or {}, server["n_ok"])
+        for column in summary.get("columns") or ():
+            text = availability_text(column["title"], server["metrics"].get(column["column"]) or {}, server["n_ok"])
             if text:
                 notes.append(f"{tag}: {text}")
     return notes
 
 
-__all__ = ["COLUMNS", "Column", "availability_text", "flag_text", "format_number", "format_stat", "render"]
+__all__ = ["availability_text", "flag_text", "format_number", "format_stat", "render"]
