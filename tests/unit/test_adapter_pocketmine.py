@@ -126,13 +126,13 @@ class TestContract:
         assert PocketMineAdapter.bot_compat_flags == ()
         assert PocketMineAdapter.tick_thread_rule == "first_created"
         assert set(PocketMineAdapter.variants) == {"stock"}
-        assert PocketMineAdapter.features_file == "features/pocketmine.toml"
+        assert PocketMineAdapter.features_file == "configs/servers/pocketmine/server.toml"
 
     def test_pins(self) -> None:
         catalog = config.load_artifacts("pocketmine")
         assert catalog.get("5.44.3", "windows").sha256 == catalog.get("5.44.3", "linux").sha256
         runtime = catalog.versions["5.44.3"].meta["runtime"]
-        assert runtime in config.load_artifacts("runtimes").versions
+        assert runtime in config.load_artifacts(config.project_root() / config.RUNTIMES_FILE).versions
         assert config.load_features("pocketmine").row("5.44.3") is not None
 
     def test_dialect_samples(self) -> None:
@@ -202,7 +202,7 @@ class TestFetchAndPrepare:
     def test_install_layout(self, install: Install) -> None:
         server = install.root / "server"
         assert (server / "PocketMine-MP.phar").is_file()
-        helper = (ROOT / "servers" / "pocketmine" / "plugins" / "BenchHelper.php").read_bytes()
+        helper = (ROOT / pocketmine.HELPER_SOURCE).read_bytes()
         assert (server / "plugins" / "BenchHelper.php").read_bytes() == helper
         assert (install.root / "defaults" / "pocketmine.yml").read_text(encoding="utf-8") == SHIPPED_YML
         assert [a.name for a in install.artifacts] == ["PocketMine-MP.phar", "php.zip"]

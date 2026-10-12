@@ -1,0 +1,100 @@
+# SPDX-License-Identifier: Apache-2.0
+
+schema = 1
+server = "nukkit"
+
+# Nukkit (CloudburstMC) publishes no releases, so a version is the 7-character commit of a snapshot build from the
+# OpenCollab Maven repository, pinned by its timestamped file name and sha256. Snapshot repositories prune old builds;
+# keep a copy of the jar and pass it with --artifact-dir, where it is checked against the same pin.
+# `runtime` names the JDK in configs/servers/runtimes.toml.
+[artifacts]
+source = "maven"
+
+[artifacts.version."b3caad6"]
+commit = "b3caad67d86be34aeca3937e64e8176f6760a2d4"
+protocol = 2193
+minecraft = "1.26.50"
+runtime = "jdk-21.0.12.1"
+
+[artifacts.version."b3caad6".any]
+url = "https://repo.opencollab.dev/maven-snapshots/cn/nukkit/nukkit/1.0-SNAPSHOT/nukkit-1.0-20260919.123832-1250.jar"
+sha256 = "b373dcdb240d0d32fccbc9e0f9e727c4591082580dad7d522f924b7b411daa49"
+size = 27105379
+
+# Nukkit (CloudburstMC) is an independent implementation of the game in Java: no Mojang code, no deliberate shortcuts,
+# but many vanilla systems are missing or simpler (fidelity V1). Versions are commits, so each range is one commit. The
+# rows observed by a counter were confirmed in the legacy cross-server runs: no movement corrections, no locator-bar
+# packets, bots keep hovering at the teleport height. Keys without evidence at hand are `unknown`; none of them is
+# exercised by a scenario.
+[features]
+
+[features.range."b3caad6"]
+fidelity = "V1"
+"terrain.vanilla_generator" = { class = "absent", evidence = "https://github.com/CloudburstMC/Nukkit/tree/b3caad67d86be34aeca3937e64e8176f6760a2d4/src/main/java/cn/nukkit/level/generator", note = "own Normal generator; terrain differs from BDS for the same seed" }
+"terrain.any_generator" = { class = "partial", evidence = "https://github.com/CloudburstMC/Nukkit/tree/b3caad67d86be34aeca3937e64e8176f6760a2d4/src/main/java/cn/nukkit/level/generator" }
+"terrain.structures" = { class = "unknown" }
+"chunks.client_side_generation" = { class = "absent", evidence = "https://github.com/CloudburstMC/Nukkit/blob/b3caad67d86be34aeca3937e64e8176f6760a2d4/src/main/java/cn/nukkit/Player.java", observed_by = "csg_effective" }
+"chunks.subchunk_requests" = { class = "absent", evidence = "https://github.com/CloudburstMC/Nukkit/blob/b3caad67d86be34aeca3937e64e8176f6760a2d4/src/main/java/cn/nukkit/network/protocol/LevelChunkPacket.java", note = "whole columns in LevelChunk packets" }
+"entity.mob_spawning" = { class = "unknown" }
+"entity.mob_ai" = { class = "unknown" }
+"entity.collision_push" = { class = "unknown" }
+"entity.item_entities" = { class = "unknown" }
+"player.server_authoritative_movement" = { class = "absent", observed_by = "corrections_per_bot_s", note = "no CorrectPlayerMovePrediction packets; hovering is only kicked, and allow-flight is on" }
+"player.physics" = { class = "absent", observed_by = "airborne_frac_steady", note = "bots teleported to y=300 keep hovering" }
+"player.hunger_damage" = { class = "unknown" }
+"player.locator_bar" = { class = "absent", observed_by = "locator_pkts_per_bot_s" }
+"block.redstone" = { class = "unknown" }
+"block.random_ticks" = { class = "unknown" }
+"block.fluids" = { class = "unknown" }
+"block.falling" = { class = "unknown" }
+"world.lighting" = { class = "unknown" }
+"world.dimensions" = { class = "unknown" }
+"world.autosave" = { class = "vanilla", evidence = "https://github.com/CloudburstMC/Nukkit/blob/b3caad67d86be34aeca3937e64e8176f6760a2d4/src/main/java/cn/nukkit/Server.java", note = "ticks-per.autosave; the first save of a fresh world runs on the main thread" }
+"commands.vanilla_set" = { class = "partial", evidence = "https://github.com/CloudburstMC/Nukkit/tree/b3caad67d86be34aeca3937e64e8176f6760a2d4/src/main/java/cn/nukkit/command/defaults", note = "no fill, setblock, querytarget or loot; gamerule only for players in game" }
+"net.encryption" = { class = "vanilla", evidence = "https://github.com/CloudburstMC/Nukkit/blob/b3caad67d86be34aeca3937e64e8176f6760a2d4/src/main/java/cn/nukkit/Server.java", note = "not exercised: benchmarks run offline" }
+
+# Values the harness writes into Nukkit's config files, one table per override category
+# (docs/methodology.md#fairness-and-feature-parity).
+#
+# nukkit.yml starts from the copy the pinned jar ships (lang/eng/nukkit.yml, what Nukkit writes on its first start),
+# so a value equal to the shipped one is written and read back but is not an override. Because nukkit.yml exists,
+# Nukkit never asks for a language on stdin. server.properties and the bStats config start empty; Nukkit adds its own
+# defaults for every other key, and `default` gives that built-in value for the keys written here.
+[config]
+
+[config.file."server.properties"]
+format = "properties"
+
+[config.file."server.properties".harness]
+server-port = { value = "{port}", default = "19132", reason = "machine profile port, away from 19132 so a local game cannot collide" }
+xbox-auth = { value = "off", default = "on", reason = "the bots log in offline with self-signed identities" }
+allow-flight = { value = "on", default = "off", reason = "Nukkit kicks players it sees hovering, and with no gravity for clients the bots stay at the teleport height" }
+"rcon.password" = { value = "", default = "(random, generated on first start)", reason = "no generated secret in the run's archived configs; RCON stays off" }
+
+[config.file."server.properties".parity]
+view-distance = { value = "{view_distance}", default = "10", reason = "the same view distance on every server" }
+max-players = { value = "{max_players}", default = "20", reason = "room for every bot, plus rejoins in chaos scenarios" }
+level-name = { value = "{level_name}", default = "world", reason = "a fixed world folder, checked absent before launch" }
+level-seed = { value = "{seed}", default = "", reason = "the same seed on every server; Nukkit generates its own terrain from it" }
+difficulty = { value = "{difficulty_id}", default = "2", reason = "the same difficulty on every server" }
+gamemode = { value = "{gamemode_id}", default = "0", reason = "the same game mode on every server" }
+auto-save = { value = "on", default = "on", reason = "the world is saved periodically, as on every server" }
+
+[config.file."nukkit.yml"]
+format = "yaml"
+
+[config.file."nukkit.yml".parity]
+"level-settings.auto-tick-rate" = { value = "false", type = "bool", reason = "with it, a slow level is ticked only every few server ticks, which the server tick counter does not show" }
+"chunk-ticking.tick-radius" = { value = "{tick_distance}", type = "int", reason = "the same simulation distance on every server" }
+"ticks-per.autosave" = { value = "{autosave_ticks}", type = "int", reason = "the same autosave interval on every server" }
+"player.save-player-data" = { value = "{save_player_data}", type = "bool", reason = "player data is saved, as on every server" }
+worlds = { value = "{}", type = "map", reason = "one overworld level: the shipped list adds a level named world next to the benchmark level" }
+
+[config.file."nukkit.yml".rescue]
+"debug.level" = { value = "2", type = "int", variants = ["no-watchdog"], reason = "Nukkit's watchdog runs only below debug level 2; by default it stops the server once a tick takes 60 s, as the first autosave of a fresh 100-bot world does. Level 2 also prints debug messages" }
+
+[config.file."plugins/bStats/config.yml"]
+format = "yaml"
+
+[config.file."plugins/bStats/config.yml".harness]
+enabled = { value = "false", type = "bool", default = "true", reason = "no usage statistics upload" }

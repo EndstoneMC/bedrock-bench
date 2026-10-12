@@ -1,15 +1,15 @@
 # SPDX-License-Identifier: Apache-2.0
 """Nukkit (CloudburstMC), a Bedrock server in Java, run from a pinned snapshot jar on the pinned JDK.
 
-Fetch: the jar from ``artifacts/nukkit.toml`` and the JDK from ``artifacts/runtimes.toml``. The shipped
-``nukkit.yml`` (``lang/eng/nukkit.yml`` in the jar, which Nukkit writes on its first start) is extracted from the jar.
-The helper plugin in ``servers/nukkit/plugin`` is compiled once against the pinned jar with the JDK's ``javac`` and
-packed into ``plugins/BenchTick.jar``. It adds ``gametime`` (the server tick counter, since Nukkit's ``time query``
-prints no number), ``positions``, the ``fillnear`` and ``dim`` chaos commands, ``pregen`` for templates, and lifts the
-per-IP packet limit of the RakNet listener.
+Fetch: the jar from ``configs/servers/nukkit/server.toml`` and the JDK from ``configs/servers/runtimes.toml``. The
+shipped ``nukkit.yml`` (``lang/eng/nukkit.yml`` in the jar, which Nukkit writes on its first start) is extracted from
+the jar. The helper plugin (``plugin.yml`` and the ``*.java`` files in ``configs/servers/nukkit``) is compiled once
+against the pinned jar with the JDK's ``javac`` and packed into ``plugins/BenchTick.jar``. It adds ``gametime`` (the
+server tick counter, since Nukkit's ``time query`` prints no number), ``positions``, the ``fillnear`` and ``dim``
+chaos commands, ``pregen`` for templates, and lifts the per-IP packet limit of the RakNet listener.
 
 Launch: ``java -Xms<heap> -Xmx<heap> -jar nukkit.jar``. Nukkit derives a player's UUID from the XUID, so the bots get
-``-fake-xuid`` or every bot would replace the previous one. See docs/servers/nukkit.md.
+``-fake-xuid`` or every bot would replace the previous one. See configs/servers/nukkit/README.md.
 """
 
 from __future__ import annotations
@@ -48,7 +48,7 @@ from bedrock_bench.model import (
     RunContext,
     WorldInfo,
 )
-from bedrock_bench.provenance import tree_sha256
+from bedrock_bench.provenance import sha256_file
 
 if TYPE_CHECKING:
     import psutil
@@ -57,7 +57,7 @@ if TYPE_CHECKING:
 
 JAR = "nukkit.jar"
 SHIPPED_CONFIG = "lang/eng/nukkit.yml"
-PLUGIN_SOURCE = "servers/nukkit/plugin"
+PLUGIN_SOURCE = "configs/servers/nukkit"  # plugin.yml and *.java
 PLUGIN_FILE = "plugins/BenchTick.jar"
 DEFAULT_RUNTIME = "jdk-21.0.12.1"
 NO_WATCHDOG = "no-watchdog"
@@ -119,7 +119,7 @@ class NukkitAdapter(JavaServer):
             release_ref=jar_ref,
             runtime=runtime,
             build=build,
-            key_parts=(tree_sha256(source),),
+            key_parts=tuple(sha256_file(path) for path in plugin_files(source)),
             extra={"commit": meta.get("commit"), "protocol": meta.get("protocol"), "minecraft": meta.get("minecraft")},
         )
 
@@ -255,15 +255,20 @@ class NukkitAdapter(JavaServer):
 # --------------------------------------------------------------------------------------------------------------------
 
 
+def plugin_files(source: Path) -> list[Path]:
+    """The helper's sources: ``plugin.yml``, then the ``*.java`` files next to it."""
+    return [source / "plugin.yml", *sorted(source.glob("*.java"))]
+
+
 def build_plugin(javac: Path, server_jar: Path, source: Path, dest: Path) -> None:
     """Compile the helper's sources against the server jar and pack them with ``plugin.yml`` into ``dest``.
 
     The jar is reproducible: class files depend only on the sources, the JDK and the server jar, and the archive has
     sorted entries and fixed timestamps.
     """
-    sources = sorted((source / "src").rglob("*.java"))
+    sources = sorted(source.glob("*.java"))
     if not sources:
-        raise ConfigError(f"no Java sources under {source / 'src'}")
+        raise ConfigError(f"no Java sources in {source}")
     with tempfile.TemporaryDirectory(prefix="bbench-plugin-") as scratch:
         classes = Path(scratch)
         run_tool(

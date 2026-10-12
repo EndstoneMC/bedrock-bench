@@ -5,7 +5,6 @@ import dataclasses
 import hashlib
 import json
 import os
-import shutil
 import subprocess
 import tomllib
 from pathlib import Path
@@ -296,12 +295,13 @@ class TestSettings:
     @pytest.mark.parametrize(
         "body",
         [
-            'schema = 2\n[harness]\n"Server.Name" = { value = "x", reason = "y" }\n',
-            'schema = 1\n[tuning]\n"Server.Name" = { value = "x", reason = "y" }\n',
-            'schema = 1\n[harness]\n"Server.Name" = { value = "x" }\n',
-            'schema = 1\n[harness]\nName = { value = "x", reason = "y" }\n',
-            'schema = 1\n[harness]\n"Server.Name" = { value = "x", reason = "y" }\n'
-            '[parity]\n"Server.Name" = { value = "z", reason = "y" }\n',
+            'schema = 2\n[config.harness]\n"Server.Name" = { value = "x", reason = "y" }\n',
+            'schema = 1\n[config.tuning]\n"Server.Name" = { value = "x", reason = "y" }\n',
+            'schema = 1\n[config.harness]\n"Server.Name" = { value = "x" }\n',
+            'schema = 1\n[config.harness]\nName = { value = "x", reason = "y" }\n',
+            'schema = 1\n[config.harness]\n"Server.Name" = { value = "x", reason = "y" }\n'
+            '[config.parity]\n"Server.Name" = { value = "z", reason = "y" }\n',
+            "schema = 1\n[artifacts]\n",
         ],
     )
     def test_settings_file_is_checked(self, write_file: Any, body: str) -> None:
@@ -369,7 +369,7 @@ class FakeGo:
 
 @pytest.fixture
 def project(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
-    """A project root with servers/dragonfly and artifacts/dragonfly.toml pinning a fake module zip."""
+    """A project root with configs/servers/dragonfly, whose server.toml pins a fake module zip."""
     root = tmp_path / "project"
     src = root / dragonfly.SOURCE_DIR
     src.mkdir(parents=True)
@@ -379,13 +379,13 @@ def project(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     (src / "go.mod").write_text(f"module example/dfbench\n\ngo 1.26.0\n\nrequire (\n\t{MODULE} {MODULE_VERSION}\n)\n")
     (src / "go.sum").write_text(f"{MODULE} {MODULE_VERSION} {go_sum}\n{MODULE} {MODULE_VERSION}/go.mod h1:x=\n")
     (src / "main.go").write_text("package main\n\nfunc main() {}\n")
-    shutil.copyfile(ROOT / dragonfly.SETTINGS_FILE, src / "config.toml")
-    (root / "artifacts").mkdir()
-    (root / "artifacts" / "dragonfly.toml").write_text(
-        f'server = "dragonfly"\nsource = "web"\n\n[version."{VERSION}".any]\n'
+    settings = (ROOT / dragonfly.SETTINGS_FILE).read_text(encoding="utf-8")
+    (root / dragonfly.SETTINGS_FILE).write_text(
+        f'schema = 1\nserver = "dragonfly"\n\n[artifacts]\nsource = "web"\n\n[artifacts.version."{VERSION}".any]\n'
         f'url = "https://proxy.golang.org/{MODULE}/@v/{MODULE_VERSION}.zip"\n'
         f'sha256 = "{hashlib.sha256(b"module zip").hexdigest()}"\nsize = {len(b"module zip")}\n'
-        f'module = "{MODULE}"\nmodule_version = "{MODULE_VERSION}"\ngo_sum = "{go_sum}"\n'
+        f'module = "{MODULE}"\nmodule_version = "{MODULE_VERSION}"\ngo_sum = "{go_sum}"\n\n'
+        + settings[settings.index("\n[config]\n") :]
     )
     monkeypatch.setenv("BBENCH_ROOT", str(root))
     fake = FakeGo(zip_path, go_sum)
@@ -503,7 +503,7 @@ class TestPrepare:
         assert adapter.executable(layout).read_bytes() == b"dfbench binary"
 
     def test_spread100_config_is_what_dfbench_tests_read(self, tmp_path: Path) -> None:
-        """servers/dragonfly/testdata/config.toml is the spread100 config; dfbench's Go tests parse it."""
+        """configs/servers/dragonfly/testdata/config.toml is the spread100 config; dfbench's Go tests parse it."""
         ctx = dataclasses.replace(make_ctx(tmp_path), scenario=config.load_scenario("spread100"))
         layout = make_adapter().prepare(make_install(tmp_path), ctx)
         written = (layout.server_dir / dragonfly.CONFIG).read_bytes()

@@ -303,8 +303,8 @@ def find_javac() -> Path | None:
 @pytest.mark.skipif(find_javac() is None, reason="needs a JDK (javac) on PATH")
 def test_build_plugin_is_reproducible(tmp_path: Path) -> None:
     source = tmp_path / "plugin"
-    (source / "src" / "demo").mkdir(parents=True)
-    (source / "src" / "demo" / "Demo.java").write_text("package demo;\npublic final class Demo {}\n", encoding="utf-8")
+    source.mkdir()
+    (source / "Demo.java").write_text("package demo;\npublic final class Demo {}\n", encoding="utf-8")
     (source / "plugin.yml").write_bytes(b"name: Demo\r\nmain: demo.Demo\r\n")
     server_jar = tmp_path / "server.jar"
     with zipfile.ZipFile(server_jar, "w") as zf:
@@ -320,14 +320,13 @@ def test_build_plugin_is_reproducible(tmp_path: Path) -> None:
 
 
 def test_build_plugin_needs_sources(tmp_path: Path) -> None:
-    (tmp_path / "src").mkdir()
     with pytest.raises(config.ConfigError, match="no Java sources"):
         build_plugin(Path("javac"), tmp_path / "server.jar", tmp_path, tmp_path / "out.jar")
 
 
 def test_helper_sources_are_committed() -> None:
-    plugin = ROOT / "servers" / "nukkit" / "plugin"
-    assert sorted(p.name for p in (plugin / "src" / "bench").glob("*.java")) == ["BenchTick.java", "PreGen.java"]
+    plugin = ROOT / nukkit.PLUGIN_SOURCE
+    assert [p.name for p in nukkit.plugin_files(plugin)] == ["plugin.yml", "BenchTick.java", "PreGen.java"]
     manifest = (plugin / "plugin.yml").read_text(encoding="utf-8")
     for command in ("gametime", "positions", "fillnear", "dim", "pregen"):
         assert f"\n  {command}:\n" in manifest

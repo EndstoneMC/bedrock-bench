@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 """Behaviour shared by servers that host Mojang's Bedrock Dedicated Server: vanilla BDS, Endstone and LeviLamina.
 
-- ``server.properties`` is rendered from ``servers/bds/properties.toml``. Every value that differs from what the
-  pinned BDS build ships is recorded as an :class:`~bedrock_bench.model.Override` in its category.
+- ``server.properties`` is rendered from the ``[config]`` table of ``configs/servers/bds/server.toml``. Every value
+  that differs from what the pinned BDS build ships is recorded as an :class:`~bedrock_bench.model.Override` in its
+  category.
 - Console: ``Server started.`` is the ready line, ``time query gametime`` the monotonic tick probe and
   ``Player Spawned: <name>`` the in-world signal. The ``TRANSPORT TYPE ERROR`` banner that BDS prints at error level
   when RakNet is selected is benign.
@@ -51,7 +52,7 @@ if TYPE_CHECKING:
     from bedrock_bench.cache import Cache
 
 PROPERTIES = "server.properties"
-PROPERTIES_TEMPLATE = "servers/bds/properties.toml"
+PROPERTIES_TEMPLATE = "configs/servers/bds/server.toml"
 SERVER_NAME = "bedrock-bench"
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -164,7 +165,7 @@ class Properties:
 
 @dataclass(frozen=True)
 class PropertyPin:
-    """One value every BDS-hosted server gets, from ``servers/bds/properties.toml``."""
+    """One value every BDS-hosted server gets, from the ``[config]`` table of ``configs/servers/bds/server.toml``."""
 
     key: str
     template: str  # may contain {placeholders} filled from the scenario and machine profile
@@ -180,27 +181,24 @@ class PropertyPin:
 
 
 def load_property_pins(path: Path) -> tuple[PropertyPin, ...]:
-    """Read ``servers/bds/properties.toml``: one table per override category, ``key = {value, reason}`` entries."""
-    data = config.load_toml(path)
-    if data.get("schema") != 1:
-        raise ConfigError("only schema = 1 is supported", file=path, key="schema")
+    """Read the ``[config]`` table of a server file: one table per override category, ``key = {value, reason}``."""
+    _, data = config.load_server_table(path, "config")
     if data.get("file", PROPERTIES) != PROPERTIES:
-        raise ConfigError(f"must be {PROPERTIES!r}", file=path, key="file")
+        raise ConfigError(f"must be {PROPERTIES!r}", file=path, key="config.file")
     pins: list[PropertyPin] = []
     seen: set[str] = set()
     for section, table in data.items():
-        if section in ("schema", "file"):
+        if section == "file":
             continue
         try:
             category = OverrideCategory(section)
         except ValueError:
-            raise ConfigError(
-                f"unknown table; use one of {', '.join(c.value for c in OverrideCategory)}", file=path, key=section
-            ) from None
+            known = ", ".join(c.value for c in OverrideCategory)
+            raise ConfigError(f"unknown table; use one of {known}", file=path, key=f"config.{section}") from None
         if not isinstance(table, dict):
-            raise ConfigError("must be a table", file=path, key=section)
+            raise ConfigError("must be a table", file=path, key=f"config.{section}")
         for key, entry in table.items():
-            where = f"{section}.{key}"
+            where = f"config.{section}.{key}"
             if not isinstance(entry, dict) or set(entry) != {"value", "reason"}:
                 raise ConfigError('must be { value = "...", reason = "..." }', file=path, key=where)
             if not isinstance(entry["value"], str) or not isinstance(entry["reason"], str) or not entry["reason"]:
@@ -213,7 +211,7 @@ def load_property_pins(path: Path) -> tuple[PropertyPin, ...]:
 
 
 def property_context(ctx: RunContext, *, csg: bool) -> dict[str, str]:
-    """Placeholder values for ``servers/bds/properties.toml``."""
+    """Placeholder values for the ``[config]`` table of ``configs/servers/bds/server.toml``."""
     server = ctx.scenario.server
     world = ctx.scenario.world
     return {
@@ -341,7 +339,7 @@ def exe_name(platform: str) -> str:
 
 
 def fetch_bds(cache: Cache, version: str, platform: str, *, artifact: Path | None = None) -> Install:
-    """Verify and install one BDS build: the pinned zip from ``artifacts/bds.toml``, or a local zip (``artifact``)."""
+    """Verify and install one BDS build: the zip pinned in ``configs/servers/bds/server.toml``, or a local zip."""
     executable = exe_name(platform)
     if artifact is not None:
         archive, ref = fetch.adopt_local(artifact, cache)
@@ -411,7 +409,7 @@ class BdsFamily(ServerAdapter):
         "rest": r"^REST Thread",
     }
     crash_paths: ClassVar[tuple[str, ...]] = ("%LOCALAPPDATA%/CrashDumps",)
-    #: Path of the pinned server.properties values, relative to the project root.
+    #: Server file whose ``[config]`` table holds the server.properties values, relative to the project root.
     properties_template: ClassVar[str] = PROPERTIES_TEMPLATE
 
     def __init__(self, arm: Arm, machine: Machine) -> None:

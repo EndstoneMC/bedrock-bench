@@ -1,4 +1,4 @@
-# Synthetic console lines in the format dfbench prints (servers/dragonfly), one per dialect role. Roles are described
+# Synthetic console lines in the format dfbench prints (configs/servers/dragonfly), one per dialect role. Roles are described
 # in bds.toml. dragonfly-session.log is a whole synthetic session in the same format; dragonfly-crash.log ends in a Go
 # panic, which Go prints without a prefix.
 adapter = "dragonfly"

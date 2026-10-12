@@ -129,21 +129,21 @@ class TestYaml:
 
 PLAN = """schema = 1
 
-[file."server.properties"]
+[config.file."server.properties"]
 format = "properties"
 
-[file."server.properties".harness]
+[config.file."server.properties".harness]
 server-port = { value = "{port}", default = "19132", reason = "port" }
 flag = { value = "on", default = "on", reason = "same as the default" }
 
-[file."config.yml"]
+[config.file."config.yml"]
 format = "yaml"
 
-[file."config.yml".parity]
+[config.file."config.yml".parity]
 "settings.async-workers" = { value = "{server_cpu_count}", type = "int", reason = "workers" }
 worlds = { value = "{}", type = "map", reason = "one level" }
 
-[file."config.yml".rescue]
+[config.file."config.yml".rescue]
 "debug.level" = { value = "2", type = "int", default = "1", variants = ["quiet"], reason = "watchdog" }
 "memory.limit" = { value = "0", type = "int", default = "1024", skip_variants = ["stock"], reason = "limit" }
 """
@@ -157,6 +157,8 @@ def plan(tmp_path: Path) -> ConfigPlan:
 
 
 CONTEXT = {"port": "19672", "server_cpu_count": "8"}
+YAML_A = 'schema = 1\n[config.file."a"]\nformat = "yaml"\n'
+PARITY_A = '[config.file."a".parity]\n'
 
 
 class TestConfigPlan:
@@ -173,18 +175,16 @@ class TestConfigPlan:
     @pytest.mark.parametrize(
         ("body", "message"),
         [
-            ('schema = 2\n[file."a"]\nformat = "yaml"\n', "schema"),
-            ('schema = 1\n[file."a"]\nformat = "ini"\n', "format"),
-            ('schema = 1\n[file."../a"]\nformat = "yaml"\n', "relative"),
-            ('schema = 1\n[file."a"]\nformat = "yaml"\n[file."a".tuning]\nk = { value = "1", reason = "r" }\n',
-             "unknown table"),
-            ('schema = 1\n[file."a"]\nformat = "yaml"\n[file."a".parity]\nk = { value = "1" }\n', "reason"),
-            ('schema = 1\n[file."a"]\nformat = "yaml"\n[file."a".parity]\nk = { value = "1", reason = "r", '
-             'type = "list" }\n', "type"),
-            ('schema = 1\n[file."a"]\nformat = "yaml"\n[file."a".parity]\nk = { value = "1", reason = "r", '
-             'variants = ["nope"] }\n', "unknown variants"),
-            ('schema = 1\n[file."a"]\nformat = "yaml"\n[file."a".parity]\nk = { value = "1", reason = "r" }\n'
-             '[file."a".harness]\nk = { value = "2", reason = "r" }\n', "twice"),
+            ('schema = 2\n[config.file."a"]\nformat = "yaml"\n', "schema"),
+            ('schema = 1\n[config.file."a"]\nformat = "ini"\n', "format"),
+            ('schema = 1\n[config.file."../a"]\nformat = "yaml"\n', "relative"),
+            (YAML_A + '[config.file."a".tuning]\nk = { value = "1", reason = "r" }\n', "unknown table"),
+            (YAML_A + PARITY_A + 'k = { value = "1" }\n', "reason"),
+            (YAML_A + PARITY_A + 'k = { value = "1", reason = "r", type = "list" }\n', "type"),
+            (YAML_A + PARITY_A + 'k = { value = "1", reason = "r", variants = ["nope"] }\n', "unknown variants"),
+            (YAML_A + PARITY_A + 'k = { value = "1", reason = "r" }\n'
+             '[config.file."a".harness]\nk = { value = "2", reason = "r" }\n', "twice"),
+            ('schema = 1\n[artifacts]\n', "config: is required"),
         ],
     )  # fmt: skip
     def test_rejects(self, tmp_path: Path, body: str, message: str) -> None:
@@ -327,7 +327,7 @@ def sha(data: bytes) -> str:
 def project(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """A project root with pinned artifacts and an artifact directory holding them."""
     root = tmp_path / "project"
-    (root / "artifacts").mkdir(parents=True)
+    (root / "configs" / "servers" / "demo").mkdir(parents=True)
     store = tmp_path / "store"
     store.mkdir()
     runtime = make_tar(store / "rt-linux.tar.gz", [("rt/bin/tool", b"tool", None)])
@@ -336,15 +336,15 @@ def project(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     release = store / "server.jar"
     release.write_bytes(b"jar bytes")
     rt_linux, rt_windows = runtime.read_bytes(), (store / "rt-windows.zip").read_bytes()
-    (root / "artifacts" / "runtimes.toml").write_text(
-        f"""server = "runtimes"
-[version."rt-1".linux]
+    (root / config.RUNTIMES_FILE).write_text(
+        f"""schema = 1
+[artifacts.version."rt-1".linux]
 url = "https://example.invalid/rt-linux.tar.gz"
 sha256 = "{sha(rt_linux)}"
 size = {len(rt_linux)}
 executables = ["rt/bin/tool"]
 tool = "rt/bin/tool"
-[version."rt-1".windows]
+[artifacts.version."rt-1".windows]
 url = "https://example.invalid/rt-windows.zip"
 sha256 = "{sha(rt_windows)}"
 size = {len(rt_windows)}
@@ -352,11 +352,12 @@ tool = "rt/bin/tool.exe"
 """,
         encoding="utf-8",
     )
-    (root / "artifacts" / "demo.toml").write_text(
-        f"""server = "demo"
-[version."1.0"]
+    (root / "configs" / "servers" / "demo" / "server.toml").write_text(
+        f"""schema = 1
+server = "demo"
+[artifacts.version."1.0"]
 runtime = "rt-1"
-[version."1.0".any]
+[artifacts.version."1.0".any]
 url = "https://example.invalid/server.jar"
 sha256 = "{sha(b"jar bytes")}"
 size = 9

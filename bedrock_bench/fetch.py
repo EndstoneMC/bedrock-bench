@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
 """Download, verify and unpack pinned artifacts.
 
-Every artifact in ``artifacts/<server>.toml`` carries a URL, a size and a sha256. A verified copy is kept in the cache
-under ``dl/<sha256>/<name>``; nothing is used before its hash has been checked. Sources are tried in order: the cache,
-an artifact directory (``--artifact-dir`` or ``$BBENCH_ARTIFACT_DIR``) holding files under their pinned names, then
-the URL.
+Every artifact pinned in ``configs/servers/<server>/server.toml`` carries a URL, a size and a sha256. A verified copy
+is kept in the cache under ``dl/<sha256>/<name>``; nothing is used before its hash has been checked. Sources are tried
+in order: the cache, an artifact directory (``--artifact-dir`` or ``$BBENCH_ARTIFACT_DIR``) holding files under their
+pinned names, then the URL.
 
 Mojang's server is covered by the Minecraft EULA. Downloading it needs ``--accept-eula`` or
 ``BBENCH_ACCEPT_MINECRAFT_EULA=1``. A copy that is already cached, or that the user supplies in an artifact directory,

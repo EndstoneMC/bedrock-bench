@@ -1,12 +1,16 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Load and validate the TOML inputs: scenarios, matrices, machine profiles, artifact pins, feature files and claims.
+"""Load and validate the TOML inputs: scenarios, matrices, server files, machine profiles and claims.
 
 Every loader rejects unknown keys, so a typo fails loudly instead of falling back to a default. Failures raise
 :class:`ConfigError` naming the file and the dotted key; the CLI turns them into exit code 2.
 
-Scenarios, matrices, artifact pins and feature files are referenced by path or by bare name. A bare name resolves
-inside the project checkout, for example ``spread100`` -> ``configs/scenarios/spread100.toml``. Machine profiles
-and claims files are always paths.
+Scenarios, matrices and server files are referenced by path or by bare name. A bare name resolves inside the project
+checkout, for example ``spread100`` -> ``configs/scenarios/spread100.toml`` and ``bds`` ->
+``configs/servers/bds/server.toml``. Machine profiles and claims files are always paths.
+
+A server file holds ``schema = 1``, an optional ``server`` that must match its folder, and three tables:
+``[artifacts]`` (download pins), ``[features]`` (declared parity) and ``[config]`` (the values written into the
+server's config files, read by its adapter).
 """
 
 from __future__ import annotations
@@ -65,18 +69,21 @@ ENV_ROOT = "BBENCH_ROOT"
 SCHEMA_DIR = Path(__file__).resolve().parent / "schemas"
 
 #: Where each input kind that resolves by name lives, relative to the project root.
-CONFIG_DIRS = {
-    "scenarios": "configs/scenarios",
-    "matrices": "configs/matrices",
-    "artifacts": "artifacts",
-    "features": "features",
+CONFIG_PATHS = {
+    "scenarios": "configs/scenarios/{}.toml",
+    "matrices": "configs/matrices/{}.toml",
+    "servers": "configs/servers/{}/server.toml",
 }
 _SINGULAR = {
     "scenarios": "scenario",
     "matrices": "matrix",
-    "artifacts": "artifact file",
-    "features": "feature file",
+    "servers": "server file",
 }
+
+SERVER_FILE = "server.toml"
+SERVER_TABLES = ("artifacts", "features", "config")
+#: JDK and PHP pins shared by the standalone servers, an ``[artifacts]`` table like a server file's.
+RUNTIMES_FILE = "configs/servers/runtimes.toml"
 
 NAME_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 SERVER_RE = re.compile(r"^[a-z][a-z0-9_]*$")
@@ -133,11 +140,11 @@ def project_root() -> Path:
 
 def resolve(kind: str, ref: str | Path) -> Path:
     """Resolve a config reference: a path (anything with a directory part or a ``.toml`` suffix) or a bare name."""
-    if kind not in CONFIG_DIRS:
+    if kind not in CONFIG_PATHS:
         raise ValueError(f"unknown config kind {kind!r}")
     path = Path(ref)
     if path.suffix != ".toml" and len(path.parts) == 1:
-        path = project_root() / CONFIG_DIRS[kind] / f"{ref}.toml"
+        path = project_root() / CONFIG_PATHS[kind].format(ref)
     if not path.is_file():
         names = available(kind)
         hint = f" (available: {', '.join(names)})" if names else ""
@@ -147,8 +154,12 @@ def resolve(kind: str, ref: str | Path) -> Path:
 
 def available(kind: str) -> list[str]:
     """Names of the inputs of one kind in the project checkout."""
-    folder = project_root() / CONFIG_DIRS[kind]
-    return sorted(p.stem for p in folder.glob("*.toml")) if folder.is_dir() else []
+    return sorted(_input_name(p) for p in project_root().glob(CONFIG_PATHS[kind].format("*")) if p.is_file())
+
+
+def _input_name(path: Path) -> str:
+    """The name an input goes by: the folder of a ``server.toml``, otherwise the file name without its suffix."""
+    return path.parent.name if path.name == SERVER_FILE else path.stem
 
 
 def input_file(ref: str | Path, what: str) -> Path:
@@ -654,7 +665,7 @@ def parse_scenario(data: Mapping[str, Any], *, name: str, file: Path | None = No
 def _feature_keys(keys: tuple[str, ...]) -> None:
     unknown = [k for k in keys if k not in FEATURE_KEYS]
     if unknown:
-        raise ValueError(f"unknown feature key {unknown[0]!r} (see features/README.md)")
+        raise ValueError(f"unknown feature key {unknown[0]!r} (see docs/methodology.md#fairness-and-feature-parity)")
     if len(set(keys)) != len(keys):
         raise ValueError("duplicate feature key")
 
@@ -896,6 +907,31 @@ def _cpu_spec(keywords: tuple[str, ...]) -> Callable[[str], None]:
 
 
 # --------------------------------------------------------------------------------------------------------------------
+# Server files
+# --------------------------------------------------------------------------------------------------------------------
+
+
+def load_server_table(ref: str | Path, table: str) -> tuple[Path, dict[str, Any]]:
+    """One top-level table of ``configs/servers/<ref>/server.toml``, or of a server file given by path.
+
+    The rest of the file is checked too: ``schema = 1``, ``server`` (when present) equal to the folder name, and no
+    keys besides the server tables. A missing table is an error.
+    """
+    if table not in SERVER_TABLES:
+        raise ValueError(f"unknown server table {table!r}")
+    path = resolve("servers", ref)
+    top = _Table(load_toml(path), file=path)
+    top.get("schema", int, check=_equals(1, "only schema = 1 is supported"))
+    name = _input_name(path)
+    if top.get("server", str, name) != name:
+        where = "folder" if path.name == SERVER_FILE else "file"
+        raise top.error("server", f"must match the {where} name {name!r}")
+    tables = {key: top.table(key, required=key == table) for key in SERVER_TABLES}
+    top.finish()
+    return path, tables[table].data
+
+
+# --------------------------------------------------------------------------------------------------------------------
 # Artifact pins
 # --------------------------------------------------------------------------------------------------------------------
 
@@ -903,20 +939,20 @@ _ARTIFACT_KEYS = ("name", "url", "sha256", "size", "executables", "eula", "sourc
 
 
 def load_artifacts(ref: str | Path) -> ArtifactCatalog:
-    path = resolve("artifacts", ref)
-    return parse_artifacts(load_toml(path), file=path, server=path.stem)
+    """The ``[artifacts]`` table of a server file, or of :data:`RUNTIMES_FILE` given by path."""
+    path, table = load_server_table(ref, "artifacts")
+    return parse_artifacts(table, file=path, server=_input_name(path), where="artifacts")
 
 
-def parse_artifacts(data: Mapping[str, Any], *, file: Path | None = None, server: str) -> ArtifactCatalog:
-    """``artifacts/<server>.toml``: ``[version."<v>".<platform>]`` tables with url, sha256 and optional keys.
+def parse_artifacts(
+    data: Mapping[str, Any], *, file: Path | None = None, server: str, where: str = ""
+) -> ArtifactCatalog:
+    """An ``[artifacts]`` table: ``[version."<v>".<platform>]`` tables with url, sha256 and optional keys.
 
     Non-table keys of a version table land in ``ArtifactVersion.meta``; unknown keys of a platform table land in
     ``ArtifactSpec.extra``. Both are for the adapter to interpret.
     """
-    top = _Table(dict(data), file=file)
-    declared = top.get("server", str, server)
-    if declared != server:
-        raise top.error("server", f"must match the file name {server!r}")
+    top = _Table(dict(data), file=file, where=where)
     source = top.get("source", str, "web", choices=ARTIFACT_SOURCES)
     versions_table = top.table("version", required=True)
     versions: dict[str, ArtifactVersion] = {}
@@ -930,7 +966,7 @@ def parse_artifacts(data: Mapping[str, Any], *, file: Path | None = None, server
     return ArtifactCatalog(
         server=server,
         path=file if file is not None else Path(f"{server}.toml"),
-        sha256=file_sha256(file) if file is not None else sha256_json(data),
+        sha256=sha256_json(data),
         versions=versions,
     )
 
@@ -988,16 +1024,14 @@ def _relative_paths(paths: tuple[str, ...]) -> None:
 
 
 def load_features(ref: str | Path) -> FeatureFile:
-    path = resolve("features", ref)
-    return parse_features(load_toml(path), file=path, server=path.stem)
+    """The ``[features]`` table of a server file."""
+    path, table = load_server_table(ref, "features")
+    return parse_features(table, file=path, server=_input_name(path), where="features")
 
 
-def parse_features(data: Mapping[str, Any], *, file: Path | None = None, server: str) -> FeatureFile:
-    top = _Table(dict(data), file=file)
-    top.get("schema", int, check=_equals(1, "only schema = 1 is supported"))
-    declared = top.get("server", str, server)
-    if declared != server:
-        raise top.error("server", f"must match the file name {server!r}")
+def parse_features(data: Mapping[str, Any], *, file: Path | None = None, server: str, where: str = "") -> FeatureFile:
+    """A ``[features]`` table, hashed alone so that edits elsewhere in the server file keep recorded parity valid."""
+    top = _Table(dict(data), file=file, where=where)
     ranges_table = top.table("range", required=True)
     ranges = []
     for prefix, raw in ranges_table.items():
@@ -1010,7 +1044,7 @@ def parse_features(data: Mapping[str, Any], *, file: Path | None = None, server:
     return FeatureFile(
         server=server,
         path=file if file is not None else Path(f"{server}.toml"),
-        sha256=file_sha256(file) if file is not None else sha256_json(data),
+        sha256=sha256_json(data),
         ranges=tuple(ranges),
     )
 
@@ -1022,7 +1056,7 @@ def _read_feature_range(table: _Table, prefix: str) -> FeatureRange:
         if key == "fidelity":
             continue
         if key not in FEATURE_KEYS:
-            raise table.error(key, "unknown feature key (see features/README.md)")
+            raise table.error(key, "unknown feature key (see docs/methodology.md#fairness-and-feature-parity)")
         cell = table.sub(key, raw)
         cls = FeatureClass(cell.get("class", str, choices=tuple(FeatureClass)))
         evidence = cell.get("evidence", str, None, pattern=r"^\S.*$")

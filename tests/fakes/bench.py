@@ -3,8 +3,8 @@
 
 ``FakeBench.create(tmp_path)`` lays out a small project mirror and an environment for ``bbench`` subprocesses:
 
-- ``features/`` and ``configs/scenarios/`` copies, so names resolve the same way as in a checkout; ``BBENCH_ROOT``
-  points at the workspace and ``BBENCH_CACHE`` into it;
+- ``configs/servers/`` and ``configs/scenarios/`` copies, so names resolve the same way as in a checkout;
+  ``BBENCH_ROOT`` points at the workspace and ``BBENCH_CACHE`` into it;
 - a ``.dist-info`` folder that registers ``fakes.fake_adapter`` under the ``bedrock_bench.adapters`` entry point
   group, with ``tests/`` and that folder on ``PYTHONPATH``;
 - ``BBENCH_BOT_CMD``, the JSON argv that replaces the loadbot binary with ``fake_bots.py``;
@@ -33,7 +33,7 @@ import psutil
 import pytest
 
 from bedrock_bench import cli
-from fakes.fake_adapter import BOTS_SCRIPT, FAKE_ADAPTERS, FEATURES_DIR, interpreter
+from fakes.fake_adapter import BOTS_SCRIPT, FAKE_ADAPTERS, SERVERS_DIR, interpreter
 
 #: Environment variable the bot fleet reads instead of the loadbot binary path: a JSON array, the argv prefix.
 ENV_BOT_CMD = "BBENCH_BOT_CMD"
@@ -281,9 +281,11 @@ class FakeBench:
     @classmethod
     def create(cls, root: Path) -> FakeBench:
         root.mkdir(parents=True, exist_ok=True)
-        (root / "features").mkdir(exist_ok=True)
         for adapter in FAKE_ADAPTERS:
-            shutil.copyfile(FEATURES_DIR / f"{adapter.name}.toml", root / "features" / f"{adapter.name}.toml")
+            (root / "configs" / "servers" / adapter.name).mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(
+                SERVERS_DIR / adapter.name / "server.toml", root / "configs" / "servers" / adapter.name / "server.toml"
+            )
         (root / "configs" / "scenarios").mkdir(parents=True, exist_ok=True)
         for scenario in FAKE_SCENARIOS.glob("*.toml"):
             shutil.copyfile(scenario, root / "configs" / "scenarios" / scenario.name)

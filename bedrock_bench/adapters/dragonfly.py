@@ -1,14 +1,14 @@
 # SPDX-License-Identifier: Apache-2.0
 """Dragonfly, a Bedrock server written in Go (https://github.com/df-mc/dragonfly), run through the dfbench helper.
 
-Dragonfly is a library with an example server and no binary releases. ``servers/dragonfly`` holds dfbench: that example
-server plus a console on standard input. Fetch builds it against the Dragonfly module pinned in
-``artifacts/dragonfly.toml``, which must be the version ``servers/dragonfly/go.mod`` requires. Go verifies the module
-against go.sum; fetch also checks the module zip against its pinned sha256, and records the build's defaults
-(``dfbench -defaults``) next to the binary. See docs/servers/dragonfly.md.
+Dragonfly is a library with an example server and no binary releases. ``configs/servers/dragonfly`` holds dfbench:
+that example server plus a console on standard input. Fetch builds it against the Dragonfly module pinned in the
+folder's ``server.toml``, which must be the version its ``go.mod`` requires. Go verifies the module against go.sum;
+fetch also checks the module zip against its pinned sha256, and records the build's defaults (``dfbench -defaults``)
+next to the binary. See configs/servers/dragonfly/README.md.
 
-- Config: ``config.toml`` gets only the keys of ``servers/dragonfly/config.toml``. Every other key keeps the build's
-  default, and each written value that differs from its default is an override.
+- Config: ``config.toml`` gets only the keys of the ``[config]`` table of ``configs/servers/dragonfly/server.toml``.
+  Every other key keeps the build's default, and each written value that differs from its default is an override.
 - Console: Go's standard log format with a level; ``gametime`` reads the overworld's tick counter, ``positions``
   lists every player, and ``Player spawned: <name>`` is printed once a player is in the world.
 - Dragonfly only generates flat worlds, so runs of scenarios that exercise terrain are flagged ``terrain_mismatch``.
@@ -53,8 +53,8 @@ if TYPE_CHECKING:
 
     from bedrock_bench.cache import Cache
 
-SOURCE_DIR = "servers/dragonfly"  # dfbench, relative to the project root
-SETTINGS_FILE = "servers/dragonfly/config.toml"
+SOURCE_DIR = "configs/servers/dragonfly"  # dfbench, relative to the project root
+SETTINGS_FILE = "configs/servers/dragonfly/server.toml"  # its [config] table
 CONFIG = "config.toml"  # what dfbench reads in the server directory
 DEFAULTS = "defaults.toml"  # 'dfbench -defaults' of the build, kept in the install
 BUILD_INFO = "build.json"  # 'dfbench -version' of the build and the module it links, kept in the install
@@ -123,7 +123,7 @@ def parse_positions(lines: Sequence[LogLine]) -> list[PlayerPos] | None:
 
 @dataclass(frozen=True)
 class Setting:
-    """One value from ``servers/dragonfly/config.toml``."""
+    """One value from the ``[config]`` table of ``configs/servers/dragonfly/server.toml``."""
 
     key: str  # dotted path into config.toml, e.g. "Players.MaxCount"
     template: Any  # a TOML value; a string may hold {placeholders}
@@ -132,26 +132,27 @@ class Setting:
 
 
 def load_settings(path: Path) -> tuple[Setting, ...]:
-    """Read the settings file: one table per override category, ``"Section.Key" = {value, reason}`` entries."""
-    data = config.load_toml(path)
-    if data.get("schema") != 1:
-        raise ConfigError("only schema = 1 is supported", file=path, key="schema")
+    """Read the ``[config]`` table of the settings file.
+
+    One table per override category, ``"Section.Key" = {value, reason}`` entries.
+    """
+    _, data = config.load_server_table(path, "config")
     if data.get("file", CONFIG) != CONFIG:
-        raise ConfigError(f"must be {CONFIG!r}", file=path, key="file")
+        raise ConfigError(f"must be {CONFIG!r}", file=path, key="config.file")
     settings: list[Setting] = []
     seen: set[str] = set()
     for section, table in data.items():
-        if section in ("schema", "file"):
+        if section == "file":
             continue
         try:
             category = OverrideCategory(section)
         except ValueError:
             known = ", ".join(c.value for c in OverrideCategory)
-            raise ConfigError(f"unknown table; use one of {known}", file=path, key=section) from None
+            raise ConfigError(f"unknown table; use one of {known}", file=path, key=f"config.{section}") from None
         if not isinstance(table, dict):
-            raise ConfigError("must be a table", file=path, key=section)
+            raise ConfigError("must be a table", file=path, key=f"config.{section}")
         for key, entry in table.items():
-            where = f"{section}.{key}"
+            where = f"config.{section}.{key}"
             if not isinstance(entry, dict) or set(entry) != {"value", "reason"}:
                 raise ConfigError('must be { value = ..., reason = "..." }', file=path, key=where)
             if not isinstance(entry["reason"], str) or not entry["reason"]:
@@ -285,7 +286,7 @@ def dump_toml(values: Mapping[str, Any]) -> str:
 
 @dataclass(frozen=True)
 class ModulePin:
-    """The Dragonfly module behind one server tag in ``artifacts/dragonfly.toml``."""
+    """The Dragonfly module behind one server tag in ``configs/servers/dragonfly/server.toml``."""
 
     module: str
     version: str  # module version, as go.mod requires it
@@ -316,7 +317,7 @@ def required_version(go_mod: str, module: str) -> str | None:
 
 
 def check_source(src: Path, pin: ModulePin) -> None:
-    """``servers/dragonfly`` must build exactly the pinned module: same version in go.mod and go.sum, no replace."""
+    """The dfbench module must build exactly the pinned module: same version in go.mod and go.sum, no replace."""
     try:
         go_mod = (src / "go.mod").read_text(encoding="utf-8")
         go_sum = (src / "go.sum").read_text(encoding="utf-8")
@@ -325,13 +326,13 @@ def check_source(src: Path, pin: ModulePin) -> None:
     required = required_version(go_mod, pin.module)
     if required != pin.version:
         raise ConfigError(
-            f"servers/dragonfly/go.mod requires {pin.module} {required}, but artifacts/dragonfly.toml pins "
+            f"{SOURCE_DIR}/go.mod requires {pin.module} {required}, but {SETTINGS_FILE} pins "
             f"{pin.version}; run 'go get {pin.module}@{pin.version}' there, or pin the version go.mod requires"
         )
     if re.search(r"^\s*replace\b", go_mod, re.MULTILINE):
-        raise ConfigError("servers/dragonfly/go.mod must not replace modules: a benchmark builds published code only")
+        raise ConfigError(f"{SOURCE_DIR}/go.mod must not replace modules: a benchmark builds published code only")
     if f"{pin.module} {pin.version} {pin.go_sum}" not in go_sum:
-        raise ConfigError(f"servers/dragonfly/go.sum does not record {pin.go_sum} for {pin.module} {pin.version}")
+        raise ConfigError(f"{SOURCE_DIR}/go.sum does not record {pin.go_sum} for {pin.module} {pin.version}")
 
 
 def source_sha256(src: Path) -> str:

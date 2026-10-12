@@ -1,0 +1,54 @@
+# SPDX-License-Identifier: Apache-2.0
+# Runtimes for the servers that bring their own: a JDK for Nukkit and PowerNukkitX, PocketMine's PHP build for
+# PocketMine-MP. Each server version names the runtime it uses (`runtime` in configs/servers/<server>/server.toml).
+# Runtimes are unpacked once into the cache and used read-only.
+#
+# Besides url, sha256, size and executables, a platform table names paths inside the archive that the adapters use.
+
+schema = 1
+
+[artifacts]
+source = "github"
+
+# Eclipse Temurin 21. A JDK rather than a JRE: the Nukkit helper is compiled with javac against the pinned jar, and
+# jcmd finds the JVM's main thread. The java binary is the same HotSpot build either way.
+[artifacts.version."jdk-21.0.12.1"]
+release = "jdk-21.0.12.1+1"
+
+[artifacts.version."jdk-21.0.12.1".windows]
+url = "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12.1%2B1/OpenJDK21U-jdk_x64_windows_hotspot_21.0.12.1_1.zip"
+sha256 = "f9d6e191ab098c0d416e7d588a24420a8621cd2f4720dab2459b8b7b2d2d8b4e"
+size = 205073461
+home = "jdk-21.0.12.1+1"
+java = "jdk-21.0.12.1+1/bin/java.exe"
+javac = "jdk-21.0.12.1+1/bin/javac.exe"
+jcmd = "jdk-21.0.12.1+1/bin/jcmd.exe"
+
+[artifacts.version."jdk-21.0.12.1".linux]
+url = "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12.1%2B1/OpenJDK21U-jdk_x64_linux_hotspot_21.0.12.1_1.tar.gz"
+sha256 = "ce79869e1307ed8ee1e2baa86a412b1eb5b75d10a01006d788a6f968bcfaee94"
+size = 207473347
+executables = ["jdk-21.0.12.1+1/bin/java", "jdk-21.0.12.1+1/bin/javac", "jdk-21.0.12.1+1/bin/jcmd"]
+home = "jdk-21.0.12.1+1"
+java = "jdk-21.0.12.1+1/bin/java"
+javac = "jdk-21.0.12.1+1/bin/javac"
+jcmd = "jdk-21.0.12.1+1/bin/jcmd"
+
+# PHP 8.2 as PocketMine-MP 5 needs it (pmmpthread, leveldb, chunkutils2 and the other extensions), from PocketMine's
+# PHP-Binaries build 524. The pm5-php-8.2-latest tag points at the same files but moves; this one does not.
+[artifacts.version."php-8.2-pm5-524"]
+release = "php-build-524"
+
+[artifacts.version."php-8.2-pm5-524".windows]
+url = "https://github.com/pmmp/PHP-Binaries/releases/download/php-build-524/PHP-8.2-Windows-x64-PM5.zip"
+sha256 = "c9ca8505da43977d431267ffa782a7b5b077fca068ae2a9da81271c62ef18ba9"
+size = 11734193
+php = "bin/php/php.exe"
+
+[artifacts.version."php-8.2-pm5-524".linux]
+url = "https://github.com/pmmp/PHP-Binaries/releases/download/php-build-524/PHP-8.2-Linux-x86_64-PM5.tar.gz"
+sha256 = "000fc605878d24be3d6faa6991c0d3a39ae90a0f9ff24d9f4e4722ef823082fc"
+size = 12270982
+executables = ["bin/php7/bin/php"]
+php = "bin/php7/bin/php"
+extension_dir = "bin/php7/lib/php/extensions/no-debug-zts-20220829"

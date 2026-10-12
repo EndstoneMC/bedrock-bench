@@ -17,7 +17,7 @@ source_dir() {
     case "$1" in
         loadbot) echo bots/loadbot ;;
         legacy1001) echo bots/legacy1001 ;;
-        dfbench) echo servers/dragonfly ;;
+        dfbench) echo configs/servers/dragonfly ;;
         *)
             echo "unknown program: $1 (expected one of: ${ALL_PROGRAMS[*]})" >&2
             return 1

@@ -4,16 +4,16 @@
 These servers bring their own world generator, their own config files and a runtime (PHP or a JVM). Their adapters
 are mostly data; this module holds the machinery they share.
 
-- **Artifacts.** The server's own release (a phar or a jar) is pinned in ``artifacts/<server>.toml`` and its runtime
-  in ``artifacts/runtimes.toml``; both are verified by sha256. An install has two parts: ``server/``, copied into
-  every run's fresh server directory, and ``defaults/``, the config files the server would write on its first start,
-  extracted from the release itself so they always match the pinned version. Runtimes are unpacked once into the cache
-  and used in place, read-only.
-- **Configs.** ``servers/<server>/config.toml`` lists every value the harness writes, file by file, in the table of
-  its override category, with the server's default and the reason. Prepare starts from the shipped default file when
-  there is one (or an empty file, which the server completes with its built-in defaults) and sets those values. A
-  value that differs from the default becomes an :class:`~bedrock_bench.model.Override`; every value is read back
-  after the run.
+- **Artifacts.** The server's own release (a phar or a jar) is pinned in ``configs/servers/<server>/server.toml`` and
+  its runtime in ``configs/servers/runtimes.toml``; both are verified by sha256. An install has two parts:
+  ``server/``, copied into every run's fresh server directory, and ``defaults/``, the config files the server would
+  write on its first start, extracted from the release itself so they always match the pinned version. Runtimes are
+  unpacked once into the cache and used in place, read-only.
+- **Configs.** The ``[config]`` table of ``configs/servers/<server>/server.toml`` lists every value the harness
+  writes, file by file, in the table of its override category, with the server's default and the reason. Prepare
+  starts from the shipped default file when there is one (or an empty file, which the server completes with its
+  built-in defaults) and sets those values. A value that differs from the default becomes an
+  :class:`~bedrock_bench.model.Override`; every value is read back after the run.
 - **Helpers.** Small plugins add what a console lacks: a tick counter and player positions, printed as
   ``Gametime is N`` and ``positions: N`` followed by one ``position: <name> <x> <y> <z> <dim>`` line per player.
 - :class:`JavaServer` adds the JVM: a fixed heap from the machine profile, UTF-8 console streams and the tick thread,
@@ -240,7 +240,7 @@ def same_value(written: str, found: str | None) -> bool:
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# servers/<server>/config.toml
+# The [config] table of configs/servers/<server>/server.toml
 # --------------------------------------------------------------------------------------------------------------------
 
 FORMATS = ("properties", "yaml")
@@ -292,25 +292,23 @@ class ConfigPlan:
 
 
 def load_config_plan(path: Path, *, variants: Iterable[str] = ()) -> ConfigPlan:
-    """Read ``servers/<server>/config.toml``.
+    """Read the ``[config]`` table of ``configs/servers/<server>/server.toml``.
 
-    ``[file."<path>"]`` tables name each file and its ``format``; their sub-tables, one per override category, hold
-    ``key = { value, reason, default?, type?, variants?, skip_variants? }`` entries.
+    ``[config.file."<path>"]`` tables name each file and its ``format``; their sub-tables, one per override category,
+    hold ``key = { value, reason, default?, type?, variants?, skip_variants? }`` entries.
     """
     known_variants = frozenset(variants)
-    data = config.load_toml(path)
-    if data.get("schema") != 1:
-        raise ConfigError("only schema = 1 is supported", file=path, key="schema")
-    unknown = sorted(set(data) - {"schema", "file"})
+    _, data = config.load_server_table(path, "config")
+    unknown = sorted(set(data) - {"file"})
     if unknown:
-        raise ConfigError(f"unknown keys {unknown}", file=path)
+        raise ConfigError(f"unknown keys {unknown}", file=path, key="config")
     files = data.get("file")
     if not isinstance(files, dict) or not files:
-        raise ConfigError('needs at least one [file."<path>"] table', file=path, key="file")
+        raise ConfigError('needs at least one [config.file."<path>"] table', file=path, key="config.file")
     formats: dict[str, str] = {}
     pins: list[ConfigPin] = []
     for name, table in files.items():
-        where = f'file."{name}"'
+        where = f'config.file."{name}"'
         if not isinstance(table, dict):
             raise ConfigError("must be a table", file=path, key=where)
         if not name or name.startswith(("/", "\\")) or ".." in PurePosixPath(name).parts:
@@ -539,7 +537,7 @@ def extract_archive(archive: Path, dest: Path, *, executables: Iterable[str] = (
 class Runtime:
     """A verified runtime (a JDK or a PHP build) unpacked in the cache."""
 
-    key: str  # version key in artifacts/runtimes.toml
+    key: str  # version key in configs/servers/runtimes.toml
     root: Path
     tree_sha256: str
     artifact: ArtifactRef
@@ -549,7 +547,7 @@ class Runtime:
         try:
             relative = self.paths[name]
         except KeyError:
-            raise ConfigError(f"runtime {self.key} has no {name!r} entry in artifacts/runtimes.toml") from None
+            raise ConfigError(f"runtime {self.key} has no {name!r} entry in {config.RUNTIMES_FILE}") from None
         return self.root / Path(*PurePosixPath(relative).parts)
 
 
@@ -562,11 +560,11 @@ def runtime_platform() -> str:
 
 
 def fetch_runtime(cache: Cache, key: str, platform: str) -> Runtime:
-    """Verify and unpack a runtime from ``artifacts/runtimes.toml`` (``[version."<key>".<platform>]``).
+    """Verify and unpack a runtime from ``configs/servers/runtimes.toml`` (``[artifacts.version."<key>".<platform>]``).
 
     Platform tables may name paths inside the archive besides the download keys (``java = "jdk-21/bin/java"``).
     """
-    catalog = config.load_artifacts("runtimes")
+    catalog = config.load_artifacts(config.project_root() / config.RUNTIMES_FILE)
     try:
         spec = catalog.get(key, platform)
     except KeyError as exc:
@@ -581,7 +579,7 @@ def fetch_runtime(cache: Cache, key: str, platform: str) -> Runtime:
 def fetch_release(
     cache: Cache, server: str, version: str, *, artifact: Path | None = None
 ) -> tuple[Path, ArtifactRef, ArtifactVersion | None]:
-    """The verified server release file (``[version."<v>".any]`` in ``artifacts/<server>.toml``), or a local one.
+    """The verified server release file (``[artifacts.version."<v>".any]`` in its server file), or a local one.
 
     Also returns the version's table, whose plain keys (runtime, commit, protocol, ...) the adapter reads; it is None
     for a local artifact of a version that is not pinned.
@@ -694,13 +692,14 @@ class StandaloneServer(ServerAdapter):
     server_file: ClassVar[str]
     #: Generator recorded in run.json (one of model.GENERATORS).
     generator: ClassVar[str] = "custom"
-    #: Path of the config plan, relative to the project root; defaults to ``servers/<name>/config.toml``.
+    #: File whose ``[config]`` table is the config plan, relative to the project root; defaults to
+    #: ``configs/servers/<name>/server.toml``.
     config_template: ClassVar[str]
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
         if "name" in cls.__dict__ and "config_template" not in cls.__dict__:
-            cls.config_template = f"servers/{cls.name}/config.toml"
+            cls.config_template = f"configs/servers/{cls.name}/server.toml"
 
     def config_plan(self) -> ConfigPlan:
         return load_config_plan(config.project_root() / self.config_template, variants=self.variants)

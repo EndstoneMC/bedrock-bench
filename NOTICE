@@ -15,9 +15,9 @@ Published result datasets under published/ are licensed under Creative Commons A
 Third-party software
 --------------------------------------------------------------------------------------------------------------------
 
-The load bots (bots/) are built against gophertunnel and go-raknet. Patches to gophertunnel in bots/patches/ are
-derived from gophertunnel and remain under its MIT license. The Dragonfly helper (servers/dragonfly/) is built against
-Dragonfly. Release binaries of the bots and the helper contain code from these projects and from their own module
+The load bots (bots/) are built against gophertunnel and go-raknet. The gophertunnel patch in bots/legacy1001/ is
+derived from gophertunnel and remains under its MIT license. The Dragonfly helper (configs/servers/dragonfly/) is built
+against Dragonfly. Release binaries of the bots and the helper contain code from these projects and from their own module
 dependencies; `go version -m <binary>` lists every module compiled into a binary.
 
 gophertunnel - https://github.com/Sandertv/gophertunnel
@@ -97,5 +97,5 @@ psutil - https://github.com/giampaolo/psutil
     A runtime dependency of the Python package, installed from PyPI and not distributed with this repository.
     BSD 3-Clause License, Copyright (c) 2009, Jay Loden, Dave Daeschler, Giampaolo Rodola.
 
-The helper plugins under servers/pocketmine/ and servers/nukkit/ are Apache-2.0 source files. They are compiled or
+The helper plugins under configs/servers/pocketmine/ and configs/servers/nukkit/ are Apache-2.0 source files. They are compiled or
 loaded locally against PocketMine-MP (LGPL-3.0) and Nukkit (GPL-3.0), which this repository does not contain.

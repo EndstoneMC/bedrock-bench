@@ -476,23 +476,24 @@ def test_arm_from_ref() -> None:
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# Artifacts
+# Server files
 # --------------------------------------------------------------------------------------------------------------------
 
 SHA = "ab" * 32
 
 ARTIFACTS = toml(
     f"""
+    [artifacts]
     source = "mojang"
 
-    [version."1.26.52.3".windows]
+    [artifacts.version."1.26.52.3".windows]
     url = "https://example.invalid/bin-win/bedrock-server-1.26.52.3.zip"
     sha256 = "{SHA.upper()}"
     size = 123
     executables = ["bedrock_server.exe"]
     eula = "minecraft"
 
-    [version."1.26.52.3".linux]
+    [artifacts.version."1.26.52.3".linux]
     url = "https://example.invalid/bin-linux/bedrock-server-1.26.52.3.zip?x=1"
     sha256 = ""
     size = 0
@@ -500,19 +501,94 @@ ARTIFACTS = toml(
     eula = "minecraft"
     launcher_marker = "1.26.52.3"
 
-    [version."0.11.14"]
+    [artifacts.version."0.11.14"]
     bds = "1.26.52.3"
-    [version."0.11.14".any]
+    [artifacts.version."0.11.14".any]
     url = "https://example.invalid/endstone.whl"
     sha256 = "{SHA}"
     source = "pypi"
     """
 )
 
+FEATURES = toml(
+    """
+    [features.range."5.44"]
+    fidelity = "V1"
+    "terrain.vanilla_generator" = { class = "absent", evidence = "https://example.invalid/pm", note = "own generator" }
+    "chunks.client_side_generation" = { class = "absent", observed_by = "csg_effective" }
+    "entity.mob_ai" = { class = "unknown" }
+
+    [features.range."5"]
+    fidelity = "V2"
+    "player.physics" = { class = "partial", evidence = "https://example.invalid/physics" }
+
+    [features.range."*"]
+    fidelity = "V0"
+    """
+)
+
+CONFIG = toml(
+    """
+    [config]
+    file = "server.properties"
+
+    [config.harness]
+    online-mode = { value = "false", reason = "offline bots" }
+    """
+)
+
+
+def server_file(name: str, body: str, head: str = "schema = 1\n") -> str:
+    return head + f'server = "{name}"\n' + body
+
+
+class TestServerFile:
+    def test_bare_name(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, write_file) -> None:
+        monkeypatch.setenv("BBENCH_ROOT", str(tmp_path))
+        path = write_file("configs/servers/bds/server.toml", server_file("bds", ARTIFACTS + FEATURES + CONFIG))
+        write_file("configs/servers/runtimes.toml", "schema = 1\n" + ARTIFACTS)
+        assert config.resolve("servers", "bds") == path.resolve()
+        assert config.available("servers") == ["bds"]
+        assert config.load_artifacts("bds").server == "bds"
+        assert config.load_features("bds").server == "bds"
+        file, table = config.load_server_table("bds", "config")
+        assert file == path.resolve() and table["harness"]["online-mode"]["value"] == "false"
+        runtimes = config.load_artifacts(tmp_path / config.RUNTIMES_FILE)
+        assert runtimes.server == "runtimes" and "0.11.14" in runtimes.versions
+        with pytest.raises(ConfigError, match=r"no such server file \(available: bds\)"):
+            config.load_artifacts("nukkit")
+
+    def test_features_hash_covers_the_table_only(self, write_file) -> None:
+        base = config.load_features(write_file("a/x/server.toml", server_file("x", FEATURES)))
+        other = config.load_features(write_file("b/x/server.toml", "# note\n" + server_file("x", ARTIFACTS + FEATURES)))
+        edited = FEATURES.replace('fidelity = "V0"', 'fidelity = "V2"')
+        changed = config.load_features(write_file("c/x/server.toml", server_file("x", edited)))
+        assert base.sha256 == other.sha256 != changed.sha256
+
+    @pytest.mark.parametrize(
+        ("text", "message"),
+        [
+            (server_file("y", FEATURES), r"server: must match the folder name 'x'"),
+            (server_file("x", FEATURES, head="schema = 2\n"), r"schema: only schema = 1 is supported"),
+            (server_file("x", FEATURES, head=""), r"schema: is required"),
+            (server_file("x", ARTIFACTS), r"features: is required"),
+            (server_file("x", FEATURES + "[parity]\n"), r"parity: unknown key"),
+            (server_file("x", 'features = "none"\n'), r"features: expected a table"),
+        ],
+    )
+    def test_rejects(self, write_file, text: str, message: str) -> None:
+        with pytest.raises(ConfigError, match=message):
+            config.load_features(write_file("x/server.toml", text))
+
+    def test_error_names_the_table(self, write_file) -> None:
+        body = ARTIFACTS.replace("size = 123", 'size = "123"')
+        with pytest.raises(ConfigError, match=r'artifacts\.version\.".+"\.windows\.size: expected an integer'):
+            config.load_artifacts(write_file("x/server.toml", server_file("x", body)))
+
 
 class TestArtifacts:
     def test_load(self, write_file) -> None:
-        catalog = config.load_artifacts(write_file("artifacts/bds.toml", ARTIFACTS))
+        catalog = config.load_artifacts(write_file("servers/bds/server.toml", server_file("bds", ARTIFACTS)))
         assert catalog.server == "bds" and set(catalog.versions) == {"1.26.52.3", "0.11.14"}
         win = catalog.get("1.26.52.3", "windows")
         assert win.sha256 == SHA and win.size == 123 and win.executables == ("bedrock_server.exe",)
@@ -542,43 +618,14 @@ class TestArtifacts:
         with pytest.raises(ConfigError, match=message):
             config.parse_artifacts({"version": {"1.0": {"windows": entry}}}, server="x")
 
-    def test_server_must_match(self) -> None:
-        with pytest.raises(ConfigError, match="must match the file name"):
-            config.parse_artifacts({"server": "y", "version": {"1": {"any": {"url": "https://a/b"}}}}, server="x")
-
     def test_version_needs_platforms(self) -> None:
         with pytest.raises(ConfigError, match="no platform tables"):
             config.parse_artifacts({"version": {"1": {"bds": "1"}}}, server="x")
 
 
-# --------------------------------------------------------------------------------------------------------------------
-# Features
-# --------------------------------------------------------------------------------------------------------------------
-
-FEATURES = toml(
-    """
-    schema = 1
-    server = "pocketmine"
-
-    [range."5.44"]
-    fidelity = "V1"
-    "terrain.vanilla_generator" = { class = "absent", evidence = "https://example.invalid/pm", note = "own generator" }
-    "chunks.client_side_generation" = { class = "absent", observed_by = "csg_effective" }
-    "entity.mob_ai" = { class = "unknown" }
-
-    [range."5"]
-    fidelity = "V2"
-    "player.physics" = { class = "partial", evidence = "https://example.invalid/physics" }
-
-    [range."*"]
-    fidelity = "V0"
-    """
-)
-
-
 class TestFeatures:
     def test_load_and_row(self, write_file) -> None:
-        f = config.load_features(write_file("features/pocketmine.toml", FEATURES))
+        f = config.load_features(write_file("servers/pocketmine/server.toml", server_file("pocketmine", FEATURES)))
         assert f.server == "pocketmine" and len(f.ranges) == 3
         row = f.row("5.44.3")
         assert row is not None and row.prefix == "5.44" and row.fidelity is Fidelity.V1
@@ -592,7 +639,7 @@ class TestFeatures:
         assert f.row("6.0").prefix == "*"
 
     def test_no_match(self) -> None:
-        f = config.parse_features({"schema": 1, "range": {"1": {"fidelity": "V0"}}}, server="x")
+        f = config.parse_features({"range": {"1": {"fidelity": "V0"}}}, server="x")
         assert f.row("2.0") is None
 
     @pytest.mark.parametrize(
@@ -609,11 +656,7 @@ class TestFeatures:
     )
     def test_rejects(self, rng: dict, message: str) -> None:
         with pytest.raises(ConfigError, match=message):
-            config.parse_features({"schema": 1, "range": {"1.0": rng}}, server="x")
-
-    def test_schema_version(self) -> None:
-        with pytest.raises(ConfigError, match="only schema = 1"):
-            config.parse_features({"schema": 2, "range": {"1": {"fidelity": "V0"}}}, server="x")
+            config.parse_features({"range": {"1.0": rng}}, server="x")
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -684,7 +727,7 @@ class TestResolve:
         with pytest.raises(ConfigError, match=r"no such scenario \(available: smoke\)"):
             config.resolve("scenarios", "spread100")
 
-    @pytest.mark.parametrize("kind", ["worlds", "machines", "claims"])
+    @pytest.mark.parametrize("kind", ["worlds", "machines", "claims", "artifacts", "features"])
     def test_unknown_kind(self, kind: str) -> None:
         with pytest.raises(ValueError):
             config.resolve(kind, "x")

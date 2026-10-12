@@ -237,7 +237,7 @@ class ServerAdapter(abc.ABC):
     """Base class of every server adapter.
 
     A concrete subclass that declares ``name`` is registered automatically (see ``adapters/__init__.py``).
-    ``features_file`` defaults to ``features/<name>.toml``.
+    ``features_file`` defaults to ``configs/servers/<name>/server.toml``.
     """
 
     name: ClassVar[str]
@@ -255,7 +255,7 @@ class ServerAdapter(abc.ABC):
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
         if "name" in cls.__dict__ and "features_file" not in cls.__dict__:
-            cls.features_file = f"features/{cls.name}.toml"
+            cls.features_file = f"configs/servers/{cls.name}/server.toml"
 
     def __init__(self, arm: Arm, machine: Machine) -> None:
         if arm.variant is not None and arm.variant not in self.variants:

@@ -13,7 +13,7 @@ package.
 | `bench.py` | `FakeBench`: a temporary workspace that runs `bbench` against the fakes. |
 | `scenarios/fake-quick.toml` | Four bots, every phase scaled down to seconds. |
 | `scripts/*.json` | Behaviour scripts. Each one is also a variant of every fake adapter. |
-| `features/*.toml` | Declared parity of the fake adapters: V0 for the BDS family, V1 with absent features for the rest. |
+| `servers/*/server.toml` | Declared parity of the fake adapters: V0 for the BDS family, V1 with absent features for the rest. |
 | `test_fakes.py` | Self-tests of all of the above. |
 
 ## Console families
@@ -97,7 +97,7 @@ assert run.exit_code == 4
 
 - `PYTHONPATH` gets `tests/` and a throwaway `.dist-info` folder. The folder registers `fakes.fake_adapter` under the
   `bedrock_bench.adapters` entry point group, the way a third-party adapter package registers.
-- `BBENCH_ROOT` points at the workspace, which holds copies of `features/` and `configs/scenarios/` plus the
+- `BBENCH_ROOT` points at the workspace, which holds copies of `configs/servers/` and `configs/scenarios/` plus the
   generated machine profiles and `configs/matrices/`.
 - `BBENCH_CACHE` points into the workspace.
 - `BBENCH_BOT_CMD` is a JSON array, the argv prefix that runs `fake_bots.py` in place of the loadbot binary.

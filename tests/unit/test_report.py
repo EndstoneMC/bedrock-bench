@@ -307,7 +307,7 @@ class TestRender:
         assert refs == set(definitions) and len(definitions) == len(set(definitions))
         assert definitions == [str(i) for i in range(1, len(definitions) + 1)]
         assert "Rescue override: `pocketmine.yml` `memory.main-limit` = `0` (default `1024`)" in markdown
-        assert "Known issue `devtools_spin` affects this build; see docs/servers/endstone.md." in markdown
+        assert "Known issue `devtools_spin` affects this build; see configs/servers/endstone/README.md." in markdown
         assert "It is not MSPT" in markdown
 
     def test_parity_and_work(self, markdown: str) -> None:

@@ -37,7 +37,7 @@ class TestFlagText:
 
     def test_parameters(self) -> None:
         text = flag_text("known_issue:devtools_spin", count=3, total=3, arm=ARM)
-        assert "`devtools_spin`" in text and "docs/servers/endstone.md" in text
+        assert "`devtools_spin`" in text and "configs/servers/endstone/README.md" in text
         assert "`player.physics`" in flag_text("parity_mismatch:player.physics", count=1, total=1, arm=ARM)
         assert "1.26.52.3" in flag_text("different_bds_build", count=1, total=1, arm=ARM)
 

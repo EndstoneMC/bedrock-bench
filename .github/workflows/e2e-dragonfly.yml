@@ -8,10 +8,8 @@ on:
     paths:
       - bedrock_bench/**
       - bots/**
-      - servers/dragonfly/**
+      - configs/servers/dragonfly/**
       - configs/scenarios/smoke.toml
-      - artifacts/dragonfly.toml
-      - features/dragonfly.toml
       - pyproject.toml
       - uv.lock
       - .github/ci-machine.toml
@@ -20,10 +18,8 @@ on:
     paths:
       - bedrock_bench/**
       - bots/**
-      - servers/dragonfly/**
+      - configs/servers/dragonfly/**
       - configs/scenarios/smoke.toml
-      - artifacts/dragonfly.toml
-      - features/dragonfly.toml
       - pyproject.toml
       - uv.lock
       - .github/ci-machine.toml
@@ -56,7 +52,7 @@ jobs:
           go-version-file: bots/loadbot/go.mod
           cache-dependency-path: |
             bots/*/go.sum
-            servers/dragonfly/go.sum
+            configs/servers/dragonfly/go.sum
       - name: Pinned Dragonfly version
         run: |
           version=$(uv run python -c 'from bedrock_bench.config import load_artifacts; print(list(load_artifacts("dragonfly").versions)[-1])')

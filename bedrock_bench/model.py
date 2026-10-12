@@ -91,7 +91,7 @@ class Availability(StrEnum):
 
 
 class FeatureClass(StrEnum):
-    """Declared parity of one feature against vanilla BDS (``features/<server>.toml``)."""
+    """Declared parity of one feature against vanilla BDS, from a server file's ``[features]`` table."""
 
     VANILLA = "vanilla"
     PARTIAL = "partial"
@@ -189,7 +189,7 @@ DIFFICULTIES = ("peaceful", "easy", "normal", "hard")
 GAMEMODES = ("survival", "creative", "adventure")
 ARTIFACT_SOURCES = ("mojang", "pypi", "github", "maven", "web", "build", "local")
 
-#: Feature keys of the parity matrix (``features/README.md``). New keys are added here and in the README together.
+#: Feature keys of the parity matrix (docs/methodology.md#fairness-and-feature-parity); add new keys in both places.
 FEATURE_KEYS = frozenset(
     {
         "terrain.vanilla_generator",
@@ -428,7 +428,7 @@ class Placement:
 
 @dataclass(frozen=True)
 class ArtifactSpec:
-    """One pinned download from ``artifacts/<server>.toml``. ``extra`` holds adapter-specific keys."""
+    """One pinned download from a server file's ``[artifacts]`` table. ``extra`` holds adapter-specific keys."""
 
     name: str
     url: str

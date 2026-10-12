@@ -1,14 +1,14 @@
 # SPDX-License-Identifier: Apache-2.0
 """PowerNukkitX, a Nukkit fork with vanilla-like gameplay, run from its release jar on the pinned JDK.
 
-Fetch: ``powernukkitx.jar`` from ``artifacts/powernukkitx.toml`` and the JDK from ``artifacts/runtimes.toml``. No
-helper plugin: ``time query gametime`` prints the tick counter, and positions come from the bots, because
-PowerNukkitX has no ``querytarget``.
+Fetch: ``powernukkitx.jar`` from ``configs/servers/powernukkitx/server.toml`` and the JDK from
+``configs/servers/runtimes.toml``. No helper plugin: ``time query gametime`` prints the tick counter, and positions
+come from the bots, because PowerNukkitX has no ``querytarget``.
 
 Prepare writes ``pnx.yml`` with the benchmark's values (PowerNukkitX completes and rewrites it on start) and
 ``worlds/<level>/config.json`` with the scenario seed, which PowerNukkitX reads only from there. Launch:
 ``java -Xms<heap> -Xmx<heap> -jar powernukkitx.jar``. Like Nukkit, it derives a player's UUID from the XUID, so the
-bots get ``-fake-xuid``. See docs/servers/powernukkitx.md.
+bots get ``-fake-xuid``. See configs/servers/powernukkitx/README.md.
 """
 
 from __future__ import annotations
@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     from bedrock_bench.cache import Cache
 
 JAR = "powernukkitx.jar"
-WORLD_CONFIG_TEMPLATE = "servers/powernukkitx/world-config.json"
+WORLD_CONFIG_TEMPLATE = "configs/servers/powernukkitx/world-config.json"
 DEFAULT_RUNTIME = "jdk-21.0.12.1"
 
 #: ``13:58:00 [main] [INFO] text`` with the thread name; log4j's own start-up warning is

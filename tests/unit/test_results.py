@@ -201,8 +201,8 @@ class TestRecord:
 class TestParity:
     def test_row_covers_every_exercised_feature(self, write_file: Callable[[str, str], Path]) -> None:
         path = write_file(
-            "features/x.toml",
-            'schema = 1\nserver = "x"\n[range."1.2"]\nfidelity = "V1"\n'
+            "servers/x/server.toml",
+            'schema = 1\nserver = "x"\n[features.range."1.2"]\nfidelity = "V1"\n'
             '"player.physics" = { class = "absent", observed_by = "airborne_frac_steady" }\n'
             '"block.redstone" = { class = "vanilla", evidence = "https://example.org" }\n',
         )
@@ -218,8 +218,8 @@ class TestParity:
 
     def test_no_matching_range(self, write_file: Callable[[str, str], Path]) -> None:
         path = write_file(
-            "features/x.toml",
-            'schema = 1\nserver = "x"\n[range."2"]\nfidelity = "V0"\n'
+            "servers/x/server.toml",
+            'schema = 1\nserver = "x"\n[features.range."2"]\nfidelity = "V0"\n'
             '"player.physics" = { class = "vanilla", evidence = "https://example.org" }\n',
         )
         parity = results.parity_record(path, "1.0", SCENARIO)
@@ -227,15 +227,15 @@ class TestParity:
         assert set(parity["row"].values()) == {"unknown"}
 
     def test_missing_file(self, tmp_path: Path) -> None:
-        parity = results.parity_record(tmp_path / "features" / "none.toml", "1.0", SCENARIO)
+        parity = results.parity_record(tmp_path / "servers" / "none" / "server.toml", "1.0", SCENARIO)
         assert parity["file_sha256"] is None
         assert parity["does_less"] == list(SCENARIO.exercises)
 
     def test_relative_paths_resolve_in_the_checkout(self) -> None:
-        parity = results.parity_record("features/bds.toml", "1.26.52.3", load_scenario("spread100"))
+        parity = results.parity_record("configs/servers/bds/server.toml", "1.26.52.3", load_scenario("spread100"))
         assert parity["file_sha256"] is not None
         assert parity["fidelity"] == "V0"
-        assert (project_root() / "features" / "bds.toml").is_file()
+        assert (project_root() / "configs" / "servers" / "bds" / "server.toml").is_file()
 
 
 class TestInterference:

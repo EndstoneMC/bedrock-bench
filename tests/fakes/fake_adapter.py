@@ -49,7 +49,7 @@ FAKES_DIR = Path(__file__).resolve().parent
 SERVER_SCRIPT = FAKES_DIR / "fake_server.py"
 BOTS_SCRIPT = FAKES_DIR / "fake_bots.py"
 SCRIPTS_DIR = FAKES_DIR / "scripts"
-FEATURES_DIR = FAKES_DIR / "features"
+SERVERS_DIR = FAKES_DIR / "servers"
 
 #: Category and reason of every config key ``prepare`` may change.
 CONFIG_KEYS: Mapping[str, tuple[OverrideCategory, str]] = {
@@ -257,7 +257,7 @@ class FakeAdapter(ServerAdapter):
             family = FAMILIES[cls.family]
             cls.dialect = dialect_for(family)
             cls.supports_csg = family.supports_csg
-            cls.features_file = str(FEATURES_DIR / f"{cls.name}.toml")
+            cls.features_file = str(SERVERS_DIR / cls.name / "server.toml")
 
     @property
     def server_family(self) -> Family:
