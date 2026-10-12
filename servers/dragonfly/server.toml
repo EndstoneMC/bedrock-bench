@@ -21,6 +21,7 @@ source = "web"
 # Latest commit on master when the cross-server runs were set up (2026-09-20).
 [artifacts.version."1793369"]
 commit = "1793369709ceed934675d69e86ff6c828e4216c8"
+protocol = 2193
 
 [artifacts.version."1793369".any]
 name = "dragonfly-v0.11.6-0.20260920163020-1793369709ce.zip"

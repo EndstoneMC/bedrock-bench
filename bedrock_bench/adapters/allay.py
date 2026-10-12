@@ -108,7 +108,6 @@ ALLAY_DIALECT = Dialect(
 class AllayAdapter(JavaServer):
     name: ClassVar[str] = "allay"
     platforms: ClassVar[frozenset[str]] = frozenset({"windows", "linux"})
-    protocol: ClassVar[int] = 1001
     dialect: ClassVar[Dialect] = ALLAY_DIALECT
     server_file: ClassVar[str] = JAR
     generator: ClassVar[str] = "flat"

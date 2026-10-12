@@ -98,7 +98,7 @@ class TestContract:
     def test_registered(self) -> None:
         assert adapters.get("powernukkitx") is PowerNukkitXAdapter
         assert PowerNukkitXAdapter.class_problems() == []
-        assert PowerNukkitXAdapter.protocol == 2193 and not PowerNukkitXAdapter.supports_csg
+        assert not PowerNukkitXAdapter.supports_csg
         assert PowerNukkitXAdapter.bot_compat_flags == ("-fake-xuid",)
         assert PowerNukkitXAdapter.tick_thread_rule == "java_main"
 

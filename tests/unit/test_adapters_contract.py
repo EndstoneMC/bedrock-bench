@@ -21,7 +21,7 @@ from typing import Any
 
 import pytest
 
-from bedrock_bench import adapters, config
+from bedrock_bench import adapters, bots, config
 from bedrock_bench.adapters import AdapterError
 from bedrock_bench.adapters.base import (
     ALLOWED_COMPAT,
@@ -30,6 +30,7 @@ from bedrock_bench.adapters.base import (
     apply_tick_rule,
     check_tick_rule,
     format_coord,
+    pinned_protocol,
     quote_player,
 )
 from bedrock_bench.adapters.bdsfamily import BdsFamily
@@ -43,8 +44,7 @@ from fakes.fake_adapter import FAKE_ADAPTERS, FakeAdapter, FakeBds
 ROOT = project_root()
 FIXTURE_LOGS = ROOT / "tests" / "fixtures" / "logs"
 
-#: Protocols with a bot build: 2193 -> bots/loadbot, 1001 -> bots/legacy1001.
-BOT_PROTOCOLS = frozenset({2193, 1001})
+BOT_PROTOCOLS = frozenset(bots.MODULE_PROTOCOLS.values())
 FAKE_VERSION = "1.0.0"
 PLAYER = "a07"
 
@@ -134,8 +134,21 @@ def iter_commands(value: Any) -> Iterator[str]:
 def test_class_attributes(cls: type[ServerAdapter]) -> None:
     assert not inspect.isabstract(cls)
     assert cls.class_problems() == []
-    assert cls.protocol in BOT_PROTOCOLS, f"no bot build speaks protocol {cls.protocol}"
     assert isinstance(cls.dialect, Dialect)
+
+
+@every_adapter
+def test_pinned_versions_speak_a_bot_protocol(cls: type[ServerAdapter]) -> None:
+    for version in pinned_versions(cls):
+        protocol = cls(config.arm_from_ref(f"{cls.name}@{version}"), config.default_machine()).protocol
+        assert protocol in BOT_PROTOCOLS, f"{cls.name}@{version}: no bot build speaks protocol {protocol}"
+
+
+@real_adapters
+def test_bds_hosted_versions_speak_their_bds_protocol(cls: type[ServerAdapter]) -> None:
+    for version, entry in config.load_artifacts(cls.name).versions.items():
+        if "bds" in entry.meta:
+            assert pinned_protocol(cls.name, version) == pinned_protocol("bds", entry.meta["bds"]), version
 
 
 @real_adapters

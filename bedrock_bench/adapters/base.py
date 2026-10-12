@@ -74,6 +74,18 @@ def quote_player(name: str) -> str:
     return f'"{name}"' if " " in name else name
 
 
+def pinned_protocol(server: str, version: str) -> int:
+    """``protocol`` in the version table of ``servers/<server>/server.toml``."""
+    catalog = config.load_artifacts(server)
+    entry = catalog.versions.get(version)
+    if entry is None:
+        raise config.ConfigError(f"{server} {version} is not pinned, so its protocol is unknown", file=catalog.path)
+    protocol = entry.meta.get("protocol")
+    if not isinstance(protocol, int) or isinstance(protocol, bool) or protocol <= 0:
+        raise config.ConfigError(f'version "{version}" needs protocol = <network protocol>', file=catalog.path)
+    return protocol
+
+
 # --------------------------------------------------------------------------------------------------------------------
 # Console dialect
 # --------------------------------------------------------------------------------------------------------------------
@@ -202,7 +214,6 @@ class ServerAdapter(abc.ABC):
 
     name: ClassVar[str]
     platforms: ClassVar[frozenset[str]]  # subset of {"windows", "linux"}
-    protocol: ClassVar[int]  # network protocol; selects the bot build (2193 -> loadbot, 1001 -> legacy1001)
     bot_compat_flags: ClassVar[tuple[str, ...]] = ()  # subset of ALLOWED_COMPAT
     supports_csg: ClassVar[bool] = False
     dialect: ClassVar[Dialect]
@@ -216,6 +227,11 @@ class ServerAdapter(abc.ABC):
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self.arm.id!r})"
 
+    @property
+    def protocol(self) -> int:
+        """The network protocol of this version; it selects the bot build."""
+        return pinned_protocol(self.name, self.arm.version)
+
     @classmethod
     def class_problems(cls) -> list[str]:
         """Contract violations in the class attributes; empty when the adapter is well formed."""
@@ -226,9 +242,6 @@ class ServerAdapter(abc.ABC):
         platforms = getattr(cls, "platforms", None)
         if not isinstance(platforms, frozenset) or not platforms or not platforms <= set(PLATFORMS):
             problems.append(f"platforms must be a non-empty frozenset of {PLATFORMS}, got {platforms!r}")
-        protocol = getattr(cls, "protocol", None)
-        if not isinstance(protocol, int) or isinstance(protocol, bool) or protocol <= 0:
-            problems.append(f"protocol must be a positive int, got {protocol!r}")
         extra_flags = set(cls.bot_compat_flags) - ALLOWED_COMPAT
         if extra_flags:
             problems.append(f"bot_compat_flags outside the allowlist {sorted(ALLOWED_COMPAT)}: {sorted(extra_flags)}")

@@ -338,7 +338,8 @@ def project(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     (src / "main.go").write_text("package main\n\nfunc main() {}\n")
     settings = (ROOT / dragonfly.SETTINGS_FILE).read_text(encoding="utf-8")
     (root / dragonfly.SETTINGS_FILE).write_text(
-        f'schema = 1\nserver = "dragonfly"\n\n[artifacts]\nsource = "web"\n\n[artifacts.version."{VERSION}".any]\n'
+        f'schema = 1\nserver = "dragonfly"\n\n[artifacts]\nsource = "web"\n\n'
+        f'[artifacts.version."{VERSION}"]\nprotocol = 2193\n\n[artifacts.version."{VERSION}".any]\n'
         f'url = "https://proxy.golang.org/{MODULE}/@v/{MODULE_VERSION}.zip"\n'
         f'sha256 = "{hashlib.sha256(b"module zip").hexdigest()}"\nsize = {len(b"module zip")}\n'
         f'module = "{MODULE}"\nmodule_version = "{MODULE_VERSION}"\ngo_sum = "{go_sum}"\n\n'

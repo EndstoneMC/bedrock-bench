@@ -92,7 +92,6 @@ PMMP_DIALECT = Dialect(
 class PocketMineAdapter(StandaloneServer):
     name: ClassVar[str] = "pocketmine"
     platforms: ClassVar[frozenset[str]] = frozenset({"windows", "linux"})
-    protocol: ClassVar[int] = 1001
     dialect: ClassVar[Dialect] = PMMP_DIALECT
     tick_thread_rule: ClassVar[str] = "first_created"
     crash_paths: ClassVar[tuple[str, ...]] = ("crashdumps",)

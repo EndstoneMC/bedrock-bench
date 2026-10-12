@@ -98,7 +98,6 @@ PNX_DIALECT = PnxDialect(
 class PowerNukkitXAdapter(JavaServer):
     name: ClassVar[str] = "powernukkitx"
     platforms: ClassVar[frozenset[str]] = frozenset({"windows", "linux"})
-    protocol: ClassVar[int] = 2193
     bot_compat_flags: ClassVar[tuple[str, ...]] = ("-fake-xuid",)
     dialect: ClassVar[Dialect] = PNX_DIALECT
     server_file: ClassVar[str] = JAR

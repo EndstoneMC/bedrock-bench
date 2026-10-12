@@ -377,7 +377,6 @@ def build_chorusbench(cargo: str, src: Path, pin: SourcePin, out_dir: Path, *, v
 class ChorusAdapter(ServerAdapter):
     name: ClassVar[str] = "chorus"
     platforms: ClassVar[frozenset[str]] = frozenset({"windows", "linux"})
-    protocol: ClassVar[int] = 2193
     dialect: ClassVar[Dialect] = CHORUS_DIALECT
     tick_thread_rule: ClassVar[str] = "first_created"
     crash_paths: ClassVar[tuple[str, ...]] = ("logs",)

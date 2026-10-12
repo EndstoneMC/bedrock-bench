@@ -144,7 +144,7 @@ class TestDialect:
     def test_registered(self) -> None:
         assert adapters.get("chorus") is ChorusAdapter
         assert ChorusAdapter.class_problems() == []
-        assert ChorusAdapter.protocol == 2193 and not ChorusAdapter.supports_csg
+        assert not ChorusAdapter.supports_csg
         assert ChorusAdapter.bot_compat_flags == ()
         assert ChorusAdapter.tick_thread_rule == "first_created"
 

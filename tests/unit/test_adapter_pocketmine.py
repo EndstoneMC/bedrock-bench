@@ -122,7 +122,7 @@ class TestContract:
     def test_registered(self) -> None:
         assert adapters.get("pocketmine") is PocketMineAdapter
         assert PocketMineAdapter.class_problems() == []
-        assert PocketMineAdapter.protocol == 1001 and not PocketMineAdapter.supports_csg
+        assert not PocketMineAdapter.supports_csg
         assert PocketMineAdapter.bot_compat_flags == ()
         assert PocketMineAdapter.tick_thread_rule == "first_created"
 

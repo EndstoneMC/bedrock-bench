@@ -111,7 +111,6 @@ class TestContract:
     def test_registered(self) -> None:
         assert adapters.get("altay") is AltayAdapter
         assert AltayAdapter.class_problems() == []
-        assert AltayAdapter.protocol == 2193 and bots.module_for_protocol(AltayAdapter.protocol) == "loadbot"
         assert not AltayAdapter.supports_csg and AltayAdapter.bot_compat_flags == ()
         assert AltayAdapter.tick_thread_rule == "first_created"
         assert AltayAdapter.config_template == "servers/altay/server.toml"
@@ -120,7 +119,8 @@ class TestContract:
 
     def test_pins(self) -> None:
         version = config.load_artifacts("altay").versions["5.44.7"]
-        assert version.meta["protocol"] == AltayAdapter.protocol and version.meta["minecraft"] == "1.26.50"
+        assert bots.module_for_protocol(version.meta["protocol"]) == "loadbot"
+        assert version.meta["minecraft"] == "1.26.50"
         assert len(version.meta["commit"]) == 40
         assert version.meta["runtime"] in config.load_artifacts(ROOT / config.RUNTIMES_FILE).versions
         spec = version.platforms["any"]

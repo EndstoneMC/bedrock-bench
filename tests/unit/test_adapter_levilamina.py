@@ -163,7 +163,6 @@ class TestContract:
         assert adapters.get("levilamina") is LeviLaminaAdapter
         assert LeviLaminaAdapter.class_problems() == []
         assert LeviLaminaAdapter.platforms == frozenset({"windows"})
-        assert LeviLaminaAdapter.protocol == 2193
         assert LeviLaminaAdapter.tick_thread_rule == "lowest_tid_name:MC_SERVER"
         assert "logs/crash" in LeviLaminaAdapter.crash_paths
 
@@ -226,7 +225,7 @@ class TestPins:
         catalog = config.load_artifacts("levilamina")
         assert catalog.server == "levilamina"
         entry = catalog.versions[VERSION]
-        assert dict(entry.meta) == {"bds": BDS_VERSION, "allocator": "mimalloc"}
+        assert entry.meta["bds"] == BDS_VERSION and entry.meta["allocator"] == "mimalloc"
         assert BDS_VERSION in config.load_artifacts("bds").versions
         packages = packages_of(entry, catalog.path)
         assert set(packages) == set(BASE_PACKAGES)

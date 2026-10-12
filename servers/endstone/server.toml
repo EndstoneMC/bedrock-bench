@@ -14,6 +14,7 @@ python = "3.13"
 # this file.
 #
 #   bds             BDS build the release supports; fetched from servers/bds/server.toml
+#   protocol        network protocol of that BDS build
 #   python          CPython used when the arm does not name one
 #   version_marker  what the launcher expects in the server's version.txt (<minor>.<patch> of the BDS build)
 #   known_issues    defects of the release that change measurements; recorded in each run's facts
@@ -22,6 +23,7 @@ source = "pypi"
 
 [artifacts.version."0.11.13"]
 bds = "1.26.52.3"
+protocol = 2193
 python = "3.13"
 version_marker = "26.52"
 known_issues = [
@@ -71,6 +73,7 @@ size = 20474235
 
 [artifacts.version."0.11.14"]
 bds = "1.26.52.3"
+protocol = 2193
 python = "3.13"
 version_marker = "26.52"
 

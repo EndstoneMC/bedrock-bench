@@ -128,7 +128,7 @@ class TestContract:
     def test_registered(self) -> None:
         assert adapters.get("bds") is BdsAdapter
         assert BdsAdapter.class_problems() == []
-        assert BdsAdapter.protocol == 2193 and BdsAdapter.supports_csg
+        assert BdsAdapter.supports_csg
         assert BdsAdapter.bot_compat_flags == ()
 
     def test_dialect_samples(self) -> None:

@@ -71,7 +71,6 @@ NUKKITMOT_DIALECT = Dialect(
 class NukkitMotAdapter(JavaServer):
     name: ClassVar[str] = "nukkitmot"
     platforms: ClassVar[frozenset[str]] = frozenset({"windows", "linux"})
-    protocol: ClassVar[int] = 2193
     dialect: ClassVar[Dialect] = NUKKITMOT_DIALECT
     server_file: ClassVar[str] = JAR
 

@@ -13,6 +13,7 @@ version = "26.51.6"
 # A version table names the BDS build the release depends on and its allocator:
 #
 #   bds        the BDS build in LeviLamina's tooth.json dependencies; fetched from servers/bds/server.toml
+#   protocol   network protocol of that BDS build
 #   allocator  the allocator LeviLamina installs in the server; it is linked into LeviLamina.dll, so it is declared
 #
 # One sub-table per package (windows-<package>) pins its asset and says where its files go, as the package's own
@@ -29,6 +30,7 @@ source = "github"
 
 [artifacts.version."26.51.6"]
 bds = "1.26.51.1"
+protocol = 2193
 allocator = "mimalloc"
 
 [artifacts.version."26.51.6".windows-levilamina]

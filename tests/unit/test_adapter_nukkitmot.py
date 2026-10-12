@@ -141,7 +141,7 @@ class TestContract:
     def test_registered(self) -> None:
         assert adapters.get("nukkitmot") is NukkitMotAdapter
         assert NukkitMotAdapter.class_problems() == []
-        assert NukkitMotAdapter.protocol == 2193 and not NukkitMotAdapter.supports_csg
+        assert not NukkitMotAdapter.supports_csg
         assert NukkitMotAdapter.bot_compat_flags == (), "offline UUIDs come from the name"
         assert NukkitMotAdapter.tick_thread_rule == "java_main"
 

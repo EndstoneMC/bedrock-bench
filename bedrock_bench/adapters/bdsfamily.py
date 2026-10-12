@@ -301,7 +301,6 @@ def fetch_bds(cache: Cache, version: str, platform: str, *, artifact: Path | Non
 class BdsFamily(ServerAdapter):
     """Shared behaviour of BDS-hosted servers. Not registered itself: it has no ``name``."""
 
-    protocol: ClassVar[int] = 2193
     supports_csg: ClassVar[bool] = True
     dialect: ClassVar[Dialect] = BDS_DIALECT
     tick_thread_rule: ClassVar[str] = "lowest_tid_name:MC_SERVER"

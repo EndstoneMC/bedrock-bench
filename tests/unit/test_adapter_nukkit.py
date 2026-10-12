@@ -112,7 +112,7 @@ class TestContract:
     def test_registered(self) -> None:
         assert adapters.get("nukkit") is NukkitAdapter
         assert NukkitAdapter.class_problems() == []
-        assert NukkitAdapter.protocol == 2193 and not NukkitAdapter.supports_csg
+        assert not NukkitAdapter.supports_csg
         assert NukkitAdapter.bot_compat_flags == ("-fake-xuid",)
         assert NukkitAdapter.tick_thread_rule == "java_main"
 

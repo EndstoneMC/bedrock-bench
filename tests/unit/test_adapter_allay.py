@@ -140,7 +140,7 @@ class TestContract:
     def test_registered(self) -> None:
         assert adapters.get("allay") is AllayAdapter
         assert AllayAdapter.class_problems() == []
-        assert AllayAdapter.protocol == 1001 and not AllayAdapter.supports_csg
+        assert not AllayAdapter.supports_csg
         assert AllayAdapter.bot_compat_flags == ()
         assert AllayAdapter.generator == "flat"
         assert AllayAdapter.tick_thread_rule == "name:World Thread #bench"

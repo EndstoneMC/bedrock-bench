@@ -452,7 +452,6 @@ def build_dfbench(
 class DragonflyAdapter(ServerAdapter):
     name: ClassVar[str] = "dragonfly"
     platforms: ClassVar[frozenset[str]] = frozenset({"windows", "linux"})
-    protocol: ClassVar[int] = 2193
     dialect: ClassVar[Dialect] = DRAGONFLY_DIALECT
     tick_thread_rule: ClassVar[str] = "none"
 

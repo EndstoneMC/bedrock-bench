@@ -32,7 +32,6 @@ ALTAY_DIALECT = dataclasses.replace(
 
 class AltayAdapter(PocketMineAdapter):
     name: ClassVar[str] = "altay"
-    protocol: ClassVar[int] = 2193
     dialect: ClassVar[Dialect] = ALTAY_DIALECT
     server_file: ClassVar[str] = "Altay.phar"
     helper_source: ClassVar[str] = "servers/altay/BenchHelper.php"
