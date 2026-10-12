@@ -12,5 +12,4 @@
 
 uv.lock linguist-generated=true
 docs/metrics.md linguist-generated=true
-docs/FEATURES.md linguist-generated=true
 legacy/** linguist-vendored=true
