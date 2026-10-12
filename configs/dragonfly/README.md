@@ -47,7 +47,7 @@ non-test Go files, the Go version and the harness version, so editing dfbench or
 gets a fresh copy with no world folder.
 
 To measure a dfbench built elsewhere, for example against a Dragonfly fork, pass it as the arm's artifact:
-`bbench run-one --server dragonfly@devel --artifact path/to/dfbench --scenario <s>`. A dfbench whose Dragonfly comes
+`bbench smoke dragonfly@devel --artifact path/to/dfbench`. A dfbench whose Dragonfly comes
 from a `replace` directive or a Go workspace reports Dragonfly version `devel`, so its banner matches only an arm
 tagged `devel`, and the run is marked `unpublished_artifact`.
 
@@ -145,10 +145,6 @@ are written into the run's `config.toml`; every other key keeps the build's defa
 
 Left at their defaults: the RakNet transport, join and quit messages (printed to every player and to the console), and
 Dragonfly's random tick speed of 3, which is fixed when the world is created. Nothing is `rescue` or `nonvanilla`.
-
-## Variants
-
-None.
 
 ## Caveats
 

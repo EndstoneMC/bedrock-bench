@@ -5,8 +5,8 @@ GPL-3.0. It shares no code with Mojang's server and implements a subset of vanil
 generator. Its `[features]` rows in [server.toml](server.toml) are fidelity V1, so reports list it under "Reduced
 fidelity". Nukkit publishes no releases, so a version is the 7-character commit of a snapshot build.
 
-Adapter: [nukkit.py](../../bedrock_bench/adapters/nukkit.py). Helper plugin: [plugin.yml](plugin.yml),
-[BenchTick.java](BenchTick.java) and [PreGen.java](PreGen.java).
+Adapter: [nukkit.py](../../bedrock_bench/adapters/nukkit.py). Helper plugin: [plugin.yml](plugin.yml) and
+[BenchTick.java](BenchTick.java).
 
 ## Setup
 
@@ -28,18 +28,6 @@ The install is built once and holds:
 - `defaults/nukkit.yml`, the file Nukkit writes on its first start (`lang/eng/nukkit.yml` in the jar).
 
 The JDK, not a JRE, is pinned because of `javac` and `jcmd`.
-
-The cross-server matrix also runs `spread100-pregen`, so build the template first:
-
-```shell
-bbench prepare-world nukkit@b3caad6 --scenario spread100-pregen
-```
-
-Nukkit builds it through the helper's `pregen` command: it populates every chunk within the template radius of each
-grid cell, one grid row at a time with at most 64 populations in flight, unloads (and so saves) each row a few hundred
-chunks per tick, then reloads every cell's chunks from storage and reports how many it found. The template is kept only
-when every cell reaches the scenario's minimum coverage. If the watchdog stops the server during this, build with
-`--variant no-watchdog`; the template serves both arms.
 
 ## How a run starts
 
@@ -73,7 +61,6 @@ adds its own defaults.
   player data. `level-settings.auto-tick-rate` is off: with it, Nukkit ticks a slow level only every few server ticks
   while the tick counter keeps advancing, which would hide slowness from the probe. `worlds` is emptied, because the
   shipped list loads a level named `world` next to the benchmark level.
-- rescue, variant `no-watchdog` only: `debug.level: 2`.
 
 Held in the adapter:
 
@@ -81,16 +68,10 @@ Held in the adapter:
   listener (120 packets per 10 ms), which has no setting. Every bot connects from 127.0.0.1.
 - `-Xms` and `-Xmx` from the machine profile (parity), and UTF-8 console streams (harness).
 
-## Variants
-
-- `no-watchdog` (`nukkit@b3caad6+no-watchdog`): Nukkit's watchdog shuts the server down once a tick takes 60 s. In the
-  legacy runs the first autosave of a fresh 100-bot world, which Nukkit runs on the main thread, took longer, and the
-  watchdog stopped the server with exit code 0. The default arm keeps the watchdog, so that outcome is a `server_failed`
-  result. Nukkit runs the watchdog only below debug level 2, so the variant sets `debug.level: 2`, which also prints
-  debug messages. Reports footnote it. The cross-server matrix runs both arms.
-
 ## Caveats
 
+- Nukkit's watchdog stops the server once a tick takes 60 s. The first autosave of a fresh 100-bot world runs on
+  the main thread and can take longer; the run is then a `server_failed` result.
 - Nukkit applies no gravity to clients, so bots teleported to the spread height stay there. With `allow-flight=off` it
   kicks them for flying; `allow-flight=on` only stops the kick.
 - It sends no movement corrections and no locator-bar packets. The `[features]` rows say so, and

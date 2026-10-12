@@ -59,10 +59,6 @@ The shipped file cannot run the benchmark. The bots speak RakNet while the serve
 `online-mode=true` rejects an offline login, and `allow-list=true` refuses every bot. With `transport=raknet` alone,
 LAN visibility also binds 19132 and 19133, which collides with a local game or a second server.
 
-## Variants
-
-None.
-
 ## Caveats
 
 - BDS sizes its worker pools from the machine, not from the CPU set it is pinned to, so pool sizes differ between

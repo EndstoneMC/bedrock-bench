@@ -19,13 +19,13 @@ Fetch needs [uv](https://docs.astral.sh/uv/). It does three things:
 1. Verifies and installs the BDS build the release hosts (`bds` in its `[artifacts]` table) exactly as for
    [vanilla BDS](../bds/README.md#setup), under the same EULA rule.
 2. Downloads the Endstone wheel for this platform and CPython version from PyPI and checks it against its pinned sha256.
-   Wheels are pinned for CPython 3.11 to 3.14. An arm picks one with `python = "3.13"`; otherwise the release's
+   Wheels are pinned for CPython 3.11 to 3.14. The benchmark uses `python` from `[benchmark]`; otherwise the release's
    `python` applies.
 3. Builds a virtual environment in the cache: the dependencies from `requirements-<version>.txt` with
    `--require-hashes`, then the verified wheel without dependency resolution, then `uv pip check`. The environment is
    read-only and its tree hash is checked before every run.
 
-An arm can point `artifact` at a local wheel. Its runs are flagged `unpublished_artifact`. When no lock exists for its
+`--artifact` can point at a local wheel. Its runs are flagged `unpublished_artifact`. When no lock exists for its
 version, its dependencies are resolved from the index.
 
 On Windows the launcher checks that the Minecraft app may connect to loopback, and asks for elevation to add the
@@ -88,19 +88,10 @@ Everything vanilla BDS gets ([`../bds/server.toml`](../bds/server.toml), summari
 `server.properties` itself and the launcher never downloads BDS, so the launcher's defaults for new servers
 (`server-name`, `view-distance` and, before 0.11.14, `client-side-chunk-generation-enabled=false`) never apply.
 
-## Variants
-
-### `glibc-alloc`
-
-Linux only, 0.11.14 and later. It preloads `libc.so.6` (a `parity` override), so the launcher keeps glibc's allocator
-instead of preloading the mimalloc it bundles. It isolates the allocator's share of a Linux difference between Endstone
-and vanilla BDS. 0.11.13 already runs on glibc's allocator, so the variant is refused there, and on Windows.
-
 ## Caveats
 
-- On Linux, 0.11.14 preloads the mimalloc it bundles and 0.11.13 uses glibc's allocator (`linux_allocator` in
-  `[artifacts]`). `facts.allocator` is `mimalloc` when the server maps it, `default` otherwise, and `glibc` for the
-  variant. The allocator is a disclosed confounder
+- On Linux, 0.11.14 preloads the mimalloc it bundles and 0.11.13 uses glibc's allocator. `facts.allocator` is
+  `mimalloc` when the server maps it and `default` otherwise. The allocator is a disclosed confounder
   ([fairness](../../docs/methodology.md#fairness-and-feature-parity)).
 - At every start the launcher appends a rate limit for NetworkStackLatency (packet 115: a bucket of 20, drained at 5
   per second) to `packetlimitconfig.json`. Vanilla BDS has no limit for that packet. The bot only answers the server's

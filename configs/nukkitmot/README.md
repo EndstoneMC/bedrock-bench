@@ -5,8 +5,8 @@ in Java and licensed under LGPL-3.0. It accepts clients from protocol 113 up to 
 Its `[features]` rows in [server.toml](server.toml) are fidelity V1, so reports list it under "Reduced fidelity".
 Nukkit-MOT publishes rolling builds of its master branch, so a version is the 7-character commit of one Jenkins build.
 
-Adapter: [nukkitmot.py](../../bedrock_bench/adapters/nukkitmot.py). Helper plugin: [plugin.yml](plugin.yml),
-[BenchTick.java](BenchTick.java) and [PreGen.java](PreGen.java).
+Adapter: [nukkitmot.py](../../bedrock_bench/adapters/nukkitmot.py). Helper plugin: [plugin.yml](plugin.yml) and
+[BenchTick.java](BenchTick.java).
 
 ## Setup
 
@@ -26,14 +26,6 @@ The install is built once and holds:
   plugin jar is reproducible: sorted entries, fixed timestamps.
 
 The jar ships no config files, so there is no `defaults/` copy.
-
-The cross-server matrix also runs `spread100-pregen`, so build the template first:
-
-```shell
-bbench prepare-world nukkitmot@9cb0aba --scenario spread100-pregen
-```
-
-Nukkit-MOT builds it through the helper's `pregen` command, the same as Nukkit's.
 
 ## How a run starts
 
@@ -65,7 +57,6 @@ recorded in run.json with its category ([methodology](../../docs/methodology.md#
 - parity: view and simulation distance, seed, level name, difficulty, game mode, max players, autosave interval and
   player data. `performance-settings.auto-tick-rate` is off: with it, a slow level is ticked only every few server
   ticks while the tick counter keeps advancing.
-- rescue, variant `no-watchdog` only: `performance-settings.thread-watchdog: false`.
 
 Held in the adapter:
 
@@ -76,14 +67,9 @@ Left as shipped and recorded in run.json facts: movement mode `server-auth`, asy
 chunk sends per player per tick. The Nether and the End load at start as separate levels; the chaos dimension action
 uses them.
 
-## Variants
-
-- `no-watchdog` (`nukkitmot@9cb0aba+no-watchdog`): the watchdog shuts the server down once a tick takes 60 s. The
-  default arm keeps it, so that outcome is a `server_failed` result. Reports footnote the variant. The cross-server
-  matrix runs both arms.
-
 ## Caveats
 
+- The thread watchdog stops the server once a tick takes 60 s; the run is then a `server_failed` result.
 - Nukkit-MOT applies no gravity to clients, so bots teleported to the spread height stay there. With
   `allow-flight=off` it kicks them for flying.
 - Its movement mode is `server-auth`, but it sends no movement corrections. It sends no locator-bar packets either.

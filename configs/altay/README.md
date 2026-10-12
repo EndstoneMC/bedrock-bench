@@ -23,9 +23,6 @@ licence flag is needed. The release names Altay's own PHP 8.1 binaries; Altay ru
 install holds the phar, `plugins/BenchHelper.php`, and the `pocketmine.yml` that the phar ships, read out of the phar
 so its defaults always belong to the pinned release. Every run starts from a fresh copy.
 
-The cross-server matrix runs Altay on `spread100` only. `bbench prepare-world altay@5.44.7 --scenario
-spread100-pregen` can still build a template for it with the bot tour.
-
 ## How a run starts
 
 ```
@@ -56,7 +53,8 @@ transport.
 - parity: view and simulation distance, seed, level name, difficulty, game mode, max players, autosave interval and
   player data. `settings.async-workers` is the number of server CPUs, because `auto` counts every CPU of the machine,
   not the server's CPU set.
-- rescue: `memory.main-hard-limit` is 0 (off) instead of the shipped 1024 MB. See Variants.
+- rescue: `memory.main-hard-limit` is 0 (off) instead of the shipped 1024 MB, at which PocketMine-MP stops itself
+  about 23 s into the 100-bot join.
 
 Held in the adapter, all harness:
 
@@ -64,12 +62,6 @@ Held in the adapter, all harness:
   RakNet transport's per-IP packet limit from 200 packets per transport tick (10 ms) to 2147483647. Every bot connects
   from 127.0.0.1, and at the default limit the transport blocks the address for 300 s.
 - `--no-wizard`, `--disable-ansi`, `PHPRC` unset, and on Linux `-d extension_dir`.
-
-## Variants
-
-- `stock` (`altay@5.44.7+stock`) keeps the shipped memory limits, including the 1024 MB hard limit of the main thread,
-  the limit at which PocketMine-MP stops itself about 23 s into the 100-bot join. The default arm turns the limit off,
-  and reports footnote that.
 
 ## Caveats
 

@@ -120,10 +120,6 @@ are written into the run's `chorus.toml`; every other key keeps the build's defa
 
 Nothing is `rescue` or `nonvanilla`.
 
-## Variants
-
-None.
-
 ## Caveats
 
 - Every bot reports decode errors at 95ca835: the `PlayerList` entry of each player carries the base64 text of its skin

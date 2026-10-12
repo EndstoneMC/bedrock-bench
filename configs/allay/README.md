@@ -26,7 +26,7 @@ needed. The install is built once and holds:
   is not part of Allay's API, so it is tied to the pinned release.
 
 Allay writes its own config files on start, so nothing is extracted from the jar. The bots need
-`bbench bots build --module legacy1001`. The cross-server matrix runs Allay on `spread100` only.
+`bbench bots build --module legacy1001`.
 
 ## How a run starts
 
@@ -73,10 +73,6 @@ Held in the adapter:
   flat dimension.
 - `plugins/BenchTick.jar` is installed, and it starts the console on a piped stdin (harness).
 - `-Xms` and `-Xmx` from the machine profile (parity); UTF-8 console streams and the empty Sentry DSN (harness).
-
-## Variants
-
-None.
 
 ## Caveats
 

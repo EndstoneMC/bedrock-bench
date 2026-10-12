@@ -3,19 +3,16 @@
 [LeviLamina](https://github.com/LiteLDev/LeviLamina) is a mod loader for Bedrock Dedicated Server on Windows, written
 in C++ and licensed LGPL-3.0. A patched copy of Mojang's BDS executable loads PreLoader, which loads LeviLamina and its
 mods before the server starts, so gameplay is BDS's own. LeviLamina also routes the server's memory allocations through
-mimalloc and drops some malformed packets, so its parity rows in [`server.toml`](server.toml) are fidelity V1.
-[LeviOptimize](https://github.com/LiteLDev/LeviOptimize), a GPL-3.0 performance mod for LeviLamina, is measured as two
-variants. Adapter: [`levilamina.py`](../../bedrock_bench/adapters/levilamina.py), built on the BDS behaviour in
+mimalloc and drops some malformed packets, so its parity rows in [`server.toml`](server.toml) are fidelity V1. It runs
+without mods such as LeviOptimize. Adapter: [`levilamina.py`](../../bedrock_bench/adapters/levilamina.py), built on the
+BDS behaviour in
 [`bdsfamily.py`](../../bedrock_bench/adapters/bdsfamily.py).
 
 ## Setup
 
 ```shell
-bbench fetch levilamina-26.51 --accept-eula
+bbench fetch levilamina@26.51.6 --accept-eula
 ```
-
-The matrix name fetches the base install and the LeviOptimize install. `bbench fetch levilamina@26.51.6` fetches the
-base install only.
 
 - LeviLamina runs on Windows only, and the runner refuses it elsewhere.
 - Each release runs on one BDS build (`bds` in its `[artifacts]` table, `1.26.51.1` for 26.51.6), verified and
@@ -30,10 +27,9 @@ base install only.
   original executable to `bedrock_server.exe.bak`. PeEditor runs once, while the install is built, and never in a run,
   so the install's tree hash covers the executable every run starts. The install is read-only and its tree hash is
   checked before every run.
-- The base arm and the LeviOptimize variants get separate installs. The two variants share one.
 - The translations package (`levilamina-loc`) is not installed, so LeviLamina's messages are in English, their source
   language and the one the harness parses.
-- An arm may point `artifact` at a local LeviLamina server zip. It replaces only the LeviLamina package. The other
+- `--artifact` may point at a local LeviLamina server zip. It replaces only the LeviLamina package. The other
   packages and BDS stay pinned, and the runs are flagged `unpublished_artifact`.
 
 ### Adding a release
@@ -42,7 +38,7 @@ base install only.
    `windows-<package>` table per package with the URL, size and sha256 from the GitHub release and the placements from
    that package's `tooth.json`.
 2. Start the release once by hand and compare the generated `PreLoaderConfig.json`,
-   `plugins/LeviLamina/config/Config.json` and LeviOptimize's `config/config.json` with the files here. If their keys or
+   `plugins/LeviLamina/config/Config.json` with the files here. If their keys or
    config `version` changed, the files here no longer fit both releases, and the adapter needs one set per release.
 3. Add a `[features.range."<major>.<minor>"]` to `server.toml` if parity changed, and run
    `bbench smoke levilamina@<version>`.
@@ -71,74 +67,30 @@ bedrock_server_mod.exe       measured process, started directly in the run's ser
 
 Everything vanilla BDS gets ([`../bds/server.toml`](../bds/server.toml), summarised in
 [its README](../bds/README.md#configuration-changes)), plus the JSON configs here. Each is the file the pinned release
-writes on its first start (LeviLamina 26.51.6, PreLoader 1.16.3, LeviOptimize 0.17.0), kept verbatim, except
-`LeviOptimize.all.json`, which is the `levioptimize-all` config.
+writes on its first start (LeviLamina 26.51.6, PreLoader 1.16.3), kept verbatim.
 
-| File here | Written to | Arms |
-|---|---|---|
-| `PreLoaderConfig.json` | `PreLoaderConfig.json` | every arm |
-| `LeviLamina.Config.json` | `plugins/LeviLamina/config/Config.json` | every arm |
-| `LeviOptimize.default.json` | `plugins/LeviOptimize/config/config.json` | `+levioptimize` |
-| `LeviOptimize.all.json` | `plugins/LeviOptimize/config/config.json` | `+levioptimize-all` |
+| File here | Written to |
+|---|---|
+| `PreLoaderConfig.json` | `PreLoaderConfig.json` |
+| `LeviLamina.Config.json` | `plugins/LeviLamina/config/Config.json` |
 
 The adapter applies these changes on top and records each as an override:
 
 - `Config.json` `modules.crashLogger.uploadToSentry` = `false` (`harness`): no crash report upload; reports stay in
   `logs/crash`.
 - `Config.json` `targeted.enableStatistics` = `false` (`harness`): no usage statistics upload.
-- Both variants: the LeviOptimize mod is loaded (`nonvanilla`).
-- `levioptimize-all`: `features.optMovingBlock`, `features.optSeenPercent` and `features.optPushEntity.enable` =
-  `true` (`nonvanilla`).
 
-The files are written fresh for every run because both projects change them on their own. LeviLamina merges an older
-config over its new defaults when the config `version` changes, so the old values win. LeviOptimize saves its config
-over the file when the server stops. After the run each file is read back and compared value by value, and a changed
-value fails the `config_readback` gate.
+The files are written fresh for every run. LeviLamina merges an older config over its new defaults when the config
+`version` changes, so the old values win. After the run each file is read back and compared value by value, and a
+changed value fails the `config_readback` gate.
 
 Otherwise LeviLamina's generated configuration runs the benchmark as it is.
 
-## Variants
-
-Both variants add LeviOptimize 0.17.0. Their changes are `nonvanilla` overrides, so every report footnotes them.
-
-### `levioptimize`
-
-LeviOptimize with the config a fresh install generates. Two things are on:
-
-- `fixChunkLeak`: when a player disconnects, LeviOptimize removes that player from the tracking lists of map items. The
-  removed entries no longer keep their chunks loaded, as they would in vanilla. It acts only on a disconnect, so
-  `spread100` never triggers it; chaos scenarios with churn do.
-- the `timing` command, a diagnostic that does nothing until someone runs it.
-
-### `levioptimize-all`
-
-Every LeviOptimize switch on ([`LeviOptimize.all.json`](LeviOptimize.all.json)):
-
-| Option | What changes |
-|---|---|
-| `optMovingBlock` | block entities moved by a piston reach clients without their contents while moving; saving and the server's simulation are unchanged |
-| `optSeenPercent` | an explosion's exposure test is computed once per position and tick and reused, even if blocks changed in between |
-| `optPushEntity.enable` | the push options apply: pushes by a zero vector are skipped (`disableVec0Push`) |
-
-`optPushEntity.maxPushTimes` is a limit, not a switch, and stays at `-1` (no limit). `fixChunkLeak` and the `timing`
-command stay on as in `levioptimize`.
-
-### Parity of the variants
-
-| Arm | Fidelity | Differs from LeviLamina's row |
-|---|---|---|
-| `levilamina@26.51.6` | V1 | |
-| `levilamina@26.51.6+levioptimize` | V2 | no feature key; after a disconnect, chunks kept loaded by map tracking are released |
-| `levilamina@26.51.6+levioptimize-all` | V2 | `block.redstone` altered (`optMovingBlock`), `entity.collision_push` altered (`optPushEntity`), explosion exposure reused within a tick (`optSeenPercent`), plus the above |
-
-`spread100` exercises none of these keys. Server files declare parity rows per version, not per variant, so run.json
-records both variants with LeviLamina's own row and fidelity V1. Read their parity from this table.
-
 ## Caveats
 
-- LeviLamina 26.51.6 runs on `bds@1.26.51.1`, not the build vanilla runs elsewhere. Give its arm `bds = "1.26.51.1"`
-  and put `bds@1.26.51.1` in the same matrix, as [`levilamina-26.51.toml`](../../matrices/levilamina-26.51.toml) does.
-  Without that baseline the report flags it `different_bds_build`.
+- LeviLamina 26.51.6 runs on `bds@1.26.51.1`, not the build vanilla BDS runs by default. For a baseline on the same
+  build, run both in one session: `bbench run bds@1.26.51.1 levilamina@26.51.6`. Without that baseline the report
+  flags it `different_bds_build`.
 - mimalloc is linked into `LeviLamina.dll` and cannot be switched off. It does not show up as a separate module, so
   `facts.allocator` takes it from `allocator` in `[artifacts]`. The allocator is a disclosed confounder
   ([fairness](../../docs/methodology.md#fairness-and-feature-parity)).

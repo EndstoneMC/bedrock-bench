@@ -25,19 +25,6 @@ The nightly jar is the asset of the `nightly` pre-release, which upstream replac
 moved, fetch fails on the sha256. Keep a copy named `powernukkitx-nightly-86f70bc.jar` and pass its folder with
 `--artifact-dir`.
 
-The cross-server matrix also runs `spread100-pregen`, so build the templates first, one per version:
-
-```shell
-bbench prepare-world powernukkitx@3.0.5 --scenario spread100-pregen
-bbench prepare-world powernukkitx@nightly.86f70bc --scenario spread100-pregen
-```
-
-PowerNukkitX generates chunks only for areas a player has loaded, so it cannot pre-generate from a plugin. The template
-is built with the bot tour: ten bots visit the grid cells in rounds with the view distance raised to the template
-radius, and the server generates and saves what they see through its normal pipeline. A cell's coverage is the share of
-the view disc the bot on it received, and the template is kept only when every cell reaches the scenario's minimum
-coverage.
-
 ## How a run starts
 
 ```
@@ -81,10 +68,6 @@ tick), which apply per player rather than per address; and `levelWorkerThreads: 
 processor, which with the server pinned is the server's CPU set. The nightly also records `upstream-bandwidth`
 (1000 Mbps, the budget of its chunk publisher), `generationQueueSize` (-1, no limit), `leveldb-backend` (java) and
 `raknet.globalPacketLimit` (100000 per 10 ms for the whole server).
-
-## Variants
-
-None.
 
 ## Caveats
 

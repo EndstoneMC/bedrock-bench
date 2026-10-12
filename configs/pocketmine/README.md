@@ -22,9 +22,6 @@ needed. The PHP build is unpacked once into the cache and used read-only. The in
 `plugins/BenchHelper.php`, and the `pocketmine.yml` that the phar ships, read out of the phar so its defaults always
 belong to the pinned release. Every run starts from a fresh copy.
 
-The cross-server matrix runs PocketMine-MP on `spread100` only. `bbench prepare-world pocketmine@5.44.3 --scenario
-spread100-pregen` can still build a template for it with the bot tour.
-
 ## How a run starts
 
 ```
@@ -55,7 +52,8 @@ PocketMine-MP adds its own defaults; `pocketmine.yml` starts from the shipped co
 - parity: view and simulation distance, seed, level name, difficulty, game mode, max players, autosave interval and
   player data. `settings.async-workers` is the number of server CPUs, because `auto` counts every CPU of the machine,
   not the server's CPU set.
-- rescue: `memory.main-hard-limit` is 0 (off) instead of the shipped 1024 MB. See Variants.
+- rescue: `memory.main-hard-limit` is 0 (off) instead of the shipped 1024 MB, at which the server stops itself about
+  23 s into the 100-bot join.
 
 Held in the adapter, all harness:
 
@@ -63,12 +61,6 @@ Held in the adapter, all harness:
   RakLib's per-IP packet limit (200 packets per RakLib tick). Every bot connects from 127.0.0.1, and at the default
   limit RakLib blocks the address for 300 s, so the whole fleet times out at once.
 - `--no-wizard`, `--disable-ansi`, `PHPRC` unset, and on Linux `-d extension_dir`.
-
-## Variants
-
-- `stock` (`pocketmine@5.44.3+stock`) keeps the shipped memory limits, including the 1024 MB hard limit of the main
-  thread. With it, PocketMine-MP stops itself about 23 s into the 100-bot join, while it fills 100 views that do not
-  overlap, and the run is a `server_failed` result. The default arm turns the limit off, and reports footnote that.
 
 ## Caveats
 
