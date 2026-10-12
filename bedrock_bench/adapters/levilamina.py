@@ -98,10 +98,15 @@ class Package:
     place: Mapping[str, str]  # archive path -> server path; a trailing "/" copies a directory
 
 
+BDS_TABLE = "windows-bds"  # the BDS build a release runs on, pinned with the release
+
+
 def packages_of(entry: ArtifactVersion, source: Path | None = None) -> dict[str, Package]:
     """The ``windows-<package>`` tables of one LeviLamina version."""
     found: dict[str, Package] = {}
     for key, spec in entry.platforms.items():
+        if key == BDS_TABLE:
+            continue
         where = f"version.{entry.version}.{key}"
         platform, _, name = key.partition("-")
         if platform != "windows" or not name:
@@ -224,7 +229,9 @@ class LeviLaminaAdapter(BdsFamily):
         if "levilamina" not in packages:
             raise ConfigError(f"levilamina {self.arm.version}: no windows-levilamina table", file=catalog.path)
 
-        bds = fetch_bds(cache, bds_version, self.platform)
+        if BDS_TABLE not in entry.platforms:
+            raise ConfigError(f"levilamina {self.arm.version}: no {BDS_TABLE} table", file=catalog.path)
+        bds = fetch_bds(cache, bds_version, self.platform, spec=entry.platforms[BDS_TABLE])
         obtained: list[tuple[Package, Path, ArtifactRef]] = []
         releases: dict[str, str] = {}
         for name, package in packages.items():

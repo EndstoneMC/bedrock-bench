@@ -117,7 +117,9 @@ def downloads(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> FakeDownloads:
     bds = bds_zip(assets / "bds.zip")
     by_url = {p.spec.url: p for p in pinned_packages().values()}
 
-    def fake_fetch_bds(cache: Cache, version: str, platform: str, *, artifact: Path | None = None) -> Install:
+    def fake_fetch_bds(
+        cache: Cache, version: str, platform: str, *, artifact: Path | None = None, spec: ArtifactSpec | None = None
+    ) -> Install:
         assert (version, platform) == (BDS_VERSION, "windows")
         return fetch_bds(cache, version, platform, artifact=bds)
 
@@ -220,7 +222,9 @@ class TestPins:
         assert catalog.server == "levilamina"
         entry = catalog.versions[VERSION]
         assert entry.meta["bds"] == BDS_VERSION and entry.meta["allocator"] == "mimalloc"
-        assert BDS_VERSION in config.load_artifacts("bds").versions
+        bds = entry.platforms["windows-bds"]
+        assert BDS_VERSION in bds.url and bds.sha256 and bds.size and bds.eula == "minecraft"
+        assert BDS_VERSION not in config.load_artifacts("bds").versions
         packages = packages_of(entry, catalog.path)
         assert "levilamina" in packages
         for package in packages.values():

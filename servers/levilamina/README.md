@@ -14,8 +14,8 @@ bbench fetch levilamina@26.51.6 --accept-eula
 ```
 
 - LeviLamina runs on Windows only, and the runner refuses it elsewhere.
-- Each release runs on one BDS build (`bds` in its `[artifacts]` table, `1.26.51.1` for 26.51.6), verified and
-  installed exactly as for [vanilla BDS](../bds/README.md#setup).
+- Each release runs on one BDS build, pinned in its own `windows-bds` table in [`server.toml`](server.toml)
+  (1.26.51.1 for 26.51.6) and verified like every other download.
 - Two licences cover the downloads: the Minecraft EULA for the BDS zip, and the
   [LeviMC closed-source software EULA](https://github.com/LiteLDev/PreLoader/blob/v1.16.3/EULA.en.md) for PreLoader and
   PeEditor. `--accept-eula` (or `BBENCH_ACCEPT_MINECRAFT_EULA=1`) accepts both. Files already in the cache, or in
@@ -76,9 +76,8 @@ Otherwise LeviLamina and PreLoader run with the configuration they generate.
 
 ## Caveats
 
-- LeviLamina 26.51.6 runs on `bds@1.26.51.1`, not the build vanilla BDS runs by default. For a baseline on the same
-  build, run both in one session: `bbench run configs/spread-100.toml bds@1.26.51.1 levilamina@26.51.6`. Without that
-  baseline the report flags it `different_bds_build`.
+- LeviLamina 26.51.6 runs on BDS 1.26.51.1, an older build than vanilla BDS's 1.26.52.3, so the report flags it
+  `different_bds_build`.
 - mimalloc is linked into `LeviLamina.dll` and cannot be switched off. It does not show up as a separate module, so
   `facts.allocator` takes it from `allocator` in `[artifacts]`. The allocator is a disclosed confounder
   ([fairness](../../docs/methodology.md#server-configuration)).

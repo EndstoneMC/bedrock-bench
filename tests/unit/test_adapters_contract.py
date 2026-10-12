@@ -148,8 +148,9 @@ def test_pinned_versions_speak_a_bot_protocol(cls: type[ServerAdapter]) -> None:
 
 @real_adapters
 def test_bds_hosted_versions_speak_their_bds_protocol(cls: type[ServerAdapter]) -> None:
+    bds_versions = config.load_artifacts("bds").versions
     for version, entry in config.load_artifacts(cls.name).versions.items():
-        if "bds" in entry.meta:
+        if entry.meta.get("bds") in bds_versions:
             assert pinned_protocol(cls.name, version) == pinned_protocol("bds", entry.meta["bds"]), version
 
 

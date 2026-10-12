@@ -15,9 +15,9 @@ are in bold.
 
 | Server | Language | Pinned versions | Folder | Notes |
 |---|---|---|---|---|
-| Bedrock Dedicated Server | C++ | **`bds@1.26.52.3`**<br>`bds@1.26.51.1` | [`servers/bds/`](servers/bds/) | The vanilla reference. The download needs the Minecraft EULA. |
+| Bedrock Dedicated Server | C++ | **`bds@1.26.52.3`** | [`servers/bds/`](servers/bds/) | The vanilla reference. The download needs the Minecraft EULA. |
 | [Endstone](https://github.com/EndstoneMC/endstone) | C++ on BDS | **`endstone@0.11.14`** | [`servers/endstone/`](servers/endstone/) | Runs inside `bds@1.26.52.3` on Python 3.13. Installed from PyPI with hash-locked dependencies. |
-| [LeviLamina](https://github.com/LiteLDev/LeviLamina) | C++ on BDS | **`levilamina@26.51.6`** | [`servers/levilamina/`](servers/levilamina/) | Windows only. Runs inside `bds@1.26.51.1`. Two of its packages need the LeviMC EULA. |
+| [LeviLamina](https://github.com/LiteLDev/LeviLamina) | C++ on BDS | **`levilamina@26.51.6`** | [`servers/levilamina/`](servers/levilamina/) | Windows only. Runs inside BDS 1.26.51.1, pinned with LeviLamina. Two of its packages need the LeviMC EULA. |
 | [PocketMine-MP](https://github.com/pmmp/PocketMine-MP) | PHP | **`pocketmine@5.44.3`** | [`servers/pocketmine/`](servers/pocketmine/) | Speaks protocol 1001, so it needs the [protocol 1001 bot](bots/README.md#protocol-1001). |
 | [Altay](https://github.com/altayofficial/Altay) | PHP | **`altay@5.44.7`** | [`servers/altay/`](servers/altay/) | Fork of PocketMine-MP 5 that speaks protocol 2193. |
 | [Nukkit](https://github.com/CloudburstMC/Nukkit) | Java | **`nukkit@b3caad6`** | [`servers/nukkit/`](servers/nukkit/) | Snapshot build, versioned by commit. Old snapshots get pruned, so keep a copy of the jar for `--artifact-dir`. |
@@ -111,9 +111,8 @@ To run a subset, name the servers:
 uv run bbench run configs/spread-100.toml bds@1.26.52.3 endstone@0.11.14
 ```
 
-LeviLamina runs inside BDS 1.26.51.1, an older build than the default `bds@1.26.52.3`, so its row in a default
-session notes that the session has no vanilla run of that build. Name `bds@1.26.51.1` and `levilamina@26.51.6`
-together to compare the two.
+LeviLamina runs inside BDS 1.26.51.1, an older build than `bds@1.26.52.3`, so its row notes that the session has no
+vanilla run of that build.
 
 On a machine that cannot drive 100 bots, use [`configs/spread-50.toml`](configs/spread-50.toml) or
 [`configs/spread-25.toml`](configs/spread-25.toml), the same setup with fewer bots. Results are comparable only within

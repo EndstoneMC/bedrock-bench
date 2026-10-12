@@ -30,6 +30,7 @@ from bedrock_bench.adapters.base import Dialect, ServerAdapter, host_os
 from bedrock_bench.config import ConfigError
 from bedrock_bench.model import (
     Arm,
+    ArtifactSpec,
     ConfigFile,
     Install,
     Layout,
@@ -265,12 +266,17 @@ def exe_name(platform: str) -> str:
     return "bedrock_server.exe" if platform == "windows" else "bedrock_server"
 
 
-def fetch_bds(cache: Cache, version: str, platform: str, *, artifact: Path | None = None) -> Install:
-    """Verify and install one BDS build: the zip pinned in ``servers/bds/server.toml``, or a local zip."""
+def fetch_bds(
+    cache: Cache, version: str, platform: str, *, artifact: Path | None = None, spec: ArtifactSpec | None = None
+) -> Install:
+    """Verify and install one BDS build: a given pin, the zip pinned in ``servers/bds/server.toml``, or a local zip."""
     executable = exe_name(platform)
     if artifact is not None:
         archive, ref = fetch.adopt_local(artifact, cache)
         executables: tuple[str, ...] = (executable,)
+    elif spec is not None:
+        archive, ref = fetch.obtain(spec, cache)
+        executables = spec.executables or (executable,)
     else:
         catalog = config.load_artifacts("bds")
         try:

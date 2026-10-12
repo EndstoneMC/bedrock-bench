@@ -33,6 +33,14 @@ bds = "1.26.51.1"
 protocol = 2193
 allocator = "mimalloc"
 
+# The BDS build this release runs on, verified like any other download (Minecraft EULA).
+[artifacts.version."26.51.6".windows-bds]
+url = "https://www.minecraft.net/bedrockdedicatedserver/bin-win/bedrock-server-1.26.51.1.zip"
+sha256 = "a1c1ebefde3036223234179f7c1eab4b445b4727f0482a0554818c9bcaf8e4a5"
+size = 85766110
+executables = ["bedrock_server.exe"]
+eula = "minecraft"
+
 [artifacts.version."26.51.6".windows-levilamina]
 url = "https://github.com/LiteLDev/LeviLamina/releases/download/v26.51.6/levilamina-v26.51.6-server-release-windows-x64.zip"
 sha256 = "d2277ac4ec042e3498f00160ce1aa0e2dcec23f2b9a902925ac9b27a3f0feb40"

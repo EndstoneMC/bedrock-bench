@@ -358,7 +358,7 @@ class TestFactsAndCrashes:
 class TestDataFiles:
     def test_artifacts_pinned(self) -> None:
         catalog = config.load_artifacts("bds")
-        assert {"1.26.52.3", "1.26.51.1"} <= set(catalog.versions)
+        assert "1.26.52.3" in catalog.versions and "1.26.51.1" not in catalog.versions
         for version, entry in catalog.versions.items():
             assert set(entry.platforms) == {"windows", "linux"}, version
             for platform, spec in entry.platforms.items():

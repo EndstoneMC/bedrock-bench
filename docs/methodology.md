@@ -211,8 +211,8 @@ server whose tick stalls is not helped: Nukkit's and Nukkit-MOT's watchdogs stay
 - **Leftovers.** Where a server has no switch for an upload or update check, its README says so: Endstone uploads a
   crash report when it crashes, and Nukkit-MOT asks GitHub for its latest commit at start.
 - **BDS build.** A server that hosts BDS is compared with vanilla BDS of the same build. Endstone 0.11.14 hosts the
-  default BDS build, 1.26.52.3. LeviLamina 26.51.6 hosts 1.26.51.1, so in a default session it is flagged
-  `different_bds_build`. Adding `bds@1.26.51.1` to the session gives it a same-build baseline.
+  default BDS build, 1.26.52.3. LeviLamina 26.51.6 hosts 1.26.51.1, pinned with LeviLamina, so it is flagged
+  `different_bds_build`.
 - **Confounders are disclosed, never subtracted.** The allocator (LeviLamina links mimalloc, and Endstone 0.11.14
   preloads it on Linux) and the JVM heap are recorded in `run.json`, and their cost stays in the numbers.
 
