@@ -5,34 +5,22 @@ Fetch: ``powernukkitx.jar`` from ``servers/powernukkitx/server.toml`` and the JD
 ``servers/runtimes.toml``. No helper plugin: ``time query gametime`` prints the tick counter, and positions
 come from the bots, because PowerNukkitX has no ``querytarget``. Nightly builds are pinned as ``nightly.<commit>``.
 
-Prepare writes ``pnx.yml`` with the benchmark's values (PowerNukkitX completes and rewrites it on start) and
-``worlds/<level>/config.json`` with the workload seed, which PowerNukkitX reads only from there. Launch:
+Prepare renders ``pnx.yml``, which PowerNukkitX completes and rewrites on start, and ``config.json`` as
+``worlds/<level>/config.json``, the only place PowerNukkitX reads the seed from. Launch:
 ``java -Xms<heap> -Xmx<heap> -jar powernukkitx.jar``. Like Nukkit, it derives a player's UUID from the XUID, so the
 bots get ``-fake-xuid``. See servers/powernukkitx/README.md.
 """
 
 from __future__ import annotations
 
-import json
 import re
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from bedrock_bench import config
 from bedrock_bench.adapters.base import Dialect
 from bedrock_bench.adapters.standalone import JavaServer, fetch_release, fetch_runtime, runtime_platform, yaml_scalars
-from bedrock_bench.model import (
-    ConfigFile,
-    Install,
-    LaunchSpec,
-    Layout,
-    Override,
-    OverrideCategory,
-    RunContext,
-    WorldInfo,
-)
-from bedrock_bench.provenance import sha256_file
+from bedrock_bench.model import ConfigFile, Install, LaunchSpec, Layout, Override, RunContext, WorldInfo
 
 if TYPE_CHECKING:
     import psutil
@@ -40,7 +28,7 @@ if TYPE_CHECKING:
     from bedrock_bench.cache import Cache
 
 JAR = "powernukkitx.jar"
-WORLD_CONFIG_TEMPLATE = "servers/powernukkitx/world-config.json"
+WORLD_CONFIG = "config.json"
 NIGHTLY = "nightly"
 #: pnx.yml values left at their defaults and recorded as facts, by fact name. Keys a version lacks are skipped.
 RECORDED_SETTINGS: Mapping[str, str] = {
@@ -100,6 +88,7 @@ class PowerNukkitXAdapter(JavaServer):
     bot_compat_flags: ClassVar[tuple[str, ...]] = ("-fake-xuid",)
     dialect: ClassVar[Dialect] = PNX_DIALECT
     server_file: ClassVar[str] = JAR
+    config_templates: ClassVar[tuple[str, ...]] = ("pnx.yml",)
 
     # ---- fetch ----------------------------------------------------------------------------------------------------
 
@@ -125,40 +114,11 @@ class PowerNukkitXAdapter(JavaServer):
     def prepare_extra(
         self, server_dir: Path, install: Install, ctx: RunContext, world: WorldInfo
     ) -> tuple[Sequence[Override], Sequence[ConfigFile], Mapping[str, Any]]:
-        relative = f"worlds/{ctx.workload.world.level_name}/config.json"
-        seed = ctx.workload.world.seed
-        data = json.loads((config.project_root() / WORLD_CONFIG_TEMPLATE).read_text(encoding="utf-8"))
-        for generator in data["generators"].values():
-            generator["seed"] = seed
-        path = server_dir / relative
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8", newline="\n")
-        override = Override(
-            OverrideCategory.PARITY,
-            relative,
-            "generators.*.seed",
-            "(random)",
-            str(seed),
-            "the same seed on every server; PowerNukkitX reads it only from the level's config.json",
-        )
-        return [override], [ConfigFile(relative, sha256_file(path))], {"world_config": relative, "seed": seed}
+        target = f"worlds/{ctx.workload.world.level_name}/{WORLD_CONFIG}"
+        return [], [self.write_config(server_dir, WORLD_CONFIG, ctx, target=target)], {}
 
     def launch(self, layout: Layout) -> LaunchSpec:
         return LaunchSpec(argv=self.java_launch(layout), cwd=layout.server_dir)
-
-    def readback(self, layout: Layout) -> list[str]:
-        problems = super().readback(layout)
-        relative = layout.extra.get("world_config")
-        if relative:
-            try:
-                data = json.loads((layout.server_dir / relative).read_text(encoding="utf-8"))
-                seeds = {str(g.get("seed")) for g in data["generators"].values()}
-            except (OSError, ValueError, KeyError, AttributeError) as exc:
-                problems.append(f"{relative}: unreadable after the run ({exc})")
-            else:
-                if seeds != {str(layout.extra.get("seed"))}:
-                    problems.append(f"{relative}: seeds read back as {sorted(seeds)}")
-        return problems
 
     # ---- facts ----------------------------------------------------------------------------------------------------
 

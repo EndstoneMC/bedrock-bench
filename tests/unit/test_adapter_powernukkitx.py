@@ -12,7 +12,7 @@ from bedrock_bench.adapters import powernukkitx
 from bedrock_bench.adapters.powernukkitx import PNX_DIALECT, PowerNukkitXAdapter
 from bedrock_bench.adapters.standalone import Runtime, yaml_scalars
 from bedrock_bench.cache import Cache
-from bedrock_bench.model import ArtifactRef, Install, LogLine, OverrideCategory, Placement, RunContext
+from bedrock_bench.model import ArtifactRef, Install, LogLine, Placement, RunContext
 from bedrock_bench.provenance import sha256_file
 from workloads import WORKLOAD, with_overrides
 
@@ -197,13 +197,13 @@ class TestPrepare:
         assert layout.world.fresh and layout.world.path == server / "worlds" / "bench" / "db"
         assert not layout.world.path.exists(), "the level database is created by the server"
 
-        by_key = {(o.file, o.key): o for o in layout.overrides}
-        assert by_key[("pnx.yml", "gameplay-settings.viewDistance")].default == "8"
-        assert by_key[("pnx.yml", "misc-settings.enableMetrics")].category is OverrideCategory.HARNESS
-        assert by_key[("worlds/bench/config.json", "generators.*.seed")].value == "20261010"
-        assert ("pnx.yml", "gameplay-settings.difficulty") not in by_key, "easy is PowerNukkitX's default"
-        assert ("pnx.yml", "network-settings.transport") not in by_key
-        assert [c.path for c in layout.config_files] == ["pnx.yml", "worlds/bench/config.json"]
+        files = {c.path: c for c in layout.config_files}
+        assert list(files) == ["pnx.yml", "worlds/bench/config.json"]
+        assert [c.template for c in files.values()] == ["pnx.yml", "config.json"]
+        assert all(c.created for c in files.values())
+        assert {c.key: c.after for c in files["pnx.yml"].keys}["settings.defaultLevelName"] == "bench"
+        world_keys = {c.key: c.after for c in files["worlds/bench/config.json"].keys}
+        assert [world_keys[f"generators.{i}.seed"] for i in range(3)] == [20261010] * 3
 
     def test_read_back_after_the_server_rewrote_its_config(self, install: Install, tmp_path: Path) -> None:
         adapter = make_adapter()
@@ -214,7 +214,8 @@ class TestPrepare:
         data = json.loads(config_json.read_text(encoding="utf-8"))
         data["generators"]["0"]["seed"] = 1
         config_json.write_text(json.dumps(data), encoding="utf-8")
-        assert any("seeds read back" in p for p in adapter.readback(layout))
+        problems = adapter.readback(layout)
+        assert any("generators.0.seed was written as 20261010 and read back as 1" in p for p in problems)
         (layout.server_dir / "pnx.yml").write_text(REWRITTEN_PNX_YML.replace("viewDistance: 10", "viewDistance: 8"))
         assert any("viewDistance" in p for p in adapter.readback(layout))
 

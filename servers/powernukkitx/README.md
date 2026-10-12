@@ -33,11 +33,11 @@ moved, fetch fails on the sha256. Keep a copy named `powernukkitx-nightly-86f70b
 
 - The heap is `jvm_heap` from the machine profile, the same for every JVM server, with `-Xms` equal to `-Xmx`.
   Without it, PowerNukkitX takes the JVM's default maximum heap, a quarter of physical memory.
-- Prepare writes `pnx.yml` with the benchmark's values. PowerNukkitX adds every other key with its built-in default and
-  rewrites the file on start.
-- Prepare also writes `worlds/<level>/config.json` from [world-config.json](world-config.json), with the scenario seed
-  for all three dimensions, because PowerNukkitX reads a level's seed only from there. The level's database
-  (`worlds/<level>/db`) must not exist before a fresh run. A template brings the config it was generated with.
+- Prepare renders [pnx.yml](pnx.yml). PowerNukkitX adds every other key with its built-in default and rewrites the
+  file on start.
+- Prepare also renders [config.json](config.json) as `worlds/<level>/config.json`, with the workload seed for all three
+  dimensions, because PowerNukkitX reads a level's seed only from there. The level's database (`worlds/<level>/db`)
+  must not exist before a fresh run.
 - The `java` process is the measured process. The tick thread is the JVM's `main` thread, found with
   `jcmd <pid> Thread.print` once the server is ready, as for Nukkit.
 - Tick probe: `time query gametime` prints `Gametime is N`, the server's own tick counter.
@@ -46,22 +46,24 @@ moved, fetch fails on the sha256. Keep a copy named `powernukkitx-nightly-86f70b
 
 ## Configuration changes
 
-The values, PowerNukkitX's built-in defaults and the reasons are in the `[config]` table of
-[server.toml](server.toml), and every change is recorded in run.json with its category
-([methodology](../../docs/methodology.md#fairness-and-feature-parity)). `pnx.yml` starts empty. Both versions have
-the same defaults for the keys written here.
+Prepare renders [pnx.yml](pnx.yml) into the server directory and [config.json](config.json) as
+`worlds/<level>/config.json`. Each key the harness sets in `pnx.yml` has its reason in a comment above it, and run.json
+records every key's value before and after. Neither file exists before the first start, so both are written as
+rendered. Both versions have the same defaults for the keys written here.
 
-- harness: the machine profile's port; offline login; usage metrics off; the per-IP RakNet packet limit raised,
-  because every bot connects from 127.0.0.1 and the default limit is sized for one player per address. The RakNet
-  transport is written as well, which is the default.
-- parity: view and simulation distance, level name, difficulty, game mode, max players, autosave and its interval, and
-  player data. `level-settings.autoTickRate` is off: with it, a slow level is ticked only every few server ticks while
-  the tick counter keeps advancing. `level-settings.loadAllLevels` is off, so only the benchmark level loads.
+- `pnx.yml`: the run's port; offline login; usage metrics off; the per-IP RakNet packet limit raised, because every
+  bot connects from 127.0.0.1 and the default limit is sized for one player per address; the RakNet transport, which
+  is the default; view and simulation distance, level name, difficulty, game mode, max players, autosave and its
+  interval, and player data, the same as on every server. `level-settings.autoTickRate` is off: with it, a slow level
+  is ticked only every few server ticks while the tick counter keeps advancing. `level-settings.loadAllLevels` is off,
+  so only the benchmark level loads.
+- `config.json`: the workload seed for the overworld, nether and end generators, the same seed as on every server.
+  Every other value is what PowerNukkitX writes itself: LevelDB storage, each dimension's default heights, anti-xray
+  off.
 
 Held in the adapter:
 
-- The seed in `worlds/<level>/config.json` (parity).
-- `-Xms` and `-Xmx` from the machine profile (parity), and UTF-8 console streams (harness).
+- `-Xms` and `-Xmx` from the machine profile, and UTF-8 console streams.
 
 Left at their defaults and recorded in run.json facts: the inbound limits per session (1500 packets per second, 500 per
 tick), which apply per player rather than per address; and `levelWorkerThreads: -1`, one worker per available

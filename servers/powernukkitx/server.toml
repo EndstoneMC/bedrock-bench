@@ -37,35 +37,3 @@ url = "https://github.com/PowerNukkitX/PowerNukkitX/releases/download/nightly/po
 name = "powernukkitx-nightly-86f70bc.jar"
 sha256 = "2eb036d350860f2cff8962b94beeeee1e4794e6bb279ed1e55ba74315bcf3843"
 size = 95174280
-
-# Values the harness writes into PowerNukkitX's pnx.yml, one table per override category
-# (docs/methodology.md#fairness-and-feature-parity).
-#
-# pnx.yml starts empty: PowerNukkitX fills in every other key with its built-in default and rewrites the file on
-# start, and `default` gives that built-in value for the keys written here. The world seed is not in pnx.yml; it goes
-# into worlds/<level>/config.json (world-config.json next to this file) before the first start. 3.0.5 and the nightly
-# have the same defaults for these keys.
-[config]
-
-[config.file."pnx.yml"]
-format = "yaml"
-
-[config.file."pnx.yml".harness]
-"settings.port" = { value = "{port}", type = "int", default = "19132", reason = "machine profile port, away from 19132 so a local game cannot collide" }
-"settings.xboxAuth" = { value = "false", type = "bool", default = "true", reason = "the bots log in offline with self-signed identities" }
-"network-settings.transport" = { value = "raknet", default = "raknet", reason = "the load bot connects over RakNet" }
-"network-settings.raknet.packetLimit" = { value = "1000000", type = "int", default = "8000", reason = "every bot connects from 127.0.0.1; the per-IP limit is sized for one player per address" }
-"misc-settings.enableMetrics" = { value = "false", type = "bool", default = "true", reason = "no usage statistics upload" }
-
-[config.file."pnx.yml".parity]
-"settings.maxPlayers" = { value = "{max_players}", type = "int", default = "20", reason = "room for every bot" }
-"settings.defaultLevelName" = { value = "{level_name}", default = "world", reason = "a fixed world folder, checked absent before launch" }
-"settings.autoSave" = { value = "true", type = "bool", default = "true", reason = "the world is saved periodically, as on every server" }
-"settings.autosaveDelay" = { value = "{autosave_ticks}", type = "int", default = "6000", reason = "the same autosave interval on every server" }
-"player-settings.savePlayerData" = { value = "{save_player_data}", type = "bool", default = "true", reason = "player data is saved, as on every server" }
-"gameplay-settings.viewDistance" = { value = "{view_distance}", type = "int", default = "8", reason = "the same view distance on every server" }
-"gameplay-settings.difficulty" = { value = "{difficulty_id}", type = "int", default = "1", reason = "the same difficulty on every server" }
-"gameplay-settings.gamemode" = { value = "{gamemode_id}", type = "int", default = "0", reason = "the same game mode on every server" }
-"chunk-settings.tickRadius" = { value = "{tick_distance}", type = "int", default = "4", reason = "the same simulation distance on every server" }
-"level-settings.autoTickRate" = { value = "false", type = "bool", default = "true", reason = "with it, a slow level is ticked only every few server ticks, which the tick counter does not show" }
-"level-settings.loadAllLevels" = { value = "false", type = "bool", default = "true", reason = "only the benchmark level is loaded, as on every server" }
