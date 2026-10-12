@@ -4,7 +4,7 @@
 // circles and reports what they receive as JSON lines on stdout. In the benchmark that server is PocketMine-MP.
 //
 // It is bots/loadbot built against an older gophertunnel: v1.57.1, the last release for protocol 1001, with the
-// login back-port in bots/patches/gophertunnel-v1.57.1. Flags, events, the stdin protocol and all behaviour come from
+// login back-port in 0001-login-backport.patch. Flags, events, the stdin protocol and all behaviour come from
 // bots/core and are the same as loadbot's; see bots/README.md. The files of this module mirror loadbot's one for one
 // and differ only where the two gophertunnel versions do.
 package main
@@ -34,7 +34,7 @@ var (
 
 const gophertunnelModule = "github.com/sandertv/gophertunnel"
 
-// carriedPatches lists the gophertunnel patches this build carries (bots/patches/gophertunnel-v1.57.1). Keep it in
+// carriedPatches lists the gophertunnel patches this build carries (0001-login-backport.patch). Keep it in
 // sync with the replace directive in go.mod.
 var carriedPatches = []string{"0001-login-backport"}
 

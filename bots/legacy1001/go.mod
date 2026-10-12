@@ -50,6 +50,6 @@ require (
 // The shared core lives next to this module in the same repository.
 replace github.com/EndstoneMC/bedrock-bench/bots/core => ../core
 
-// Upstream v1.57.1 plus bots/patches/gophertunnel-v1.57.1. go.sum pins the hash of exactly that tree, so a fork tag
+// Upstream v1.57.1 plus 0001-login-backport.patch. go.sum pins the hash of exactly that tree, so a fork tag
 // with any other content fails to download.
 replace github.com/sandertv/gophertunnel v1.57.1 => github.com/EndstoneMC/gophertunnel v1.57.1-bench.1

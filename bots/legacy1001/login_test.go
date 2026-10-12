@@ -23,7 +23,7 @@ import (
 const multiplayerAudience = "api://auth-minecraft-services/multiplayer"
 
 // TestLoginRequestFormat checks the offline login as a server receives it against the format PocketMine-MP
-// expects. It is the failing case behind bots/patches/gophertunnel-v1.57.1/0001-login-backport.patch: unpatched
+// expects. It is the failing case behind 0001-login-backport.patch: unpatched
 // v1.57.1 sends the player UUID as "identity" with no audience, and IsEditorMode instead of the newer client data
 // fields.
 func TestLoginRequestFormat(t *testing.T) {
