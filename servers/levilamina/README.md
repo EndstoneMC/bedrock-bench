@@ -38,8 +38,7 @@ bbench fetch levilamina@26.51.6 --accept-eula
    that package's `tooth.json`.
 2. Start the release once by hand and check that the generated `plugins/LeviLamina/config/Config.json` still has the
    keys [`Config.json`](Config.json) sets.
-3. Add a `[features.range."<major>.<minor>"]` to `server.toml` if parity changed, and run
-   `bbench smoke configs/smoke.toml levilamina@<version>`.
+3. Run `bbench smoke configs/smoke.toml levilamina@<version>`.
 
 ## How a run starts
 

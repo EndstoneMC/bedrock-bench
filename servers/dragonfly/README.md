@@ -1,8 +1,7 @@
 # Dragonfly (`dragonfly`)
 
 [Dragonfly](https://github.com/df-mc/dragonfly) is a Bedrock server written in Go, licensed under MIT. It shares no code
-with Mojang's server: terrain, movement, entities and block behaviour are its own, and much of vanilla is absent. Its
-`[features]` rows in [server.toml](server.toml) are fidelity V1, so reports list it under "Reduced fidelity". It needs no
+with Mojang's server: terrain, movement, entities and block behaviour are its own, and much of vanilla is absent. It needs no
 EULA, so it is the one real server CI runs: a 4-bot smoke in
 [e2e-dragonfly.yml](../../.github/workflows/e2e-dragonfly.yml).
 
@@ -61,11 +60,10 @@ A build from a commit is tagged with the commit's first seven characters, a rele
    changed, then run `go vet` and `go test` as above.
 2. Add the version to `[artifacts]` in [server.toml](server.toml): `module_version` and `go_sum` from `go.mod` and
    `go.sum`, and the sha256 and size of `https://proxy.golang.org/github.com/df-mc/dragonfly/@v/<module version>.zip`.
-3. Add a range to `[features]`, re-checking each class against the new source.
-4. If `dfbench -defaults` changed, update `DEFAULTS` in `tests/unit/test_adapter_dragonfly.py`; with
+3. If `dfbench -defaults` changed, update `DEFAULTS` in `tests/unit/test_adapter_dragonfly.py`; with
    `BBENCH_DFBENCH=<path to dfbench>` that test compares them. If the rendered `config.toml` changed, update
    `testdata/config.toml`.
-5. `bbench fetch dragonfly@<version>` and `bbench smoke configs/smoke.toml dragonfly@<version>`.
+4. `bbench fetch dragonfly@<version>` and `bbench smoke configs/smoke.toml dragonfly@<version>`.
 
 ## How a run starts
 

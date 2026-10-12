@@ -2,8 +2,7 @@
 
 [Chorus](https://github.com/bedrock-crustaceans/chorus) is a Bedrock server written in Rust on
 [bedrock-rs](https://github.com/bedrock-crustaceans/bedrock-rs) and Bevy ECS, licensed under Apache-2.0. It shares no
-code with Mojang's server: terrain, chunks, movement and commands are its own, and most vanilla gameplay is absent. Its
-`[features]` rows in [server.toml](server.toml) are fidelity V1, so reports list it under "Reduced fidelity". Chorus
+code with Mojang's server: terrain, chunks, movement and commands are its own, and most vanilla gameplay is absent. Chorus
 has no releases or tags, so a version is a commit, built from source.
 
 Chorus is a library and a server binary. This folder is the Cargo package of chorusbench: the Chorus server plus the
@@ -57,10 +56,9 @@ the run is marked `unpublished_artifact`.
 2. Add the version to `[artifacts]` in [server.toml](server.toml): the commit, protocol, Minecraft version, the Rust
    version that builds it, the sha256 of `Cargo.lock` with LF line endings, and the sha256 and size of the commit's
    source archive.
-3. Add a range to `[features]`, re-checking each class against the new source.
-4. If `chorusbench -defaults` changed, update `DEFAULTS` in `tests/unit/test_adapter_chorus.py`; with
+3. If `chorusbench -defaults` changed, update `DEFAULTS` in `tests/unit/test_adapter_chorus.py`; with
    `BBENCH_CHORUSBENCH=<path to chorusbench>` that test compares them.
-5. `bbench fetch chorus@<version>`, then `loadbot -decode-errors fail` and
+4. `bbench fetch chorus@<version>`, then `loadbot -decode-errors fail` and
    `bbench smoke configs/smoke.toml chorus@<version>`.
 
 ## How a run starts
