@@ -2,9 +2,8 @@
 
 [PocketMine-MP](https://github.com/pmmp/PocketMine-MP) is a Bedrock server written in PHP, licensed under LGPL-3.0. It
 shares no code with Mojang's server: world generation, simulation and the chunk pipeline are its own, and many vanilla
-systems are missing or simpler. Its `[features]` rows in [server.toml](server.toml) are fidelity V1, so reports list it
-under "Reduced fidelity". The pinned 5.44 line speaks protocol 1001 (Minecraft 1.26.30), which the main load bot cannot
-join, so its runs use the [protocol 1001 bot](../../bots/README.md#protocol-1001) and are flagged
+systems are missing or simpler. The pinned 5.44 line speaks protocol 1001 (Minecraft 1.26.30), which the main load bot
+cannot join, so its runs use the [protocol 1001 bot](../../bots/README.md#protocol-1001) and are flagged
 `bot_protocol_differs`.
 
 Adapter: [pocketmine.py](../../bedrock_bench/adapters/pocketmine.py). Helper plugin: [BenchHelper.php](BenchHelper.php).
@@ -68,10 +67,9 @@ Held in the adapter:
 - It sends whole chunk columns in `LevelChunk` packets, with no sub-chunk requests, and never lets clients generate
   terrain, so every bot receives the full view disc.
 - It sends no movement corrections and no locator-bar packets, and bots teleported to the spread height keep hovering
-  there. The `[features]` rows say so, and `corrections_per_bot_s`, `locator_pkts_per_bot_s` and
-  `airborne_frac_steady` check it in every run.
-- It has no target selectors, so the spread phase's effects for `@a` are not sent; each bot gets its effects when it is
-  placed.
+  there.
+- It has no target selectors, so the spread phase's effects for `@a` are not sent. Each bot gets its effects when it
+  is placed.
 - Worlds are not dimensions, so every position reports dimension 0.
 
 ## Crash files

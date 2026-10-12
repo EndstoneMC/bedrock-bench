@@ -3,9 +3,8 @@
 [Altay](https://github.com/altayofficial/Altay) is a fork of PocketMine-MP 5, written in PHP and licensed under
 LGPL-3.0. It is not TuranicTeam's archived Altay. It keeps PocketMine-MP's gameplay code and console and follows the
 current Bedrock protocol: 5.44.7 speaks protocol 2193 (Minecraft 1.26.50), so its runs use the main load bot. Like
-PocketMine-MP it shares no code with Mojang's server. Its `[features]` rows in [server.toml](server.toml) are fidelity
-V1, so reports list it under "Reduced fidelity". Its version numbers follow PocketMine-MP's, so reports tell the two
-apart by the arm tag, `altay@<version>`.
+PocketMine-MP it shares no code with Mojang's server. Its version numbers follow PocketMine-MP's, so reports tell the two
+apart by the tag, `altay@<version>`.
 
 Adapter: [altay.py](../../bedrock_bench/adapters/altay.py), which extends
 [pocketmine.py](../../bedrock_bench/adapters/pocketmine.py). Helper plugin: [BenchHelper.php](BenchHelper.php). Config
@@ -69,10 +68,9 @@ Held in the adapter:
 - It sends whole chunk columns in `LevelChunk` packets, with no sub-chunk requests, and never lets clients generate
   terrain, so every bot receives the full view disc.
 - It sends no movement corrections and no locator-bar packets, and bots teleported to the spread height keep hovering
-  there. The `[features]` rows say so, and `corrections_per_bot_s`, `locator_pkts_per_bot_s` and
-  `airborne_frac_steady` check it in every run.
-- It has no target selectors, so the spread phase's effects for `@a` are not sent; each bot gets its effects when it is
-  placed.
+  there.
+- It has no target selectors, so the spread phase's effects for `@a` are not sent. Each bot gets its effects when it
+  is placed.
 - Worlds are not dimensions, so every position reports dimension 0.
 - Every start logs four `WARNING` lines saying the RakNet transport is deprecated. The bots use RakNet.
 - Every join logs three `WARNING` lines about properties of the bot's self-signed login (`ipt`, `tid`, `PlayFabId`).
