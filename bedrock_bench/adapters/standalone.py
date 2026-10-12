@@ -4,7 +4,7 @@
 These servers bring their own world generator, their own config files and a runtime (PHP or a JVM). Their adapters
 are mostly data; this module holds the machinery they share.
 
-- **Artifacts.** The server's own release (a phar or a jar) is pinned in ``configs/<server>/server.toml`` and
+- **Artifacts.** The server's own release (a phar or a jar) is pinned in ``servers/<server>/server.toml`` and
   its runtime in ``servers/runtimes.toml``; both are verified by sha256. An install has two parts:
   ``server/``, copied into every run's fresh server directory, and ``defaults/``, the config files the server would
   write on its first start, extracted from the release itself so they always match the pinned version. Runtimes are
