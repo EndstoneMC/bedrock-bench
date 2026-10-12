@@ -58,7 +58,6 @@ JAR = "nukkit.jar"
 SHIPPED_CONFIG = "lang/eng/nukkit.yml"
 PLUGIN_SOURCE = "servers/nukkit"  # plugin.yml and *.java
 PLUGIN_FILE = "plugins/BenchTick.jar"
-DEFAULT_RUNTIME = "jdk-21.0.12.1"
 
 #: ``13:58:00 [INFO ] text`` (the level padded to five characters); log4j's own start-up warning is
 #: ``2026-10-10T22:29:18.168Z main WARN text``.
@@ -95,7 +94,7 @@ class NukkitAdapter(JavaServer):
     def fetch(self, cache: Cache) -> Install:
         jar, jar_ref, entry = fetch_release(cache, self.name, self.arm.version, artifact=self.arm.artifact)
         meta = dict(entry.meta) if entry is not None else {}
-        runtime = fetch_runtime(cache, str(meta.get("runtime", DEFAULT_RUNTIME)), runtime_platform())
+        runtime = fetch_runtime(cache, self.pinned_runtime(entry), runtime_platform())
         source = config.project_root() / PLUGIN_SOURCE
 
         def build(tmp: Path) -> None:

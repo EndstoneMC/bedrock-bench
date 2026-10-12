@@ -52,7 +52,6 @@ if TYPE_CHECKING:
 
     from bedrock_bench.cache import Cache
 
-DEFAULT_PYTHON = "3.13"
 REQUIREMENTS = "servers/endstone/requirements-{version}.txt"
 BSTATS_TEMPLATE = "servers/endstone/bstats.toml"
 BSTATS_FILE = "plugins/bstats/config.toml"
@@ -96,9 +95,9 @@ class EndstoneAdapter(BdsFamily):
             "version_marker": str(meta.get("version_marker") or version_marker(bds_version)),
             "known_issues": known_issues(meta, platform),
         }
-        python = self.arm.python or str(meta.get("python") or DEFAULT_PYTHON)
-        if not re.match(r"^3\.\d+$", python):
-            raise ConfigError(f"python must look like 3.13, got {python!r}")
+        python = self.arm.python or meta.get("python")
+        if not isinstance(python, str) or not re.match(r"^3\.\d+$", python):
+            raise ConfigError(f"{self.arm.ref}: python must look like 3.13 (arm or version table), got {python!r}")
         tag = "cp" + python.replace(".", "")
         if self.arm.artifact is not None:
             wheel, wheel_ref = fetch.adopt_local(self.arm.artifact, cache)

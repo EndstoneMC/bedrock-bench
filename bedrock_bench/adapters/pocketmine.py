@@ -61,7 +61,6 @@ PHAR = "PocketMine-MP.phar"
 SHIPPED_CONFIG = "resources/pocketmine.yml"
 HELPER_SOURCE = "servers/pocketmine/BenchHelper.php"
 HELPER_FILE = "plugins/BenchHelper.php"
-DEFAULT_RUNTIME = "php-8.2-pm5-524"
 
 #: ``[13:58:00.123] [Server thread/INFO]: text``. Replies to console commands are printed as ``Command output | text``.
 PMMP_PREFIX = re.compile(
@@ -107,7 +106,7 @@ class PocketMineAdapter(StandaloneServer):
     def fetch(self, cache: Cache) -> Install:
         phar, phar_ref, entry = fetch_release(cache, self.name, self.arm.version, artifact=self.arm.artifact)
         meta = dict(entry.meta) if entry is not None else {}
-        runtime = fetch_runtime(cache, str(meta.get("runtime", DEFAULT_RUNTIME)), runtime_platform())
+        runtime = fetch_runtime(cache, self.pinned_runtime(entry), runtime_platform())
         helper = config.project_root() / self.helper_source
 
         def build(tmp: Path) -> None:

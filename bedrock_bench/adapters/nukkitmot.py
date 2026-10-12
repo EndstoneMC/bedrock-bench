@@ -53,7 +53,6 @@ if TYPE_CHECKING:
 JAR = "nukkit-mot.jar"
 PLUGIN_SOURCE = "servers/nukkitmot"  # plugin.yml and *.java
 PLUGIN_FILE = "plugins/BenchTick.jar"
-DEFAULT_RUNTIME = "jdk-21.0.12.1"
 
 #: Lines as PowerNukkitX prints them: ``18:41:10 [main] [INFO] text``, and log4j's own ISO-stamped start-up warning.
 NUKKITMOT_DIALECT = Dialect(
@@ -79,7 +78,7 @@ class NukkitMotAdapter(JavaServer):
     def fetch(self, cache: Cache) -> Install:
         jar, jar_ref, entry = fetch_release(cache, self.name, self.arm.version, artifact=self.arm.artifact)
         meta = dict(entry.meta) if entry is not None else {}
-        runtime = fetch_runtime(cache, str(meta.get("runtime", DEFAULT_RUNTIME)), runtime_platform())
+        runtime = fetch_runtime(cache, self.pinned_runtime(entry), runtime_platform())
         source = config.project_root() / PLUGIN_SOURCE
 
         def build(tmp: Path) -> None:

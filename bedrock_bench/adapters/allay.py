@@ -69,7 +69,6 @@ PLUGIN_FILE = "plugins/BenchTick.jar"
 WORLD_SETTINGS = "worlds/world-settings.yml"
 WORLD_SETTINGS_TEMPLATE = "servers/allay/world-settings.yml"
 DEFAULT_WORLD = "world"
-DEFAULT_RUNTIME = "jdk-21.0.12.1"
 WORLD_THREAD = "World Thread #"
 SENTRY_FLAG = "-Dsentry.dsn="
 #: Allay's spelling of the workload's difficulty in the ``[config]`` table (``EASY``).
@@ -124,7 +123,7 @@ class AllayAdapter(JavaServer):
     def fetch(self, cache: Cache) -> Install:
         jar, jar_ref, entry = fetch_release(cache, self.name, self.arm.version, artifact=self.arm.artifact)
         meta = dict(entry.meta) if entry is not None else {}
-        runtime = fetch_runtime(cache, str(meta.get("runtime", DEFAULT_RUNTIME)), runtime_platform())
+        runtime = fetch_runtime(cache, self.pinned_runtime(entry), runtime_platform())
         source = config.project_root() / HELPER_SOURCE
 
         def build(tmp: Path) -> None:

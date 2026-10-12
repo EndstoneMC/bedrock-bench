@@ -41,7 +41,6 @@ if TYPE_CHECKING:
 
 JAR = "powernukkitx.jar"
 WORLD_CONFIG_TEMPLATE = "servers/powernukkitx/world-config.json"
-DEFAULT_RUNTIME = "jdk-21.0.12.1"
 NIGHTLY = "nightly"
 #: pnx.yml values left at their defaults and recorded as facts, by fact name. Keys a version lacks are skipped.
 RECORDED_SETTINGS: Mapping[str, str] = {
@@ -107,7 +106,7 @@ class PowerNukkitXAdapter(JavaServer):
     def fetch(self, cache: Cache) -> Install:
         jar, jar_ref, entry = fetch_release(cache, self.name, self.arm.version, artifact=self.arm.artifact)
         meta = dict(entry.meta) if entry is not None else {}
-        runtime = fetch_runtime(cache, str(meta.get("runtime", DEFAULT_RUNTIME)), runtime_platform())
+        runtime = fetch_runtime(cache, self.pinned_runtime(entry), runtime_platform())
         return self.build_install(
             cache,
             release=jar,

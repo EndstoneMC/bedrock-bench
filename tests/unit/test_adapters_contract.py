@@ -34,6 +34,7 @@ from bedrock_bench.adapters.base import (
     quote_player,
 )
 from bedrock_bench.adapters.bdsfamily import BdsFamily
+from bedrock_bench.adapters.standalone import StandaloneServer
 from bedrock_bench.config import ConfigError, project_root
 from bedrock_bench.model import Layout, Machine, ThreadInfo, WorldInfo
 from bedrock_bench.workload import SMOKE, WORKLOAD, Workload
@@ -149,6 +150,15 @@ def test_bds_hosted_versions_speak_their_bds_protocol(cls: type[ServerAdapter]) 
     for version, entry in config.load_artifacts(cls.name).versions.items():
         if "bds" in entry.meta:
             assert pinned_protocol(cls.name, version) == pinned_protocol("bds", entry.meta["bds"]), version
+
+
+@real_adapters
+def test_standalone_versions_name_a_pinned_runtime(cls: type[ServerAdapter]) -> None:
+    if not issubclass(cls, StandaloneServer):
+        pytest.skip("brings no runtime")
+    runtimes = config.load_artifacts(ROOT / config.RUNTIMES_FILE).versions
+    for version, entry in config.load_artifacts(cls.name).versions.items():
+        assert entry.meta.get("runtime") in runtimes, f"{cls.name}@{version}"
 
 
 @real_adapters

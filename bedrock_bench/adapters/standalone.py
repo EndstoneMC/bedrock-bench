@@ -770,6 +770,16 @@ class StandaloneServer(ServerAdapter):
         """The release file in the run's copy; its sha256 is checked before and after the run."""
         return layout.server_dir / layout.extra["server_file"]
 
+    def pinned_runtime(self, entry: ArtifactVersion | None) -> str:
+        """``runtime`` in this version's table: a version in servers/runtimes.toml."""
+        runtime = entry.meta.get("runtime") if entry is not None else None
+        if not isinstance(runtime, str):
+            raise ConfigError(
+                f'{self.arm.ref} needs runtime = "<version in {config.RUNTIMES_FILE}>" in its version table',
+                file=config.server_dir(self.name) / config.SERVER_FILE,
+            )
+        return runtime
+
     def runtime_path(self, layout: Layout, name: str) -> Path:
         """A named path inside the layout's runtime (``java``, ``jcmd``, ``php``, ...)."""
         root, paths = layout.extra.get("runtime_root"), layout.extra.get("runtime_paths", {})
