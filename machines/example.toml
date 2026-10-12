@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: Apache-2.0
+# A machine profile: where the server, the bots and the harness run, at which priority, and the interference limits
+# a run must stay within. Every arm of a matrix uses the same profile (rule R3).
+# Copy this file for your machine; 'bbench doctor --machine <name>' shows the placement it resolves to.
+label = "example"
+
+[placement]
+server_cpus = "auto"  # performance class on hybrid CPUs, else whole cores; or an explicit list such as "0-15"
+bot_cpus = "auto"  # every CPU the server does not get; at least 4 logical CPUs or doctor fails
+harness_cpus = "bot"  # share the bot CPUs, or an explicit list away from the server
+priority = "normal"  # normal | above_normal; a matrix can override it for every arm
+
+[runtime]
+kind = "native"  # native | docker
+port = 19672  # the server's IPv4 port; IPv6 uses the next one
+jvm_heap = "8G"  # -Xms and -Xmx for every JVM server
+
+[gates]
+idle_check_s = 15.0  # foreign load measured before each run
+foreign_cores_mean = 0.25  # mean foreign load in every measured window
+foreign_cores_peak_10s = 1.5  # highest 10 s mean of foreign load
+foreign_server_set_cores_mean = 0.25  # mean foreign load on the server's CPUs
+bot_cpu_frac_max = 0.85  # busiest the bot CPUs may be before the bots limit the server

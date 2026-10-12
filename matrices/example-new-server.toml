@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: Apache-2.0
+# A starting point for benchmarking a newly added server (docs/ADDING_A_SERVER.md). Copy this file, replace the
+# chorus arm with your server's tag, run 'bbench smoke <server@version>' first, then 'bbench run'.
+# Every arm runs the same scenario with the same bot flags and placement; reports group arms by declared fidelity.
+[matrix]
+name = "example-new-server"
+scenarios = ["spread100"]
+repeats = 3
+order = "rotate"
+cooldown_s = 60.0
+rerun_invalid = 1
+
+[[arm]]
+server = "bds@1.26.52.3"
+
+[[arm]]
+server = "chorus@1.4.2"

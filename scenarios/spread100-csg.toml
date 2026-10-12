@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: Apache-2.0
+# The legacy BENCHMARK.md workload: spread100 with client-side generation on where the server supports it, and the
+# bots announcing support for it. BDS-hosted servers only; never part of a cross-server table.
+name = "spread100-csg"
+description = "spread100 with client-side generation on; reproduces the legacy Endstone figures"
+extends = "spread100"
+exercises = [
+    "terrain.vanilla_generator",
+    "chunks.client_side_generation",
+    "chunks.subchunk_requests",
+    "player.server_authoritative_movement",
+    "player.physics",
+    "player.locator_bar",
+    "world.autosave",
+]
+requires = [
+    "terrain.vanilla_generator",
+    "chunks.client_side_generation",
+    "chunks.subchunk_requests",
+    "player.server_authoritative_movement",
+    "player.physics",
+    "player.locator_bar",
+    "world.autosave",
+]
+
+[server]
+csg = true

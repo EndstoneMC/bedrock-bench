@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: Apache-2.0
+# The machine behind the legacy Endstone 0.11.14 figures: Intel Core i7-14700F, 8 performance cores with SMT
+# (logical CPUs 0-15) and 12 efficiency cores (16-27). The server gets the performance threads, the bots and the
+# harness the efficiency cores, as in the legacy runs. Claims about absolute CPU time are checked only on runs made
+# with this label.
+label = "reference"
+
+[placement]
+server_cpus = "0-15"
+bot_cpus = "16-27"
+harness_cpus = "bot"
+priority = "normal"  # the endstone-0.11.14 matrices raise it to above_normal
+
+[runtime]
+kind = "native"
+port = 19672
+jvm_heap = "8G"
+
+[gates]
+idle_check_s = 15.0
+foreign_cores_mean = 0.25
+foreign_cores_peak_10s = 1.5
+foreign_server_set_cores_mean = 0.25
+bot_cpu_frac_max = 0.85
