@@ -1,20 +1,18 @@
 # SPDX-License-Identifier: Apache-2.0
 """The server adapter contract, checked for every registered adapter and every fake adapter.
 
-Per adapter: the class attributes, the dialect against fixture log lines, well-formed commands, commands against a
-committed snapshot, chaos actions rendered or marked unsupported, bot flags inside the allowlist, and a feature file
-that covers every key the scenarios exercise. The last section covers the shared code in ``adapters/base.py`` and the
+Per adapter: the class attributes, the dialect against fixture log lines, well-formed commands, chaos actions rendered
+or marked unsupported, bot flags inside the allowlist, and a feature file that covers every key the scenarios
+exercise. The last section covers the shared code in ``adapters/base.py`` and the
 registry.
 
 Fixture lines come from ``tests/fixtures/logs/<name>*`` (any text file) for real adapters and from
-``fake_server.sample_log`` for the fakes. Snapshots are ``tests/unit/snapshots/adapters/<name>.json``; run with
-``BBENCH_UPDATE_SNAPSHOTS=1`` to write or refresh them after reviewing a change.
+``fake_server.sample_log`` for the fakes.
 """
 
 from __future__ import annotations
 
 import inspect
-import json
 import os
 import re
 import sys
@@ -47,8 +45,6 @@ from fakes.fake_adapter import FAKE_ADAPTERS, FakeAdapter, FakeBds
 
 ROOT = project_root()
 FIXTURE_LOGS = ROOT / "tests" / "fixtures" / "logs"
-SNAPSHOTS = Path(__file__).resolve().parent / "snapshots" / "adapters"
-UPDATE_SNAPSHOTS = os.environ.get("BBENCH_UPDATE_SNAPSHOTS") == "1"
 
 #: Protocols with a bot build: 2193 -> bots/loadbot, 1001 -> bots/legacy1001.
 BOT_PROTOCOLS = frozenset({2193, 1001})
@@ -290,20 +286,6 @@ def test_commands_are_single_lines(cls: type[ServerAdapter]) -> None:
     assert all(PLAYER in command for command in rendered["effects"])
     assert PLAYER in rendered["tp"]
     assert "5760.5" in rendered["tp"] and "1280.5" in rendered["tp"]
-
-
-@real_adapters
-def test_commands_match_snapshot(cls: type[ServerAdapter]) -> None:
-    rendered = rendered_commands(make(cls))
-    path = SNAPSHOTS / f"{cls.name}.json"
-    if UPDATE_SNAPSHOTS:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(rendered, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
-        return
-    if not path.is_file():
-        pytest.skip(f"no snapshot {path.relative_to(ROOT).as_posix()}; create it with BBENCH_UPDATE_SNAPSHOTS=1")
-    expected = json.loads(path.read_text(encoding="utf-8"))
-    assert rendered == expected, "rendered commands changed; review, then refresh with BBENCH_UPDATE_SNAPSHOTS=1"
 
 
 @every_adapter

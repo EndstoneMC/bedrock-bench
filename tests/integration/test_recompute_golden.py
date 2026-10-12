@@ -7,7 +7,6 @@ with ``uv run python tests/fixtures/runs/synthetic.py``.
 
 from __future__ import annotations
 
-import importlib.util
 import json
 from typing import Any
 
@@ -15,10 +14,10 @@ import pytest
 
 from bedrock_bench import ANALYSIS_VERSION
 from bedrock_bench.metrics import compute, dumps
+from bedrock_bench.results import load_run
 from fixtures.runs import synthetic
 
 FIXTURES = synthetic.HERE
-HAVE_LOADER = importlib.util.find_spec("bedrock_bench.results") is not None
 
 
 def stored(name: str) -> str:
@@ -39,13 +38,8 @@ def test_golden_files_match_the_analysis_version(name: str) -> None:
     assert stored_doc(name)["analysis_version"] == ANALYSIS_VERSION
 
 
-@pytest.mark.xfail(
-    not HAVE_LOADER, reason="needs bedrock_bench.results.load_run (WP5)", raises=ImportError, strict=True
-)
 @pytest.mark.parametrize("name", synthetic.NAMES)
 def test_raw_run_directories_recompute_exactly(name: str) -> None:
-    from bedrock_bench.results import load_run
-
     assert dumps(compute(load_run(FIXTURES / name))) == stored(name)
 
 

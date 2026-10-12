@@ -10,7 +10,7 @@ run's timebase, and asks for a decision; it never sends anything itself:
 - :meth:`Settle.progress`: a ``progress`` event with one row per bot;
 - :meth:`Settle.evaluate`: a :class:`Decision`, with the interventions to send now.
 
-**The rule (legacy-faithful).** ``rate`` is the growth of the bots' total unique chunks per second over the last
+**The rule.** ``rate`` is the growth of the bots' total unique chunks per second over the last
 ``rate_window_s`` (60 s). Settle ends once at least ``min_s`` (300 s) have passed since ``alljoined`` and
 ``rate / n <= rate_per_bot`` (0.1 chunks per bot per second), or at ``cap_s`` (900 s), which is flagged
 ``settle_capped``. A decision is only taken on data at most ``max_data_age_s`` (5 s) old. With ``min_view_frac`` above

@@ -20,7 +20,7 @@ exits with the worst final status and writes the report.
 
 ``smoke`` is ``run-one`` with ``configs/scenarios/smoke.toml`` plus adapter checks: every harness command accepted
 without an error line, movement corrections seen where the feature file declares movement validation, and every
-chaos-dialect command sent once when chaos support provides a list.
+chaos-dialect command sent once.
 """
 
 from __future__ import annotations
@@ -38,7 +38,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, ClassVar
 
-from bedrock_bench import adapters, bots, config, host, platform, provenance, results
+from bedrock_bench import adapters, bots, chaos, config, host, platform, provenance, results
 from bedrock_bench.adapters.base import ServerAdapter, host_os
 from bedrock_bench.cache import Cache, remove_tree
 from bedrock_bench.clock import NS_PER_S, Origin
@@ -57,7 +57,7 @@ from bedrock_bench.model import (
     Scenario,
     Status,
 )
-from bedrock_bench.phases import COMMAND_REPLY_S, Session, bot_command, chaos_module, chaos_runner
+from bedrock_bench.phases import COMMAND_REPLY_S, Session, bot_command
 
 log = logging.getLogger(__name__)
 
@@ -151,8 +151,6 @@ def execute(request: RunRequest) -> RunResult:
     arm, scenario, machine = request.arm, request.scenario, request.machine
     adapter = adapters.create(arm, machine)
     check_platform(adapter)
-    if scenario.has_phase("chaos"):
-        chaos_runner()
     try:
         bot = bot_command(adapter, scenario, machine)
     except bots.BotError as exc:
@@ -472,9 +470,6 @@ def run_matrix(args: argparse.Namespace) -> int:
     for arm in {run.arm.id: run.arm for run in plan}.values():
         adapter = adapters.create(arm, machine)
         check_platform(adapter)
-        for name in matrix.scenarios_for(arm):
-            if scenarios[name].has_phase("chaos"):
-                chaos_runner()
     out = args.out or DEFAULT_OUT
     matrix_dir = out / matrix.name
 
@@ -677,9 +672,8 @@ def smoke(args: argparse.Namespace) -> int:
 
 
 def chaos_smoke_commands(adapter: ServerAdapter) -> list[str]:
-    """One console command per supported chaos action, from ``bedrock_bench.chaos.smoke_commands`` when available."""
-    provider = getattr(chaos_module(), "smoke_commands", None)
-    return list(provider(adapter)) if callable(provider) else []
+    """One console command per supported chaos action."""
+    return list(chaos.smoke_commands(adapter))
 
 
 def smoke_problems(run_dir: Path, adapter: ServerAdapter, extra_commands: Sequence[str] = ()) -> list[str]:

@@ -13,8 +13,8 @@ import (
 
 // TestSubChunkHeightMapWireLayout builds a sub-chunk entry byte by byte in the protocol 2193 layout, where each
 // height map is 16 rows of a varuint32 length (16) and 16 signed heights, 272 bytes in all, and decodes it with
-// upstream gophertunnel. This is why loadbot carries no sub-chunk patch: the legacy harness's gophertunnel snapshot
-// read the same 272 bytes as one flat block.
+// upstream gophertunnel. This is why loadbot carries no sub-chunk patch: the gophertunnel snapshot of Endstone's
+// earlier benchmark scripts read the same 272 bytes as one flat block.
 func TestSubChunkHeightMapWireLayout(t *testing.T) {
 	var wire bytes.Buffer
 	wire.Write([]byte{0x00, 0xfc, 0x00})             // offset (0, -4, 0)

@@ -250,7 +250,7 @@ _metric(
     "min over replies i in load of (g_j - g_i) / (t_j - t_i), j the first reply in load with t_j - t_i >= 4.5 s",
     direction="higher",
     window="load",
-    doc='Legacy table value "lowest TPS while views load" (lowest 5 s).',
+    doc="Lowest 5 s TPS while views load.",
 )
 _metric(
     "tps_load_low15",
@@ -260,7 +260,7 @@ _metric(
     "as tps_load_low5 with t_j - t_i >= 14.5 s",
     direction="higher",
     window="load",
-    doc='Legacy paragraph value "lowest 15 s".',
+    doc="Lowest 15 s TPS while views load.",
 )
 _metric(
     "tps_chaos_low15",
@@ -382,7 +382,7 @@ _metric(
     "1000 dCPU_tick / dG, with CPU interpolated at the replies a and b bounding W and dG = g_b - g_a",
     direction="lower",
     windows=CPU_WINDOWS,
-    doc='Tick-thread CPU per executed tick (legacy "main thread per tick"). Not MSPT.',
+    doc="Tick-thread CPU per executed tick. Not MSPT.",
 )
 _metric(
     "tick_util_frac_<W>",
@@ -1166,8 +1166,6 @@ def render_docs(args: argparse.Namespace) -> int:
     """``bbench docs metrics [--check]``: write docs/metrics.md, or check that it is current."""
     from bedrock_bench.config import project_root
 
-    if getattr(args, "target", "metrics") != "metrics":
-        raise NotImplementedError(f"bbench docs {args.target} is not implemented yet")
     path = project_root() / "docs" / "metrics.md"
     text = render_markdown()
     if getattr(args, "check", False):

@@ -12,9 +12,9 @@ from pathlib import Path
 import pytest
 
 from bedrock_bench.model import ExitCode, Status
-from fakes.bench import FakeBench, cpu_burner, needs, read_json
+from fakes.bench import FakeBench, cpu_burner, read_json
 
-pytestmark = [pytest.mark.integration, needs("runner:run_one")]
+pytestmark = pytest.mark.integration
 
 
 def test_cpu_burner_on_server_cpus_invalidates_the_run(tmp_path: Path) -> None:
@@ -40,7 +40,6 @@ def test_cpu_burner_on_server_cpus_invalidates_the_run(tmp_path: Path) -> None:
     assert any("foreign" in reason for reason in record["status_reasons"]), record["status_reasons"]
 
 
-@needs("runner:run_matrix")
 def test_foreign_load_before_a_matrix_is_refused(tmp_path: Path) -> None:
     bench = FakeBench.create(tmp_path)
     machine = bench.machine("strict", strict_gates=True)

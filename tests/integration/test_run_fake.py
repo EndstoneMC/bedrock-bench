@@ -19,11 +19,11 @@ from typing import Any
 import pytest
 
 from bedrock_bench.model import MARKS, ExitCode, OverrideCategory, Status
-from fakes.bench import FakeBench, Run, needs
+from fakes.bench import FakeBench, Run
 from fakes.fake_adapter import FAKE_ADAPTERS, FakeAdapter
 from fakes.fake_server import FAMILIES
 
-pytestmark = [pytest.mark.integration, needs("runner:run_one")]
+pytestmark = pytest.mark.integration
 
 #: Raw files every run directory holds (docs/methodology.md#results-files).
 RAW_FILES = (
@@ -166,7 +166,6 @@ def test_run_json_holds_no_local_paths(bench: FakeBench, good_run: Run) -> None:
         assert host not in text, "run.json contains the host name"
 
 
-@needs("metrics:analyze_cli")
 def test_analyze_recomputes_identical_metrics(bench: FakeBench, good_run: Run) -> None:
     run_dir = good_run.require_dir()
     before_metrics = (run_dir / "metrics.json").read_bytes()
@@ -177,7 +176,6 @@ def test_analyze_recomputes_identical_metrics(bench: FakeBench, good_run: Run) -
     assert good_run.run_json["status"] == before_status
 
 
-@needs("results:validate_cli")
 def test_validate_accepts_the_run(bench: FakeBench, good_run: Run) -> None:
     result = bench.bbench("validate", good_run.require_dir())
     assert result.returncode == ExitCode.OK, result.stdout + result.stderr

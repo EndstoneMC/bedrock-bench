@@ -18,9 +18,9 @@ from typing import Any
 import pytest
 
 from bedrock_bench.model import ExitCode, Status
-from fakes.bench import FakeBench, needs, read_json
+from fakes.bench import FakeBench, read_json
 
-pytestmark = [pytest.mark.integration, needs("runner:run_matrix")]
+pytestmark = pytest.mark.integration
 
 MATRIX = "order"
 FULL, REDUCED = "fake_bds@1.0.0", "fake_dragonfly@1.0.0"
@@ -91,7 +91,6 @@ def test_dry_run_prints_the_order_and_runs_nothing(tmp_path: Path) -> None:
     assert bench.run_dirs() == []
 
 
-@needs("report:report_cli")
 def test_report_groups_arms_by_fidelity(matrix_run: tuple[FakeBench, subprocess.CompletedProcess[str]]) -> None:
     bench = completed(matrix_run)
     matrix_dir = bench.out / MATRIX
@@ -111,7 +110,6 @@ def test_report_groups_arms_by_fidelity(matrix_run: tuple[FakeBench, subprocess.
     assert "does less" in reduced_section.lower()
 
 
-@needs("report:report_cli")
 def test_report_refuses_mixed_machine_profiles(
     matrix_run: tuple[FakeBench, subprocess.CompletedProcess[str]], tmp_path: Path
 ) -> None:

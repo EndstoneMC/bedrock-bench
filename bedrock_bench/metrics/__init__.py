@@ -736,10 +736,7 @@ def write(path: Path, doc: Mapping[str, Any]) -> None:
 
 def analyze_cli(args: argparse.Namespace) -> int:
     """``bbench analyze RUN_DIR...``: recompute metrics.json and the status of each run from its raw files."""
-    try:
-        from bedrock_bench.results import load_run
-    except ImportError:
-        raise NotImplementedError("bbench analyze needs bedrock_bench.results.load_run") from None
+    from bedrock_bench.results import load_run
 
     statuses: list[Status] = []
     for run_dir in map(Path, args.run_dirs):

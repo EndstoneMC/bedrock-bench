@@ -35,7 +35,6 @@ binary with another program that speaks the same protocol (the test suite's fake
 
 from __future__ import annotations
 
-import importlib
 import json
 import logging
 import os
@@ -45,17 +44,16 @@ from collections import Counter
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from types import ModuleType
 from typing import TYPE_CHECKING, Any
 
-from bedrock_bench import bots, host, process
+from bedrock_bench import bots, chaos, host, process
 from bedrock_bench.clock import Origin, Stamp, mono_ns
 from bedrock_bench.config import ConfigError
 from bedrock_bench.console import Console
 from bedrock_bench.grid import cell, verify_spread
 from bedrock_bench.metrics import WINDOW_MARKS
 from bedrock_bench.metrics.cpu import normalize_name
-from bedrock_bench.model import Flag, Layout, LogLine, Machine, PhaseSpec, Placement, PlayerPos, Scenario
+from bedrock_bench.model import Flag, Layout, LogLine, Machine, Placement, PlayerPos, Scenario
 from bedrock_bench.provenance import sha256_file
 from bedrock_bench.results import (
     BOTS_FILE,
@@ -759,14 +757,13 @@ class Session:
         spec = self.scenario.phase("chaos")
         if spec is None:
             return
-        runner = chaos_runner()
         assert self.placer is not None
         self._drain_console()
         self.mark("chaos0")
         self.save()
         self.placer.enabled = True  # bots that rejoin are placed again
         try:
-            runner(self, spec)
+            chaos.run_phase(self, spec)
         finally:
             self.placer.enabled = False
             self.mark("chaos1")
@@ -982,37 +979,13 @@ def _copy_configs(layout: Layout, target: Path) -> dict[str, str | None]:
     return hashes
 
 
-ChaosRunner = Callable[[Session, PhaseSpec], None]
-
-
-def chaos_module() -> ModuleType | None:
-    """``bedrock_bench.chaos``, or None when chaos support is not installed. Errors inside the module propagate."""
-    try:
-        return importlib.import_module("bedrock_bench.chaos")
-    except ModuleNotFoundError as exc:
-        if exc.name != "bedrock_bench.chaos":
-            raise
-        return None
-
-
-def chaos_runner() -> ChaosRunner:
-    """``bedrock_bench.chaos.run_phase``; a ConfigError when chaos support is not installed."""
-    runner = getattr(chaos_module(), "run_phase", None)
-    if not callable(runner):
-        raise ConfigError("chaos scenarios need bedrock_bench.chaos.run_phase, which is not available")
-    return runner
-
-
 __all__ = [
     "ENV_BOT_CMD",
     "BotCommand",
-    "ChaosRunner",
     "PhaseAbort",
     "Placer",
     "ServerDied",
     "Session",
     "SessionResult",
     "bot_command",
-    "chaos_module",
-    "chaos_runner",
 ]

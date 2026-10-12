@@ -187,14 +187,19 @@ class TestResolveEntry:
         assert cli.resolve_entry("good:run")(argparse.Namespace()) == 3
         assert cli.resolve_entry("sub.deep:run")(argparse.Namespace()) is None
 
-    @pytest.mark.parametrize("entry", ["missing:run", "good:missing", "good:VALUE", "sub.missing:run", "nope.deep:x"])
-    def test_missing_is_not_implemented(self, fake_package: str, entry: str) -> None:
-        with pytest.raises(NotImplementedError, match="not implemented yet"):
-            cli.resolve_entry(entry)
+    def test_missing_entries_raise(self, fake_package: str) -> None:
+        with pytest.raises(ModuleNotFoundError):
+            cli.resolve_entry("missing:run")
+        with pytest.raises(AttributeError):
+            cli.resolve_entry("good:missing")
 
     def test_import_errors_inside_a_module_propagate(self, fake_package: str) -> None:
         with pytest.raises(ModuleNotFoundError, match="a_module_that_does_not_exist_anywhere"):
             cli.resolve_entry("broken:run")
+
+    @pytest.mark.parametrize("command", cli.COMMANDS, ids=lambda command: command.name)
+    def test_every_command_resolves(self, command: cli.Command) -> None:
+        assert callable(cli.resolve_entry(command.entry))
 
 
 class TestMain:
@@ -216,14 +221,6 @@ class TestMain:
     def test_none_means_ok(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(cli, "resolve_entry", lambda entry: lambda args: None)
         assert cli.main(["doctor"]) == ExitCode.OK
-
-    def test_not_implemented(self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
-        def missing(entry: str):
-            raise NotImplementedError(f"{entry} is not implemented yet")
-
-        monkeypatch.setattr(cli, "resolve_entry", missing)
-        assert cli.main(["doctor"]) == ExitCode.USAGE
-        assert "bbench doctor: host:doctor is not implemented yet" in capsys.readouterr().err
 
     def test_config_error(self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
         def bad(args: argparse.Namespace) -> int:

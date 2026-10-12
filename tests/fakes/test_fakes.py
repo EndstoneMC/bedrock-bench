@@ -24,7 +24,7 @@ from typing import Any
 import psutil
 import pytest
 
-from bedrock_bench import adapters, config
+from bedrock_bench import adapters, bots, config
 from bedrock_bench.cache import Cache
 from bedrock_bench.model import LaunchSpec, Layout, LogLine, OverrideCategory, Placement, RunContext
 from fakes import fake_bots, fake_server
@@ -593,8 +593,6 @@ VANILLA_OUTPUT = ("bds", "endstone", "levilamina")
 
 @pytest.mark.parametrize("family", VANILLA_OUTPUT)
 def test_real_adapter_reads_the_fake_family(family: str) -> None:
-    if family not in adapters.names():
-        pytest.skip(f"the {family} adapter does not exist yet")
     real = adapters.get(family)
     dialect = real.dialect
     lines = fake_server.sample_log(family, "1.2.3")
@@ -614,7 +612,6 @@ def test_real_adapter_reads_the_fake_family(family: str) -> None:
 
 
 def test_fake_bots_accept_the_harness_bot_arguments() -> None:
-    bots = pytest.importorskip("bedrock_bench.bots")
     scenario = config.load_scenario(FAKE_SCENARIOS / "fake-quick.toml")
     args = bots.bot_args(scenario.bots, addr="127.0.0.1:19672", csg=True, compat_flags=["-fake-xuid"])
     result = run_bots(*args, "-version")

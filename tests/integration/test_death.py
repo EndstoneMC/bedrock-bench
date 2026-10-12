@@ -11,9 +11,9 @@ from typing import Any
 import pytest
 
 from bedrock_bench.model import ExitCode, Status
-from fakes.bench import FakeBench, Run, needs
+from fakes.bench import FakeBench, Run
 
-pytestmark = [pytest.mark.integration, needs("runner:run_one")]
+pytestmark = pytest.mark.integration
 
 
 @pytest.fixture(scope="module")

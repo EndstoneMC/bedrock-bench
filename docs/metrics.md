@@ -52,8 +52,8 @@ TPS comes only from a counter that advances once per executed tick, read through
 |---|---|---|---|---|---|---|
 | `tps_window_<W>` | load, steady, chaos | ticks per second | scalar | higher | probe | (g_b - g_a) / (t_b - t_a) over the replies inside W; unavailable when t_b - t_a < 0.9 (t1 - t0). The published steady TPS is tps_window_steady. Short phases (idle, join) have only tps_stats: a 5 s probe cannot cover 90% of them. |
 | `tps_stats_<W>` | idle, join, settle, load, steady, chaos | ticks per second | min, p5, median, max, n | higher | probe | series samples (g_{i+1} - g_i) / (t_{i+1} - t_i) whose two replies lie in W. p5 is left out when n < 20. |
-| `tps_load_low5` | load | ticks per second | scalar | higher | probe | min over replies i in load of (g_j - g_i) / (t_j - t_i), j the first reply in load with t_j - t_i >= 4.5 s. Legacy table value "lowest TPS while views load" (lowest 5 s). |
-| `tps_load_low15` | load | ticks per second | scalar | higher | probe | as tps_load_low5 with t_j - t_i >= 14.5 s. Legacy paragraph value "lowest 15 s". |
+| `tps_load_low5` | load | ticks per second | scalar | higher | probe | min over replies i in load of (g_j - g_i) / (t_j - t_i), j the first reply in load with t_j - t_i >= 4.5 s. Lowest 5 s TPS while views load. |
+| `tps_load_low15` | load | ticks per second | scalar | higher | probe | as tps_load_low5 with t_j - t_i >= 14.5 s. Lowest 15 s TPS while views load. |
 | `tps_chaos_low15` | chaos | ticks per second | scalar | - | probe | as tps_load_low15 over the chaos window |
 | `ticks_lost_load` | load | ticks | scalar | lower | probe | 20 (t_b - t_a) - (g_b - g_a) over load. Area of the TPS dip. Reply jitter can make a dip-free window slightly negative; not clamped. |
 | `tick_deficit_frac_load` | load | fraction (0 to 1) | scalar | lower | probe | ticks_lost_load / (20 (t_b - t_a)) |
@@ -72,7 +72,7 @@ Tick-thread CPU is CPU time, not wall time, so it is not MSPT. It leaves out the
 |---|---|---|---|---|---|---|
 | `tick_ms_per_s_<W>` | idle, load, steady, chaos | CPU ms per second | scalar | lower | tick | 1000 dCPU_tick / dt between the first and last 10 Hz tick-thread sample inside W. CPU_tick: GetThreadTimes on Windows, schedstat (fallback stat / SC_CLK_TCK) on Linux. |
 | `tick_busy_frac_<W>` | idle, load, steady, chaos | fraction (0 to 1) | scalar | lower | tick | tick_ms_per_s / 1000. Share of wall time the tick thread was on a CPU; blocked time is not counted. |
-| `tick_cpu_ms_per_tick_<W>` | idle, load, steady, chaos | CPU ms per tick | scalar | lower | tick, probe | 1000 dCPU_tick / dG, with CPU interpolated at the replies a and b bounding W and dG = g_b - g_a. Tick-thread CPU per executed tick (legacy "main thread per tick"). Not MSPT. |
+| `tick_cpu_ms_per_tick_<W>` | idle, load, steady, chaos | CPU ms per tick | scalar | lower | tick, probe | 1000 dCPU_tick / dG, with CPU interpolated at the replies a and b bounding W and dG = g_b - g_a. Tick-thread CPU per executed tick. Not MSPT. |
 | `tick_util_frac_<W>` | idle, load, steady, chaos | fraction (0 to 1) | p50, p99, n | - | tick | per-second dCPU_tick from the 10 Hz samples, interpolated on a 1 s grid starting at the first sample in W |
 | `tick_saturated_frac_<W>` | idle, load, steady, chaos | fraction (0 to 1) | scalar | lower | tick | share of the seconds of tick_util_frac_<W> with utilisation >= 0.95. A saturated tick thread runs ticks back to back; its TPS then hides how much more work it has. |
 | `tick_cycles_ms_per_s_<W>` | idle, load, steady, chaos | CPU ms per second | scalar | - | tick, run | 1000 dcycles / tsc_hz / dt with the calibrated TSC frequency from run.json. Secondary column, Windows only; not_applicable where cycle counts or the TSC calibration are missing. |

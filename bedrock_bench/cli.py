@@ -6,8 +6,8 @@ it runs, so ``bbench --help`` stays fast and a missing optional dependency only 
 take the parsed :class:`argparse.Namespace` and return an exit code (``None`` means 0). The argument ``dest`` names
 below are part of the contract with the modules that implement the commands.
 
-Exit codes are :class:`bedrock_bench.model.ExitCode`: 2 for usage and config errors (including commands that are
-not implemented yet), 130 when interrupted; everything else comes from the entry point.
+Exit codes are :class:`bedrock_bench.model.ExitCode`: 2 for usage and config errors, 130 when interrupted; everything
+else comes from the entry point.
 """
 
 from __future__ import annotations
@@ -185,22 +185,9 @@ COMMANDS: tuple[Command, ...] = (
 
 
 def resolve_entry(entry: str) -> EntryPoint:
-    """Import ``"<module>:<function>"`` from this package.
-
-    Raises NotImplementedError when the module or function does not exist yet. Import errors from inside an existing
-    module propagate unchanged, so real bugs are not mistaken for missing commands.
-    """
+    """Import ``"<module>:<function>"`` from this package."""
     module_name, _, func_name = entry.partition(":")
-    qualified = f"{PACKAGE}.{module_name}"
-    try:
-        module = importlib.import_module(qualified)
-    except ModuleNotFoundError as exc:
-        if exc.name and (qualified == exc.name or qualified.startswith(exc.name + ".")):
-            raise NotImplementedError(f"{entry} is not implemented yet") from None
-        raise
-    func = getattr(module, func_name, None)
-    if not callable(func):
-        raise NotImplementedError(f"{entry} is not implemented yet")
+    func: EntryPoint = getattr(importlib.import_module(f"{PACKAGE}.{module_name}"), func_name)
     return func
 
 
@@ -247,9 +234,6 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         func = resolve_entry(args.entry)
         result = func(args)
-    except NotImplementedError as exc:
-        print(f"bbench {args.command}: {exc}", file=sys.stderr)
-        return ExitCode.USAGE
     except ConfigError as exc:
         print(f"bbench {args.command}: {exc}", file=sys.stderr)
         return ExitCode.USAGE

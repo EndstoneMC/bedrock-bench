@@ -11,8 +11,7 @@
 - a free port and a machine profile that splits this host's CPUs between server and bots.
 
 The profile's gates are loose enough for a busy desktop; ``strict_gates=True`` restores the built-in defaults for the
-contamination tests. Integration tests mark themselves with :func:`needs` so they xfail until the ``bbench`` commands
-they drive exist.
+contamination tests.
 
     bench = FakeBench.create(tmp_path)
     run = bench.run_one("fake_bds", variant="crash-after-join")
@@ -36,9 +35,7 @@ from pathlib import Path
 from typing import Any
 
 import psutil
-import pytest
 
-from bedrock_bench import cli
 from fakes.fake_adapter import BOTS_SCRIPT, FAKE_ADAPTERS, SERVERS_DIR, interpreter
 
 #: Environment variable the bot fleet reads instead of the loadbot binary path: a JSON array, the argv prefix.
@@ -70,23 +67,6 @@ STRICT_GATES = {
 # --------------------------------------------------------------------------------------------------------------------
 # Helpers
 # --------------------------------------------------------------------------------------------------------------------
-
-
-def missing_entry_points(entries: Sequence[str]) -> list[str]:
-    """The ``"<module>:<function>"`` entry points of ``bbench`` that do not exist yet."""
-    missing = []
-    for entry in entries:
-        try:
-            cli.resolve_entry(entry)
-        except NotImplementedError:
-            missing.append(entry)
-    return missing
-
-
-def needs(*entries: str) -> pytest.MarkDecorator:
-    """Strict xfail until every listed entry point exists, e.g. ``@needs("runner:run_one")``."""
-    missing = missing_entry_points(entries)
-    return pytest.mark.xfail(bool(missing), reason="not implemented yet: " + ", ".join(missing), strict=True)
 
 
 def register_entry_point(folder: Path) -> Path:

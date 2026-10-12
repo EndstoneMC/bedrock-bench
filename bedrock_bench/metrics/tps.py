@@ -98,7 +98,7 @@ def lowest(probe: Sequence[ProbeSample], t0: float, t1: float, min_span_s: float
     """Lowest rate over any stretch of at least ``min_span_s`` inside the window.
 
     For each reply ``i`` in the window, ``j`` is the first later reply in the window with ``t_j - t_i >= min_span_s``
-    and the stretch rate is ``(g_j - g_i) / (t_j - t_i)``. ``min_span_s`` = 4.5 gives the legacy "lowest 5 s" value,
+    and the stretch rate is ``(g_j - g_i) / (t_j - t_i)``. ``min_span_s`` = 4.5 gives the "lowest 5 s" value,
     14.5 the "lowest 15 s" value (the half second absorbs reply jitter around a 5 s probe).
     """
     points = replies(probe)
