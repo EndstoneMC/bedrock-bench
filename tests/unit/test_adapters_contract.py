@@ -1,10 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 """The server adapter contract, checked for every registered adapter and every fake adapter.
 
-Per adapter: the class attributes, the dialect against fixture log lines, well-formed commands, chaos actions rendered
-or marked unsupported, bot flags inside the allowlist, and a feature file that covers every key the scenarios
-exercise. The last section covers the shared code in ``adapters/base.py`` and the
-registry.
+Per adapter: the class attributes, the dialect against fixture log lines, well-formed commands, bot flags inside the
+allowlist, and a feature file that covers every key the scenarios exercise. The last section covers the shared code in
+``adapters/base.py`` and the registry.
 
 Fixture lines come from ``tests/fixtures/logs/<name>*`` (any text file) for real adapters and from
 ``fake_server.sample_log`` for the fakes.
@@ -28,10 +27,8 @@ from bedrock_bench import adapters, config
 from bedrock_bench.adapters import AdapterError
 from bedrock_bench.adapters.base import (
     ALLOWED_COMPAT,
-    ChaosDialect,
     Dialect,
     ServerAdapter,
-    UnsupportedAction,
     apply_tick_rule,
     check_tick_rule,
     format_coord,
@@ -48,8 +45,6 @@ FIXTURE_LOGS = ROOT / "tests" / "fixtures" / "logs"
 
 #: Protocols with a bot build: 2193 -> bots/loadbot, 1001 -> bots/legacy1001.
 BOT_PROTOCOLS = frozenset({2193, 1001})
-#: Files in configs/scenarios/ that are not scenarios.
-NOT_SCENARIOS = frozenset({"chaos-actions"})
 FAKE_VERSION = "1.0.0"
 PLAYER = "a07"
 
@@ -106,8 +101,6 @@ def scenarios_for(cls: type[ServerAdapter]) -> list[Any]:
     """The checked-in scenarios (and the fake-quick scenario for fakes). Scenario validity is test_config's job."""
     found = []
     for name in config.available("scenarios"):
-        if name in NOT_SCENARIOS:
-            continue
         try:
             found.append(config.load_scenario(name))
         except ConfigError:
@@ -117,21 +110,8 @@ def scenarios_for(cls: type[ServerAdapter]) -> list[Any]:
     return found
 
 
-def chaos_commands() -> dict[str, dict[str, Any]]:
-    """The ``[command.<name>]`` tables of the chaos catalogue: the console commands a chaos dialect renders."""
-    path = config.resolve("scenarios", "chaos-actions")
-    return dict(tomllib.loads(path.read_text(encoding="utf-8"))["command"])
-
-
 def rendered_commands(adapter: ServerAdapter) -> dict[str, Any]:
     """Every console command the adapter renders for a fixed input, in a JSON-ready form."""
-    dialect = adapter.chaos_dialect()
-    chaos: dict[str, Any] = {}
-    for command, entry in sorted(chaos_commands().items()):
-        if not dialect.supports(command):
-            chaos[command] = {"unsupported": dialect.unsupported.get(command, "")}
-        else:
-            chaos[command] = dialect.render(command, **entry["example"])
     return {
         "tick": adapter.dialect.tick_cmd,
         "stop": adapter.dialect.stop_cmd,
@@ -139,9 +119,6 @@ def rendered_commands(adapter: ServerAdapter) -> dict[str, Any]:
         "effects_all": adapter.cmd_effects("@a"),
         "tp": adapter.cmd_tp(PLAYER, 5760.5, 300, 1280.5),
         "positions": adapter.cmd_positions(),
-        "chaos": chaos,
-        "chaos_supported": sorted(dialect.actions),
-        "chaos_unsupported": sorted(dialect.unsupported),
     }
 
 
@@ -149,9 +126,8 @@ def iter_commands(value: Any) -> Iterator[str]:
     if isinstance(value, str):
         yield value
     elif isinstance(value, dict):
-        for key, item in value.items():
-            if key != "unsupported":
-                yield from iter_commands(item)
+        for item in value.values():
+            yield from iter_commands(item)
     elif isinstance(value, list):
         for item in value:
             yield from iter_commands(item)
@@ -289,13 +265,6 @@ def test_commands_are_single_lines(cls: type[ServerAdapter]) -> None:
 
 
 @every_adapter
-def test_chaos_commands_rendered_or_unsupported(cls: type[ServerAdapter]) -> None:
-    dialect = make(cls).chaos_dialect()
-    undeclared = sorted(c for c in chaos_commands() if not dialect.supports(c) and c not in dialect.unsupported)
-    assert not undeclared, f"commands neither rendered nor marked unsupported: {undeclared}"
-
-
-@every_adapter
 def test_unknown_positions_are_none(cls: type[ServerAdapter]) -> None:
     """An empty or missing reply is unknown, never zero players (the spread is then invalid)."""
     assert make(cls).parse_positions([]) is None
@@ -400,20 +369,6 @@ def test_first_created_falls_back_to_lowest_tid() -> None:
 def test_bad_tick_rules(rule: str) -> None:
     with pytest.raises(ValueError):
         check_tick_rule(rule)
-
-
-def test_chaos_dialect_renders_and_refuses() -> None:
-    dialect = ChaosDialect(
-        renderers={"kick": lambda player, reason="x": f"kick {player} {reason}", "pair": lambda: ["a", "b"]},
-        unsupported={"summon": "no mobs"},
-    )
-    assert dialect.render("kick", player="a01") == ["kick a01 x"]
-    assert dialect.render("pair") == ["a", "b"]
-    assert dialect.actions == {"kick", "pair"}
-    with pytest.raises(UnsupportedAction):
-        dialect.render("summon")
-    with pytest.raises(ValueError, match="both"):
-        ChaosDialect(renderers={"kick": lambda: "kick"}, unsupported={"kick": "?"})
 
 
 @pytest.mark.parametrize(("value", "text"), [(1280, "1280"), (1280.0, "1280"), (1280.5, "1280.5"), (-0.125, "-0.12")])

@@ -9,7 +9,6 @@
   when RakNet is selected is benign.
 - Positions come from ``querytarget @a``: the JSON array after ``Target data:`` is bracket-matched across continuation
   lines, prefixed or bare.
-- The full chaos command set (see :meth:`BdsFamily.chaos_dialect`).
 - The tick thread is the lowest-tid thread named ``MC_SERVER``: there is one on Windows and several on Linux, where
   threads started from the tick thread inherit its name.
 
@@ -29,7 +28,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from bedrock_bench import config, fetch
-from bedrock_bench.adapters.base import ChaosDialect, Dialect, ServerAdapter, format_coord, host_os, quote_player
+from bedrock_bench.adapters.base import Dialect, ServerAdapter, host_os
 from bedrock_bench.config import ConfigError
 from bedrock_bench.model import (
     Arm,
@@ -358,32 +357,6 @@ def fetch_bds(cache: Cache, version: str, platform: str, *, artifact: Path | Non
 # Adapter base
 # --------------------------------------------------------------------------------------------------------------------
 
-GAMEMODES = ("survival", "creative", "adventure", "spectator")
-WEATHER = ("clear", "rain", "thunder")
-DIMENSIONS = ("overworld", "nether", "the_end")
-PLAYER_WAYPOINTS = ("off", "everyone")
-_IDENTIFIER = re.compile(r"^[a-z0-9_]+(?::[a-z0-9_]+)?$")
-_LOOT_TABLE = re.compile(r"^[a-z0-9_./:-]+$")
-_AREA_NAME = re.compile(r"^[A-Za-z0-9_-]+$")
-GAMERULE_APPLIED = re.compile(r"^Game rule (?P<rule>\w+) has been updated to (?P<value>\S+)")
-
-
-def _choice(name: str, value: str, choices: Sequence[str]) -> str:
-    if value not in choices:
-        raise ValueError(f"{name} must be one of {', '.join(choices)}, got {value!r}")
-    return value
-
-
-def _matches(name: str, value: str, pattern: re.Pattern[str]) -> str:
-    if not pattern.match(value):
-        raise ValueError(f"invalid {name} {value!r}")
-    return value
-
-
-def _relative(offset: float) -> str:
-    return "~" if offset == 0 else f"~{format_coord(offset)}"
-
-
 class BdsFamily(ServerAdapter):
     """Shared behaviour of BDS-hosted servers. Not registered itself: it has no ``name``."""
 
@@ -500,140 +473,6 @@ class BdsFamily(ServerAdapter):
 
     def parse_positions(self, lines: list[LogLine]) -> list[PlayerPos] | None:
         return parse_querytarget(lines)
-
-    def chaos_dialect(self) -> ChaosDialect:
-        """Console commands for chaos actions. Parameters are keyword arguments from the chaos plan.
-
-        ========================  =========================================================  =========================
-        command                   parameters                                                 renders
-        ========================  =========================================================  =========================
-        ``tp``                    player, x, y, z                                            ``tp a00 1280 300 1280``
-        ``tp_dimension``          player, dimension (overworld|nether|the_end), x, y, z      ``execute in nether ...``
-        ``effects``               player                                                     the placement effects
-        ``effect_clear``          player                                                     ``effect a00 clear``
-        ``kill``                  player                                                     ``kill a00``
-        ``kick``                  player, reason="chaos"                                     ``kick a00 chaos``
-        ``gamemode``              player, mode (survival|creative|adventure|spectator)       ``gamemode creative a00``
-        ``summon``                player, entity, dx, dy, dz (offsets from the player)       ``execute at a00 run ...``
-        ``loot``                  player, table                                              ``... loot spawn ...``
-        ``cleanup``               (none)                                                     ``kill @e[type=!player]``
-        ``list``                  (none)                                                     ``list``
-        ``randomtickspeed``       value                                                      ``gamerule ... 3``
-        ``playerwaypoints``       mode (off|everyone)                                        ``gamerule ... off``
-        ``weather``               kind (clear|rain|thunder)                                  ``weather rain``
-        ``fill``                  player, dx1, dy1, dz1, dx2, dy2, dz2, block                ``execute at a00 run ...``
-        ``setblock``              player, dx, dy, dz, block                                  ``execute at a00 run ...``
-        ``tickingarea_add``       name, x, z, y=64, radius=2                                 ``tickingarea add ...``
-        ``tickingarea_remove``    name                                                       ``tickingarea remove ...``
-        ========================  =========================================================  =========================
-        """
-
-        def tp(player: str, x: float, y: float, z: float) -> str:
-            return self.cmd_tp(player, x, y, z)
-
-        def tp_dimension(player: str, dimension: str, x: float, y: float, z: float) -> str:
-            _choice("dimension", dimension, DIMENSIONS)
-            return f"execute in {dimension} run {self.cmd_tp(player, x, y, z)}"
-
-        def effects(player: str) -> list[str]:
-            return self.cmd_effects(player)
-
-        def effect_clear(player: str) -> str:
-            return f"effect {quote_player(player)} clear"
-
-        def kill(player: str) -> str:
-            return f"kill {quote_player(player)}"
-
-        def kick(player: str, reason: str = "chaos") -> str:
-            if "\n" in reason or "\r" in reason:
-                raise ValueError("kick reason must be one line")
-            return f"kick {quote_player(player)} {reason}".rstrip()
-
-        def gamemode(player: str, mode: str) -> str:
-            return f"gamemode {_choice('mode', mode, GAMEMODES)} {quote_player(player)}"
-
-        def summon(player: str, entity: str, dx: float = 0, dy: float = 1, dz: float = 0) -> str:
-            entity = _matches("entity", entity, _IDENTIFIER)
-            where = f"{_relative(dx)} {_relative(dy)} {_relative(dz)}"
-            return f"execute at {quote_player(player)} run summon {entity} {where}"
-
-        def loot(player: str, table: str) -> str:
-            table = _matches("loot table", table, _LOOT_TABLE)
-            return f'execute at {quote_player(player)} run loot spawn ~ ~2 ~ loot "{table}"'
-
-        def cleanup() -> str:
-            return "kill @e[type=!player]"
-
-        def list_players() -> str:
-            return "list"
-
-        def randomtickspeed(value: int) -> str:
-            if int(value) != value or value < 0:
-                raise ValueError(f"randomtickspeed must be a non-negative integer, got {value!r}")
-            return f"gamerule randomtickspeed {int(value)}"
-
-        def playerwaypoints(mode: str) -> str:
-            return f"gamerule playerwaypoints {_choice('mode', mode, PLAYER_WAYPOINTS)}"
-
-        def weather(kind: str) -> str:
-            return f"weather {_choice('kind', kind, WEATHER)}"
-
-        def fill(
-            player: str, dx1: float, dy1: float, dz1: float, dx2: float, dy2: float, dz2: float, block: str
-        ) -> str:
-            block = _matches("block", block, _IDENTIFIER)
-            corners = " ".join(_relative(v) for v in (dx1, dy1, dz1, dx2, dy2, dz2))
-            return f"execute at {quote_player(player)} run fill {corners} {block}"
-
-        def setblock(player: str, dx: float, dy: float, dz: float, block: str) -> str:
-            block = _matches("block", block, _IDENTIFIER)
-            where = " ".join(_relative(v) for v in (dx, dy, dz))
-            return f"execute at {quote_player(player)} run setblock {where} {block}"
-
-        def tickingarea_add(name: str, x: float, z: float, y: float = 64, radius: int = 2) -> str:
-            name = _matches("ticking area name", name, _AREA_NAME)
-            return f"tickingarea add circle {format_coord(x)} {format_coord(y)} {format_coord(z)} {int(radius)} {name}"
-
-        def tickingarea_remove(name: str) -> str:
-            return f"tickingarea remove {_matches('ticking area name', name, _AREA_NAME)}"
-
-        return ChaosDialect(
-            renderers={
-                "tp": tp,
-                "tp_dimension": tp_dimension,
-                "effects": effects,
-                "effect_clear": effect_clear,
-                "kill": kill,
-                "kick": kick,
-                "gamemode": gamemode,
-                "summon": summon,
-                "loot": loot,
-                "cleanup": cleanup,
-                "list": list_players,
-                "randomtickspeed": randomtickspeed,
-                "playerwaypoints": playerwaypoints,
-                "weather": weather,
-                "fill": fill,
-                "setblock": setblock,
-                "tickingarea_add": tickingarea_add,
-                "tickingarea_remove": tickingarea_remove,
-            }
-        )
-
-    def applied(self, action: str, line: LogLine) -> dict[str, Any] | None:
-        """Game rule changes confirmed by the server: ``randomtickspeed`` and ``playerwaypoints``."""
-        if action not in ("randomtickspeed", "playerwaypoints"):
-            return None
-        match = GAMERULE_APPLIED.search(line.text)
-        if match is None or match["rule"].lower() != action:
-            return None
-        value = match["value"].rstrip(".")
-        if action == "randomtickspeed":
-            try:
-                return {action: int(value)}
-            except ValueError:
-                return None
-        return {action: value}
 
     # ---- facts and crashes ----------------------------------------------------------------------------------------
 

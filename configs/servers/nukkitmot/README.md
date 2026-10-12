@@ -60,8 +60,8 @@ recorded in run.json with its category ([methodology](../../../docs/methodology.
 `server.properties` and `nukkit-mot.yml` start empty; Nukkit-MOT adds its own defaults and rewrites both on start.
 
 - harness: the machine profile's port; offline login; `allow-flight=on` (see Caveats); an empty `rcon.password`;
-  NetherNet off, because it listens on UDP 19132 whatever `server-port` says; the RakNet per-address packet limit
-  raised; error reports, bStats and the palette download off; no update check when an operator joins.
+  NetherNet off, because it listens on UDP 19132 whatever `server-port` says; error reports, bStats and the palette
+  download off; no update check when an operator joins.
 - parity: view and simulation distance, seed, level name, difficulty, game mode, max players, autosave interval and
   player data. `performance-settings.auto-tick-rate` is off: with it, a slow level is ticked only every few server
   ticks while the tick counter keeps advancing.
@@ -72,9 +72,9 @@ Held in the adapter:
 - `plugins/BenchTick.jar` is installed (harness).
 - `-Xms` and `-Xmx` from the machine profile (parity), and UTF-8 console streams (harness).
 
-Left as shipped and recorded in `facts`: movement mode `server-auth`, async workers `auto`, virtual threads, 4 chunk
-sends per player per tick. The Nether and the End load at start as separate levels; the chaos dimension action uses
-them.
+Left as shipped and recorded in run.json facts: movement mode `server-auth`, async workers `auto`, virtual threads, 4
+chunk sends per player per tick. The Nether and the End load at start as separate levels; the chaos dimension action
+uses them.
 
 ## Variants
 
@@ -92,15 +92,10 @@ them.
   `LevelChunk` packets, at most 4 per player per tick, and never lets clients generate terrain.
 - At every start it asks the GitHub API for the latest master commit; no setting turns this off. Once master moves
   past the pin, the log carries a `[Nukkit-MOT][Update]` line.
-- The RakNet listener already exempts the machine's own addresses from the per-address packet limit, so the raised
-  limit only matters for bots on another host.
+- The RakNet listener exempts the machine's own addresses from the per-address packet limit, so the limit stays at
+  its default of 2000 per 10 ms.
 - Effects last 1,000,000 s, because there is no `infinite`. Target selectors work, so the spread phase's effects for
   `@a` are sent.
-- Chaos: vanilla `tp`, `kill`, `kick`, `gamemode`, `effect <player> clear`, `list`, `weather`, `tickingarea` and
-  `gamerule randomtickspeed`; `execute at <player> run summon`, because `summon` with absolute coordinates throws in an
-  unloaded chunk; `kill @e[type=!player]` for cleanup, which leaves players alive; and the helper's `dim` and
-  `fillnear`, which reply where `execute in` and `execute ... run fill` print nothing. Unsupported: `loot`, which does
-  not exist, and the waypoints game rule, which takes a number.
 - On stop with many chunks loaded it logs `Pending chunk writes for bench reached 128 (limit 128)` and still exits
   with code 0.
 

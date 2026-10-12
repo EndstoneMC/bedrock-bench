@@ -16,7 +16,6 @@ File                       Content
 ``bots.jsonl.gz``          the bot's JSONL events, each with the harness receive time ``rx_ns``
 ``bots.stderr.log``        the bot's standard error, kept only when it is not empty
 ``series/*``               sampler output (see :mod:`bedrock_bench.sampling.series`)
-``chaos-*.jsonl``          chaos plan and execution log (chaos scenarios)
 ``config/written/``        rendered server configs as written before launch
 ``config/after/``          the same files as found after shutdown
 ``crash/``                 log tail and crash files, when the server died or exited nonzero
@@ -73,8 +72,6 @@ JOURNAL_FILE = "commands.jsonl.gz"
 BOTS_FILE = "bots.jsonl.gz"
 BOTS_STDERR_FILE = "bots.stderr.log"
 SERIES_DIR = "series"
-CHAOS_PLAN_FILE = "chaos-plan.jsonl"
-CHAOS_EXEC_FILE = "chaos-exec.jsonl"
 CONFIG_WRITTEN_DIR = "config/written"
 CONFIG_AFTER_DIR = "config/after"
 CRASH_DIR = "crash"
@@ -594,7 +591,6 @@ def load_run(path: Path | str) -> RunData:
     server_log = present(LOG_FILE)
     journal = present(JOURNAL_FILE)
     bots = present(BOTS_FILE)
-    chaos = present(CHAOS_EXEC_FILE)
     return RunData(
         run=record,
         probe=series.read_probe(probe) if probe else [],
@@ -605,7 +601,6 @@ def load_run(path: Path | str) -> RunData:
         bots=series.read_jsonl(bots) if bots else [],
         log=console.read_log(server_log, dialect) if server_log else [],
         commands=console.read_journal(journal) if journal else [],
-        chaos=series.read_jsonl(chaos) if chaos else [],
     )
 
 

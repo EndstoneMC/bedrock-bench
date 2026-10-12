@@ -88,7 +88,6 @@ def test_known_answers_of_the_steady_run() -> None:
     assert value(doc, "csg_effective") is False
     assert value(doc, "airborne_frac_steady") == 0.0
     assert doc["metrics"]["aux_cores_steady"]["availability"] == "not_applicable"
-    assert doc["metrics"]["tps_chaos_normal"]["availability"] == "not_applicable"
 
 
 def test_known_answers_of_the_dip_run() -> None:

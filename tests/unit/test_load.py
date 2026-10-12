@@ -70,14 +70,11 @@ def test_join() -> None:
         ev(2.0, "dial", bot="a01", mono_ms=1000),
         ev(3.2, "spawned", bot="a01", session=1, mono_ms=2200, radius=8),
         ev(4.0, "join_failed", bot="a02", stage="spawn"),
-        ev(9.0, "join_failed", bot="a00", stage="dial"),
-        ev(9.5, "spawned", bot="a00", session=2, join_ms=100, radius=10),
     ]
     stats = load.join(bots)
     assert stats.join_ms == (800.0, 1200.0)
     assert stats.joined == 2
     assert stats.failed == 1
-    assert stats.rejoin_failed == 1
     assert load.granted_radius(bots) == 9.0
 
 
@@ -115,7 +112,7 @@ class TestView:
     def test_t90_from_arrival_times_and_progress_fallback(self) -> None:
         view = load.view(self.bots(), settled=22.0, n_target=80)
         # a00: ceil(0.9 * 100) = 90th chunk at 1000 + 89 * 100 ms; a01 has no summary: first snapshot with 36 chunks
-        assert view.t90_own == pytest.approx((9.9, 10.0))
+        assert view.t90_own == pytest.approx({"a00": 9.9, "a01": 10.0})
         assert view.t90_fallback == 1
 
     def test_t_n_censors_bots_that_never_get_there(self) -> None:

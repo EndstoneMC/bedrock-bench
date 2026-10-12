@@ -64,14 +64,13 @@ INPUTS = {
     "bots": "bots.jsonl.gz",
     "log": "server.log.gz",
     "commands": "commands.jsonl.gz",
-    "chaos": "chaos-exec.jsonl",
     "run": "run.json",
 }
 
 #: Windows of a run (``window()`` in ``metrics/__init__.py``); ``run`` means the whole run.
-ALL_WINDOWS = ("idle", "join", "settle", "load", "steady", "chaos")
-CPU_WINDOWS = ("idle", "load", "steady", "chaos")
-MEASURED = ("load", "steady", "chaos")
+ALL_WINDOWS = ("idle", "join", "settle", "load", "steady")
+CPU_WINDOWS = ("idle", "load", "steady")
+MEASURED = ("load", "steady")
 DIRECTIONS = ("higher", "lower", None)
 
 SECTIONS = {
@@ -82,7 +81,6 @@ SECTIONS = {
     "load": "Join, view load and chunk work",
     "work": "Work counters",
     "efficiency": "Efficiency",
-    "chaos": "Chaos",
     "health": "Health",
 }
 
@@ -121,9 +119,6 @@ SECTION_NOTES = {
     "efficiency": (
         "Comparable only between arms with equal parity on the scenario's required features; reports show them "
         "next to the parity rows."
-    ),
-    "chaos": (
-        "Chaos runs are shown, never ranked. The tick speed regime comes from applied log lines, never send times."
     ),
     "health": "Log counts follow each adapter's level map and benign list and are never compared across servers.",
 }
@@ -261,14 +256,6 @@ _metric(
     direction="higher",
     window="load",
     doc="Lowest 15 s TPS while views load.",
-)
-_metric(
-    "tps_chaos_low15",
-    "tps",
-    "tps",
-    ["probe"],
-    "as tps_load_low15 over the chaos window",
-    window="chaos",
 )
 _metric(
     "ticks_lost_load",
@@ -817,118 +804,6 @@ _metric(
 )
 
 # --------------------------------------------------------------------------------------------------------------------
-# Chaos
-# --------------------------------------------------------------------------------------------------------------------
-
-_metric(
-    "tps_chaos_normal",
-    "tps",
-    "chaos",
-    ["probe", "chaos"],
-    "median of the chaos TPS samples under random tick speed 0, 1 or 3; samples a change fell inside are excluded",
-    window="chaos",
-)
-_metric(
-    "tps_chaos_high",
-    "tps",
-    "chaos",
-    ["probe", "chaos"],
-    "as tps_chaos_normal under random tick speed 100 or 1000",
-    window="chaos",
-)
-_metric(
-    "chaos_mixed_samples",
-    "count",
-    "chaos",
-    ["probe", "chaos"],
-    "TPS samples with a tick speed change strictly between their two replies",
-    window="chaos",
-)
-_metric(
-    "tickspeed_changes_queued",
-    "count",
-    "chaos",
-    ["chaos"],
-    "tick speed commands sent inside the chaos window",
-    window="chaos",
-)
-_metric(
-    "tickspeed_changes_applied",
-    "count",
-    "chaos",
-    ["chaos"],
-    "tick speed changes the server's log confirmed inside the chaos window",
-    window="chaos",
-)
-for _what, _formula in (
-    ("planned", "actions in the executor journal"),
-    ("sent", "actions written to the console"),
-    ("applied", "actions the server's log confirmed"),
-    ("late", "actions sent more than 5 s after their scheduled time"),
-    ("unsupported", "actions the adapter cannot render (counted, never sent)"),
-    ("skip_offline", "actions whose target bot was offline"),
-    ("overrun", "actions not sent because the console writer fell more than the overrun lag behind"),
-):
-    _metric(f"chaos_actions_{_what}", "count", "chaos", ["chaos"], _formula, window="chaos")
-_metric(
-    "chaos_lag_s",
-    "s",
-    "chaos",
-    ["chaos"],
-    "sent - scheduled of every sent action",
-    window="chaos",
-    stats=("p50", "p99", "max"),
-)
-_metric(
-    "not_respawned",
-    "count",
-    "chaos",
-    ["bots"],
-    "bots whose last death after chaos0 was not followed by a respawn",
-    window="chaos",
-)
-_metric(
-    "memory_slope_mib_per_h_chaos",
-    "mib_per_h",
-    "chaos",
-    ["process"],
-    "least-squares slope of private_mib over the chaos window",
-    window="chaos",
-    doc="Labelled weak (reason) when the window is shorter than 30 min.",
-)
-for _what in ("threads", "handles"):
-    for _end in ("start", "end"):
-        _metric(
-            f"{_what}_{_end}_chaos",
-            "count",
-            "chaos",
-            ["process"],
-            f"{_what} of the server process at the {'first' if _end == 'start' else 'last'} sample of chaos",
-            window="chaos",
-        )
-_table(
-    "chaos_regimes",
-    "chaos",
-    ("regime", "seconds", "samples", "median_tps"),
-    "Time and TPS samples per applied random tick speed.",
-    window="chaos",
-)
-_table(
-    "chaos_actions",
-    "chaos",
-    ("action", "planned", "sent", "applied", "late", "unsupported", "skip_offline", "lag_p50_s", "lag_p99_s"),
-    "Per-action counts from the executor journal.",
-    window="chaos",
-)
-_table(
-    "log_errors_chaos",
-    "chaos",
-    ("category", "lines"),
-    "Error and fatal lines inside chaos with numbers and quoted strings replaced, most frequent first (top 30).",
-    window="chaos",
-)
-
-# --------------------------------------------------------------------------------------------------------------------
 # Health
 # --------------------------------------------------------------------------------------------------------------------
 
@@ -967,17 +842,9 @@ _metric(
     "count",
     "health",
     ["bots"],
-    "stat dropped at the end of steady (before chaos starts)",
+    "stat dropped at the end of steady",
     window="run",
-    doc="Warning when nonzero outside chaos.",
-)
-_metric(
-    "rejoin_failed",
-    "count",
-    "health",
-    ["bots"],
-    "join_failed events from bots that had spawned before",
-    window="run",
+    doc="Warning when nonzero.",
 )
 _metric("nudges", "count", "health", ["run"], "settle nudges (run.json interventions)", window="settle")
 _metric("retp", "count", "health", ["run"], "settle re-teleports (run.json interventions)", window="settle")
@@ -1071,9 +938,8 @@ file byte for byte from a run's raw files; any change to a formula bumps the ana
   Bot events are mapped onto the same timebase through their own monotonic clock (fallback: their UTC stamp and the
   run's origin pair), so nothing depends on the time of day.
 - **Windows.** `idle` = [idle0, idle1], `join` = [bots_start, alljoined], `settle` = [alljoined, settled],
-  `load` = [bots_start, settled], `steady` = [steady0, steady1], `chaos` = [chaos0, chaos1]. A window whose end mark
-  is missing was not reached; its metrics are `unavailable`. A window the scenario does not have is
-  `not_applicable`.
+  `load` = [bots_start, settled], `steady` = [steady0, steady1]. A window whose end mark is missing was not reached;
+  its metrics are `unavailable`. A window the scenario does not have is `not_applicable`.
 - **Probe notation.** Replies `(s_i, t_i, g_i)` = send time, receive time, tick counter. In a window `[t0, t1]`,
   `a = min{{i: t_i >= t0}}` and `b = max{{i: t_i <= t1}}`. A series sample, the rate between two consecutive
   replies, belongs to a window when both replies do.

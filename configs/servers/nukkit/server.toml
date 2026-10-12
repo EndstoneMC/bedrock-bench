@@ -44,7 +44,7 @@ fidelity = "V1"
 "player.hunger_damage" = { class = "unknown" }
 "player.locator_bar" = { class = "absent", observed_by = "locator_pkts_per_bot_s" }
 "block.redstone" = { class = "unknown" }
-"block.random_ticks" = { class = "unknown" }
+"block.random_ticks" = { class = "partial", evidence = "https://github.com/CloudburstMC/Nukkit/blob/b3caad67d86be34aeca3937e64e8176f6760a2d4/src/main/java/cn/nukkit/level/Level.java#L1130-L1157", note = "randomtickspeed game rule; chunk-ticking.per-tick (40) caps the chunks ticked per level per tick, so with 100 players each tick covers the chunks players stand in and one random chunk within 3 of each player" }
 "block.fluids" = { class = "unknown" }
 "block.falling" = { class = "unknown" }
 "world.lighting" = { class = "unknown" }
@@ -73,7 +73,7 @@ allow-flight = { value = "on", default = "off", reason = "Nukkit kicks players i
 
 [config.file."server.properties".parity]
 view-distance = { value = "{view_distance}", default = "10", reason = "the same view distance on every server" }
-max-players = { value = "{max_players}", default = "20", reason = "room for every bot, plus rejoins in chaos scenarios" }
+max-players = { value = "{max_players}", default = "20", reason = "room for every bot" }
 level-name = { value = "{level_name}", default = "world", reason = "a fixed world folder, checked absent before launch" }
 level-seed = { value = "{seed}", default = "", reason = "the same seed on every server; Nukkit generates its own terrain from it" }
 difficulty = { value = "{difficulty_id}", default = "2", reason = "the same difficulty on every server" }
@@ -85,7 +85,7 @@ format = "yaml"
 
 [config.file."nukkit.yml".parity]
 "level-settings.auto-tick-rate" = { value = "false", type = "bool", reason = "with it, a slow level is ticked only every few server ticks, which the server tick counter does not show" }
-"chunk-ticking.tick-radius" = { value = "{tick_distance}", type = "int", reason = "the same simulation distance on every server" }
+"chunk-ticking.tick-radius" = { value = "{tick_distance}", type = "int", reason = "the scenario's simulation distance; it only bounds where the capped chunks are picked" }
 "ticks-per.autosave" = { value = "{autosave_ticks}", type = "int", reason = "the same autosave interval on every server" }
 "player.save-player-data" = { value = "{save_player_data}", type = "bool", reason = "player data is saved, as on every server" }
 worlds = { value = "{}", type = "map", reason = "one overworld level: the shipped list adds a level named world next to the benchmark level" }

@@ -30,7 +30,7 @@ LOWER = "lower"
 class Row:
     """One table row: the metric it shows, its label and display unit, and which direction is better.
 
-    ``better`` is None for rows that are never ranked (work counters, chaos). ``part`` picks the key shown when the
+    ``better`` is None for rows that are never ranked (work counters). ``part`` picks the key shown when the
     metric is a distribution over bots. ``note`` is a footnote on the label.
     """
 
@@ -90,18 +90,9 @@ EFFICIENCY_ROWS: tuple[Row, ...] = (
     Row("chunks_per_cpu_s_load", "Chunks per CPU second while views load", "rate", HIGHER),
 )
 
-CHAOS_ROWS: tuple[Row, ...] = (
-    Row("tps_window_chaos", "TPS under chaos", "tps"),
-    Row("tps_chaos_low15", "Lowest 15 s TPS under chaos", "tps"),
-    Row("tps_chaos_normal", "TPS under chaos at normal tick speed", "tps"),
-    Row("chaos_actions_applied", "Chaos actions applied", "count"),
-    Row("chaos_actions_unsupported", "Chaos actions the server does not support", "count"),
-)
-
-
 def layout_metric_ids() -> list[str]:
     """Every metric id the report layout shows; each should exist in the metric registry."""
-    rows = (*COST_ROWS, *WORK_ROWS, *EFFICIENCY_ROWS, *CHAOS_ROWS)
+    rows = (*COST_ROWS, *WORK_ROWS, *EFFICIENCY_ROWS)
     return sorted({row.metric for row in rows})
 
 
@@ -347,8 +338,6 @@ def _settings_line(scenario: Mapping[str, Any]) -> str:
         parts.append(f"{settings['world_source']} world{seed}")
     if settings.get("steady_s"):
         parts.append(f"steady window {settings['steady_s']:g} s")
-    if settings.get("chaos_s"):
-        parts.append(f"chaos {settings['chaos_s']:g} s")
     line = (", ".join(parts) + ".") if parts else ""
     if scenario.get("sha256"):
         line += f" Scenario sha256 `{str(scenario['sha256'])[:12]}`."
@@ -393,8 +382,6 @@ def _section(
         else "Compare only arms that do the same work."
     )
     _metric_table(doc, "Efficiency", EFFICIENCY_ROWS, cells, names, notes, intro=intro)
-    if (scenario.get("settings") or {}).get("chaos_s"):
-        _metric_table(doc, "Chaos", CHAOS_ROWS, cells, names, notes, intro="Chaos results are never ranked.")
     _differences(doc, scenario, cells)
 
 
@@ -616,7 +603,6 @@ def _claims(doc: _Doc, claims: Mapping[str, Any]) -> None:
 
 
 __all__ = [
-    "CHAOS_ROWS",
     "COST_ROWS",
     "EFFICIENCY_ROWS",
     "HIGHER",

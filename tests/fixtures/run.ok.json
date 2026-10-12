@@ -130,7 +130,7 @@
   },
   "scenario": {
     "name": "spread100",
-    "sha256": "83fde07571339706af46a1f25f1bcd6c405932197baf69c927046d1877298580",
+    "sha256": "8285b6a8a9c75058967ade6969c8be2dd4113577b9f421262b16bbff9cd919ec",
     "resolved": {
       "name": "spread100",
       "exercises": [
@@ -157,9 +157,7 @@
         "stat_interval_s": 10.0,
         "pkt_interval_s": 60.0,
         "probe_bots": 0,
-        "decode_errors": "count",
-        "rejoin_on_drop": false,
-        "radius_jitter_s": 0.0
+        "decode_errors": "count"
       },
       "grid": {
         "columns": 11,
@@ -388,8 +386,6 @@
     "settled": 395.0,
     "steady0": 410.0,
     "steady1": 500.0,
-    "chaos0": null,
-    "chaos1": null,
     "stop": 501.2
   },
   "settle": {

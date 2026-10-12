@@ -15,7 +15,6 @@ import pytest
 
 from bedrock_bench import adapters, config, fetch
 from bedrock_bench.adapters import chorus
-from bedrock_bench.adapters.base import UnsupportedAction
 from bedrock_bench.adapters.chorus import CHORUS_DIALECT, ChorusAdapter
 from bedrock_bench.cache import Cache
 from bedrock_bench.config import ConfigError
@@ -207,24 +206,6 @@ class TestCommands:
         assert adapter.cmd_tp("a07", 5760.5, 300, 1280) == "tpp a07 5760.5 300 1280"
         assert adapter.cmd_tp("a b", 1, 2, 3) == 'tpp "a b" 1 2 3'
         assert CHORUS_DIALECT.tick_cmd == "gametime" and CHORUS_DIALECT.stop_cmd == "stop"
-
-    def test_chaos_commands(self) -> None:
-        dialect = make_adapter().chaos_dialect()
-        assert dialect.render("tp", player="a07", x=5760.5, y=300, z=1280.5) == ["tpp a07 5760.5 300 1280.5"]
-        assert dialect.render("kick", player="a03", reason="chaos") == ["kick a03 chaos"]
-        assert dialect.render("list") == ["list"]
-        assert dialect.actions == {"tp", "kick", "list"}
-        with pytest.raises(ValueError):
-            dialect.render("kick", player="a03", reason="two\nlines")
-        for command in ("tp_dimension", "gamemode", "kill", "summon", "weather", "fill", "tickingarea_add"):
-            assert dialect.unsupported[command]
-            with pytest.raises(UnsupportedAction):
-                dialect.render(command)
-
-    def test_chaos_catalogue(self) -> None:
-        chaos = pytest.importorskip("bedrock_bench.chaos")
-        assert chaos.check_dialect(make_adapter().chaos_dialect()) == []
-
 
 # --------------------------------------------------------------------------------------------------------------------
 # chorus.toml

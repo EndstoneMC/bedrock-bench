@@ -6,7 +6,7 @@ jar ships neither ``server.properties`` nor ``nukkit-mot.yml``; both start empty
 start. The helper plugin (``plugin.yml`` and the ``*.java`` files in ``configs/servers/nukkitmot``, Nukkit's helper
 without its RakNet reflection) is compiled once against the pinned jar with the JDK's ``javac`` and packed into
 ``plugins/BenchTick.jar``. It adds ``gametime`` (``time query`` prints the day time, which wraps at 24000),
-``positions``, the ``fillnear`` and ``dim`` chaos commands and ``pregen`` for templates.
+``positions`` and ``pregen`` for templates.
 
 Launch: ``java -Xms<heap> -Xmx<heap> -jar nukkit-mot.jar``. Offline players get a UUID from their name, so the bots
 need no compat flag. See configs/servers/nukkitmot/README.md.
@@ -20,9 +20,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from bedrock_bench import config
-from bedrock_bench.adapters.base import ChaosDialect, Dialect, quote_player
-from bedrock_bench.adapters.bdsfamily import BdsFamily
-from bedrock_bench.adapters.nukkit import NukkitAdapter, build_plugin, plugin_files
+from bedrock_bench.adapters.base import Dialect, quote_player
+from bedrock_bench.adapters.nukkit import build_plugin, plugin_files
 from bedrock_bench.adapters.powernukkitx import PNX_LEVELS, PNX_PREFIX
 from bedrock_bench.adapters.standalone import (
     SERVER_PART,
@@ -69,9 +68,6 @@ NUKKITMOT_DIALECT = Dialect(
     tick_cmd="gametime",
     tick_re=re.compile(r"^Gametime is (?P<tick>\d+)"),
 )
-
-#: Chaos actions rendered with the helper commands, which are Nukkit's.
-HELPER_ACTIONS = ("tp_dimension", "fill", "setblock")
 
 
 class NukkitMotAdapter(JavaServer):
@@ -150,18 +146,6 @@ class NukkitMotAdapter(JavaServer):
     def pregen_command(self, radius: int, grid: Grid, cells: int) -> str:
         """The helper command that builds a world template (``bbench prepare-world``, see bedrock_bench.pregen)."""
         return f"pregen {radius} {grid.columns} {grid.spacing} {grid.origin} {cells}"
-
-    def chaos_dialect(self) -> ChaosDialect:
-        """The vanilla command set, with the helper's ``dim`` for dimensions and ``fillnear`` for blocks."""
-        vanilla = BdsFamily.chaos_dialect(self)  # only uses cmd_tp and cmd_effects
-        helper = NukkitAdapter.chaos_dialect(self)  # the helper commands are Nukkit's
-        unsupported = {
-            "loot": "no loot command",
-            "playerwaypoints": "no locator bar; the game rule takes a number",
-        }
-        renderers = {action: r for action, r in vanilla.renderers.items() if action not in unsupported}
-        renderers.update({action: helper.renderers[action] for action in HELPER_ACTIONS})
-        return ChaosDialect(renderers=renderers, unsupported=unsupported)
 
     # ---- facts ----------------------------------------------------------------------------------------------------
 

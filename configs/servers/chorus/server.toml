@@ -69,7 +69,7 @@ format = "toml"
 "server.authentication" = { value = false, reason = "the bots log in offline with self-signed identities" }
 
 [config.file."chorus.toml".parity]
-"server.max_players" = { value = "{max_players}", reason = "room for every bot, plus rejoins in chaos scenarios" }
+"server.max_players" = { value = "{max_players}", reason = "room for every bot" }
 "server.threads" = { value = "{server_cpu_count}", type = "int", reason = "task pools sized to the server CPUs; on Windows auto counts every CPU of the machine, not the server's CPU set" }
 "level.name" = { value = "{level_name}", reason = "a fixed world folder, checked absent before launch" }
 "level.seed" = { value = "{seed}", reason = "the same seed on every server; Chorus generates its own terrain from it" }

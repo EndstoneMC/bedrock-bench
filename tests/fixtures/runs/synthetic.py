@@ -65,8 +65,6 @@ MARKS = {
     "settled": 100.0,
     "steady0": 115.0,
     "steady1": 205.0,
-    "chaos0": None,
-    "chaos1": None,
     "stop": 207.0,
 }
 
@@ -507,7 +505,6 @@ def build(name: str) -> RunData:
         bots=_bots(v),
         log=_log(v),
         commands=_commands(v),
-        chaos=[],
     )
 
 

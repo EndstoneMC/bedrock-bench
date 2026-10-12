@@ -12,9 +12,8 @@ from typing import Any
 
 import pytest
 
-from bedrock_bench import adapters, bots, chaos, config, fetch
+from bedrock_bench import adapters, bots, config, fetch
 from bedrock_bench.adapters import dragonfly
-from bedrock_bench.adapters.base import UnsupportedAction
 from bedrock_bench.adapters.dragonfly import DRAGONFLY_DIALECT, DragonflyAdapter
 from bedrock_bench.cache import Cache
 from bedrock_bench.config import ConfigError
@@ -188,55 +187,6 @@ class TestCommands:
         assert adapter.cmd_tp("a07", 5760.5, 300, 1280) == "tp a07 5760.5 300 1280"
         assert DRAGONFLY_DIALECT.tick_cmd == "gametime"
         assert DRAGONFLY_DIALECT.stop_cmd == "stop"
-
-    def test_chaos_commands(self) -> None:
-        dialect = make_adapter().chaos_dialect()
-        render = dialect.render
-        assert render("tp", player="a07", x=5760.5, y=300, z=1280.5) == ["tp a07 5760.5 300 1280.5"]
-        assert render("tp_dimension", player="a07", dimension="nether", x=160, y=100, z=160) == [
-            "tpdim a07 nether 160 100 160"
-        ]
-        assert render("effect_clear", player="a b") == ['effect "a b" clear']
-        assert render("kill", player="a07") == ["kill a07"]
-        assert render("kick", player="a07", reason="chaos") == ["kick a07 chaos"]
-        assert render("gamemode", player="a07", mode="spectator") == ["gamemode spectator a07"]
-        assert render("list") == ["list"]
-        assert render("weather", kind="thunder") == ["weather thunder"]
-        fill = render("fill", player="a07", dx1=-2, dy1=-1, dz1=-2, dx2=2, dy2=-1, dz2=2, block="minecraft:farmland")
-        assert fill == ["fillnear a07 -2 -1 -2 2 -1 2 farmland"]
-        assert render("setblock", player="a07", dx=1, dy=-1, dz=1, block="grass_block") == [
-            "fillnear a07 1 -1 1 1 -1 1 grass_block"
-        ]
-
-    @pytest.mark.parametrize(
-        ("command", "params"),
-        [
-            ("tp_dimension", {"player": "a07", "dimension": "moon", "x": 0, "y": 64, "z": 0}),
-            ("gamemode", {"player": "a07", "mode": "hardcore"}),
-            ("weather", {"kind": "snow"}),
-            ("kick", {"player": "a07", "reason": "two\nlines"}),
-            ("fill", {"player": "a07", "dx1": 0, "dy1": 0, "dz1": 0, "dx2": 1, "dy2": 1, "dz2": 1, "block": "tnt"}),
-            ("setblock", {"player": "a07", "dx": 0.5, "dy": 0, "dz": 0, "block": "stone"}),
-        ],
-    )
-    def test_chaos_parameters_are_checked(self, command: str, params: dict[str, Any]) -> None:
-        with pytest.raises(ValueError):
-            make_adapter().chaos_dialect().render(command, **params)
-
-    def test_unsupported_commands_say_why(self) -> None:
-        dialect = make_adapter().chaos_dialect()
-        for command in ("summon", "loot", "cleanup", "randomtickspeed", "playerwaypoints", "tickingarea_add"):
-            assert dialect.unsupported[command]
-            with pytest.raises(UnsupportedAction):
-                dialect.render(command)
-
-    def test_chaos_catalogue(self) -> None:
-        dialect = make_adapter().chaos_dialect()
-        assert chaos.check_dialect(dialect) == []
-        portable = ("churn", "stack", "gamemode", "kill", "kick", "far_tp", "view_disconnect", "weather")
-        missing = chaos.supported_actions(dialect)
-        assert {action: missing[action] for action in portable} == dict.fromkeys(portable, [])
-
 
 # --------------------------------------------------------------------------------------------------------------------
 # config.toml
@@ -598,12 +548,7 @@ class TestDataFiles:
         features = config.load_features("dragonfly")
         row = features.row(VERSION)
         assert row is not None
-        exercised = {
-            key
-            for name in config.available("scenarios")
-            if name != "chaos-actions"
-            for key in config.load_scenario(name).exercises
-        }
+        exercised = {key for name in config.available("scenarios") for key in config.load_scenario(name).exercises}
         for key in exercised:
             cell = row.cells[key]
             assert cell.cls.value != "unknown", key

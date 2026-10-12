@@ -123,8 +123,6 @@
   "marks": {
     "alljoined": 37.5,
     "bots_start": 35.0,
-    "chaos0": null,
-    "chaos1": null,
     "idle0": 15.0,
     "idle1": 35.0,
     "ready": 5.0,
@@ -188,8 +186,6 @@
         "probe_bots": 0,
         "progress_interval_s": 5.0,
         "radius": 16,
-        "radius_jitter_s": 0.0,
-        "rejoin_on_drop": false,
         "spawn_timeout_s": 180.0,
         "stagger_ms": 300,
         "stat_interval_s": 10.0,
@@ -306,7 +302,7 @@
         "template_radius": 12
       }
     },
-    "sha256": "969a0b930a8c527297ada161531f51210a73479814b28d83ecb9d44acec827d7"
+    "sha256": "7e399432fabec4182e2eb35864155ef8b46b03c2a98c87fb8bd5cdf7ba020912"
   },
   "schema": "bedrock-bench/run/1",
   "schema_minor": 0,

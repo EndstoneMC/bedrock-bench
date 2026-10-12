@@ -127,7 +127,6 @@ class TestContract:
 
     def test_shares_bds_commands(self, adapter: EndstoneAdapter) -> None:
         assert adapter.cmd_positions() == "querytarget @a"
-        assert adapter.chaos_dialect().actions == bdsfamily.BdsFamily.chaos_dialect(adapter).actions
         assert ENDSTONE_DIALECT.tick_cmd == "time query gametime"
 
 

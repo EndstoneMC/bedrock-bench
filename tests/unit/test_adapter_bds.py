@@ -13,7 +13,6 @@ import pytest
 
 from bedrock_bench import adapters, config, fetch
 from bedrock_bench.adapters import bdsfamily
-from bedrock_bench.adapters.base import UnsupportedAction
 from bedrock_bench.adapters.bds import BdsAdapter
 from bedrock_bench.adapters.bdsfamily import BDS_DIALECT, Properties, load_property_pins, parse_querytarget
 from bedrock_bench.cache import Cache
@@ -168,76 +167,6 @@ class TestCommands:
         assert adapter.cmd_tp("a07", 1280.0, 300, 1920.5) == "tp a07 1280 300 1920.5"
         assert adapter.cmd_positions() == "querytarget @a"
         assert BDS_DIALECT.tick_cmd == "time query gametime" and BDS_DIALECT.stop_cmd == "stop"
-
-    def test_chaos_dialect(self, adapter: BdsAdapter) -> None:
-        chaos = adapter.chaos_dialect()
-        rendered = {
-            "tp": chaos.render("tp", player="a01", x=1920, y=300, z=1280),
-            "tp_dimension": chaos.render("tp_dimension", player="a01", dimension="nether", x=240, y=100, z=160),
-            "effects": chaos.render("effects", player="a01"),
-            "effect_clear": chaos.render("effect_clear", player="a01"),
-            "kill": chaos.render("kill", player="a01"),
-            "kick": chaos.render("kick", player="a01"),
-            "gamemode": chaos.render("gamemode", player="a01", mode="spectator"),
-            "summon": chaos.render("summon", player="a01", entity="zombie", dx=3, dy=1, dz=-2),
-            "loot": chaos.render("loot", player="a01", table="entities/zombie"),
-            "cleanup": chaos.render("cleanup"),
-            "list": chaos.render("list"),
-            "randomtickspeed": chaos.render("randomtickspeed", value=1000),
-            "playerwaypoints": chaos.render("playerwaypoints", mode="off"),
-            "weather": chaos.render("weather", kind="thunder"),
-            "fill": chaos.render(
-                "fill", player="a01", dx1=-5, dy1=-1, dz1=-5, dx2=5, dy2=-1, dz2=5, block="grass_block"
-            ),
-            "setblock": chaos.render("setblock", player="a01", dx=1, dy=-1, dz=0, block="farmland"),
-            "tickingarea_add": chaos.render("tickingarea_add", name="chaos1", x=-20000, z=45000),
-            "tickingarea_remove": chaos.render("tickingarea_remove", name="chaos1"),
-        }
-        assert set(rendered) == set(chaos.actions)
-        assert rendered["tp_dimension"] == ["execute in nether run tp a01 240 100 160"]
-        assert rendered["kick"] == ["kick a01 chaos"]
-        assert rendered["gamemode"] == ["gamemode spectator a01"]
-        assert rendered["summon"] == ["execute at a01 run summon zombie ~3 ~1 ~-2"]
-        assert rendered["loot"] == ['execute at a01 run loot spawn ~ ~2 ~ loot "entities/zombie"']
-        assert rendered["cleanup"] == ["kill @e[type=!player]"]
-        assert rendered["randomtickspeed"] == ["gamerule randomtickspeed 1000"]
-        assert rendered["playerwaypoints"] == ["gamerule playerwaypoints off"]
-        assert rendered["fill"] == ["execute at a01 run fill ~-5 ~-1 ~-5 ~5 ~-1 ~5 grass_block"]
-        assert rendered["setblock"] == ["execute at a01 run setblock ~1 ~-1 ~ farmland"]
-        assert rendered["tickingarea_add"] == ["tickingarea add circle -20000 64 45000 2 chaos1"]
-        assert len(rendered["effects"]) == 4
-        for commands in rendered.values():
-            assert all("\n" not in c and c == c.strip() for c in commands)
-
-    @pytest.mark.parametrize(
-        ("action", "params"),
-        [
-            ("gamemode", {"player": "a01", "mode": "hardcore"}),
-            ("weather", {"kind": "snow"}),
-            ("playerwaypoints", {"mode": "false"}),
-            ("tp_dimension", {"player": "a01", "dimension": "moon", "x": 0, "y": 0, "z": 0}),
-            ("summon", {"player": "a01", "entity": "zombie; stop"}),
-            ("randomtickspeed", {"value": -1}),
-            ("tickingarea_remove", {"name": "a b"}),
-        ],
-    )
-    def test_chaos_validation(self, adapter: BdsAdapter, action: str, params: dict[str, Any]) -> None:
-        with pytest.raises(ValueError):
-            adapter.chaos_dialect().render(action, **params)
-
-    def test_unsupported_chaos_action(self, adapter: BdsAdapter) -> None:
-        with pytest.raises(UnsupportedAction):
-            adapter.chaos_dialect().render("status")
-
-    def test_applied(self, adapter: BdsAdapter) -> None:
-        tick = line("Game rule randomtickspeed has been updated to 100")
-        assert adapter.applied("randomtickspeed", tick) == {"randomtickspeed": 100}
-        assert adapter.applied("playerwaypoints", tick) is None
-        waypoints = line("Game rule playerwaypoints has been updated to everyone")
-        assert adapter.applied("playerwaypoints", waypoints) == {"playerwaypoints": "everyone"}
-        assert adapter.applied("weather", tick) is None
-        assert adapter.applied("randomtickspeed", line("Gametime is 5")) is None
-
 
 class TestPositions:
     def test_vanilla_continuation_lines(self) -> None:

@@ -284,7 +284,6 @@ class TestLoadRun:
         assert loaded.bots == built.bots
         assert loaded.log == built.log
         assert loaded.commands == built.commands
-        assert loaded.chaos == []
 
     def test_missing_raw_files_load_empty(self, tmp_path: Path) -> None:
         (tmp_path / "run.json").write_text(json.dumps({"schema": RUN_SCHEMA, "arm": {"server": "nobody"}}))

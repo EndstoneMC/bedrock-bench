@@ -18,7 +18,6 @@ from bedrock_bench.config import project_root
 from bedrock_bench.metrics import registry
 from bedrock_bench.report import REPORT_FILE, SUMMARY_FILE, build, write
 from bedrock_bench.report.markdown import (
-    CHAOS_ROWS,
     COST_ROWS,
     EFFICIENCY_ROWS,
     WORK_ROWS,
@@ -357,8 +356,8 @@ class TestFormatting:
 
     def test_layout_matches_the_metric_registry(self) -> None:
         assert sorted(set(layout_metric_ids()) - set(registry.ids())) == []
-        for row in (*COST_ROWS, *WORK_ROWS, *EFFICIENCY_ROWS, *CHAOS_ROWS):
-            # A row may decline to rank a metric (chaos), never rank it the other way round.
+        for row in (*COST_ROWS, *WORK_ROWS, *EFFICIENCY_ROWS):
+            # A row may decline to rank a metric, never rank it the other way round.
             assert row.better in (None, registry.get(row.metric).direction), row.metric
 
 

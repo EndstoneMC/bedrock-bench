@@ -31,7 +31,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from bedrock_bench import __version__, bots, config, fetch
-from bedrock_bench.adapters.base import ChaosDialect, Dialect, ServerAdapter, format_coord, host_os, quote_player
+from bedrock_bench.adapters.base import Dialect, ServerAdapter, host_os
 from bedrock_bench.config import ConfigError
 from bedrock_bench.model import (
     ArtifactRef,
@@ -448,24 +448,6 @@ def build_dfbench(
 # Adapter
 # --------------------------------------------------------------------------------------------------------------------
 
-GAMEMODES = ("survival", "creative", "adventure", "spectator")
-WEATHER = ("clear", "rain", "thunder")
-DIMENSIONS = ("overworld", "nether", "the_end")
-#: Blocks dfbench's fillnear command can place.
-BLOCKS = ("air", "dirt", "farmland", "grass_block", "oak_leaves", "oak_sapling", "stone")
-
-
-def _choice(name: str, value: str, choices: Sequence[str]) -> str:
-    if value not in choices:
-        raise ValueError(f"{name} must be one of {', '.join(choices)}, got {value!r}")
-    return value
-
-
-def _offset(value: float) -> str:
-    if not float(value).is_integer():
-        raise ValueError(f"block offsets are whole numbers, got {value!r}")
-    return str(int(value))
-
 
 class DragonflyAdapter(ServerAdapter):
     name: ClassVar[str] = "dragonfly"
@@ -627,71 +609,6 @@ class DragonflyAdapter(ServerAdapter):
 
     def parse_positions(self, lines: list[LogLine]) -> list[PlayerPos] | None:
         return parse_positions(lines)
-
-    def chaos_dialect(self) -> ChaosDialect:
-        """dfbench commands for the commands of ``configs/scenarios/chaos-actions.toml``, with their parameters."""
-
-        def tp(player: str, x: float, y: float, z: float) -> str:
-            return self.cmd_tp(player, x, y, z)
-
-        def tp_dimension(player: str, dimension: str, x: float, y: float, z: float) -> str:
-            _choice("dimension", dimension, DIMENSIONS)
-            coords = " ".join(format_coord(v) for v in (x, y, z))
-            return f"tpdim {quote_player(player)} {dimension} {coords}"
-
-        def effect_clear(player: str) -> str:
-            return f"effect {quote_player(player)} clear"
-
-        def kill(player: str) -> str:
-            return f"kill {quote_player(player)}"
-
-        def kick(player: str, reason: str = "chaos") -> str:
-            if "\n" in reason or "\r" in reason:
-                raise ValueError("kick reason must be one line")
-            return f"kick {quote_player(player)} {reason}".rstrip()
-
-        def gamemode(player: str, mode: str) -> str:
-            return f"gamemode {_choice('mode', mode, GAMEMODES)} {quote_player(player)}"
-
-        def list_players() -> str:
-            return "list"
-
-        def weather(kind: str) -> str:
-            return f"weather {_choice('kind', kind, WEATHER)}"
-
-        def fill(
-            player: str, dx1: float, dy1: float, dz1: float, dx2: float, dy2: float, dz2: float, block: str
-        ) -> str:
-            block = _choice("block", block.removeprefix("minecraft:"), BLOCKS)
-            offsets = " ".join(_offset(v) for v in (dx1, dy1, dz1, dx2, dy2, dz2))
-            return f"fillnear {quote_player(player)} {offsets} {block}"
-
-        def setblock(player: str, dx: float, dy: float, dz: float, block: str) -> str:
-            return fill(player, dx, dy, dz, dx, dy, dz, block)
-
-        return ChaosDialect(
-            renderers={
-                "tp": tp,
-                "tp_dimension": tp_dimension,
-                "effect_clear": effect_clear,
-                "kill": kill,
-                "kick": kick,
-                "gamemode": gamemode,
-                "list": list_players,
-                "weather": weather,
-                "fill": fill,
-                "setblock": setblock,
-            },
-            unsupported={
-                "summon": "Dragonfly has no mobs",
-                "loot": "Dragonfly has no loot tables",
-                "cleanup": "nothing to clean up without mobs or loot",
-                "randomtickspeed": "Dragonfly fixes the random tick speed when the world is created",
-                "playerwaypoints": "Dragonfly has no locator bar",
-                "tickingarea_add": "Dragonfly has no ticking areas",
-                "tickingarea_remove": "Dragonfly has no ticking areas",
-            },
-        )
 
     # ---- facts ----------------------------------------------------------------------------------------------------
 

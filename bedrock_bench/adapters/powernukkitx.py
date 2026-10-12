@@ -20,8 +20,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from bedrock_bench import config
-from bedrock_bench.adapters.base import ChaosDialect, Dialect
-from bedrock_bench.adapters.bdsfamily import BdsFamily
+from bedrock_bench.adapters.base import Dialect
 from bedrock_bench.adapters.standalone import JavaServer, fetch_release, fetch_runtime, runtime_platform, yaml_scalars
 from bedrock_bench.model import (
     ConfigFile,
@@ -66,11 +65,6 @@ PNX_LEVELS: Mapping[str, str] = {
     "FATAL": "fatal",
 }
 _RELEASE = re.compile(r"\d+(?:\.\d+)+")
-
-
-def is_nightly(version: str) -> bool:
-    """Whether an arm version names a nightly build (``nightly.<commit>``)."""
-    return version.split(".", 1)[0] == NIGHTLY
 
 
 class PnxDialect(Dialect):
@@ -174,25 +168,6 @@ class PowerNukkitXAdapter(JavaServer):
                 if seeds != {str(layout.extra.get("seed"))}:
                     problems.append(f"{relative}: seeds read back as {sorted(seeds)}")
         return problems
-
-    # ---- commands -------------------------------------------------------------------------------------------------
-
-    def chaos_dialect(self) -> ChaosDialect:
-        """The vanilla command set, as BDS renders it, minus the commands PowerNukkitX lacks or runs differently."""
-        vanilla = BdsFamily.chaos_dialect(self)  # only uses cmd_tp and cmd_effects, which are vanilla here too
-        unsupported = {
-            "loot": "no loot command",
-            "playerwaypoints": "no playerwaypoints game rule",
-            "cleanup": "kill @e[type=!player] also kills players on PowerNukkitX",
-        }
-        if is_nightly(self.arm.version):
-            unsupported["playerwaypoints"] = "an integer game rule that nothing reads; off and everyone are rejected"
-            unsupported["tp_dimension"] = (
-                "every dimension level carries the world's name, so execute in nether finds no level, "
-                "and tp keeps a player in its own level"
-            )
-        renderers = {action: r for action, r in vanilla.renderers.items() if action not in unsupported}
-        return ChaosDialect(renderers=renderers, unsupported=unsupported)
 
     # ---- facts ----------------------------------------------------------------------------------------------------
 

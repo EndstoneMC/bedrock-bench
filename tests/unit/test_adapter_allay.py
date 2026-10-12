@@ -13,7 +13,6 @@ import pytest
 from bedrock_bench import adapters, config, fetch, pregen
 from bedrock_bench.adapters import allay
 from bedrock_bench.adapters.allay import ALLAY_DIALECT, AllayAdapter, thread_from_jcmd, world_settings_problems
-from bedrock_bench.adapters.base import UnsupportedAction
 from bedrock_bench.adapters.standalone import Runtime, yaml_scalars
 from bedrock_bench.cache import Cache
 from bedrock_bench.model import ArtifactRef, Install, LogLine, OverrideCategory, Placement, RunContext, ThreadInfo
@@ -22,7 +21,7 @@ from bedrock_bench.provenance import sha256_file
 ROOT = Path(__file__).resolve().parents[2]
 LOGS = ROOT / "tests" / "fixtures" / "logs"
 
-#: server-settings.yml as Allay 0.14.0 rewrote it after a spread100 run (shortened, comments dropped).
+#: server-settings.yml as Allay 0.14.0 rewrote it after a boot with the spread100 settings (shortened, no comments).
 REWRITTEN_SERVER_SETTINGS = """generic-settings:
   motd: An allay-powered server
   max-player-count: 200
@@ -188,8 +187,6 @@ class TestContract:
         assert [t for t in (ALLAY_DIALECT.parse_tick(e.text) for e in lines) if t is not None] == [41, 271]
         assert [p for p in (ALLAY_DIALECT.player_entered(e.text) for e in lines) if p] == ["a00"]
         assert make_adapter().parse_positions(lines) == []
-        applied = [make_adapter().applied("randomtickspeed", e) for e in lines]
-        assert [a for a in applied if a] == [{"randomtickspeed": 3}]
         assert {e.logger for e in lines if e.logger} >= {"Allay", "AllayServer", "AllayWorld"}
 
 
@@ -349,45 +346,6 @@ class TestCommands:
         prefix = "[19:01:02 INFO] [Console Thread] [AllayServer] "
         reply = [line(prefix + "positions: 1"), line(prefix + "position: a00 1280.50 300.00 1280.50 0")]
         assert [(p.name, p.x, p.y, p.dim) for p in adapter.parse_positions(reply) or []] == [("a00", 1280.5, 300, 0)]
-
-    def test_chaos_dialect(self) -> None:
-        dialect = make_adapter().chaos_dialect()
-        assert dialect.render("kill", player="a07") == ["execute as a07 run kill @s"]
-        assert dialect.render("summon", player="a07", entity="cow", dx=2, dy=1, dz=-3) == [
-            "execute as a07 at a07 run summon cow ~2 ~1 ~-3"
-        ]
-        assert dialect.render("setblock", player="a07", dx=1, dy=-1, dz=1, block="grass_block") == [
-            "execute as a07 at a07 run setblock ~1 ~-1 ~1 grass_block"
-        ]
-        assert dialect.render("fill", player="a07", dx1=-2, dy1=-1, dz1=-2, dx2=2, dy2=-1, dz2=2, block="farmland") == [
-            "execute at a07 run fill ~-2 ~-1 ~-2 ~2 ~-1 ~2 farmland"
-        ]
-        assert dialect.render("cleanup") == ["execute as @r run kill @e[type=!player]"]
-        assert dialect.render("randomtickspeed", value=3) == ["gamerule randomtickspeed 3"]
-        assert dialect.render("gamemode", player="a07", mode="spectator") == ["gamemode spectator a07"]
-        with pytest.raises(ValueError):
-            dialect.render("summon", player="a07", entity="Cow; stop")
-        for action in ("tp_dimension", "loot", "playerwaypoints", "tickingarea_add", "tickingarea_remove"):
-            with pytest.raises(UnsupportedAction):
-                dialect.render(action)
-            assert dialect.unsupported[action]
-
-    def test_tick_speed_confirmation_through_the_server_prefix(self) -> None:
-        adapter = make_adapter()
-        prefix = "[19:01:15 INFO] [Console Thread] [AllayServer] [Server] "
-        reply = line(prefix + "Game rule randomTickSpeed has been updated to 3")
-        assert adapter.applied("randomtickspeed", reply) == {"randomtickspeed": 3}
-        assert adapter.applied("weather", reply) is None
-
-    def test_every_catalogue_command_is_rendered_or_unsupported(self) -> None:
-        catalogue = ROOT / "configs" / "scenarios" / "chaos-actions.toml"
-        commands = tomllib.loads(catalogue.read_text(encoding="utf-8")).get("command", {})
-        dialect = make_adapter().chaos_dialect()
-        for name, entry in commands.items():
-            assert dialect.supports(name) or name in dialect.unsupported, name
-            if dialect.supports(name):
-                assert dialect.render(name, **entry.get("example", {}))
-
 
 # --------------------------------------------------------------------------------------------------------------------
 # Helper plugin and world settings

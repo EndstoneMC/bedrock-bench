@@ -240,8 +240,8 @@ class TestWriter:
         console = Console(io.BytesIO(b""), stdin, BDS_DIALECT, pace_s=0, journal_path=journal).start()
         console.send("first")
         assert stdin.first_write.wait(5)
-        n1 = console.send("normal 1", origin="chaos")
-        n2 = console.send("normal 2", origin="chaos")
+        n1 = console.send("normal 1")
+        n2 = console.send("normal 2")
         p1 = console.send("time query gametime", lane="priority", origin="probe")
         assert console.backlog() == 3
         gate.set()
@@ -251,7 +251,7 @@ class TestWriter:
         records = read_journal(journal)
         assert [r["text"] for r in records] == ["first", "time query gametime", "normal 1", "normal 2"]
         assert [r["lane"] for r in records] == ["normal", "priority", "normal", "normal"]
-        assert [r["origin"] for r in records] == ["phase", "probe", "chaos", "chaos"]
+        assert [r["origin"] for r in records] == ["phase", "probe", "phase", "phase"]
         assert all(r["send_ns"] >= r["enqueue_ns"] for r in records)
 
     def test_on_sent_runs_before_the_write(self) -> None:

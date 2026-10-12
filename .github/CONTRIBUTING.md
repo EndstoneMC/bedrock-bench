@@ -82,8 +82,8 @@ test for the server's name.
 
 Find out from the server's documentation or source:
 
-- **Protocol.** The bots speak protocol 2193 (`loadbot`) and 1001 (`legacy1001`, for PocketMine-MP). Another protocol
-  needs a bot frontend first ([bots/README.md](../bots/README.md#protocol-1001)).
+- **Protocol.** The bots speak protocol 2193 (`loadbot`) and 1001 (`legacy1001`, for PocketMine-MP and Allay). Another
+  protocol needs a bot frontend first ([bots/README.md](../bots/README.md#protocol-1001)).
 - **Offline login.** The bots log in without Xbox authentication, so the server needs a switch for that.
 - **A tick counter.** A console command that prints a counter that advances once per executed tick
   ([rule R8](../docs/methodology.md#rules)). World time and day time do not qualify. Without one, a helper adds it.
@@ -99,6 +99,8 @@ Find out from the server's documentation or source:
 | a jar on the JVM | `powernukkitx.py`, or `nukkit.py` when it needs a helper plugin (`JavaServer`) |
 | a release file run by another runtime | `pocketmine.py` (`StandaloneServer`) |
 | a Go module built from source | `dragonfly.py` |
+| a Rust crate built from source | `chorus.py` |
+| a fork of a supported server | subclass its adapter, as `altay.py` does |
 
 A new BDS version is a pin in `configs/servers/bds/server.toml`, not an adapter. A runtime that
 `configs/servers/runtimes.toml` lacks gets a pin there, in the same `[artifacts]` shape.
@@ -188,9 +190,6 @@ Methods:
 - `cmd_effects()` and `cmd_tp()` default to vanilla syntax. `parse_positions()` reads the reply to `cmd_positions()`
   and returns None, never an empty list, when the reply is missing. A helper that prints `positions: N` and then
   `position: <name> <x> <y> <z> <dim>` lines can use `standalone.parse_helper_positions`.
-- `chaos_dialect()` renders every `[command.<name>]` in `configs/scenarios/chaos-actions.toml`, or lists it in
-  `unsupported` with a reason. Unsupported actions are counted, never sent. `applied()` recognises the line that
-  confirms an action took effect.
 - `facts()` returns what `run.json` records about the process: allocator, JVM flags, the effective client-side
   generation setting.
 
@@ -239,10 +238,10 @@ sections:
   uv run pytest tests/unit/test_adapters_contract.py -k <id>
   ```
 
-  It checks the class attributes, the dialect against the fixtures, that commands are single lines, that every chaos
-  command is rendered or unsupported, the bot flag allowlist, `parse_positions([])` returning None, and that the
-  feature ranges of the pinned versions cover every exercised key. Run it once with `BBENCH_UPDATE_SNAPSHOTS=1` to
-  write `tests/unit/snapshots/adapters/<id>.json`, the rendered commands later runs are compared with.
+  It checks the class attributes, the dialect against the fixtures, that commands are single lines, the bot flag
+  allowlist, `parse_positions([])` returning None, and that the feature ranges of the pinned versions cover every
+  exercised key. Run it once with `BBENCH_UPDATE_SNAPSHOTS=1` to write `tests/unit/snapshots/adapters/<id>.json`, the
+  rendered commands later runs are compared with.
 
 - Smoke on every platform the adapter declares, and attach the smoke's `run.json` to the pull request:
 
@@ -252,7 +251,7 @@ sections:
   ```
 
   The smoke runs 4 bots with short phases. It passes when the run is `ok`, the server accepts every command the
-  harness sends (each rendered chaos command once), and the bots see movement corrections where the feature file
+  harness sends, and the bots see movement corrections where the feature file
   declares server-authoritative movement.
 
 To benchmark the server, add an arm to a matrix in `configs/matrices/`:
@@ -333,10 +332,11 @@ Before tagging:
 
 - [ ] CI is green on `main`: lint, tests on Ubuntu and Windows, the Go checks and the Dragonfly smoke.
 - [ ] `bbench smoke <id>@<version>` passes for every version pinned in `configs/servers/`, on each platform its
-      adapter declares. CI runs only the Dragonfly smoke.
-- [ ] The decode smoke passes. CI never downloads BDS, so this runs by hand: against every pinned server, run the bot
-      its adapter uses (`legacy1001` for PocketMine-MP, `loadbot` for the others) for at least five minutes of
-      walking and teleports:
+      adapter declares. CI runs only the Dragonfly smoke. A pin its server README marks as invalid is exempt:
+      `chorus@95ca835` ([caveats](../configs/servers/chorus/README.md#caveats)).
+- [ ] The decode smoke passes. CI never downloads BDS, so this runs by hand: against every pinned server except the
+      exempt pins above, run the bot its adapter uses (`legacy1001` for PocketMine-MP and Allay, `loadbot` for the
+      others) for at least five minutes of walking and teleports:
 
       ```sh
       loadbot -addr 127.0.0.1:<port> -n 4 -decode-errors fail

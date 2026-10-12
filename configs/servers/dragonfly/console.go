@@ -17,9 +17,6 @@ import (
 	"time"
 
 	"github.com/df-mc/dragonfly/server"
-	"github.com/df-mc/dragonfly/server/block"
-	"github.com/df-mc/dragonfly/server/block/cube"
-	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/entity/effect"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -46,13 +43,7 @@ func init() {
 		"list":      {"list", 0, 0, (*console).list},
 		"positions": {"positions", 0, 0, (*console).positions},
 		"tp":        {"tp <target> <x> <y> <z>", 4, 4, (*console).tp},
-		"tpdim":     {"tpdim <player> <overworld|nether|the_end> <x> <y> <z>", 5, 5, (*console).tpdim},
-		"effect":    {"effect <target> <effect|clear> [seconds|infinite] [amplifier] [hideParticles]", 2, 5, (*console).effect},
-		"kill":      {"kill <target>", 1, 1, (*console).kill},
-		"kick":      {"kick <target> [reason...]", 1, -1, (*console).kick},
-		"gamemode":  {"gamemode <survival|creative|adventure|spectator> <target>", 2, 2, (*console).gamemode},
-		"weather":   {"weather <clear|rain|thunder> [seconds]", 1, 2, (*console).weather},
-		"fillnear":  {"fillnear <player> <dx1> <dy1> <dz1> <dx2> <dy2> <dz2> <block>", 8, 8, (*console).fillnear},
+		"effect":    {"effect <target> <effect> [seconds|infinite] [amplifier] [hideParticles]", 2, 5, (*console).effect},
 		"help":      {"help", 0, 0, (*console).help},
 		"stop":      {"stop", 0, 0, (*console).stop},
 	}
@@ -66,25 +57,8 @@ var effects = map[string]effect.LastingType{
 	"water_breathing": effect.WaterBreathing,
 }
 
-// blocks are the blocks fillnear can place, by their vanilla names.
-var blocks = map[string]world.Block{
-	"air":         block.Air{},
-	"dirt":        block.Dirt{},
-	"farmland":    block.Farmland{},
-	"grass_block": block.Grass{},
-	"oak_leaves":  block.Leaves{Type: block.OakLeaves(), Persistent: true},
-	"oak_sapling": block.Sapling{Type: block.OakSapling()},
-	"stone":       block.Stone{},
-}
-
-const (
-	// maxFillVolume is the most blocks one fillnear may set, as for the vanilla fill command.
-	maxFillVolume = 32768
-	// defaultEffectSeconds is the effect duration when none is given, as for the vanilla effect command.
-	defaultEffectSeconds = 30
-	// defaultWeatherSeconds is how long rain or thunder lasts when no duration is given.
-	defaultWeatherSeconds = 300
-)
+// defaultEffectSeconds is the effect duration when none is given, as for the vanilla effect command.
+const defaultEffectSeconds = 30
 
 var errUsage = errors.New("usage")
 
@@ -177,19 +151,6 @@ func fields(line string) ([]string, error) {
 // worlds are the server's worlds, the overworld first.
 func (c *console) worlds() []*world.World {
 	return []*world.World{c.srv.World(), c.srv.Nether(), c.srv.End()}
-}
-
-// dimension is the world of a vanilla dimension name.
-func (c *console) dimension(name string) (*world.World, bool) {
-	switch name {
-	case "overworld":
-		return c.srv.World(), true
-	case "nether":
-		return c.srv.Nether(), true
-	case "the_end":
-		return c.srv.End(), true
-	}
-	return nil, false
 }
 
 // inEachWorld runs f in a task on every world and calls done once all of them have finished.
@@ -305,48 +266,8 @@ func (c *console) tp(args []string) error {
 	})
 }
 
-func (c *console) tpdim(args []string) error {
-	if args[0] == "@a" {
-		return errors.New("tpdim takes one player, not @a")
-	}
-	dest, ok := c.dimension(args[1])
-	if !ok {
-		return fmt.Errorf("Unknown dimension: %s", args[1])
-	}
-	pos, err := vec3(args[2:5])
-	if err != nil {
-		return err
-	}
-	return c.each(args[0], func(tx *world.Tx, p *player.Player) {
-		if tx.World() == dest {
-			p.Teleport(pos)
-			return
-		}
-		h := tx.RemoveEntity(p)
-		dest.Do(func(tx *world.Tx) {
-			if moved, ok := tx.AddEntityAt(h, pos).(*player.Player); ok {
-				moved.Teleport(pos)
-			}
-		})
-	}, func(int) {
-		reply("Teleported %s to %s in %s", args[0], formatVec3(pos), args[1])
-	})
-}
-
 func (c *console) effect(args []string) error {
 	target, name := args[0], strings.TrimPrefix(args[1], "minecraft:")
-	if name == "clear" {
-		if len(args) > 2 {
-			return errUsage
-		}
-		return c.each(target, func(_ *world.Tx, p *player.Player) {
-			for _, e := range p.Effects() {
-				p.RemoveEffect(e.Type())
-			}
-		}, func(n int) {
-			reply("Took all effects from %s", who(target, n))
-		})
-	}
 	kind, ok := effects[name]
 	if !ok {
 		return fmt.Errorf("Unknown effect: %s", args[1])
@@ -400,120 +321,6 @@ func parseEffect(kind effect.LastingType, args []string) (effect.Effect, error) 
 		e = e.WithoutParticles()
 	}
 	return e, nil
-}
-
-func (c *console) kill(args []string) error {
-	var killed atomic.Int64
-	return c.each(args[0], func(_ *world.Tx, p *player.Player) {
-		switch _, vulnerable := p.Hurt(math.MaxFloat32, entity.VoidDamageSource{}); {
-		case vulnerable:
-			killed.Add(1)
-		case p.Dead():
-			reply("%s is already dead", p.Name())
-		default:
-			fail("%s cannot be killed in game mode %s", p.Name(), gameModeName(p.GameMode()))
-		}
-	}, func(int) {
-		if n := int(killed.Load()); n > 0 {
-			reply("Killed %s", who(args[0], n))
-		}
-	})
-}
-
-func (c *console) kick(args []string) error {
-	reason := strings.Join(args[1:], " ")
-	return c.each(args[0], func(_ *world.Tx, p *player.Player) {
-		p.Disconnect(reason)
-	}, func(n int) {
-		reply("Kicked %s", who(args[0], n))
-	})
-}
-
-func (c *console) gamemode(args []string) error {
-	mode, ok := parseGameMode(args[0])
-	if !ok {
-		return fmt.Errorf("Unknown game mode: %s", args[0])
-	}
-	return c.each(args[1], func(_ *world.Tx, p *player.Player) {
-		p.SetGameMode(mode)
-	}, func(n int) {
-		reply("Set the game mode of %s to %s", who(args[1], n), args[0])
-	})
-}
-
-func (c *console) weather(args []string) error {
-	seconds := defaultWeatherSeconds
-	if len(args) > 1 {
-		n, err := strconv.Atoi(args[1])
-		if err != nil || n <= 0 {
-			return fmt.Errorf("Invalid duration: %s", args[1])
-		}
-		seconds = n
-	}
-	d := time.Duration(seconds) * time.Second
-	var change func(w *world.World)
-	switch args[0] {
-	case "clear":
-		change = func(w *world.World) {
-			w.StopThundering()
-			w.StopRaining()
-		}
-	case "rain":
-		change = func(w *world.World) {
-			w.StopThundering()
-			w.StartRaining(d)
-		}
-	case "thunder":
-		change = func(w *world.World) { w.StartThundering(d) }
-	default:
-		return fmt.Errorf("Unknown weather: %s", args[0])
-	}
-	c.srv.World().Do(func(tx *world.Tx) {
-		change(tx.World())
-		reply("Changed the weather to %s", args[0])
-	})
-	return nil
-}
-
-func (c *console) fillnear(args []string) error {
-	if args[0] == "@a" {
-		return errors.New("fillnear takes one player, not @a")
-	}
-	var v [6]int
-	for i, s := range args[1:7] {
-		n, err := strconv.Atoi(s)
-		if err != nil {
-			return fmt.Errorf("Invalid offset: %s", s)
-		}
-		v[i] = n
-	}
-	b, ok := blocks[strings.TrimPrefix(args[7], "minecraft:")]
-	if !ok {
-		return fmt.Errorf("Unknown block: %s", args[7])
-	}
-	lo := cube.Pos{min(v[0], v[3]), min(v[1], v[4]), min(v[2], v[5])}
-	hi := cube.Pos{max(v[0], v[3]), max(v[1], v[4]), max(v[2], v[5])}
-	if volume := (hi[0] - lo[0] + 1) * (hi[1] - lo[1] + 1) * (hi[2] - lo[2] + 1); volume > maxFillVolume {
-		return fmt.Errorf("Too many blocks in the specified area (%d > %d)", volume, maxFillVolume)
-	}
-	var filled int
-	return c.each(args[0], func(tx *world.Tx, p *player.Player) {
-		origin := cube.PosFromVec3(p.Position())
-		for x := lo[0]; x <= hi[0]; x++ {
-			for y := lo[1]; y <= hi[1]; y++ {
-				for z := lo[2]; z <= hi[2]; z++ {
-					pos := origin.Add(cube.Pos{x, y, z})
-					if pos.OutOfBounds(tx.Range()) {
-						continue
-					}
-					tx.SetBlock(pos, b, nil)
-					filled++
-				}
-			}
-		}
-	}, func(int) {
-		reply("%d blocks filled near %s", filled, args[0])
-	})
 }
 
 func (c *console) help([]string) error {

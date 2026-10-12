@@ -14,8 +14,6 @@ import (
 	"time"
 
 	"github.com/df-mc/dragonfly/server"
-	"github.com/df-mc/dragonfly/server/block"
-	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity/effect"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -142,41 +140,6 @@ func TestConsoleAgainstAServer(t *testing.T) {
 			t.Errorf("resistance = %+v, %v", e, ok)
 		}
 	})
-	ct.run("effect a00 clear", "INFO Took all effects from a00")
-	ct.inspect(func(_ *world.Tx, p *player.Player) {
-		if n := len(p.Effects()); n != 0 {
-			t.Errorf("%d effects left after clear", n)
-		}
-	})
-
-	ct.run("gamemode adventure a00", "INFO Set the game mode of a00 to adventure")
-	ct.inspect(func(_ *world.Tx, p *player.Player) {
-		if p.GameMode() != world.GameModeAdventure {
-			t.Errorf("game mode = %v", p.GameMode())
-		}
-	})
-
-	ct.run("fillnear a00 0 -1 0 1 -1 1 stone", "INFO 4 blocks filled near a00")
-	ct.inspect(func(tx *world.Tx, _ *player.Player) {
-		if b := tx.Block(cube.Pos{101, 63, 101}); b != (block.Stone{}) {
-			t.Errorf("block after fillnear = %#v", b)
-		}
-	})
-
-	ct.run("weather thunder 60", "INFO Changed the weather to thunder")
-	ct.run("weather clear", "INFO Changed the weather to clear")
-
-	ct.run("tpdim a00 nether 10 70 10", "INFO Teleported a00 to 10 70 10 in nether")
-	ct.run("positions", "INFO Position: 1 10.00 70.00 10.00 a00")
-
-	ct.run("kill a00", "INFO Killed a00")
-	ct.inspect(func(_ *world.Tx, p *player.Player) {
-		if !p.Dead() {
-			t.Error("a00 is alive after kill")
-		}
-	})
-	ct.run("kill a00", "INFO a00 is already dead")
-	ct.run("kick a00 bye", "INFO Kicked a00")
 	ct.run("tp ghost 0 0 0", "ERROR No targets matched: ghost")
 	ct.run("help", "INFO stop")
 	ct.run("stop", "INFO Stopping the server")

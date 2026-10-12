@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from bedrock_bench import config, fetch
-from bedrock_bench.adapters.base import ChaosDialect, Dialect, quote_player
+from bedrock_bench.adapters.base import Dialect
 from bedrock_bench.adapters.standalone import (
     COMMAND_LINE,
     DEFAULTS_PART,
@@ -189,44 +189,6 @@ class PocketMineAdapter(StandaloneServer):
 
     def parse_positions(self, lines: list[LogLine]) -> list[PlayerPos] | None:
         return parse_helper_positions(lines)
-
-    def chaos_dialect(self) -> ChaosDialect:
-        """Player commands only: PocketMine-MP has no dimensions, mobs, game rules, weather or block commands."""
-
-        def kick(player: str, reason: str = "chaos") -> str:
-            if "\n" in reason or "\r" in reason:
-                raise ValueError("kick reason must be one line")
-            return f"kick {quote_player(player)} {reason}".rstrip()
-
-        def gamemode(player: str, mode: str) -> str:
-            if mode not in ("survival", "creative", "adventure", "spectator"):
-                raise ValueError(f"mode must be survival, creative, adventure or spectator, got {mode!r}")
-            return f"gamemode {mode} {quote_player(player)}"
-
-        return ChaosDialect(
-            renderers={
-                "tp": lambda player, x, y, z: self.cmd_tp(player, x, y, z),
-                "effects": lambda player: self.cmd_effects(player),
-                "effect_clear": lambda player: f"effect {quote_player(player)} clear",
-                "kill": lambda player: f"kill {quote_player(player)}",
-                "kick": kick,
-                "gamemode": gamemode,
-                "list": lambda: "list",
-            },
-            unsupported={
-                "tp_dimension": "worlds are not dimensions; there is no Nether or End to travel to",
-                "summon": "no summon command and no mob AI",
-                "loot": "no loot command",
-                "cleanup": "no entity selectors",
-                "randomtickspeed": "no gamerule command",
-                "playerwaypoints": "no gamerule command and no locator bar",
-                "weather": "no weather",
-                "fill": "no fill command",
-                "setblock": "no setblock command",
-                "tickingarea_add": "no ticking areas",
-                "tickingarea_remove": "no ticking areas",
-            },
-        )
 
     # ---- facts ----------------------------------------------------------------------------------------------------
 

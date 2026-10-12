@@ -9,7 +9,6 @@ import pytest
 
 from bedrock_bench import adapters, config
 from bedrock_bench.adapters import nukkitmot
-from bedrock_bench.adapters.base import UnsupportedAction
 from bedrock_bench.adapters.nukkit import plugin_files
 from bedrock_bench.adapters.nukkitmot import NUKKITMOT_DIALECT, NukkitMotAdapter
 from bedrock_bench.adapters.standalone import Runtime, main_thread_from_jcmd, yaml_scalars
@@ -45,7 +44,7 @@ network-settings:
     # Extra ICE STUN/TURN servers
     ice-servers: []
   # Max RakNet packets per 10ms per IP
-  rak-packet-limit: 2147483647
+  rak-packet-limit: 2000
   proxy-protocol-whitelist:
   - 127.0.0.1/32
   - ::1/128
@@ -214,7 +213,7 @@ class TestPrepare:
             assert expected in props
         yml = yaml_scalars((server / "nukkit-mot.yml").read_text(encoding="utf-8"))
         assert yml["network-settings.nethernet.enabled"] == "false"
-        assert yml["network-settings.rak-packet-limit"] == "2147483647"
+        assert "network-settings.rak-packet-limit" not in yml
         assert yml["performance-settings.auto-tick-rate"] == "false"
         assert yml["chunk-settings.ticking-radius"] == "4"
         assert yml["custom-block-settings.auto-download-vanilla-palette"] == "false"
@@ -280,49 +279,10 @@ class TestCommands:
         assert adapter.cmd_tp("a07", 1280.5, 300, 1280.5) == "tp a07 1280.5 300 1280.5"
         assert adapter.pregen_command(12, Grid(), 100) == "pregen 12 11 640 1280 100"
 
-    def test_chaos_dialect(self) -> None:
-        dialect = make_adapter().chaos_dialect()
-        assert dialect.render("summon", player="a07", entity="cow", dx=2, dy=1, dz=-3) == [
-            "execute at a07 run summon cow ~2 ~1 ~-3"
-        ]
-        assert dialect.render("cleanup") == ["kill @e[type=!player]"]
-        assert dialect.render("tp_dimension", player="a07", dimension="nether", x=160, y=100, z=160) == [
-            "dim a07 nether 160 100 160"
-        ]
-        assert dialect.render("fill", player="a07", dx1=-2, dy1=-1, dz1=-2, dx2=2, dy2=-1, dz2=2, block="farmland") == [
-            "fillnear a07 -2 -1 -2 2 -1 2 farmland"
-        ]
-        assert dialect.render("setblock", player="a07", dx=1, dy=-1, dz=1, block="grass_block") == [
-            "fillnear a07 1 -1 1 1 -1 1 grass_block"
-        ]
-        assert dialect.render("randomtickspeed", value=3) == ["gamerule randomtickspeed 3"]
-        assert dialect.render("tickingarea_add", name="bbench0", x=20000, z=-30000) == [
-            "tickingarea add circle 20000 64 -30000 2 bbench0"
-        ]
-        assert dialect.render("gamemode", player="a07", mode="adventure") == ["gamemode adventure a07"]
-        for action in ("loot", "playerwaypoints"):
-            with pytest.raises(UnsupportedAction):
-                dialect.render(action)
-
-    def test_tick_speed_change_is_confirmed(self) -> None:
-        adapter = make_adapter()
-        reply = next(e for e in session() if e.text.startswith("Game rule randomtickspeed"))
-        assert adapter.applied("randomtickspeed", reply) == {"randomtickspeed": 3}
-
-    def test_every_catalogue_command_is_rendered_or_unsupported(self) -> None:
-        catalogue = ROOT / "configs" / "scenarios" / "chaos-actions.toml"
-        commands = tomllib.loads(catalogue.read_text(encoding="utf-8")).get("command", {})
-        dialect = make_adapter().chaos_dialect()
-        for name, entry in commands.items():
-            assert dialect.supports(name) or name in dialect.unsupported, name
-            if dialect.supports(name):
-                assert dialect.render(name, **entry.get("example", {}))
-
-
 def test_helper_sources_are_committed() -> None:
     plugin = ROOT / nukkitmot.PLUGIN_SOURCE
     assert [p.name for p in plugin_files(plugin)] == ["plugin.yml", "BenchTick.java", "PreGen.java"]
     manifest = (plugin / "plugin.yml").read_text(encoding="utf-8")
-    for command in ("gametime", "positions", "fillnear", "dim", "pregen"):
+    for command in ("gametime", "positions", "pregen"):
         assert f"\n  {command}:\n" in manifest
     assert "RakNetInterface" not in (plugin / "BenchTick.java").read_text(encoding="utf-8")

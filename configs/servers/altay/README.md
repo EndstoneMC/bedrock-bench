@@ -41,15 +41,15 @@ spread100-pregen` can still build a template for it with the bot tour.
 - Tick probe: `gametime` (BenchHelper) prints `Gametime is N`, the server's tick counter, which advances once per
   executed tick.
 - Positions: `positions` (BenchHelper) prints `positions: N`, then one `position: <name> <x> <y> <z> 0` line per player.
-- The banner `This server is running Altay version <v>` must equal the arm's version. PocketMine-MP's banner does not
-  match it.
+- The banner `This server is running Altay version <v>` must equal the arm's version.
 
 ## Configuration changes
 
 The values, the shipped defaults and the reasons are in the `[config]` table of [server.toml](server.toml), and every
 change is recorded in run.json with its category
 ([methodology](../../../docs/methodology.md#fairness-and-feature-parity)). `server.properties` starts empty and Altay
-adds its own defaults; `pocketmine.yml` starts from the shipped copy. The plan is PocketMine-MP's plus the transport.
+adds its own defaults; `pocketmine.yml` starts from the shipped copy. The changes are PocketMine-MP's, plus the
+transport.
 
 - harness: the machine profile's port, with IPv6 off; offline login; `network.transport` written as `raknet`, the
   shipped value; crash report upload, the auto-updater and anonymous statistics off. Altay ships all three on.
@@ -88,8 +88,6 @@ Held in the adapter, all harness:
 - The packet limit reaches the transport thread as a signed 32-bit integer. PocketMine-MP's helper passes
   `PHP_INT_MAX`, which wraps to -1 on Altay and blocks every address on its second packet within a tick, so Altay has
   its own copy of the helper.
-- Chaos: only `tp`, `kill`, `kick`, `gamemode`, `effect <player> clear` and `list`. Every other chaos command is counted
-  as unsupported, with its reason in the adapter. That includes `weather`, which `chaos-portable` uses.
 
 ## Crash files
 

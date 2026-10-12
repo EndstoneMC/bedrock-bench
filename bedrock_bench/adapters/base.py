@@ -3,8 +3,8 @@
 
 Adapters are the only code that knows servers by name. Each one says how to fetch and verify a build, how to lay out a
 fresh server directory with every config override categorised, how to launch it, and how to talk to its console: the
-ready line, log prefix and levels, the monotonic tick probe, and the commands for effects, teleports, positions and
-chaos actions. Phases, samplers, metrics and reports only use what an adapter declares here.
+ready line, log prefix and levels, the monotonic tick probe, and the commands for effects, teleports and positions.
+Phases, samplers, metrics and reports only use what an adapter declares here.
 
 A server is a black box: adapters read what the server prints and what the operating system reports about the
 process, and never hook into it.
@@ -18,8 +18,8 @@ import abc
 import os
 import re
 import sys
-from collections.abc import Callable, Mapping, Sequence
-from dataclasses import dataclass, field
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
@@ -148,45 +148,6 @@ class Dialect:
         """The player name if this line says a player is in the world."""
         match = self.player_in_world.search(text)
         return match["player"] if match else None
-
-
-Renderer = Callable[..., "str | Sequence[str]"]
-
-
-class UnsupportedAction(KeyError):
-    """The server has no equivalent for a chaos action. Counted as ``unsupported``, never sent."""
-
-
-@dataclass(frozen=True)
-class ChaosDialect:
-    """Chaos action name -> renderer of console commands.
-
-    Renderers take the action's parameters from the chaos plan as keyword arguments and return one command or a list.
-    An action missing from ``renderers`` is unsupported; ``unsupported`` documents why for actions known not to apply.
-    """
-
-    renderers: Mapping[str, Renderer] = field(default_factory=dict)
-    unsupported: Mapping[str, str] = field(default_factory=dict)  # action -> reason
-
-    def __post_init__(self) -> None:
-        both = sorted(set(self.renderers) & set(self.unsupported))
-        if both:
-            raise ValueError(f"chaos actions both rendered and unsupported: {both}")
-
-    @property
-    def actions(self) -> frozenset[str]:
-        return frozenset(self.renderers)
-
-    def supports(self, action: str) -> bool:
-        return action in self.renderers
-
-    def render(self, action: str, **params: Any) -> list[str]:
-        try:
-            renderer = self.renderers[action]
-        except KeyError:
-            raise UnsupportedAction(action) from None
-        commands = renderer(**params)
-        return [commands] if isinstance(commands, str) else list(commands)
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -346,13 +307,6 @@ class ServerAdapter(abc.ABC):
 
     def parse_positions(self, lines: list[LogLine]) -> list[PlayerPos] | None:
         """Positions from the reply to :meth:`cmd_positions`. None means unknown (the spread is then invalid)."""
-        return None
-
-    def chaos_dialect(self) -> ChaosDialect:
-        return ChaosDialect()
-
-    def applied(self, action: str, line: LogLine) -> dict[str, Any] | None:
-        """If ``line`` confirms that a chaos action took effect, its details (e.g. ``{"tickspeed": 100}``)."""
         return None
 
     # ---- facts and crashes ----------------------------------------------------------------------------------------

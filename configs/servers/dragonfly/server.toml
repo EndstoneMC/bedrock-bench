@@ -73,7 +73,7 @@ format = "toml"
 
 [config.file."config.toml".parity]
 "Players.MaximumChunkRadius" = { value = "{view_distance}", reason = "the same view distance on every server" }
-"Players.MaxCount" = { value = "{max_players}", reason = "room for every bot, plus rejoins in chaos scenarios" }
+"Players.MaxCount" = { value = "{max_players}", reason = "room for every bot" }
 "Players.SaveData" = { value = "{save_player_data}", reason = "player data saved as on every server" }
 "World.SaveData" = { value = true, reason = "the world saved to disk as on every server" }
 "World.Folder" = { value = "{level_name}", reason = "a fixed world folder, checked absent before launch" }

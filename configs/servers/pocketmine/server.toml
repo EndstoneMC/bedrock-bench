@@ -71,7 +71,7 @@ xbox-auth = { value = "off", default = "on", reason = "the bots log in offline w
 
 [config.file."server.properties".parity]
 view-distance = { value = "{view_distance}", default = "16", reason = "the same view distance on every server" }
-max-players = { value = "{max_players}", default = "20", reason = "room for every bot, plus rejoins in chaos scenarios" }
+max-players = { value = "{max_players}", default = "20", reason = "room for every bot" }
 level-name = { value = "{level_name}", default = "world", reason = "a fixed world folder, checked absent before launch" }
 level-seed = { value = "{seed}", default = "", reason = "the same seed on every server; PocketMine-MP generates its own terrain from it" }
 difficulty = { value = "{difficulty_id}", default = "2", reason = "the same difficulty on every server" }

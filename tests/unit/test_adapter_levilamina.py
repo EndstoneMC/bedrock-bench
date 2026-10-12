@@ -15,7 +15,6 @@ from typing import Any
 import pytest
 
 from bedrock_bench import adapters, config, fetch
-from bedrock_bench.adapters import bdsfamily
 from bedrock_bench.adapters import levilamina as levilamina_module
 from bedrock_bench.adapters.bdsfamily import Properties, fetch_bds
 from bedrock_bench.adapters.levilamina import (
@@ -232,7 +231,6 @@ class TestContract:
     def test_shares_bds_commands(self) -> None:
         adapter = LeviLaminaAdapter(arm(), config.default_machine())
         assert adapter.cmd_positions() == "querytarget @a"
-        assert adapter.chaos_dialect().actions == bdsfamily.BdsFamily.chaos_dialect(adapter).actions
 
     @pytest.mark.parametrize("system", ["windows", "linux"])
     def test_constructs_on_any_host(self, system: str, monkeypatch: pytest.MonkeyPatch) -> None:

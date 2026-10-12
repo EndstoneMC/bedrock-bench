@@ -98,7 +98,7 @@ fidelity = "V1"
 # pnx.yml starts empty: PowerNukkitX fills in every other key with its built-in default and rewrites the file on
 # start, and `default` gives that built-in value for the keys written here. The world seed is not in pnx.yml; it goes
 # into worlds/<level>/config.json (world-config.json next to this file) before the first start. 3.0.5 and the nightly
-# have the same keys and defaults.
+# have the same defaults for these keys.
 [config]
 
 [config.file."pnx.yml"]
@@ -112,7 +112,7 @@ format = "yaml"
 "misc-settings.enableMetrics" = { value = "false", type = "bool", default = "true", reason = "no usage statistics upload" }
 
 [config.file."pnx.yml".parity]
-"settings.maxPlayers" = { value = "{max_players}", type = "int", default = "20", reason = "room for every bot, plus rejoins in chaos scenarios" }
+"settings.maxPlayers" = { value = "{max_players}", type = "int", default = "20", reason = "room for every bot" }
 "settings.defaultLevelName" = { value = "{level_name}", default = "world", reason = "a fixed world folder, checked absent before launch" }
 "settings.autoSave" = { value = "true", type = "bool", default = "true", reason = "the world is saved periodically, as on every server" }
 "settings.autosaveDelay" = { value = "{autosave_ticks}", type = "int", default = "6000", reason = "the same autosave interval on every server" }

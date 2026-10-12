@@ -348,10 +348,5 @@ class TestSmokeProblems:
         problems = runner.smoke_problems(path, self.adapter())
         assert problems == [f"command {command['text']!r} was answered with: Syntax error: Unexpected token"]
 
-    def test_chaos_commands_must_be_sent(self, tmp_path: Path) -> None:
-        problems = runner.smoke_problems(self.run_dir(tmp_path), self.adapter(), ["weather clear"])
-        assert problems == ["chaos command 'weather clear' was never sent"]
-
-
 def test_backend_names_the_platform() -> None:
     assert runner.backend() == f"native-{host_os()}"

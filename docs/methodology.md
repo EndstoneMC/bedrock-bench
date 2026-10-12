@@ -189,12 +189,14 @@ that remains is visible.
 - The scenario states gameplay settings once (`[server]`: view and simulation distance, seed, difficulty, game mode,
   player cap, autosave, client-side generation). Each adapter maps them onto its server's own keys, listed in the
   `[config]` table of `configs/servers/<server>/server.toml` (BDS-hosted servers use the BDS one), and `run.json`
-  records every change. Difficulty is easy on every server, the BDS default.
+  records every change. Difficulty is easy on every server, the BDS default, except Chorus, which is always peaceful
+  and has no simulation distance ([its README](../configs/servers/chorus/README.md#caveats)).
 - Equal resources: one fixed heap for every JVM server (`-Xms` equals `-Xmx`, from the machine profile), PocketMine-MP
   and Altay async workers equal to the server CPU count, and BDS `max-threads` left at its default and recorded.
 - Telemetry, crash upload, usage statistics and auto-update are off where a switch exists.
 - All bots connect from 127.0.0.1, which trips per-IP flood guards real players never hit. Adapters raise them as
-  `harness` overrides, except LeviLamina's, which stays at its default. `dropped == 0` is checked.
+  `harness` overrides, except LeviLamina's, which stays at its default, and Nukkit-MOT's, which exempts the machine's
+  own addresses. `dropped == 0` is checked.
 - A world not built by the vanilla generator is flagged `terrain_mismatch`.
 
 **Override categories.** Every value an adapter writes that differs from the server's default becomes an

@@ -1,6 +1,6 @@
 # Console lines chorusbench printed in a 4-bot boot of chorus@95ca835 on Windows, one per dialect role (roles as in
 # bds.toml). Log lines are `HH:MM:SS LEVEL text`, with span names such as `network` left in the text; command replies
-# have no prefix. chorus-session.log is the whole console output of that boot.
+# have no prefix. chorus-session.log is the console output of that boot, without the replies to `status`.
 adapter = "chorus"
 
 [[sample]]

@@ -62,7 +62,7 @@ coverage.
 The values, PowerNukkitX's built-in defaults and the reasons are in the `[config]` table of
 [server.toml](server.toml), and every change is recorded in run.json with its category
 ([methodology](../../../docs/methodology.md#fairness-and-feature-parity)). `pnx.yml` starts empty. Both versions have
-the same keys and defaults.
+the same defaults for the keys written here.
 
 - harness: the machine profile's port; offline login; usage metrics off; the per-IP RakNet packet limit raised,
   because every bot connects from 127.0.0.1 and the default limit is sized for one player per address. The RakNet
@@ -97,13 +97,6 @@ None.
 - It loads the chunks it ticks from disk synchronously on its main thread, which shows in the tick-thread CPU of
   `spread100-pregen`.
 - It has busy threads besides `main`, so tick-thread CPU covers only part of its work; process CPU covers all of it.
-- Chaos: the vanilla command set, rendered as for BDS: teleports, dimension changes through `execute in`, effects,
-  `kill`, `kick`, `gamemode`, `summon`, `list`, the `randomtickspeed` game rule, weather, `fill`, `setblock` and ticking
-  areas. Unsupported: `loot` (no command), the `playerwaypoints` game rule (it does not exist), and cleanup, because
-  `kill @e[type=!player]` also kills players on PowerNukkitX.
-- Chaos on the nightly: dimension changes are unsupported too. All three dimension levels carry the world's name
-  (`world list` prints `bench, bench, bench`), so `execute in nether` finds no level, and `tp` keeps a player in its
-  own level. `playerwaypoints` exists there as an integer game rule that nothing reads, and `off` is rejected.
 - The nightly runs on JDK 25 and 3.0.5 on JDK 21, so a comparison of the two includes the JDK change. On JDK 25 the
   JVM prints a few `WARNING:` lines at start without a time stamp or level.
 

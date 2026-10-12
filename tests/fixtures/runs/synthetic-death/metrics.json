@@ -20,14 +20,6 @@
       "value": null,
       "window": "steady"
     },
-    "aux_cores_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "cores",
-      "value": null,
-      "window": "chaos"
-    },
     "aux_cores_idle": {
       "availability": "not_applicable",
       "n": null,
@@ -60,14 +52,6 @@
       "value": null,
       "window": "steady"
     },
-    "bot_cores_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "cores",
-      "value": null,
-      "window": "chaos"
-    },
     "bot_cores_idle": {
       "availability": "measured",
       "n": 21,
@@ -91,14 +75,6 @@
       "value": null,
       "window": "steady"
     },
-    "bot_cpu_frac_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "frac",
-      "value": null,
-      "window": "chaos"
-    },
     "bot_cpu_frac_idle": {
       "availability": "measured",
       "n": 21,
@@ -121,78 +97,6 @@
       "unit": "frac",
       "value": null,
       "window": "steady"
-    },
-    "chaos_actions_applied": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "count",
-      "value": null,
-      "window": "chaos"
-    },
-    "chaos_actions_late": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "count",
-      "value": null,
-      "window": "chaos"
-    },
-    "chaos_actions_overrun": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "count",
-      "value": null,
-      "window": "chaos"
-    },
-    "chaos_actions_planned": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "count",
-      "value": null,
-      "window": "chaos"
-    },
-    "chaos_actions_sent": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "count",
-      "value": null,
-      "window": "chaos"
-    },
-    "chaos_actions_skip_offline": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "count",
-      "value": null,
-      "window": "chaos"
-    },
-    "chaos_actions_unsupported": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "count",
-      "value": null,
-      "window": "chaos"
-    },
-    "chaos_lag_s": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "s",
-      "value": null,
-      "window": "chaos"
-    },
-    "chaos_mixed_samples": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "count",
-      "value": null,
-      "window": "chaos"
     },
     "chunks_per_bot": {
       "availability": "unavailable",
@@ -302,14 +206,6 @@
       "value": null,
       "window": "load"
     },
-    "foreign_cores_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "cores",
-      "value": null,
-      "window": "chaos"
-    },
     "foreign_cores_idle": {
       "availability": "measured",
       "n": 21,
@@ -324,14 +220,6 @@
       "unit": "cores",
       "value": null,
       "window": "load"
-    },
-    "foreign_cores_peak_10s_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "cores",
-      "value": null,
-      "window": "chaos"
     },
     "foreign_cores_peak_10s_idle": {
       "availability": "measured",
@@ -364,14 +252,6 @@
       "value": null,
       "window": "steady"
     },
-    "foreign_server_set_cores_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "cores",
-      "value": null,
-      "window": "chaos"
-    },
     "foreign_server_set_cores_idle": {
       "availability": "measured",
       "n": 21,
@@ -395,22 +275,6 @@
       "value": null,
       "window": "steady"
     },
-    "handles_end_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "count",
-      "value": null,
-      "window": "chaos"
-    },
-    "handles_max_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "count",
-      "value": null,
-      "window": "chaos"
-    },
     "handles_max_idle": {
       "availability": "measured",
       "n": 21,
@@ -433,22 +297,6 @@
       "unit": "count",
       "value": null,
       "window": "steady"
-    },
-    "handles_start_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "count",
-      "value": null,
-      "window": "chaos"
-    },
-    "harness_cores_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "cores",
-      "value": null,
-      "window": "chaos"
     },
     "harness_cores_load": {
       "availability": "unavailable",
@@ -529,22 +377,6 @@
       "value": 0,
       "window": "run"
     },
-    "memory_slope_mib_per_h_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "mib_per_h",
-      "value": null,
-      "window": "chaos"
-    },
-    "mspt_saturated_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "ms",
-      "value": null,
-      "window": "chaos"
-    },
     "mspt_saturated_load": {
       "availability": "unavailable",
       "n": null,
@@ -561,14 +393,6 @@
       "value": null,
       "window": "steady"
     },
-    "not_respawned": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "count",
-      "value": null,
-      "window": "chaos"
-    },
     "nudges": {
       "availability": "measured",
       "n": null,
@@ -584,14 +408,6 @@
       "value": null,
       "window": "steady"
     },
-    "private_mib_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "mib",
-      "value": null,
-      "window": "chaos"
-    },
     "private_mib_idle": {
       "availability": "measured",
       "n": 21,
@@ -606,14 +422,6 @@
       "unit": "mib",
       "value": null,
       "window": "load"
-    },
-    "private_mib_max_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "mib",
-      "value": null,
-      "window": "chaos"
     },
     "private_mib_max_idle": {
       "availability": "measured",
@@ -669,14 +477,6 @@
       "value": null,
       "window": "steady"
     },
-    "probe_max_gap_s_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "s",
-      "value": null,
-      "window": "chaos"
-    },
     "probe_max_gap_s_load": {
       "availability": "unavailable",
       "n": null,
@@ -699,14 +499,6 @@
       "unit": "count",
       "value": 0,
       "window": "run"
-    },
-    "process_cores_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "cores",
-      "value": null,
-      "window": "chaos"
     },
     "process_cores_idle": {
       "availability": "measured",
@@ -739,13 +531,6 @@
       "value": null,
       "window": "load"
     },
-    "rejoin_failed": {
-      "availability": "measured",
-      "n": null,
-      "unit": "count",
-      "value": 0,
-      "window": "run"
-    },
     "resend_ratio": {
       "availability": "unavailable",
       "n": null,
@@ -753,14 +538,6 @@
       "unit": "ratio",
       "value": null,
       "window": "load"
-    },
-    "resident_mib_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "mib",
-      "value": null,
-      "window": "chaos"
     },
     "resident_mib_idle": {
       "availability": "measured",
@@ -776,14 +553,6 @@
       "unit": "mib",
       "value": null,
       "window": "load"
-    },
-    "resident_mib_max_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "mib",
-      "value": null,
-      "window": "chaos"
     },
     "resident_mib_max_idle": {
       "availability": "measured",
@@ -854,22 +623,6 @@
       "value": null,
       "window": "settle"
     },
-    "threads_end_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "count",
-      "value": null,
-      "window": "chaos"
-    },
-    "threads_max_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "count",
-      "value": null,
-      "window": "chaos"
-    },
     "threads_max_idle": {
       "availability": "measured",
       "n": 21,
@@ -892,22 +645,6 @@
       "unit": "count",
       "value": null,
       "window": "steady"
-    },
-    "threads_start_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "count",
-      "value": null,
-      "window": "chaos"
-    },
-    "tick_busy_frac_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "frac",
-      "value": null,
-      "window": "chaos"
     },
     "tick_busy_frac_idle": {
       "availability": "measured",
@@ -932,14 +669,6 @@
       "value": null,
       "window": "steady"
     },
-    "tick_cpu_ms_per_tick_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "ms_per_tick",
-      "value": null,
-      "window": "chaos"
-    },
     "tick_cpu_ms_per_tick_idle": {
       "availability": "measured",
       "n": 300,
@@ -962,14 +691,6 @@
       "unit": "ms_per_tick",
       "value": null,
       "window": "steady"
-    },
-    "tick_cycles_ms_per_s_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "ms_per_s",
-      "value": null,
-      "window": "chaos"
     },
     "tick_cycles_ms_per_s_idle": {
       "availability": "not_applicable",
@@ -1003,14 +724,6 @@
       "value": null,
       "window": "load"
     },
-    "tick_ms_per_s_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "ms_per_s",
-      "value": null,
-      "window": "chaos"
-    },
     "tick_ms_per_s_idle": {
       "availability": "measured",
       "n": 201,
@@ -1034,14 +747,6 @@
       "value": null,
       "window": "steady"
     },
-    "tick_saturated_frac_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "frac",
-      "value": null,
-      "window": "chaos"
-    },
     "tick_saturated_frac_idle": {
       "availability": "measured",
       "n": 20,
@@ -1064,14 +769,6 @@
       "unit": "frac",
       "value": null,
       "window": "steady"
-    },
-    "tick_util_frac_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "frac",
-      "value": null,
-      "window": "chaos"
     },
     "tick_util_frac_idle": {
       "availability": "measured",
@@ -1116,22 +813,6 @@
       "value": null,
       "window": "steady"
     },
-    "tickspeed_changes_applied": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "count",
-      "value": null,
-      "window": "chaos"
-    },
-    "tickspeed_changes_queued": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "count",
-      "value": null,
-      "window": "chaos"
-    },
     "time_below_19_5_load_s": {
       "availability": "unavailable",
       "n": null,
@@ -1139,14 +820,6 @@
       "unit": "s",
       "value": null,
       "window": "load"
-    },
-    "total_cores_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "cores",
-      "value": null,
-      "window": "chaos"
     },
     "total_cores_idle": {
       "availability": "measured",
@@ -1171,30 +844,6 @@
       "value": null,
       "window": "steady"
     },
-    "tps_chaos_high": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "tps",
-      "value": null,
-      "window": "chaos"
-    },
-    "tps_chaos_low15": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "tps",
-      "value": null,
-      "window": "chaos"
-    },
-    "tps_chaos_normal": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "tps",
-      "value": null,
-      "window": "chaos"
-    },
     "tps_load_low15": {
       "availability": "unavailable",
       "n": null,
@@ -1210,14 +859,6 @@
       "unit": "tps",
       "value": null,
       "window": "load"
-    },
-    "tps_stats_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "tps",
-      "value": null,
-      "window": "chaos"
     },
     "tps_stats_idle": {
       "availability": "measured",
@@ -1262,14 +903,6 @@
       "unit": "tps",
       "value": null,
       "window": "steady"
-    },
-    "tps_window_chaos": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the scenario has no chaos phase",
-      "unit": "tps",
-      "value": null,
-      "window": "chaos"
     },
     "tps_window_load": {
       "availability": "unavailable",
@@ -1344,36 +977,6 @@
     "server_alive: exit code -6"
   ],
   "tables": {
-    "chaos_actions": {
-      "columns": [
-        "action",
-        "planned",
-        "sent",
-        "applied",
-        "late",
-        "unsupported",
-        "skip_offline",
-        "lag_p50_s",
-        "lag_p99_s"
-      ],
-      "rows": []
-    },
-    "chaos_regimes": {
-      "columns": [
-        "regime",
-        "seconds",
-        "samples",
-        "median_tps"
-      ],
-      "rows": []
-    },
-    "log_errors_chaos": {
-      "columns": [
-        "category",
-        "lines"
-      ],
-      "rows": []
-    },
     "log_errors_first": {
       "columns": [
         "t_s",
@@ -1413,15 +1016,6 @@
         ]
       ]
     },
-    "thread_groups_chaos": {
-      "columns": [
-        "group",
-        "threads",
-        "sum_ms_per_s",
-        "max_ms_per_s"
-      ],
-      "rows": []
-    },
     "thread_groups_load": {
       "columns": [
         "group",
@@ -1437,16 +1031,6 @@
         "threads",
         "sum_ms_per_s",
         "max_ms_per_s"
-      ],
-      "rows": []
-    },
-    "threads_top_chaos": {
-      "columns": [
-        "name",
-        "threads",
-        "sum_ms_per_s",
-        "max_ms_per_s",
-        "busy"
       ],
       "rows": []
     },

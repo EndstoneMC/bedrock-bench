@@ -73,9 +73,6 @@ DEFAULTS_PART = "defaults"
 DIFFICULTY_IDS = {"peaceful": 0, "easy": 1, "normal": 2, "hard": 3}
 GAMEMODE_IDS = {"survival": 0, "creative": 1, "adventure": 2}
 
-#: Game rule replies that confirm a chaos tick-speed change, in the wording of the Nukkit family and BDS.
-GAMERULE_APPLIED = re.compile(r"^Game rule (?P<rule>\w+) has been updated to (?P<value>\S+)")
-
 
 # --------------------------------------------------------------------------------------------------------------------
 # YAML: just enough to set and read scalars in block-style config files
@@ -809,19 +806,6 @@ class StandaloneServer(ServerAdapter):
         if root is None or name not in paths:
             raise ConfigError(f"{self.name}: this layout has no runtime path {name!r}; fetch the arm natively first")
         return Path(root) / Path(*PurePosixPath(paths[name]).parts)
-
-    # ---- commands -------------------------------------------------------------------------------------------------
-
-    def applied(self, action: str, line: LogLine) -> dict[str, Any] | None:
-        if action != "randomtickspeed":
-            return None
-        match = GAMERULE_APPLIED.search(line.text)
-        if match is None or match["rule"].lower() != action:
-            return None
-        try:
-            return {action: int(match["value"].rstrip("."))}
-        except ValueError:
-            return None
 
 
 # --------------------------------------------------------------------------------------------------------------------

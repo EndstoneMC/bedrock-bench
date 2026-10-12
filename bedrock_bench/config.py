@@ -468,7 +468,6 @@ _BOT_RULES: dict[str, dict[str, Any]] = {
     "pkt_interval_s": {"above": 0},
     "probe_bots": {"minimum": 0},
     "decode_errors": {"choices": ("count", "fail")},
-    "radius_jitter_s": {"minimum": 0},
 }
 _GRID_RULES: dict[str, dict[str, Any]] = {
     "columns": {"minimum": 1},
@@ -512,7 +511,6 @@ class _PhaseDef:
     cap_s: float | None = None
     options: Mapping[str, _Opt] = field(default_factory=dict)
     optional: bool = False  # can be switched off with ``enabled = false``
-    implicit: bool = True  # runs without a table in the file
 
 
 _NON_NEGATIVE = {"minimum": 0}
@@ -545,18 +543,6 @@ PHASE_DEFS: Mapping[str, _PhaseDef] = {
     ),
     "spread": _PhaseDef(options={"query_timeout_s": _Opt(float, 10.0, _POSITIVE)}),
     "steady": _PhaseDef(delay_s=15.0, duration_s=90.0, optional=True),
-    "chaos": _PhaseDef(
-        duration_s=900.0,
-        options={
-            "seed": _Opt(int),
-            "actions": _Opt(tuple[str, ...], (), {"pattern": r"^[a-z][a-z0-9_]*$"}),
-            "catalogue": _Opt(str, "chaos-actions", {"pattern": r"^[a-z0-9][a-z0-9._-]*$"}),
-            "tickspeed_cycle": _Opt(tuple[int, ...], (), _NON_NEGATIVE),
-            "overrun_lag_s": _Opt(float, 60.0, _POSITIVE),
-        },
-        optional=True,
-        implicit=False,
-    ),
     "teardown": _PhaseDef(
         options={
             "bot_quit_timeout_s": _Opt(float, 10.0, _POSITIVE),
@@ -691,22 +677,14 @@ def _read_phases(table: _Table) -> tuple[PhaseSpec, ...]:
 
 
 def _read_phase(name: str, definition: _PhaseDef, phases: _Table) -> PhaseSpec | None:
-    present = name in phases
     sub = phases.table(name)
-    enabled = present or definition.implicit
-    if definition.optional:
-        enabled = sub.get("enabled", bool, enabled)
+    enabled = sub.get("enabled", bool, True) if definition.optional else True
     timing: dict[str, Any] = {}
     for key in ("delay_s", "duration_s", "cap_s"):
         default = getattr(definition, key)
         if default is not None:
             timing[key] = sub.get(key, float, default, minimum=0)
-    options = {}
-    for key, opt in definition.options.items():
-        if enabled:
-            options[key] = sub.get(key, opt.kind, opt.default, **opt.rules)
-        elif key in sub:
-            sub.get(key, opt.kind, opt.default, **opt.rules)
+    options = {key: sub.get(key, opt.kind, opt.default, **opt.rules) for key, opt in definition.options.items()}
     sub.finish(lambda key: _explain_phase_key(name, definition, key))
     if not enabled:
         return None

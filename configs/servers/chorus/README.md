@@ -149,8 +149,6 @@ None.
 - When ticks run long, Chorus runs at most five ticks in a row to catch up and drops the rest, so the tick counter falls
   behind wall time instead of bursting.
 - Chorus logs nothing when a player leaves or is kicked.
-- Chaos: only `tp` (`tpp`), `kick` and `list`. Every other chaos command is counted as unsupported, with its reason in
-  the adapter. That includes `gamemode`, `kill` and `weather`, which `chaos-portable` uses.
 - Upstream changes daily and its git dependencies follow `main`, so a new commit usually needs a new `Cargo.lock` and
   changes to `main.rs`.
 

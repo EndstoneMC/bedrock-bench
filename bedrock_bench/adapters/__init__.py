@@ -6,7 +6,7 @@ Adapters are found, not listed: every module in this package and every object pu
 their own ``name``. Adding a server therefore never touches this file. A third-party package registers with::
 
     [project.entry-points."bedrock_bench.adapters"]
-    chorus = "chorus_bench.adapter"          # a module, or "chorus_bench.adapter:ChorusAdapter" for one class
+    myserver = "myserver_bench.adapter"      # a module, or "myserver_bench.adapter:MyServerAdapter" for one class
 """
 
 from __future__ import annotations

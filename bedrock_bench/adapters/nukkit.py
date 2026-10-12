@@ -5,8 +5,8 @@ Fetch: the jar from ``configs/servers/nukkit/server.toml`` and the JDK from ``co
 shipped ``nukkit.yml`` (``lang/eng/nukkit.yml`` in the jar, which Nukkit writes on its first start) is extracted from
 the jar. The helper plugin (``plugin.yml`` and the ``*.java`` files in ``configs/servers/nukkit``) is compiled once
 against the pinned jar with the JDK's ``javac`` and packed into ``plugins/BenchTick.jar``. It adds ``gametime`` (the
-server tick counter, since Nukkit's ``time query`` prints no number), ``positions``, the ``fillnear`` and ``dim``
-chaos commands, ``pregen`` for templates, and lifts the per-IP packet limit of the RakNet listener.
+server tick counter, since Nukkit's ``time query`` prints no number), ``positions``, ``pregen`` for templates, and
+lifts the per-IP packet limit of the RakNet listener.
 
 Launch: ``java -Xms<heap> -Xmx<heap> -jar nukkit.jar``. Nukkit derives a player's UUID from the XUID, so the bots get
 ``-fake-xuid`` or every bot would replace the previous one. See configs/servers/nukkit/README.md.
@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from bedrock_bench import config
-from bedrock_bench.adapters.base import ChaosDialect, Dialect, format_coord, quote_player
+from bedrock_bench.adapters.base import Dialect, quote_player
 from bedrock_bench.adapters.standalone import (
     DEFAULTS_PART,
     SERVER_PART,
@@ -83,10 +83,6 @@ NUKKIT_DIALECT = Dialect(
     tick_cmd="gametime",
     tick_re=re.compile(r"^Gametime is (?P<tick>\d+)"),
 )
-
-#: Blocks the helper's ``fillnear`` knows (the ones the chaos block actions use).
-FILL_BLOCKS = ("grass_block", "farmland", "oak_leaves", "oak_sapling")
-DIMENSION_LEVELS = {"overworld": "overworld", "nether": "nether", "the_end": "the_end"}
 
 
 class NukkitAdapter(JavaServer):
@@ -168,73 +164,6 @@ class NukkitAdapter(JavaServer):
     def pregen_command(self, radius: int, grid: Grid, cells: int) -> str:
         """The helper command that builds a world template (``bbench prepare-world``, see bedrock_bench.pregen)."""
         return f"pregen {radius} {grid.columns} {grid.spacing} {grid.origin} {cells}"
-
-    def chaos_dialect(self) -> ChaosDialect:
-        """Vanilla player commands, ``summon`` in Nukkit's syntax, and the helper's ``dim`` and ``fillnear``."""
-
-        def tp_dimension(player: str, dimension: str, x: float, y: float, z: float) -> str:
-            if dimension not in DIMENSION_LEVELS:
-                raise ValueError(f"dimension must be one of {', '.join(DIMENSION_LEVELS)}, got {dimension!r}")
-            where = " ".join(format_coord(v) for v in (x, y, z))
-            return f"dim {quote_player(player)} {DIMENSION_LEVELS[dimension]} {where}"
-
-        def kick(player: str, reason: str = "chaos") -> str:
-            if "\n" in reason or "\r" in reason:
-                raise ValueError("kick reason must be one line")
-            return f"kick {quote_player(player)} {reason}".rstrip()
-
-        def gamemode(player: str, mode: str) -> str:
-            if mode not in ("survival", "creative", "adventure", "spectator"):
-                raise ValueError(f"mode must be survival, creative, adventure or spectator, got {mode!r}")
-            return f"gamemode {mode} {quote_player(player)}"
-
-        def summon(player: str, entity: str, dx: float = 0, dy: float = 1, dz: float = 0) -> str:
-            """``summon <Entity> <player>``: Nukkit spawns at the player, so the offsets are not used."""
-            if not re.fullmatch(r"[a-z_]+", entity):
-                raise ValueError(f"invalid entity {entity!r}")
-            name = "".join(part.capitalize() for part in entity.split("_"))
-            return f"summon {name} {quote_player(player)}"
-
-        def weather(kind: str) -> str:
-            if kind not in ("clear", "rain", "thunder"):
-                raise ValueError(f"kind must be clear, rain or thunder, got {kind!r}")
-            return f"weather {kind}"
-
-        def fill(
-            player: str, dx1: float, dy1: float, dz1: float, dx2: float, dy2: float, dz2: float, block: str
-        ) -> str:
-            if block not in FILL_BLOCKS:
-                raise ValueError(f"the helper fills only {', '.join(FILL_BLOCKS)}, not {block!r}")
-            box = " ".join(str(int(v)) for v in (dx1, dy1, dz1, dx2, dy2, dz2))
-            return f"fillnear {quote_player(player)} {box} {block}"
-
-        def setblock(player: str, dx: float, dy: float, dz: float, block: str) -> str:
-            return fill(player, dx, dy, dz, dx, dy, dz, block)
-
-        return ChaosDialect(
-            renderers={
-                "tp": lambda player, x, y, z: self.cmd_tp(player, x, y, z),
-                "tp_dimension": tp_dimension,
-                "effects": lambda player: self.cmd_effects(player),
-                "effect_clear": lambda player: f"effect {quote_player(player)} clear",
-                "kill": lambda player: f"kill {quote_player(player)}",
-                "kick": kick,
-                "gamemode": gamemode,
-                "summon": summon,
-                "cleanup": lambda: "kill @e",
-                "list": lambda: "list",
-                "weather": weather,
-                "fill": fill,
-                "setblock": setblock,
-            },
-            unsupported={
-                "loot": "no loot command",
-                "randomtickspeed": "gamerule only runs for a player in game, not from the console",
-                "playerwaypoints": "no locator bar",
-                "tickingarea_add": "no ticking areas",
-                "tickingarea_remove": "no ticking areas",
-            },
-        )
 
     # ---- facts ----------------------------------------------------------------------------------------------------
 

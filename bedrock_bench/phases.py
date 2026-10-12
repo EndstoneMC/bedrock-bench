@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""The phases of one run: boot, idle, join, settle, spread, steady, chaos and teardown (docs/methodology.md#run-phases).
+"""The phases of one run: boot, idle, join, settle, spread, steady and teardown (docs/methodology.md#run-phases).
 
 :class:`Session` drives one prepared server through the scenario's phases. It knows the server only through its
 adapter: the launch command, the console dialect, the placement and position commands and the tick-thread rule.
@@ -16,7 +16,6 @@ join        ``bots_start``           ``alljoined``           the bot's ``alljoin
 settle      ``alljoined``            ``settled``             :mod:`bedrock_bench.settle`; re-teleports and nudges
 spread      ``settled``                                      effects to every player, positions read and checked
 steady      ``settled`` + 15 s       + 90 s                  only the tick probe is sent
-chaos       after steady             + 15 min                ``bedrock_bench.chaos`` (chaos scenarios)
 teardown    any failure or the end                           bots quit, server stop command, kill after a timeout,
                                                              crash collection
 ==========  =======================  ======================  ==========================================================
@@ -46,7 +45,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from bedrock_bench import bots, chaos, host, process
+from bedrock_bench import bots, host, process
 from bedrock_bench.clock import Origin, Stamp, mono_ns
 from bedrock_bench.config import ConfigError
 from bedrock_bench.console import Console
@@ -256,12 +255,7 @@ class SessionResult:
 
 
 class Session:
-    """One run of one prepared server.
-
-    The chaos phase is delegated to ``bedrock_bench.chaos.run_phase(session, spec)``, which uses this object:
-    :attr:`console`, :attr:`fleet`, :attr:`adapter`, :attr:`scenario`, :attr:`run_dir`, :attr:`placer`,
-    :meth:`now`, :meth:`sleep_until` and :attr:`died`.
-    """
+    """One run of one prepared server."""
 
     def __init__(
         self,
@@ -274,7 +268,6 @@ class Session:
         record: dict[str, Any],
         origin: Origin,
         bot: BotCommand,
-        extra_commands: Sequence[str] = (),
         progress: Callable[[str], None] | None = None,
     ) -> None:
         self.adapter = adapter
@@ -285,7 +278,6 @@ class Session:
         self.record = record
         self.origin = origin
         self.bot = bot
-        self.extra_commands = tuple(extra_commands)
         self.progress = progress or (lambda text: None)
         self.result = SessionResult()
 
@@ -361,8 +353,6 @@ class Session:
             self._settle_phase()
             self._spread()
             self._steady()
-            self._chaos()
-            self._extra()
         except PhaseAbort as abort:
             log.warning("phases ended early: %s", abort)
             self.progress(f"phases ended early: {abort}")
@@ -751,36 +741,6 @@ class Session:
             self._check_alive()
             self.died.wait(POLL_S / 4)
 
-    # ---- chaos ------------------------------------------------------------------------------------------------------
-
-    def _chaos(self) -> None:
-        spec = self.scenario.phase("chaos")
-        if spec is None:
-            return
-        assert self.placer is not None
-        self._drain_console()
-        self.mark("chaos0")
-        self.save()
-        self.placer.enabled = True  # bots that rejoin are placed again
-        try:
-            chaos.run_phase(self, spec)
-        finally:
-            self.placer.enabled = False
-            self.mark("chaos1")
-            self.save()
-
-    # ---- smoke commands ---------------------------------------------------------------------------------------------
-
-    def _extra(self) -> None:
-        """Commands a smoke run sends once after the measured windows, to check that the server accepts them."""
-        if not self.extra_commands:
-            return
-        assert self.console is not None
-        for text in self.extra_commands:
-            command = self.console.send(text, origin="phase")
-            command.wait(DRAIN_TIMEOUT_S)
-        self.sleep_until(self.now() + COMMAND_REPLY_S)
-
     # ---- teardown ---------------------------------------------------------------------------------------------------
 
     def _teardown(self) -> None:
@@ -845,7 +805,7 @@ class Session:
         self._collect_bots()
         self._collect_samplers()
         windows = {}
-        for name in ("idle", "load", "steady", "chaos"):
+        for name in ("idle", "load", "steady"):
             start, end_mark = WINDOW_MARKS[name]
             t0, t1 = self.marks.get(start), self.marks.get(end_mark)
             if t0 is not None and t1 is not None and t1 >= t0:

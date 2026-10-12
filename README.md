@@ -31,7 +31,7 @@ starts and what to watch for.
 Evaluated, not supported: [MiNET](https://github.com/NiclasOlofsson/MiNET) (needs a NetherNet bot),
 [JSPrismarine](https://github.com/JSPrismarine/JSPrismarine) (protocol 748, client-authoritative movement),
 [SerenityJS](https://github.com/SerenityJS/serenity) (protocol 975, rejects the bots' login and stalls without console
-input) and Sculk (discontinued, a login and chat skeleton with no world).
+input) and [Sculk](https://github.com/sculkmp/Sculk) (discontinued, a login and chat skeleton with no world).
 
 PocketMine-MP, Altay, Nukkit, Nukkit-MOT, PowerNukkitX and Allay run on the PHP and JDK builds pinned in
 [`configs/servers/runtimes.toml`](configs/servers/runtimes.toml). To add a server, see
@@ -85,11 +85,10 @@ scenario files, bot flags and CPU placement.
 | E2 | E1 with client-side generation on, the setting of the blog's figures | [`endstone-0.11.14-csg.toml`](configs/matrices/endstone-0.11.14-csg.toml) | as E1 | [`spread100-csg`](configs/scenarios/spread100-csg.toml) | 3 × 3 | 1.5–3 h |
 | E3 | Every server on the same workload | [`cross-server.toml`](configs/matrices/cross-server.toml) | every server but Chorus, 14 arms | [`spread100`](configs/scenarios/spread100.toml), [`spread100-pregen`](configs/scenarios/spread100-pregen.toml) | 20 × 3 | 11–21 h |
 | E4 | LeviLamina and LeviOptimize against the BDS build they host | [`levilamina-26.51.toml`](configs/matrices/levilamina-26.51.toml) | `bds@1.26.51.1`, `levilamina@26.51.6` and its 2 variants | [`spread100`](configs/scenarios/spread100.toml) | 4 × 3 | 2–4 h |
-| E5 | Robustness under 15 minutes of seeded chaos, never ranked | [`endstone-0.11.14-chaos.toml`](configs/matrices/endstone-0.11.14-chaos.toml) | as E1 | [`chaos`](configs/scenarios/chaos.toml) | 3 × 3 | 4–5.5 h |
 
 Runs are cells (arm and scenario) times repeats. Times follow from the phase lengths in the scenario files: a spread100
-run takes 10 to 20 minutes, most of it waiting for the views to settle, and chaos adds 15 minutes. The cooldowns are
-included; downloads, installs and the E3 world templates are not.
+run takes 10 to 20 minutes, most of it waiting for the views to settle. The cooldowns are included; downloads,
+installs and the E3 world templates are not.
 
 ```shell
 uv run bbench fetch endstone-0.11.14 --accept-eula   # every pin the matrix needs
@@ -115,8 +114,6 @@ other untracked or changed file in the checkout marks every run `dirty_harness`,
   stops at the first of those arms. [docs/get_started.md](docs/get_started.md#running-an-experiment) shows how to run
   the other arms.
 - E3 and E4 need Windows, because LeviLamina runs on Windows only.
-- E5 runs on its own, so it does not repeat E1. [`chaos-portable`](configs/scenarios/chaos-portable.toml) has the
-  actions every server supports.
 
 Read [docs/methodology.md](docs/methodology.md#reading-a-report) before comparing servers.
 [docs/metrics.md](docs/metrics.md) gives every metric's unit, window and formula.

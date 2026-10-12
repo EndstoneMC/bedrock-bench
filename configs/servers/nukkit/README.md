@@ -102,11 +102,6 @@ Held in the adapter:
   full view disc.
 - Effects last 1,000,000 s, because Nukkit has no `infinite`. It has no target selectors, so the spread phase's effects
   for `@a` are not sent; each bot gets its effects when it is placed.
-- Chaos: vanilla `tp`, `kill`, `kick`, `gamemode`, `effect <player> clear`, `list` and `weather`; `summon <Entity>
-  <player>` in Nukkit's syntax, so the entity appears at the player and offsets are not used; `kill @e` for cleanup;
-  and the helper's `dim` (Nukkit's `nether` and `the_end` levels) and `fillnear` (`grass_block`, `farmland`,
-  `oak_leaves` and `oak_sapling` only). Unsupported: `loot`, ticking areas, the waypoints game rule, and the tick-speed
-  game rule, because Nukkit's `gamerule` command only runs for a player in game.
 
 ## Crash files
 

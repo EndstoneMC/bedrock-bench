@@ -21,7 +21,7 @@
     },
     "tables": {
       "type": "object",
-      "description": "diagnostic and work tables (threads_top_steady, pkt_mix_steady, chaos_regimes, ...)",
+      "description": "diagnostic and work tables (threads_top_steady, pkt_mix_steady, ...)",
       "propertyNames": { "pattern": "^[a-z][a-z0-9_]*$" }
     }
   },
@@ -35,7 +35,7 @@
           "description": "a number for scalar metrics, an object for distributions (min, p5, median, max, n, ...); null when not measured"
         },
         "unit": { "type": "string" },
-        "window": { "type": ["string", "null"], "description": "idle, join, settle, load, steady, chaos or run" },
+        "window": { "type": ["string", "null"], "description": "idle, join, settle, load, steady or run" },
         "n": { "type": ["integer", "null"], "minimum": 0 },
         "availability": { "enum": ["measured", "not_applicable", "unavailable"] },
         "reason": { "type": "string", "minLength": 1 },

@@ -20,14 +20,13 @@ from __future__ import annotations
 
 import re
 import tempfile
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from bedrock_bench import config, fetch
-from bedrock_bench.adapters.base import ChaosDialect, Dialect, quote_player
-from bedrock_bench.adapters.bdsfamily import BdsFamily
+from bedrock_bench.adapters.base import Dialect
 from bedrock_bench.adapters.standalone import (
     COMMAND_LINE,
     SERVER_PART,
@@ -253,36 +252,6 @@ class AllayAdapter(JavaServer):
 
     def parse_positions(self, lines: list[LogLine]) -> list[PlayerPos] | None:
         return parse_helper_positions(lines)
-
-    def chaos_dialect(self) -> ChaosDialect:
-        """The vanilla command set as BDS renders it; commands Allay runs only for an entity go through the player."""
-        vanilla = BdsFamily.chaos_dialect(self)  # only uses cmd_tp and cmd_effects
-        unsupported = {
-            "tp_dimension": "the benchmark world has only an overworld; Allay generates no Nether or End terrain",
-            "loot": "no loot command",
-            "playerwaypoints": "no locator bar",
-            "tickingarea_add": "no ticking areas",
-            "tickingarea_remove": "no ticking areas",
-        }
-        renderers = {action: r for action, r in vanilla.renderers.items() if action not in unsupported}
-
-        def as_player(action: str) -> Callable[..., str]:
-            """``execute at <p> run ...`` as BDS renders it, run as the player: ``execute as <p> at <p> run ...``."""
-            render = vanilla.renderers[action]
-
-            def rendered(player: str, **params: Any) -> str:
-                command = str(render(player=player, **params))
-                return f"execute as {quote_player(player)} {command.removeprefix('execute ')}"
-
-            return rendered
-
-        renderers |= {
-            "kill": lambda player: f"execute as {quote_player(player)} run kill @s",
-            "summon": as_player("summon"),
-            "setblock": as_player("setblock"),
-            "cleanup": lambda: "execute as @r run kill @e[type=!player]",
-        }
-        return ChaosDialect(renderers=renderers, unsupported=unsupported)
 
     # ---- facts ----------------------------------------------------------------------------------------------------
 

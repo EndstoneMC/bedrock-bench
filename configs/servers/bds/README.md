@@ -38,8 +38,6 @@ bbench fetch bds@1.26.52.3 --accept-eula
   are matched to grid cells, not to bots.
 - Tick thread: the lowest-id thread named `MC_SERVER`. Windows has one. On Linux, threads started from the tick thread
   inherit its name. Diagnostic thread groups: `Streaming Pool`, `LevelDB`, `IO Thread`, `REST Thread`.
-- Chaos: every command in [`chaos-actions.toml`](../../scenarios/chaos-actions.toml) is rendered.
-  `Game rule ... has been updated to N` marks when a `randomtickspeed` or `playerwaypoints` change took effect.
 
 ## Configuration changes
 

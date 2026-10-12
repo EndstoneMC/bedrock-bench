@@ -44,7 +44,7 @@ fidelity = "V1"
 "player.hunger_damage" = { class = "partial", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/PlayerFood.java" }
 "player.locator_bar" = { class = "absent", observed_by = "locator_pkts_per_bot_s", note = "the playerwaypoints game rule exists but takes a number" }
 "block.redstone" = { class = "partial", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/block/BlockRedstoneWire.java" }
-"block.random_ticks" = { class = "partial", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/level/Level.java", note = "randomtickspeed game rule" }
+"block.random_ticks" = { class = "partial", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/level/Level.java#L1738-L1763", note = "randomtickspeed game rule; chunk-settings.ticking-per-tick (40) caps the chunks ticked per level per tick, so with 100 players each tick covers each player's own chunk and one random chunk within 3 of it" }
 "block.fluids" = { class = "partial", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/block/BlockLiquid.java" }
 "block.falling" = { class = "partial", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/block/BlockFallable.java" }
 "world.lighting" = { class = "partial", evidence = "https://github.com/MemoriesOfTime/Nukkit-MOT/blob/9cb0aba49b8b1ac2e53f151f553e6997be8a03e3/src/main/java/cn/nukkit/level/Level.java", note = "chunk-settings.light-updates" }
@@ -71,7 +71,7 @@ allow-flight = { value = "on", default = "off", reason = "Nukkit-MOT kicks playe
 
 [config.file."server.properties".parity]
 view-distance = { value = "{view_distance}", default = "8", reason = "the same view distance on every server" }
-max-players = { value = "{max_players}", default = "50", reason = "room for every bot, plus rejoins in chaos scenarios" }
+max-players = { value = "{max_players}", default = "50", reason = "room for every bot" }
 level-name = { value = "{level_name}", default = "world", reason = "a fixed world folder, checked absent before launch" }
 level-seed = { value = "{seed}", default = "", reason = "the same seed on every server; Nukkit-MOT generates its own terrain from it" }
 difficulty = { value = "{difficulty_id}", default = "2", reason = "the same difficulty on every server" }
@@ -83,7 +83,6 @@ format = "yaml"
 
 [config.file."nukkit-mot.yml".harness]
 "network-settings.nethernet.enabled" = { value = "false", type = "bool", default = "true", reason = "NetherNet listens on TCP at the server port and on UDP 19132 whatever server-port says; the bots use RakNet" }
-"network-settings.rak-packet-limit" = { value = "2147483647", type = "int", default = "2000", reason = "every bot shares one source address; this build already exempts the machine's own addresses" }
 "debug-settings.automatic-bug-report" = { value = "false", type = "bool", default = "true", reason = "no error report upload" }
 "debug-settings.bstats-metrics" = { value = "false", type = "bool", default = "true", reason = "no usage statistics upload" }
 "debug-settings.update-notifications" = { value = "false", type = "bool", default = "true", reason = "no update check when an operator joins" }
@@ -92,7 +91,7 @@ format = "yaml"
 [config.file."nukkit-mot.yml".parity]
 "performance-settings.auto-tick-rate" = { value = "false", type = "bool", default = "true", reason = "with it, a slow level is ticked only every few server ticks, which the server tick counter does not show" }
 "performance-settings.ticks-per-autosave" = { value = "{autosave_ticks}", type = "int", default = "6000", reason = "the same autosave interval on every server" }
-"chunk-settings.ticking-radius" = { value = "{tick_distance}", type = "int", default = "3", reason = "the same simulation distance on every server" }
+"chunk-settings.ticking-radius" = { value = "{tick_distance}", type = "int", default = "3", reason = "the scenario's simulation distance; it only bounds where the capped chunks are picked" }
 "player-settings.save-player-data" = { value = "{save_player_data}", type = "bool", default = "true", reason = "player data is saved, as on every server" }
 
 [config.file."nukkit-mot.yml".rescue]

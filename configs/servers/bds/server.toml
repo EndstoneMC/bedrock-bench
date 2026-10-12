@@ -88,7 +88,7 @@ emit-server-telemetry = { value = "false", reason = "no telemetry upload during 
 [config.file."server.properties".parity]
 view-distance = { value = "{view_distance}", reason = "the same view distance on every server" }
 tick-distance = { value = "{tick_distance}", reason = "the same simulation distance on every server" }
-max-players = { value = "{max_players}", reason = "room for every bot, plus rejoins in chaos scenarios" }
+max-players = { value = "{max_players}", reason = "room for every bot" }
 level-name = { value = "{level_name}", reason = "a fixed world folder, checked absent before launch" }
 level-seed = { value = "{seed}", reason = "the same seed, and so the same terrain, on every server" }
 gamemode = { value = "{gamemode}", reason = "the same game mode on every server" }

@@ -15,7 +15,6 @@ from bedrock_bench.model import Flag, OverrideCategory, Status
 _FLAG_TEXT: dict[str, str] = {
     Flag.SETTLE_CAPPED: "The settle phase hit its time cap before chunk delivery slowed down{runs}.",
     Flag.VIEWS_INCOMPLETE: "Views were still incomplete when the settle phase ended{runs}.",
-    Flag.CHAOS_OVERRUN: "Console commands fell behind during chaos and new actions stopped early{runs}.",
     Flag.PARITY_MISMATCH: "The declared parity of `{param}` disagrees with its observed counter{runs}.",
     Flag.BOT_PROTOCOL_DIFFERS: "The bots used a build for a different client protocol than the other arms{runs}.",
     Flag.TERRAIN_MISMATCH: "The world is not built by the vanilla generator, so chunk work is not comparable{runs}.",

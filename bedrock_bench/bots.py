@@ -277,13 +277,12 @@ def bot_args(
     addr: str,
     csg: bool,
     compat_flags: Iterable[str] = (),
-    control: bool = True,
 ) -> list[str]:
     """Bot arguments for a scenario.
 
     Every arm of a matrix gets the same list (rule R2). ``csg`` follows the scenario's ``server.csg``; ``compat_flags``
     come from the adapter and must be in ``ALLOWED_COMPAT``. Booleans are spelled out so the recorded argv states
-    every setting. Radius jitter starts paused; the chaos phase turns it on.
+    every setting.
     """
     compat = sorted(set(compat_flags))
     outside = [f for f in compat if f not in ALLOWED_COMPAT]
@@ -306,11 +305,7 @@ def bot_args(
         "-pkt-interval", _go_duration(params.pkt_interval_s),
         "-probe-bots", str(params.probe_bots),
         "-decode-errors", params.decode_errors,
-        f"-control={_go_bool(control)}",
-        f"-rejoin-on-drop={_go_bool(params.rejoin_on_drop)}",
     ]  # fmt: skip
-    if params.radius_jitter_s > 0:
-        args += ["-radius-jitter", _go_duration(params.radius_jitter_s), "-jitter-paused=true"]
     return args + compat
 
 
@@ -694,7 +689,7 @@ class BotFleet:
     def send(self, line: str) -> bool:
         """Write one line to the bot's stdin. Returns False when the bot is gone."""
         if "\n" in line or "\r" in line:
-            raise ValueError("a control line must not contain line breaks")
+            raise ValueError("a stdin line must not contain line breaks")
         with self._stdin_lock:
             if self._proc is None or self._proc.stdin is None or self._proc.stdin.closed:
                 return False
@@ -704,10 +699,6 @@ class BotFleet:
                 return True
             except (OSError, ValueError):
                 return False
-
-    def control(self, op: str, **params: Any) -> bool:
-        """Send a JSON control command (needs ``-control``), e.g. ``control("reconnect", i=7, delay_ms=0)``."""
-        return self.send(json.dumps({"op": op, **params}, separators=(",", ":"), sort_keys=True))
 
     def quit(self) -> bool:
         return self.send("quit")

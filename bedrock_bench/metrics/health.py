@@ -21,7 +21,7 @@ from bedrock_bench.model import Flag, Gate, Gates, RunData, Scenario, Status
 
 #: Gates whose failures only the live runner can see; their recorded reasons survive a recompute.
 RECORDED_GATES = (Gate.HARNESS_OK, Gate.CONFIG_READBACK, Gate.SERVER_ALIVE)
-MEASURED = ("load", "steady", "chaos")
+MEASURED = ("load", "steady")
 
 
 @dataclass(frozen=True)
@@ -64,7 +64,7 @@ GATES: tuple[GateDef, ...] = (
     GateDef(Gate.INTERVENTIONS_IN_MEASURED, "interventions_in_measured = 0"),
     GateDef(Gate.SERVER_ALIVE, "the server ran until teardown and exited with 0 on stop, without being killed"),
     GateDef(Gate.JOINED_ALL, "joined = the scenario's bot count (reported as joined/n)"),
-    GateDef(Gate.DROPPED, "dropped = 0 outside chaos; a nonzero count adds the dropped flag"),
+    GateDef(Gate.DROPPED, "dropped = 0; a nonzero count adds the dropped flag"),
 )
 
 _REASON = re.compile(r"^(?P<gate>[a-z_]+):\s*(?P<detail>.*)$")
@@ -174,7 +174,6 @@ def evaluate(
             "settle": ("alljoined", "settled"),
             "load": ("bots_start", "settled"),
             "steady": ("steady0", "steady1"),
-            "chaos": ("chaos0", "chaos1"),
         }[name]
         return all(marks.get(k) is not None for k in bounds)
 
@@ -301,8 +300,6 @@ def evaluate(
     view_t_n = metrics.get("view_t_n_s") or {}
     if view_t_n.get("availability") == "unavailable" and view_t_n.get("reason", "").startswith("median censored"):
         flags.add(Flag.VIEWS_INCOMPLETE.value)
-    if _value(metrics, "chaos_actions_overrun"):
-        flags.add(Flag.CHAOS_OVERRUN.value)
 
     reasons = [f"{gate.value}: {detail}" for gate in Gate for detail in out.failed.get(gate, ())]
     statuses = [gate.status for gate in out.failed if gate.status is not None]

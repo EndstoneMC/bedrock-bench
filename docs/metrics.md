@@ -11,9 +11,8 @@ file byte for byte from a run's raw files; any change to a formula bumps the ana
   Bot events are mapped onto the same timebase through their own monotonic clock (fallback: their UTC stamp and the
   run's origin pair), so nothing depends on the time of day.
 - **Windows.** `idle` = [idle0, idle1], `join` = [bots_start, alljoined], `settle` = [alljoined, settled],
-  `load` = [bots_start, settled], `steady` = [steady0, steady1], `chaos` = [chaos0, chaos1]. A window whose end mark
-  is missing was not reached; its metrics are `unavailable`. A window the scenario does not have is
-  `not_applicable`.
+  `load` = [bots_start, settled], `steady` = [steady0, steady1]. A window whose end mark is missing was not reached;
+  its metrics are `unavailable`. A window the scenario does not have is `not_applicable`.
 - **Probe notation.** Replies `(s_i, t_i, g_i)` = send time, receive time, tick counter. In a window `[t0, t1]`,
   `a = min{i: t_i >= t0}` and `b = max{i: t_i <= t1}`. A series sample, the rate between two consecutive
   replies, belongs to a window when both replies do.
@@ -41,7 +40,6 @@ file byte for byte from a run's raw files; any change to a formula bumps the ana
 | `bots` | `bots.jsonl.gz` |
 | `log` | `server.log.gz` |
 | `commands` | `commands.jsonl.gz` |
-| `chaos` | `chaos-exec.jsonl` |
 | `run` | `run.json` |
 
 ## Tick rate and headroom
@@ -50,17 +48,16 @@ TPS comes only from a counter that advances once per executed tick, read through
 
 | Metric | Windows | Unit | Value | Better | Inputs | Formula |
 |---|---|---|---|---|---|---|
-| `tps_window_<W>` | load, steady, chaos | ticks per second | scalar | higher | probe | (g_b - g_a) / (t_b - t_a) over the replies inside W; unavailable when t_b - t_a < 0.9 (t1 - t0). The published steady TPS is tps_window_steady. Short phases (idle, join) have only tps_stats: a 5 s probe cannot cover 90% of them. |
-| `tps_stats_<W>` | idle, join, settle, load, steady, chaos | ticks per second | min, p5, median, max, n | higher | probe | series samples (g_{i+1} - g_i) / (t_{i+1} - t_i) whose two replies lie in W. p5 is left out when n < 20. |
+| `tps_window_<W>` | load, steady | ticks per second | scalar | higher | probe | (g_b - g_a) / (t_b - t_a) over the replies inside W; unavailable when t_b - t_a < 0.9 (t1 - t0). The published steady TPS is tps_window_steady. Short phases (idle, join) have only tps_stats: a 5 s probe cannot cover 90% of them. |
+| `tps_stats_<W>` | idle, join, settle, load, steady | ticks per second | min, p5, median, max, n | higher | probe | series samples (g_{i+1} - g_i) / (t_{i+1} - t_i) whose two replies lie in W. p5 is left out when n < 20. |
 | `tps_load_low5` | load | ticks per second | scalar | higher | probe | min over replies i in load of (g_j - g_i) / (t_j - t_i), j the first reply in load with t_j - t_i >= 4.5 s. Lowest 5 s TPS while views load. |
 | `tps_load_low15` | load | ticks per second | scalar | higher | probe | as tps_load_low5 with t_j - t_i >= 14.5 s. Lowest 15 s TPS while views load. |
-| `tps_chaos_low15` | chaos | ticks per second | scalar | - | probe | as tps_load_low15 over the chaos window |
 | `ticks_lost_load` | load | ticks | scalar | lower | probe | 20 (t_b - t_a) - (g_b - g_a) over load. Area of the TPS dip. Reply jitter can make a dip-free window slightly negative; not clamped. |
 | `tick_deficit_frac_load` | load | fraction (0 to 1) | scalar | lower | probe | ticks_lost_load / (20 (t_b - t_a)) |
 | `time_below_19_5_load_s` | load | seconds | scalar | lower | probe | sum of (t_{i+1} - t_i) over the load series samples below 19.5 |
 | `recovery_s` | load | seconds | scalar, censorable | lower | probe | first reply time t* at or after the end of the first series sample below 19.5 (after bots_start) such that the window rate over [t*, t* + 30 s] is >= 19.5 and every series sample in it is >= 19.0, minus bots_start; 0 if the rate never drops below 19.5; censored at steady1 - 30 s - bots_start if it never recovers. Searched from bots_start to the end of steady. |
 | `probe_latency_ms_<W>` | load, steady | milliseconds | p50, p99, max, n | lower | probe | t_i - s_i (receive - send) of the replies received in W. probe_lagging gate: p99 above 1000 ms in steady. |
-| `probe_max_gap_s_<W>` | load, steady, chaos | seconds | scalar | - | probe | longest stretch of W without a reply, counting from t0 and up to t1. probe_coverage gate: above 15 s. |
+| `probe_max_gap_s_<W>` | load, steady | seconds | scalar | - | probe | longest stretch of W without a reply, counting from t0 and up to t1. probe_coverage gate: above 15 s. |
 | `probe_tick_decreases` | run | count | scalar | - | probe | consecutive replies whose counter went down. probe_monotonic gate: must be 0. |
 | `probe_idle_ticks` | idle | ticks | scalar | - | probe | g_b - g_a over idle (over the whole run when the scenario has no idle phase). probe_monotonic gate: must be positive, so the counter advances with nobody online. |
 
@@ -70,13 +67,13 @@ Tick-thread CPU is CPU time, not wall time, so it is not MSPT. It leaves out the
 
 | Metric | Windows | Unit | Value | Better | Inputs | Formula |
 |---|---|---|---|---|---|---|
-| `tick_ms_per_s_<W>` | idle, load, steady, chaos | CPU ms per second | scalar | lower | tick | 1000 dCPU_tick / dt between the first and last 10 Hz tick-thread sample inside W. CPU_tick: GetThreadTimes on Windows, schedstat (fallback stat / SC_CLK_TCK) on Linux. |
-| `tick_busy_frac_<W>` | idle, load, steady, chaos | fraction (0 to 1) | scalar | lower | tick | tick_ms_per_s / 1000. Share of wall time the tick thread was on a CPU; blocked time is not counted. |
-| `tick_cpu_ms_per_tick_<W>` | idle, load, steady, chaos | CPU ms per tick | scalar | lower | tick, probe | 1000 dCPU_tick / dG, with CPU interpolated at the replies a and b bounding W and dG = g_b - g_a. Tick-thread CPU per executed tick. Not MSPT. |
-| `tick_util_frac_<W>` | idle, load, steady, chaos | fraction (0 to 1) | p50, p99, n | - | tick | per-second dCPU_tick from the 10 Hz samples, interpolated on a 1 s grid starting at the first sample in W |
-| `tick_saturated_frac_<W>` | idle, load, steady, chaos | fraction (0 to 1) | scalar | lower | tick | share of the seconds of tick_util_frac_<W> with utilisation >= 0.95. A saturated tick thread runs ticks back to back; its TPS then hides how much more work it has. |
-| `tick_cycles_ms_per_s_<W>` | idle, load, steady, chaos | CPU ms per second | scalar | - | tick, run | 1000 dcycles / tsc_hz / dt with the calibrated TSC frequency from run.json. Secondary column, Windows only; not_applicable where cycle counts or the TSC calibration are missing. |
-| `mspt_saturated_<W>` | load, steady, chaos | milliseconds | scalar | lower | probe | 1000 / tps_window_<W> when tps_window_<W> < 19.5; not_applicable otherwise. Wall-clock ms per tick, exact only when the server runs ticks back to back. |
+| `tick_ms_per_s_<W>` | idle, load, steady | CPU ms per second | scalar | lower | tick | 1000 dCPU_tick / dt between the first and last 10 Hz tick-thread sample inside W. CPU_tick: GetThreadTimes on Windows, schedstat (fallback stat / SC_CLK_TCK) on Linux. |
+| `tick_busy_frac_<W>` | idle, load, steady | fraction (0 to 1) | scalar | lower | tick | tick_ms_per_s / 1000. Share of wall time the tick thread was on a CPU; blocked time is not counted. |
+| `tick_cpu_ms_per_tick_<W>` | idle, load, steady | CPU ms per tick | scalar | lower | tick, probe | 1000 dCPU_tick / dG, with CPU interpolated at the replies a and b bounding W and dG = g_b - g_a. Tick-thread CPU per executed tick. Not MSPT. |
+| `tick_util_frac_<W>` | idle, load, steady | fraction (0 to 1) | p50, p99, n | - | tick | per-second dCPU_tick from the 10 Hz samples, interpolated on a 1 s grid starting at the first sample in W |
+| `tick_saturated_frac_<W>` | idle, load, steady | fraction (0 to 1) | scalar | lower | tick | share of the seconds of tick_util_frac_<W> with utilisation >= 0.95. A saturated tick thread runs ticks back to back; its TPS then hides how much more work it has. |
+| `tick_cycles_ms_per_s_<W>` | idle, load, steady | CPU ms per second | scalar | - | tick, run | 1000 dcycles / tsc_hz / dt with the calibrated TSC frequency from run.json. Secondary column, Windows only; not_applicable where cycle counts or the TSC calibration are missing. |
+| `mspt_saturated_<W>` | load, steady | milliseconds | scalar | lower | probe | 1000 / tps_window_<W> when tps_window_<W> < 19.5; not_applicable otherwise. Wall-clock ms per tick, exact only when the server runs ticks back to back. |
 
 ## Process, bot and machine CPU
 
@@ -84,22 +81,22 @@ process_cores is the cross-server CPU metric. Bot and foreign load are interfere
 
 | Metric | Windows | Unit | Value | Better | Inputs | Formula |
 |---|---|---|---|---|---|---|
-| `process_cores_<W>` | idle, load, steady, chaos | CPU seconds per second | scalar | lower | process | d(server process user + system CPU s) / dt between the first and last 1 Hz sample inside W. The cross-server CPU metric. Includes threads that exited. |
-| `aux_cores_<W>` | idle, load, steady, chaos | CPU seconds per second | scalar | lower | process | d(launcher tree CPU s, excluding the server process) / dt. A launcher that stays running next to the server (Endstone's Python CLI); not_applicable without one. |
-| `total_cores_<W>` | idle, load, steady, chaos | CPU seconds per second | scalar | lower | process | process_cores_<W> + aux_cores_<W> (process_cores_<W> without a launcher) |
-| `bot_cores_<W>` | idle, load, steady, chaos | CPU seconds per second | scalar | - | machine, run | mean over the 1 Hz machine samples in W of the summed busy fraction of the bot CPUs (placement.bot_cpus). Everything that ran on the bot CPUs: the bots, the harness when it shares them, and any foreign load. |
-| `bot_cpu_frac_<W>` | idle, load, steady, chaos | fraction (0 to 1) | scalar | - | machine, run | bot_cores_<W> / number of bot CPUs. bot_saturated gate: above the machine profile's bot_cpu_frac_max (0.85) in a measured window. |
-| `harness_cores_<W>` | load, steady, chaos | CPU seconds per second | scalar | - | run | harness process tree CPU per second over W, as recorded by the runner (run.json interference.windows) |
-| `foreign_cores_<W>` | idle, load, steady, chaos | CPU seconds per second | scalar | - | machine | mean over W of machine busy cores minus the server, bot and harness trees. foreign_load gate: machine profile foreign_cores_mean (0.25) in a measured window. |
-| `foreign_cores_peak_10s_<W>` | idle, load, steady, chaos | CPU seconds per second | scalar | - | machine | highest mean of the foreign busy cores over 10 consecutive 1 s machine samples in W. foreign_load gate: machine profile foreign_cores_peak_10s (1.5). |
-| `foreign_server_set_cores_<W>` | idle, load, steady, chaos | CPU seconds per second | scalar | - | machine | mean over W of the foreign busy cores on the server CPUs. foreign_load gate: machine profile foreign_server_set_cores_mean (0.25). |
+| `process_cores_<W>` | idle, load, steady | CPU seconds per second | scalar | lower | process | d(server process user + system CPU s) / dt between the first and last 1 Hz sample inside W. The cross-server CPU metric. Includes threads that exited. |
+| `aux_cores_<W>` | idle, load, steady | CPU seconds per second | scalar | lower | process | d(launcher tree CPU s, excluding the server process) / dt. A launcher that stays running next to the server (Endstone's Python CLI); not_applicable without one. |
+| `total_cores_<W>` | idle, load, steady | CPU seconds per second | scalar | lower | process | process_cores_<W> + aux_cores_<W> (process_cores_<W> without a launcher) |
+| `bot_cores_<W>` | idle, load, steady | CPU seconds per second | scalar | - | machine, run | mean over the 1 Hz machine samples in W of the summed busy fraction of the bot CPUs (placement.bot_cpus). Everything that ran on the bot CPUs: the bots, the harness when it shares them, and any foreign load. |
+| `bot_cpu_frac_<W>` | idle, load, steady | fraction (0 to 1) | scalar | - | machine, run | bot_cores_<W> / number of bot CPUs. bot_saturated gate: above the machine profile's bot_cpu_frac_max (0.85) in a measured window. |
+| `harness_cores_<W>` | load, steady | CPU seconds per second | scalar | - | run | harness process tree CPU per second over W, as recorded by the runner (run.json interference.windows) |
+| `foreign_cores_<W>` | idle, load, steady | CPU seconds per second | scalar | - | machine | mean over W of machine busy cores minus the server, bot and harness trees. foreign_load gate: machine profile foreign_cores_mean (0.25) in a measured window. |
+| `foreign_cores_peak_10s_<W>` | idle, load, steady | CPU seconds per second | scalar | - | machine | highest mean of the foreign busy cores over 10 consecutive 1 s machine samples in W. foreign_load gate: machine profile foreign_cores_peak_10s (1.5). |
+| `foreign_server_set_cores_<W>` | idle, load, steady | CPU seconds per second | scalar | - | machine | mean over W of the foreign busy cores on the server CPUs. foreign_load gate: machine profile foreign_server_set_cores_mean (0.25). |
 
 Tables:
 
 | Table | Windows | Columns | Content |
 |---|---|---|---|
-| `threads_top_<W>` | load, steady, chaos | name, threads, sum_ms_per_s, max_ms_per_s, busy | Threads grouped by name with digits replaced by #: count, summed and highest CPU ms/s, and how many exceed 100 ms/s. Threads created inside W count from 0; threads that exited count up to their last sample. |
-| `thread_groups_<W>` | load, steady, chaos | group, threads, sum_ms_per_s, max_ms_per_s | The adapter's diagnostic thread groups (thread name regexes). Diagnostic only, never a headline. |
+| `threads_top_<W>` | load, steady | name, threads, sum_ms_per_s, max_ms_per_s, busy | Threads grouped by name with digits replaced by #: count, summed and highest CPU ms/s, and how many exceed 100 ms/s. Threads created inside W count from 0; threads that exited count up to their last sample. |
+| `thread_groups_<W>` | load, steady | group, threads, sum_ms_per_s, max_ms_per_s | The adapter's diagnostic thread groups (thread name regexes). Diagnostic only, never a headline. |
 | `thread_census_idle` | idle | name, threads | Threads alive at the end of idle, by name with digits replaced by #: the pool sizes the server chose. |
 
 ## Memory
@@ -108,12 +105,12 @@ resident_mib is the working set on Windows and VmRSS on Linux; private_mib is Pr
 
 | Metric | Windows | Unit | Value | Better | Inputs | Formula |
 |---|---|---|---|---|---|---|
-| `private_mib_<W>` | idle, load, steady, chaos | MiB (2^20 bytes) | scalar | lower | process | mean of private_mib over the 1 Hz process samples in W |
-| `private_mib_max_<W>` | idle, load, steady, chaos | MiB (2^20 bytes) | scalar | lower | process | maximum of private_mib over the process samples in W |
-| `resident_mib_<W>` | idle, load, steady, chaos | MiB (2^20 bytes) | scalar | lower | process | mean of resident_mib over the 1 Hz process samples in W |
-| `resident_mib_max_<W>` | idle, load, steady, chaos | MiB (2^20 bytes) | scalar | lower | process | maximum of resident_mib over the process samples in W |
-| `threads_max_<W>` | idle, load, steady, chaos | count | scalar | - | process | maximum thread count of the server process over W |
-| `handles_max_<W>` | idle, load, steady, chaos | count | scalar | - | process | maximum handle count of the server process over W. Windows only. |
+| `private_mib_<W>` | idle, load, steady | MiB (2^20 bytes) | scalar | lower | process | mean of private_mib over the 1 Hz process samples in W |
+| `private_mib_max_<W>` | idle, load, steady | MiB (2^20 bytes) | scalar | lower | process | maximum of private_mib over the process samples in W |
+| `resident_mib_<W>` | idle, load, steady | MiB (2^20 bytes) | scalar | lower | process | mean of resident_mib over the 1 Hz process samples in W |
+| `resident_mib_max_<W>` | idle, load, steady | MiB (2^20 bytes) | scalar | lower | process | maximum of resident_mib over the process samples in W |
+| `threads_max_<W>` | idle, load, steady | count | scalar | - | process | maximum thread count of the server process over W |
+| `handles_max_<W>` | idle, load, steady | count | scalar | - | process | maximum handle count of the server process over W. Windows only. |
 
 ## Join, view load and chunk work
 
@@ -171,40 +168,6 @@ Comparable only between arms with equal parity on the scenario's required featur
 | `cpu_ms_per_player_tick_steady` | steady | milliseconds | scalar | lower | process, probe, bots | 1000 process_cores_steady / (players_steady * tps_window_steady) |
 | `ticks_per_cpu_s_steady` | steady | ticks per server CPU second | scalar | higher | process, probe | tps_window_steady / process_cores_steady |
 
-## Chaos
-
-Chaos runs are shown, never ranked. The tick speed regime comes from applied log lines, never send times.
-
-| Metric | Windows | Unit | Value | Better | Inputs | Formula |
-|---|---|---|---|---|---|---|
-| `tps_chaos_normal` | chaos | ticks per second | scalar | - | probe, chaos | median of the chaos TPS samples under random tick speed 0, 1 or 3; samples a change fell inside are excluded |
-| `tps_chaos_high` | chaos | ticks per second | scalar | - | probe, chaos | as tps_chaos_normal under random tick speed 100 or 1000 |
-| `chaos_mixed_samples` | chaos | count | scalar | - | probe, chaos | TPS samples with a tick speed change strictly between their two replies |
-| `tickspeed_changes_queued` | chaos | count | scalar | - | chaos | tick speed commands sent inside the chaos window |
-| `tickspeed_changes_applied` | chaos | count | scalar | - | chaos | tick speed changes the server's log confirmed inside the chaos window |
-| `chaos_actions_planned` | chaos | count | scalar | - | chaos | actions in the executor journal |
-| `chaos_actions_sent` | chaos | count | scalar | - | chaos | actions written to the console |
-| `chaos_actions_applied` | chaos | count | scalar | - | chaos | actions the server's log confirmed |
-| `chaos_actions_late` | chaos | count | scalar | - | chaos | actions sent more than 5 s after their scheduled time |
-| `chaos_actions_unsupported` | chaos | count | scalar | - | chaos | actions the adapter cannot render (counted, never sent) |
-| `chaos_actions_skip_offline` | chaos | count | scalar | - | chaos | actions whose target bot was offline |
-| `chaos_actions_overrun` | chaos | count | scalar | - | chaos | actions not sent because the console writer fell more than the overrun lag behind |
-| `chaos_lag_s` | chaos | seconds | p50, p99, max, n | - | chaos | sent - scheduled of every sent action |
-| `not_respawned` | chaos | count | scalar | - | bots | bots whose last death after chaos0 was not followed by a respawn |
-| `memory_slope_mib_per_h_chaos` | chaos | MiB per hour | scalar | - | process | least-squares slope of private_mib over the chaos window. Labelled weak (reason) when the window is shorter than 30 min. |
-| `threads_start_chaos` | chaos | count | scalar | - | process | threads of the server process at the first sample of chaos |
-| `threads_end_chaos` | chaos | count | scalar | - | process | threads of the server process at the last sample of chaos |
-| `handles_start_chaos` | chaos | count | scalar | - | process | handles of the server process at the first sample of chaos |
-| `handles_end_chaos` | chaos | count | scalar | - | process | handles of the server process at the last sample of chaos |
-
-Tables:
-
-| Table | Windows | Columns | Content |
-|---|---|---|---|
-| `chaos_regimes` | chaos | regime, seconds, samples, median_tps | Time and TPS samples per applied random tick speed. |
-| `chaos_actions` | chaos | action, planned, sent, applied, late, unsupported, skip_offline, lag_p50_s, lag_p99_s | Per-action counts from the executor journal. |
-| `log_errors_chaos` | chaos | category, lines | Error and fatal lines inside chaos with numbers and quoted strings replaced, most frequent first (top 30). |
-
 ## Health
 
 Log counts follow each adapter's level map and benign list and are never compared across servers.
@@ -219,8 +182,7 @@ Log counts follow each adapter's level map and benign list and are never compare
 | `log_fatal_lines` | run | count | scalar | - | log | server log lines at level fatal after the adapter's level map; lines on the adapter's benign list are not counted |
 | `decode_errors` | run | count | scalar | - | bots | highest decode_errors total reported by the bots (stat and decode_error events). decode_errors gate: must be 0. |
 | `joined` | run | count | scalar | - | bots | bots that spawned at least once |
-| `dropped` | run | count | scalar | - | bots | stat dropped at the end of steady (before chaos starts). Warning when nonzero outside chaos. |
-| `rejoin_failed` | run | count | scalar | - | bots | join_failed events from bots that had spawned before |
+| `dropped` | run | count | scalar | - | bots | stat dropped at the end of steady. Warning when nonzero. |
 | `nudges` | settle | count | scalar | - | run | settle nudges (run.json interventions) |
 | `retp` | settle | count | scalar | - | run | settle re-teleports (run.json interventions) |
 | `interventions_in_measured` | steady | count | scalar | - | run, commands | the larger of the runner's count and the console commands with an origin other than the probe sent inside steady. interventions_in_measured gate: must be 0. |
@@ -253,4 +215,4 @@ A run is `invalid` if any invalid-level gate fails, else `server_failed` if an o
 | `interventions_in_measured` | invalid | interventions_in_measured = 0 |
 | `server_alive` | server_failed | the server ran until teardown and exited with 0 on stop, without being killed |
 | `joined_all` | server_failed | joined = the scenario's bot count (reported as joined/n) |
-| `dropped` | warning | dropped = 0 outside chaos; a nonzero count adds the dropped flag |
+| `dropped` | warning | dropped = 0; a nonzero count adds the dropped flag |

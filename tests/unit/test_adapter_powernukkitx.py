@@ -9,8 +9,7 @@ import pytest
 
 from bedrock_bench import adapters, config, pregen
 from bedrock_bench.adapters import powernukkitx
-from bedrock_bench.adapters.base import UnsupportedAction
-from bedrock_bench.adapters.powernukkitx import PNX_DIALECT, PowerNukkitXAdapter, is_nightly
+from bedrock_bench.adapters.powernukkitx import PNX_DIALECT, PowerNukkitXAdapter
 from bedrock_bench.adapters.standalone import Runtime, yaml_scalars
 from bedrock_bench.cache import Cache
 from bedrock_bench.config import ConfigError
@@ -128,7 +127,6 @@ class TestContract:
         assert features.row(NIGHTLY).prefix == "nightly"
         assert features.row("nightly.0123abc").prefix == "nightly", "a later nightly keeps the range"
         assert features.row("3.0.5").prefix == "3.0"
-        assert is_nightly(NIGHTLY) and not is_nightly("3.0.5") and not is_nightly("nightlyx.1")
 
     def test_dialect_samples(self) -> None:
         with open(LOGS / "powernukkitx.toml", "rb") as fh:
@@ -179,8 +177,6 @@ class TestContract:
         lines = [line(raw) for raw in (LOGS / "powernukkitx-session.log").read_text(encoding="utf-8").splitlines()]
         assert [t for t in (PNX_DIALECT.parse_tick(e.text) for e in lines) if t is not None] == [2, 203]
         assert [p for p in (PNX_DIALECT.player_entered(e.text) for e in lines) if p] == ["a00"]
-        applied = [make_adapter().applied("randomtickspeed", e) for e in lines]
-        assert [a for a in applied if a] == [{"randomtickspeed": 3}]
         assert {e.logger for e in lines if e.logger} >= {"main", "Netty Server IO #1"}
 
     def test_nightly_session_log(self) -> None:
@@ -190,8 +186,6 @@ class TestContract:
         assert sum(PNX_DIALECT.is_ready(e.text) for e in lines) == 1
         assert [t for t in (PNX_DIALECT.parse_tick(e.text) for e in lines) if t is not None] == [20, 610, 1070, 1830]
         assert [p for p in (PNX_DIALECT.player_entered(e.text) for e in lines) if p] == ["a00", "a01", "a03", "a02"]
-        applied = [make_adapter(NIGHTLY).applied("randomtickspeed", e) for e in lines]
-        assert [a for a in applied if a] == [{"randomtickspeed": 3}]
         warnings = [e for e in lines if e.raw.startswith("WARNING: ")]
         assert warnings and all(e.level is None and e.text == e.raw for e in warnings)
         assert {e.level for e in lines} == {None, "info", "warn"}
@@ -303,41 +297,6 @@ class TestCommands:
         assert adapter.cmd_positions() is None and adapter.parse_positions([]) is None
         assert PNX_DIALECT.tick_cmd == "time query gametime"
         assert adapter.cmd_effects("@a")[0] == "effect @a resistance infinite 255 true"
-
-    def test_chaos_dialect(self) -> None:
-        dialect = make_adapter().chaos_dialect()
-        assert dialect.render("tp_dimension", player="a07", dimension="nether", x=160, y=100, z=160) == [
-            "execute in nether run tp a07 160 100 160"
-        ]
-        assert dialect.render("randomtickspeed", value=3) == ["gamerule randomtickspeed 3"]
-        assert dialect.render("tickingarea_add", name="bbench0", x=20000, z=-30000, y=64, radius=2) == [
-            "tickingarea add circle 20000 64 -30000 2 bbench0"
-        ]
-        for action in ("loot", "playerwaypoints", "cleanup"):
-            with pytest.raises(UnsupportedAction):
-                dialect.render(action)
-            assert dialect.unsupported[action]
-
-    def test_nightly_chaos_dialect(self) -> None:
-        release, nightly = make_adapter().chaos_dialect(), make_adapter(NIGHTLY).chaos_dialect()
-        assert not nightly.supports("tp_dimension") and "execute in nether" in nightly.unsupported["tp_dimension"]
-        assert "integer" in nightly.unsupported["playerwaypoints"]
-        assert nightly.actions == release.actions - {"tp_dimension"}
-        assert nightly.render("kick", player="a03") == ["kick a03 chaos"]
-        assert nightly.render("summon", player="a01", entity="cow", dx=2, dy=1, dz=-3) == [
-            "execute at a01 run summon cow ~2 ~1 ~-3"
-        ]
-
-    @pytest.mark.parametrize("version", ["3.0.5", NIGHTLY])
-    def test_every_catalogue_command_is_rendered_or_unsupported(self, version: str) -> None:
-        catalogue = ROOT / "configs" / "scenarios" / "chaos-actions.toml"
-        commands = tomllib.loads(catalogue.read_text(encoding="utf-8")).get("command", {})
-        dialect = make_adapter(version).chaos_dialect()
-        for name, entry in commands.items():
-            assert dialect.supports(name) or name in dialect.unsupported, name
-            if dialect.supports(name):
-                assert dialect.render(name, **entry.get("example", {}))
-
 
 class TestFacts:
     def test_recorded_settings_come_from_the_rewritten_config(self, install: Install, tmp_path: Path) -> None:

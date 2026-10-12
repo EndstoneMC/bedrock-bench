@@ -32,7 +32,7 @@ fidelity = "V1"
 "terrain.any_generator" = { class = "absent", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/registry/loader/WorldGeneratorFactoryRegistryLoader.java#L18-L19", note = "the only generators are flat and void" }
 "terrain.structures" = { class = "absent", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/registry/loader/WorldGeneratorFactoryRegistryLoader.java#L18-L19" }
 "chunks.client_side_generation" = { class = "absent", observed_by = "csg_effective" }
-"chunks.subchunk_requests" = { class = "absent", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/ServerSettings.java#L210-L211", note = "use-sub-chunk-sending-system is off by default and left off: whole columns in LevelChunk packets" }
+"chunks.subchunk_requests" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/ServerSettings.java#L210-L211", note = "implemented behind world-settings.use-sub-chunk-sending-system, off by default and left off: whole columns in LevelChunk packets" }
 "entity.mob_spawning" = { class = "absent", evidence = "https://github.com/AllayMC/Allay/tree/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/world", note = "no natural spawner; the doMobSpawning game rule is declared but not read" }
 "entity.mob_ai" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/entity/type/EntityTypeInitializer.java#L194", note = "chicken, cow, pig, sheep and zombie only" }
 "entity.collision_push" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/world/physics/AllayEntityPhysicsEngine.java#L258", note = "own physics engine; players are moved by their clients" }
@@ -73,7 +73,7 @@ format = "yaml"
 "bstats-settings.server-uuid" = { value = "00000000-0000-0000-0000-000000000000", default = "(random, generated on first start)", reason = "no generated identifier in the run's archived configs" }
 
 [config.file."server-settings.yml".parity]
-"generic-settings.max-player-count" = { value = "{max_players}", type = "int", default = "20", reason = "room for every bot, plus rejoins in chaos scenarios" }
+"generic-settings.max-player-count" = { value = "{max_players}", type = "int", default = "20", reason = "room for every bot" }
 "generic-settings.default-game-mode" = { value = "{gamemode_upper}", default = "CREATIVE", reason = "the same game mode on every server; it applies to a world when it is created" }
 "generic-settings.default-difficulty" = { value = "{difficulty_upper}", default = "NORMAL", reason = "the same difficulty on every server; it applies to a world when it is created" }
 "world-settings.view-distance" = { value = "{view_distance}", type = "int", default = "8", reason = "the same view distance on every server" }

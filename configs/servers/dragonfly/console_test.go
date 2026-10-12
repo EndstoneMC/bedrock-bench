@@ -125,21 +125,13 @@ func captureLog(t *testing.T, f func()) string {
 func TestConsoleRejectsBadCommands(t *testing.T) {
 	c := newConsole(nil, newRoster()) // every command below fails before it needs the server
 	cases := map[string]string{
-		"nope":                               "ERROR Unknown command: nope.",
-		"tp a07 1 2":                         "ERROR Usage: tp <target> <x> <y> <z>",
-		"tp a07 1 2 x":                       "ERROR Invalid coordinate: x",
-		"tp ghost 1 2 3":                     "ERROR No targets matched: ghost",
-		"tpdim a07 moon 0 64 0":              "ERROR Unknown dimension: moon",
-		"tpdim @a nether 0 64 0":             "ERROR tpdim takes one player",
-		"effect a07 haste":                   "ERROR Unknown effect: haste",
-		"effect a07 clear now":               "ERROR Usage: effect",
-		"effect a07 resistance forever":      "ERROR Invalid duration: forever",
-		"gamemode flying a07":                "ERROR Unknown game mode: flying",
-		"weather snow":                       "ERROR Unknown weather: snow",
-		"fillnear a07 0 0 0 64 64 64 stone":  "ERROR Too many blocks",
-		"fillnear a07 0 -1 0 1 -1 1 bedrock": "ERROR Unknown block: bedrock",
-		"fillnear @a 0 -1 0 1 -1 1 stone":    "ERROR fillnear takes one player",
-		`kick "a07`:                          "ERROR Syntax error: unterminated quote",
+		"nope":                          "ERROR Unknown command: nope.",
+		"tp a07 1 2":                    "ERROR Usage: tp <target> <x> <y> <z>",
+		"tp a07 1 2 x":                  "ERROR Invalid coordinate: x",
+		"tp ghost 1 2 3":                "ERROR No targets matched: ghost",
+		"effect a07 haste":              "ERROR Unknown effect: haste",
+		"effect a07 resistance forever": "ERROR Invalid duration: forever",
+		`tp "a07`:                       "ERROR Syntax error: unterminated quote",
 	}
 	for line, want := range cases {
 		got := captureLog(t, func() { c.exec(line) })

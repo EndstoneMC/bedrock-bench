@@ -11,11 +11,6 @@ Chorus v0.0.1 1.26.50 (2193)
 18:58:21 INFO Started on 127.0.0.1:19930.
 Gametime is 23
 positions: 0
-» Performance
-  TPS: 20 (20 avg, 20 min)
-  Tick time: 0.09 ms (0.12 ms avg, 0.81 ms max)
-  Tick usage: 0.2% (0.2% avg)
-  Pool threads: 1 compute, 3 async, 0 io
 18:58:25 INFO network Connected: RakNet(RakSessionId(0))
 18:58:25 INFO network Connected: RakNet(RakSessionId(1))
 18:58:26 INFO network Connected: RakNet(RakSessionId(2))
@@ -48,13 +43,6 @@ position: a01 1962.69 300.00 1275.18 0
 position: a02 2532.85 300.00 1313.11 0
 position: a03 3195.96 300.00 1237.55 0
 Gametime is 486
-» Performance
-  TPS: 20 (20 avg, 20 min)
-  Tick time: 0.67 ms (0.43 ms avg, 15.85 ms max)
-  Tick usage: 1.3% (0.9% avg)
-  Pool threads: 1 compute, 3 async, 0 io
-» Worlds
-  overworld: 1,406 chunks (0 unsaved, generating), 4 players, 4 entities
 18:58:48 ERROR No player named "a 01" is online.
 Teleported a01 to 1920.50, 300.00, 1280.50
 Kicked a03: chaos
@@ -66,12 +54,5 @@ position: a00 1242.88 300.00 1266.13 0
 position: a01 1915.35 300.00 1252.96 0
 position: a02 2546.96 300.00 1316.26 0
 Gametime is 1046
-» Server status
-  Uptime: 53s
-  TPS: 20 (20 avg, 2.5% of the tick)
-  Players: 3/200
-  Memory: 693.7 MB
-  Chunks: 1,126 loaded (0 unsaved)
-  /status <performance|network|memory|worlds|storage|all> for more
 Stopping the server
 18:59:17 INFO shutdown saved 0 chunks before exiting

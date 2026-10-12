@@ -11,7 +11,6 @@ import pytest
 
 from bedrock_bench import adapters, config, fetch
 from bedrock_bench.adapters import nukkit
-from bedrock_bench.adapters.base import UnsupportedAction
 from bedrock_bench.adapters.nukkit import NUKKIT_DIALECT, NukkitAdapter, build_plugin
 from bedrock_bench.adapters.standalone import Runtime, yaml_scalars
 from bedrock_bench.cache import Cache
@@ -258,36 +257,6 @@ class TestCommands:
         grid = Grid()
         assert adapter.pregen_command(12, grid, 100) == "pregen 12 11 640 1280 100"
 
-    def test_chaos_dialect(self) -> None:
-        dialect = make_adapter().chaos_dialect()
-        assert dialect.render("summon", player="a07", entity="cow", dx=2, dy=1, dz=-3) == ["summon Cow a07"]
-        assert dialect.render("summon", player="a07", entity="iron_golem") == ["summon IronGolem a07"]
-        assert dialect.render("tp_dimension", player="a07", dimension="nether", x=160, y=100, z=160) == [
-            "dim a07 nether 160 100 160"
-        ]
-        assert dialect.render("fill", player="a07", dx1=-2, dy1=-1, dz1=-2, dx2=2, dy2=-1, dz2=2, block="farmland") == [
-            "fillnear a07 -2 -1 -2 2 -1 2 farmland"
-        ]
-        assert dialect.render("setblock", player="a07", dx=1, dy=-1, dz=1, block="grass_block") == [
-            "fillnear a07 1 -1 1 1 -1 1 grass_block"
-        ]
-        assert dialect.render("cleanup") == ["kill @e"]
-        with pytest.raises(ValueError):
-            dialect.render("fill", player="a07", dx1=0, dy1=0, dz1=0, dx2=0, dy2=0, dz2=0, block="diamond_block")
-        with pytest.raises(UnsupportedAction):
-            dialect.render("randomtickspeed", value=3)
-        assert "console" in dialect.unsupported["randomtickspeed"]
-
-    def test_every_catalogue_command_is_rendered_or_unsupported(self) -> None:
-        catalogue = ROOT / "configs" / "scenarios" / "chaos-actions.toml"
-        commands = tomllib.loads(catalogue.read_text(encoding="utf-8")).get("command", {})
-        dialect = make_adapter().chaos_dialect()
-        for name, entry in commands.items():
-            assert dialect.supports(name) or name in dialect.unsupported, name
-            if dialect.supports(name):
-                assert dialect.render(name, **entry.get("example", {}))
-
-
 # --------------------------------------------------------------------------------------------------------------------
 # The helper plugin build
 # --------------------------------------------------------------------------------------------------------------------
@@ -326,5 +295,5 @@ def test_helper_sources_are_committed() -> None:
     plugin = ROOT / nukkit.PLUGIN_SOURCE
     assert [p.name for p in nukkit.plugin_files(plugin)] == ["plugin.yml", "BenchTick.java", "PreGen.java"]
     manifest = (plugin / "plugin.yml").read_text(encoding="utf-8")
-    for command in ("gametime", "positions", "fillnear", "dim", "pregen"):
+    for command in ("gametime", "positions", "pregen"):
         assert f"\n  {command}:\n" in manifest

@@ -40,7 +40,7 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 LANES = ("priority", "normal")
-ORIGINS = ("phase", "probe", "chaos")
+ORIGINS = ("phase", "probe")
 
 #: CSI sequences (colours, cursor moves), OSC sequences (window titles) and two-byte escapes.
 ANSI_RE = re.compile(r"\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\x07\x1b]*(?:\x07|\x1b\\)|[@-Z\\-_])")

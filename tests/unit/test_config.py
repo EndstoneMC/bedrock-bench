@@ -48,7 +48,6 @@ class TestScenarioDefaults:
         assert settle["rate_window_s"] == 60 and settle["retp_max"] == 3 and settle["nudge_max"] == 2
         assert (s.phase("steady").delay_s, s.phase("steady").duration_s) == (15, 90)
         assert s.phase("teardown")["stop_timeout_s"] == 180
-        assert s.phase("chaos") is None and not s.has_phase("chaos")
 
     def test_csg_is_required(self) -> None:
         with pytest.raises(ConfigError, match=r"server: is required"):
@@ -97,7 +96,6 @@ class TestScenarioValidation:
             ({"server": {"csg": False}, "phases": {"steady": {"cap_s": 5}}}, r"the steady phase has no cap_s"),
             ({"server": {"csg": False}, "phases": {"join": {"enabled": False}}}, r"the join phase always runs"),
             ({"server": {"csg": False}, "phases": {"settle": {"min": 10}}}, r"phases\.settle\.min: unknown key"),
-            ({"server": {"csg": False}, "phases": {"chaos": {}}}, r"phases\.chaos\.seed: is required"),
             ({"server": {"csg": False}, "name": "other"}, r"name: must match the file name"),
         ],
     )
@@ -124,21 +122,10 @@ class TestScenarioValidation:
 
 
 class TestScenarioPhases:
-    def test_chaos_enabled_by_table(self) -> None:
-        s = scenario({"server": {"csg": False}, "phases": {"chaos": {"seed": 7, "actions": ["kick", "weather"]}}})
-        chaos = s.phase("chaos")
-        assert chaos is not None and chaos.duration_s == 900
-        assert chaos["seed"] == 7 and chaos["actions"] == ("kick", "weather")
-        assert chaos["catalogue"] == "chaos-actions" and chaos["overrun_lag_s"] == 60
-        assert [p.name for p in s.phases][-2:] == ["chaos", "teardown"]
 
     def test_disable_optional_phases(self) -> None:
         s = scenario({"server": {"csg": False}, "phases": {"steady": {"enabled": False}, "idle": {"enabled": False}}})
         assert not s.has_phase("steady") and not s.has_phase("idle")
-
-    def test_disabled_chaos_still_validates_its_keys(self) -> None:
-        with pytest.raises(ConfigError, match=r"phases\.chaos\.seed: expected an integer"):
-            scenario({"server": {"csg": False}, "phases": {"chaos": {"enabled": False, "seed": "x"}}})
 
     def test_overrides(self) -> None:
         s = scenario(

@@ -448,7 +448,6 @@ def _settings(resolved: Mapping[str, Any]) -> dict[str, Any]:
         "world_source": world.get("source"),
         "seed": world.get("seed"),
         "steady_s": (phases.get("steady") or {}).get("duration_s"),
-        "chaos_s": (phases.get("chaos") or {}).get("duration_s"),
     }
 
 

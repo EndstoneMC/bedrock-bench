@@ -166,10 +166,6 @@ None.
   anyway; the loader matters while the server is empty, or when every bot has left the overworld during chaos.
 - Worlds written by other servers do not load reliably (Nukkit's and PowerNukkitX's failed to decode or fell back to
   flat chunks), so a `spread100-pregen` template must come from Dragonfly itself.
-- Chaos: `tp`, `tp_dimension`, `gamemode`, `effect_clear`, `kill`, `kick`, `list`, `weather`, `fill` and `setblock` are
-  rendered, so every action of `chaos-portable` runs. `summon`, `loot` and cleanup (no mobs or loot tables),
-  `randomtickspeed` (fixed when the world is created), `playerwaypoints` (no locator bar) and the ticking-area commands
-  are counted as unsupported.
 
 ## Crash files
 

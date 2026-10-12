@@ -109,8 +109,6 @@ def test_bot_args_are_derived_from_the_scenario_only() -> None:
     assert flags["-identity-seed"] == "bedrock-bench"
     assert "-csg=true" in a
     assert "-loadscreen=true" in a
-    assert "-control=true" in a
-    assert "-radius-jitter" not in a
 
 
 def test_bot_args_compat_flags_are_allowlisted() -> None:
@@ -121,15 +119,6 @@ def test_bot_args_compat_flags_are_allowlisted() -> None:
     assert "-csg=false" in plain
     with pytest.raises(ConfigError, match="allowlist"):
         bots.bot_args(params, addr="127.0.0.1:1", csg=False, compat_flags=["-walk=none"])
-
-
-def test_bot_args_chaos_jitter_starts_paused() -> None:
-    params = BotParams(n=4, radius_jitter_s=20.0, rejoin_on_drop=True)
-    args = bots.bot_args(params, addr="127.0.0.1:1", csg=False)
-    i = args.index("-radius-jitter")
-    assert args[i + 1] == "20000ms"
-    assert "-jitter-paused=true" in args
-    assert "-rejoin-on-drop=true" in args
 
 
 # --------------------------------------------------------------------------------------------------------------------

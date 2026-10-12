@@ -111,25 +111,20 @@ class JoinStats:
     join_ms: tuple[float, ...]  # bot clock, dial -> spawned, first session of each bot
     joined: int  # bots that spawned at least once
     failed: int  # bots that never spawned and reported join_failed
-    rejoin_failed: int  # join_failed after the bot had spawned before
 
 
 def join(bots: Sequence[BotEvent]) -> JoinStats:
     dials = first_per_bot(bots, "dial")
     spawned: dict[str, BotEvent] = {}
     failed: set[str] = set()
-    rejoin_failed = 0
     for event in bots:
         name = event.bot
         if name is None:
             continue
         if event.ev == "spawned":
             spawned.setdefault(name, event)
-        elif event.ev == "join_failed":
-            if name in spawned:
-                rejoin_failed += 1
-            else:
-                failed.add(name)
+        elif event.ev == "join_failed" and name not in spawned:
+            failed.add(name)
     times = []
     for name, event in spawned.items():
         if event.data.get("join_ms") is not None:
@@ -140,7 +135,6 @@ def join(bots: Sequence[BotEvent]) -> JoinStats:
         join_ms=tuple(times),
         joined=len(spawned),
         failed=len(failed - set(spawned)),
-        rejoin_failed=rejoin_failed,
     )
 
 
@@ -195,7 +189,7 @@ def view_at(bots: Sequence[BotEvent], at: float) -> dict[str, int]:
 @dataclass(frozen=True)
 class ViewStats:
     u: Mapping[str, int]  # U_b per bot at settled
-    t90_own: tuple[float, ...]  # s from first tp to ceil(0.9 U_b) in-view chunks
+    t90_own: Mapping[str, float]  # per bot, s from first tp to ceil(0.9 U_b) in-view chunks
     t90_fallback: int  # how many t90 values came from 5 s progress snapshots instead of first-seen times
     t_n: tuple[float | Censored, ...]  # s from first tp to the n-th in-view chunk
     n_target: int
@@ -239,7 +233,7 @@ def view(bots: Sequence[BotEvent], settled: float, n_target: int = VIEW_N) -> Vi
         seen = [t for t, rows in snapshots if name in rows]
         return seen[-1] if seen else tp[name].t
 
-    t90: list[float] = []
+    t90: dict[str, float] = {}
     fallback = 0
     t_n: list[float | Censored] = []
     for name, u_b in u.items():
@@ -249,11 +243,11 @@ def view(bots: Sequence[BotEvent], settled: float, n_target: int = VIEW_N) -> Vi
         if u_b > 0:
             k = (9 * u_b + 9) // 10  # ceil(0.9 * U_b) in integers
             if arrivals is not None and len(arrivals) >= k:
-                t90.append(arrivals[k - 1] / 1000.0)
+                t90[name] = arrivals[k - 1] / 1000.0
             else:
                 hit = from_progress(name, k)
                 if hit is not None:
-                    t90.append(hit)
+                    t90[name] = hit
                     fallback += 1
         if arrivals is not None and len(arrivals) >= n_target:
             t_n.append(arrivals[n_target - 1] / 1000.0)
@@ -261,7 +255,7 @@ def view(bots: Sequence[BotEvent], settled: float, n_target: int = VIEW_N) -> Vi
             t_n.append(hit)
         else:
             t_n.append(Censored(max(0.0, last_seen(name) - tp[name].t)))
-    return ViewStats(u=u, t90_own=tuple(t90), t90_fallback=fallback, t_n=tuple(t_n), n_target=n_target)
+    return ViewStats(u=u, t90_own=t90, t90_fallback=fallback, t_n=tuple(t_n), n_target=n_target)
 
 
 def delivery(

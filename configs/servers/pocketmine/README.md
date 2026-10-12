@@ -81,8 +81,6 @@ Held in the adapter, all harness:
 - It has no target selectors, so the spread phase's effects for `@a` are not sent; each bot gets its effects when it is
   placed.
 - Worlds are not dimensions, so every position reports dimension 0.
-- Chaos: only `tp`, `kill`, `kick`, `gamemode`, `effect <player> clear` and `list`. Every other chaos command is counted
-  as unsupported, with its reason in the adapter. That includes `weather`, which `chaos-portable` uses.
 
 ## Crash files
 

@@ -98,9 +98,6 @@ None.
 - Replies to console commands start with `[Server] `, which the dialect removes before matching.
 - `kill`, `summon`, `setblock` and `difficulty` refuse the console. Chaos runs kill, summon and setblock as the player
   (`execute as <p> ...`) and cleanup as a random player (`execute as @r run kill @e[type=!player]`).
-- Chaos: `tp`, `kill`, `kick`, `gamemode`, `effect <player> clear`, `list`, `weather`, the tick-speed game rule,
-  `summon`, `fill`, `setblock` and cleanup. Unsupported: dimension travel, because the world has only an overworld and
-  Allay generates no Nether or End terrain; `loot`; ticking areas; the waypoints game rule.
 
 ## Crash files
 

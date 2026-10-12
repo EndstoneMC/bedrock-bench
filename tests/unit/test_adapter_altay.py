@@ -233,6 +233,3 @@ class TestCommands:
         assert adapter.cmd_effects("a07") == reference.cmd_effects("a07")
         assert adapter.cmd_tp("a07", 1280.5, 300, 1280) == "tp a07 1280.5 300 1280"
         assert adapter.cmd_positions() == "positions" and ALTAY_DIALECT.tick_cmd == "gametime"
-        dialect = adapter.chaos_dialect()
-        assert dialect.actions == reference.chaos_dialect().actions
-        assert dialect.render("kick", player="a03", reason="chaos") == ["kick a03 chaos"]

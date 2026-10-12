@@ -31,11 +31,9 @@ from fakes import fake_bots, fake_server
 from fakes.bench import ENV_BOT_CMD, FAKE_SCENARIOS, FakeBench, free_port, register_entry_point
 from fakes.fake_adapter import (
     BOTS_SCRIPT,
-    CHAOS_UNSUPPORTED,
     FAKE_ADAPTERS,
     FakeAdapter,
     FakeBds,
-    FakeDragonfly,
     FakeEndstone,
     FakeNukkit,
     interpreter,
@@ -556,19 +554,6 @@ def test_position_parsers_never_turn_garbage_into_zero_players() -> None:
     assert parse_pos_lines(["Positions of 2 players:", "POS a00 1.00 2.00 3.00 0"]) is None
     assert parse_pos_lines([]) is None
     assert parse_pos_lines(["Positions of 0 players:"]) == []
-
-
-def test_chaos_dialect_and_applied_lines() -> None:
-    adapter = make_adapter(FakeDragonfly, 19672)
-    dialect = adapter.chaos_dialect()
-    assert dialect.render("kick", player="a03", reason="churn") == ["kick a03 churn"]
-    assert dialect.render("randomtickspeed", value=100) == ["gamerule randomtickspeed 100"]
-    assert dialect.render("tp", player="a01", x=5000, y=300, z=-12.5) == ["tp a01 5000 300 -12.5"]
-    assert set(CHAOS_UNSUPPORTED) <= set(dialect.unsupported)
-    assert not dialect.supports("summon")
-    line = LogLine(0, 0, "info", None, "Game rule randomtickspeed has been updated to 3", "")
-    assert adapter.applied("randomtickspeed", line) == {"randomtickspeed": 3}
-    assert adapter.applied("weather", line) is None
 
 
 def test_entry_point_registers_every_fake_adapter(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

@@ -24,7 +24,7 @@ from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from bedrock_bench.adapters.base import ChaosDialect, Dialect, ServerAdapter, format_coord, quote_player
+from bedrock_bench.adapters.base import Dialect, ServerAdapter
 from bedrock_bench.model import (
     ArtifactRef,
     ConfigFile,
@@ -67,23 +67,6 @@ CONFIG_KEYS: Mapping[str, tuple[OverrideCategory, str]] = {
     "client-side-chunk-generation-enabled": (OverrideCategory.PARITY, "scenario CSG setting"),
 }
 
-CHAOS_UNSUPPORTED: Mapping[str, str] = {
-    command: "the fake server does not simulate it"
-    for command in (
-        "summon",
-        "loot",
-        "cleanup",
-        "fill",
-        "setblock",
-        "tp_dimension",
-        "effect_clear",
-        "playerwaypoints",
-        "tickingarea_add",
-        "tickingarea_remove",
-    )
-}
-
-
 def interpreter() -> str:
     """The Python that runs the fake processes: the base interpreter rather than a virtual environment's launcher.
 
@@ -125,55 +108,6 @@ def _variants() -> dict[str, str]:
         path.stem: str(json.loads(path.read_text(encoding="utf-8")).get("description", ""))
         for path in sorted(SCRIPTS_DIR.glob("*.json"))
     }
-
-
-# --------------------------------------------------------------------------------------------------------------------
-# Chaos commands
-# --------------------------------------------------------------------------------------------------------------------
-
-
-def _target(params: Mapping[str, Any]) -> str:
-    return quote_player(str(params.get("player") or params.get("bot") or params.get("target") or "@a"))
-
-
-def _kick(**params: Any) -> str:
-    return f"kick {_target(params)} {params.get('reason', 'chaos')}"
-
-
-def _kill(**params: Any) -> str:
-    return f"kill {_target(params)}"
-
-
-def _gamemode(**params: Any) -> str:
-    return f"gamemode {params.get('mode', 'survival')} {_target(params)}"
-
-
-def _weather(**params: Any) -> str:
-    return f"weather {params.get('weather') or params.get('kind') or 'clear'}"
-
-
-def _list(**params: Any) -> str:
-    return "list"
-
-
-def _randomtickspeed(**params: Any) -> str:
-    return f"gamerule randomtickspeed {int(params.get('value', 1))}"
-
-
-def _tp(**params: Any) -> str:
-    x, y, z = (float(params.get(axis, default)) for axis, default in (("x", 0.0), ("y", 300.0), ("z", 0.0)))
-    return f"tp {_target(params)} {format_coord(x)} {format_coord(y)} {format_coord(z)}"
-
-
-CHAOS_RENDERERS = {
-    "kick": _kick,
-    "kill": _kill,
-    "gamemode": _gamemode,
-    "weather": _weather,
-    "list": _list,
-    "randomtickspeed": _randomtickspeed,
-    "tp": _tp,
-}
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -389,15 +323,6 @@ class FakeAdapter(ServerAdapter):
         if style == "pos_lines":
             return parse_pos_lines(texts)
         return None
-
-    def chaos_dialect(self) -> ChaosDialect:
-        return ChaosDialect(renderers=CHAOS_RENDERERS, unsupported=CHAOS_UNSUPPORTED)
-
-    def applied(self, action: str, line: LogLine) -> dict[str, Any] | None:
-        if action != "randomtickspeed":
-            return None
-        match = re.search(self.server_family.gamerule_re, line.text)
-        return {"randomtickspeed": int(match["value"])} if match else None
 
     def facts(self, layout: Layout, proc: psutil.Process) -> dict[str, Any]:
         return {"allocator": "default", "csg_setting": bool(layout.extra.get("csg")), "fake_family": self.family}

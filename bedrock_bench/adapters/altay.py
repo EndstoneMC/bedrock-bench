@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Altay, a PocketMine-MP 5 fork on the current Bedrock protocol, run from its release phar on PocketMine's PHP build.
 
-Fetch, launch, the console dialect, the commands and the chaos dialect come from
+Fetch, launch, the console dialect and the commands come from
 :class:`~bedrock_bench.adapters.pocketmine.PocketMineAdapter`. The phar, the version banner and the helper differ:
 ``configs/servers/altay/BenchHelper.php`` lifts the per-IP packet limit through Altay's transport interface instead of
 RakLib's.

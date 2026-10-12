@@ -19,8 +19,7 @@ profile, machine or scenario version, takes the machine lock for the whole matri
 exits with the worst final status and writes the report.
 
 ``smoke`` is ``run-one`` with ``configs/scenarios/smoke.toml`` plus adapter checks: every harness command accepted
-without an error line, movement corrections seen where the feature file declares movement validation, and every
-chaos-dialect command sent once.
+without an error line, and movement corrections seen where the feature file declares movement validation.
 """
 
 from __future__ import annotations
@@ -38,7 +37,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, ClassVar
 
-from bedrock_bench import adapters, bots, chaos, config, host, platform, provenance, results
+from bedrock_bench import adapters, bots, config, host, platform, provenance, results
 from bedrock_bench.adapters.base import ServerAdapter, host_os
 from bedrock_bench.cache import Cache, remove_tree
 from bedrock_bench.clock import NS_PER_S, Origin
@@ -92,7 +91,6 @@ class RunRequest:
     repeat: int = 1
     order_index: int | None = None
     out: Path = DEFAULT_OUT
-    extra_commands: tuple[str, ...] = ()
 
     @property
     def matrix_dir(self) -> Path:
@@ -274,7 +272,6 @@ def _measure(
                 record=record,
                 origin=origin,
                 bot=bot,
-                extra_commands=request.extra_commands,
                 progress=lambda text: _say(f"  {text}"),
             )
             session_result = session.run()
@@ -653,7 +650,6 @@ def smoke(args: argparse.Namespace) -> int:
         scenario=config.load_scenario(SMOKE_SCENARIO),
         machine=machine,
         out=args.out or DEFAULT_OUT,
-        extra_commands=tuple(chaos_smoke_commands(adapter)),
     )
     result = execute(request)
     if result.run_dir is None:
@@ -661,7 +657,7 @@ def smoke(args: argparse.Namespace) -> int:
     if result.exit_code != ExitCode.OK:
         _say(f"smoke {arm.id}: FAILED (run status {result.outcome.status.value if result.outcome else '?'})")
         return result.exit_code
-    problems = smoke_problems(result.run_dir, adapter, request.extra_commands)
+    problems = smoke_problems(result.run_dir, adapter)
     if problems:
         _say(f"smoke {arm.id}: FAILED")
         for problem in problems:
@@ -671,12 +667,7 @@ def smoke(args: argparse.Namespace) -> int:
     return ExitCode.OK
 
 
-def chaos_smoke_commands(adapter: ServerAdapter) -> list[str]:
-    """One console command per supported chaos action."""
-    return list(chaos.smoke_commands(adapter))
-
-
-def smoke_problems(run_dir: Path, adapter: ServerAdapter, extra_commands: Sequence[str] = ()) -> list[str]:
+def smoke_problems(run_dir: Path, adapter: ServerAdapter) -> list[str]:
     """Adapter wiring problems a run's status does not show."""
     data = results.load_run(run_dir)
     metrics = json.loads((run_dir / results.METRICS_FILE).read_text(encoding="utf-8"))["metrics"]
@@ -704,10 +695,6 @@ def smoke_problems(run_dir: Path, adapter: ServerAdapter, extra_commands: Sequen
         replies = [e for e in errors if send_ns is not None and send_ns <= e.t_ns < send_ns + window_ns]
         if replies:
             problems.append(f"command {command.get('text')!r} was answered with: {replies[0].text}")
-    texts = {c.get("text") for c in sent if not c.get("error")}
-    for text in extra_commands:
-        if text not in texts:
-            problems.append(f"chaos command {text!r} was never sent")
     return list(dict.fromkeys(problems))
 
 

@@ -11,7 +11,6 @@ import pytest
 
 from bedrock_bench import adapters, config, fetch
 from bedrock_bench.adapters import pocketmine
-from bedrock_bench.adapters.base import UnsupportedAction
 from bedrock_bench.adapters.pocketmine import PMMP_DIALECT, PocketMineAdapter, read_phar_member
 from bedrock_bench.adapters.standalone import Runtime, yaml_scalars
 from bedrock_bench.cache import Cache
@@ -293,22 +292,3 @@ class TestCommands:
         assert adapter.cmd_positions() == "positions"
         assert PMMP_DIALECT.tick_cmd == "gametime"
 
-    def test_chaos_dialect(self) -> None:
-        dialect = make_adapter().chaos_dialect()
-        assert dialect.actions == {"tp", "effects", "effect_clear", "kill", "kick", "gamemode", "list"}
-        assert dialect.render("kick", player="a07", reason="chaos") == ["kick a07 chaos"]
-        assert dialect.render("gamemode", player="a07", mode="adventure") == ["gamemode adventure a07"]
-        assert dialect.render("effect_clear", player="a07") == ["effect a07 clear"]
-        with pytest.raises(UnsupportedAction):
-            dialect.render("weather", kind="rain")
-        with pytest.raises(ValueError):
-            dialect.render("gamemode", player="a07", mode="hardcore")
-
-    def test_every_catalogue_command_is_rendered_or_unsupported(self) -> None:
-        catalogue = ROOT / "configs" / "scenarios" / "chaos-actions.toml"
-        commands = tomllib.loads(catalogue.read_text(encoding="utf-8")).get("command", {})
-        dialect = make_adapter().chaos_dialect()
-        for name, entry in commands.items():
-            assert dialect.supports(name) or name in dialect.unsupported, name
-            if dialect.supports(name):
-                assert dialect.render(name, **entry.get("example", {}))

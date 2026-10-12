@@ -169,8 +169,8 @@ def test_recorded_reasons_survive_and_are_not_repeated(steady: tuple[RunData, di
 def test_flags(steady: tuple[RunData, dict[str, Any]]) -> None:
     run = edit(steady, "settle", {"settle_s": 900.0, "capped": True, "views_incomplete": True})
     run["flags"] = ["unpublished_artifact"]
-    _, _, flags = check(steady, run=run, chaos_actions_overrun=3)
-    assert flags == ["chaos_overrun", "settle_capped", "unpublished_artifact", "views_incomplete"]
+    _, _, flags = check(steady, run=run)
+    assert flags == ["settle_capped", "unpublished_artifact", "views_incomplete"]
 
 
 def test_censored_view_median_sets_views_incomplete(steady: tuple[RunData, dict[str, Any]]) -> None:

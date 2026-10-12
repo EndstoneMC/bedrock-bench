@@ -4,8 +4,8 @@
 
 The fake prints the console output of one server family (BDS, Endstone, LeviLamina, PocketMine-MP, Nukkit,
 PowerNukkitX or Dragonfly): that family's line prefix and level names, ready line, version banner and player lines.
-It answers the console commands the harness sends (tick probe, positions, effects, teleports, kick, kill, game rules,
-list, stop) and accepts fake bots over a JSON-lines TCP protocol on the configured port. A JSON behaviour script sets
+It answers the console commands the harness sends (tick probe, positions, effects, teleports, kick, kill, stop) and
+accepts fake bots over a JSON-lines TCP protocol on the configured port. A JSON behaviour script sets
 the tick rate, delays or drops replies, rejects players and crashes on cue.
 
 Line shapes follow the real servers; the texts around them are synthetic. The module uses the standard library only,
@@ -161,7 +161,6 @@ class Family:
     version_re: ClassVar[str]
     player_re: ClassVar[str] = r"^Player Spawned: (?P<player>\S+) xuid:"
     tick_re: ClassVar[str] = r"^Gametime is (?P<tick>\d+)$"
-    gamerule_re: ClassVar[str] = r"^Game rule randomtickspeed has been updated to (?P<value>\d+)$"
     benign_re: ClassVar[tuple[str, ...]] = ()
 
     tick_cmd: ClassVar[str] = "time query gametime"
@@ -234,18 +233,6 @@ class Family:
 
     def killed(self, name: str) -> list[Line]:
         return [Line(f"Killed {name}")]
-
-    def gamerule(self, rule: str, value: str) -> list[Line]:
-        return [Line(f"Game rule {rule} has been updated to {value}")]
-
-    def gamemode(self, name: str, mode: str) -> list[Line]:
-        return [Line(f"Set {name}'s game mode to {mode}")]
-
-    def weather(self, kind: str) -> list[Line]:
-        return [Line(f"Changing to {kind} weather")]
-
-    def players(self, names: Sequence[str], max_players: int) -> list[Line]:
-        return [Line(f"There are {len(names)}/{max_players} players online:"), Line(", ".join(names))]
 
     def no_target(self, target: str) -> list[Line]:
         return [Line("No targets matched selector", level="error")]
@@ -464,9 +451,6 @@ class NukkitFamily(Family):
     def unknown(self, command: str) -> list[Line]:
         return [Line('Unknown command. Type "help" for help.')]
 
-    def gamerule(self, rule: str, value: str) -> list[Line]:
-        return [Line(f"Game rule {rule} has been updated to {value}")]
-
     def stopping(self) -> list[Line]:
         return [Line("Stopping the server"), Line("Disabling BenchTick")]
 
@@ -642,7 +626,6 @@ def sample_log(family_name: str, version: str) -> list[str]:
         *family.teleported(player.name, player.x, player.y, player.z),
         *family.tick(1334),
         *positions_block(family, [player]),
-        *family.gamerule("randomtickspeed", "3"),
         *family.unknown("frobnicate"),
         *family.no_target("b99"),
         *family.left(player),
@@ -855,7 +838,6 @@ class FakeServer:
         self.config = {**CONFIG_DEFAULTS, **read_config(server_dir / CONFIG_FILE)}
         self.port = int(self.config["server-port"])
         self.view = int(self.config["view-distance"])
-        self.max_players = int(self.config["max-players"])
         self.csg = family.supports_csg and self.config["client-side-chunk-generation-enabled"] == "true"
 
         self.out = sys.stdout.buffer
@@ -1121,17 +1103,6 @@ class FakeServer:
             self._for_targets(words[1], lambda p: self._kick(p, reason))
         elif verb == "kill" and len(words) == 2:
             self._for_targets(words[1], self._kill)
-        elif verb == "gamemode" and len(words) == 3:
-            mode, target = words[1], words[2]
-            if mode == "@a" or mode in self.players:
-                mode, target = target, mode
-            self._for_targets(target, lambda p: self.reply(family.gamemode(p.name, mode)))
-        elif verb == "weather" and len(words) >= 2:
-            self.reply(family.weather(words[1]))
-        elif verb == "gamerule" and len(words) == 3:
-            self.reply(family.gamerule(words[1], words[2]))
-        elif verb == "list":
-            self.reply(family.players([p.name for p in self._spawned()], self.max_players))
         else:
             self.reply(family.unknown(text))
 

@@ -146,7 +146,6 @@ class Flag(StrEnum):
 
     SETTLE_CAPPED = "settle_capped"
     VIEWS_INCOMPLETE = "views_incomplete"
-    CHAOS_OVERRUN = "chaos_overrun"
     PARITY_MISMATCH = "parity_mismatch"
     BOT_PROTOCOL_DIFFERS = "bot_protocol_differs"
     TERRAIN_MISMATCH = "terrain_mismatch"
@@ -160,7 +159,7 @@ class Flag(StrEnum):
 # --------------------------------------------------------------------------------------------------------------------
 
 #: Phases in execution order. ``boot``, ``join``, ``settle``, ``spread`` and ``teardown`` always run.
-PHASES = ("boot", "idle", "join", "settle", "spread", "steady", "chaos", "teardown")
+PHASES = ("boot", "idle", "join", "settle", "spread", "steady", "teardown")
 
 #: Phase marks recorded in run.json, in seconds since the run's time origin.
 MARKS = (
@@ -172,13 +171,11 @@ MARKS = (
     "settled",
     "steady0",
     "steady1",
-    "chaos0",
-    "chaos1",
     "stop",
 )
 
 #: Measurement windows metrics are computed over. ``load`` is ``[bots_start, settled]``.
-WINDOWS = ("idle", "join", "settle", "load", "steady", "chaos")
+WINDOWS = ("idle", "join", "settle", "load", "steady")
 
 #: Normalised log levels; adapters map their raw levels onto these.
 LOG_LEVELS = ("debug", "info", "warn", "error", "fatal")
@@ -292,8 +289,6 @@ class BotParams:
     pkt_interval_s: float = 60.0
     probe_bots: int = 0
     decode_errors: str = "count"  # count | fail
-    rejoin_on_drop: bool = False  # chaos only
-    radius_jitter_s: float = 0.0  # mean re-request interval; 0 = off; chaos only, enabled at chaos start
 
 
 @dataclass(frozen=True)
@@ -343,7 +338,7 @@ class PhaseSpec:
 
     name: str
     delay_s: float = 0.0
-    duration_s: float | None = None  # fixed-length phases (idle, steady, chaos)
+    duration_s: float | None = None  # fixed-length phases (idle, steady)
     cap_s: float | None = None  # hard cap for condition-ended phases (boot, join, settle)
     options: Mapping[str, Any] = field(default_factory=dict)
 
@@ -713,7 +708,6 @@ class RunData:
     bots: list[dict[str, Any]] = field(default_factory=list)
     log: list[LogLine] = field(default_factory=list)
     commands: list[dict[str, Any]] = field(default_factory=list)
-    chaos: list[dict[str, Any]] = field(default_factory=list)
 
 
 # --------------------------------------------------------------------------------------------------------------------

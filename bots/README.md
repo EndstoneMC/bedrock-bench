@@ -229,7 +229,7 @@ errors.
 
 | Patch | Change | Upstream | Failing case | Drop when |
 |---|---|---|---|---|
-| `legacy1001/0001-login-backport.patch` | The offline login in the format gophertunnel adopted in v1.58.0: the self-signed identity token gets the multiplayer audience and carries the player UUID as `leguuid`, and the client data sends `FilterProfanity`, `ClientEditorConnectionIntent`, `ClientIsEditorCapable` and `ProfileHash` instead of `IsEditorMode`. | Back-port of [#468](https://github.com/Sandertv/gophertunnel/pull/468) (654cd5f) and the `ProfileHash` field of [#481](https://github.com/Sandertv/gophertunnel/pull/481) (b36ddad), both released in v1.58.0 | `TestLoginRequestFormat` | The pinned PocketMine-MP accepts the protocol `loadbot` speaks. `legacy1001` is removed with it. |
+| `legacy1001/0001-login-backport.patch` | The offline login in the format gophertunnel adopted in v1.58.0: the self-signed identity token gets the multiplayer audience and carries the player UUID as `leguuid`, and the client data sends `FilterProfanity`, `ClientEditorConnectionIntent`, `ClientIsEditorCapable` and `ProfileHash` instead of `IsEditorMode`. | Back-port of [#468](https://github.com/Sandertv/gophertunnel/pull/468) (654cd5f) and the `ProfileHash` field of [#481](https://github.com/Sandertv/gophertunnel/pull/481) (b36ddad), both released in v1.58.0 | `TestLoginRequestFormat` | The pinned PocketMine-MP accepts the protocol `loadbot` speaks. `legacy1001` itself goes only when no pinned server (PocketMine-MP, Allay) speaks protocol 1001. |
 
 Upstream changes to the same files that the back-port leaves out:
 

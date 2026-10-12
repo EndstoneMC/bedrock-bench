@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from bedrock_bench import __version__, config, fetch
-from bedrock_bench.adapters.base import ChaosDialect, Dialect, ServerAdapter, format_coord, host_os, quote_player
+from bedrock_bench.adapters.base import Dialect, ServerAdapter, format_coord, host_os, quote_player
 from bedrock_bench.adapters.dragonfly import dump_toml, lookup, run_command, toml_text
 from bedrock_bench.adapters.standalone import parse_helper_positions
 from bedrock_bench.config import ConfigError
@@ -524,38 +524,6 @@ class ChorusAdapter(ServerAdapter):
 
     def parse_positions(self, lines: list[LogLine]) -> list[PlayerPos] | None:
         return parse_helper_positions(lines)
-
-    def chaos_dialect(self) -> ChaosDialect:
-        """Teleports, kicks and the player list: Chorus has one dimension, no mobs, no damage and no block commands."""
-
-        def kick(player: str, reason: str = "chaos") -> str:
-            if "\n" in reason or "\r" in reason:
-                raise ValueError("kick reason must be one line")
-            return f"kick {quote_player(player)} {reason}".rstrip()
-
-        return ChaosDialect(
-            renderers={
-                "tp": lambda player, x, y, z: self.cmd_tp(player, x, y, z),
-                "kick": kick,
-                "list": lambda: "list",
-            },
-            unsupported={
-                "tp_dimension": "Chorus registers the overworld only",
-                "gamemode": "Chorus's gamemode command only changes the player who sends it",
-                "effect_clear": "Chorus has no effects",
-                "kill": "Chorus has no damage or death",
-                "summon": "Chorus has no mobs",
-                "loot": "Chorus has no loot tables",
-                "cleanup": "nothing to clean up without mobs",
-                "weather": "Chorus has no weather command",
-                "randomtickspeed": "Chorus has no random ticks",
-                "playerwaypoints": "Chorus has no game rules and no locator bar",
-                "fill": "Chorus has no fill command",
-                "setblock": "Chorus has no setblock command",
-                "tickingarea_add": "Chorus has no ticking areas",
-                "tickingarea_remove": "Chorus has no ticking areas",
-            },
-        )
 
     # ---- facts ----------------------------------------------------------------------------------------------------
 

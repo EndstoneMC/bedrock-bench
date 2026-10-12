@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from bedrock_bench import ANALYSIS_VERSION, METRICS_SCHEMA, SCHEMA_MINOR
-from bedrock_bench.metrics import chaos, cpu, health, load, memory, registry, tps, workload
+from bedrock_bench.metrics import cpu, health, load, memory, registry, tps, workload
 from bedrock_bench.metrics.health import ServerTraits
 from bedrock_bench.metrics.stats import Censored, censored_median, distribution, median
 from bedrock_bench.model import (
@@ -54,7 +54,6 @@ WINDOW_MARKS: Mapping[str, tuple[str, str]] = {
     "settle": ("alljoined", "settled"),
     "load": ("bots_start", "settled"),
     "steady": ("steady0", "steady1"),
-    "chaos": ("chaos0", "chaos1"),
 }
 
 #: The scenario phase each window belongs to, to tell "not in this scenario" from "not reached".
@@ -64,7 +63,6 @@ _WINDOW_PHASE = {
     "settle": "settle",
     "load": "settle",
     "steady": "steady",
-    "chaos": "chaos",
 }
 
 #: Metrics computed from the tick counter: unavailable when the adapter declares no monotonic counter.
@@ -154,7 +152,6 @@ class _Run:
         self.process: list[ProcSample] = [dataclasses.replace(s, t_ns=s.t_ns - o) for s in data.process]
         self.machine: list[MachineSample] = [dataclasses.replace(s, t_ns=s.t_ns - o) for s in data.machine]
         self.bots = load.timed_events(data.bots, o, epoch)
-        self.chaos = chaos.records(data.chaos, o)
         self.errors = [
             line for line in data.log if line.level in ("error", "fatal") and not traits.is_benign(line.text)
         ]
@@ -260,7 +257,6 @@ def _tps_section(out: _Out, r: _Run) -> None:
     for metric_id, w, span in (
         ("tps_load_low5", "load", 4.5),
         ("tps_load_low15", "load", 14.5),
-        ("tps_chaos_low15", "chaos", 14.5),
     ):
         bounds = r.bounds(w)
         if bounds is not None:
@@ -481,7 +477,7 @@ def _load_section(out: _Out, r: _Run) -> None:
     out.value("chunks_zero_bots", sum(1 for v in u if v == 0) if u else None, no_progress, n=n)
     out.value(
         "view_t90_own_s",
-        distribution(view.t90_own, ("median", "p90", "max")),
+        distribution(view.t90_own.values(), ("median", "p90", "max")),
         "no bot reached 90% of its view",
         n=len(view.t90_own),
     )
@@ -565,43 +561,6 @@ def _efficiency_section(out: _Out, r: _Run) -> None:
     )
 
 
-def _chaos_section(out: _Out, r: _Run) -> None:
-    bounds = r.bounds("chaos")
-    if bounds is None:
-        return
-    t0, t1 = bounds
-    split = chaos.regimes(r.probe, chaos.regime_changes(r.chaos), t0, t1)
-    normal, high = split.group(chaos.NORMAL_REGIMES), split.group(chaos.HIGH_REGIMES)
-    out.value("tps_chaos_normal", median(normal), "no unmixed samples under tick speed 0, 1 or 3", n=len(normal))
-    out.value("tps_chaos_high", median(high), "no unmixed samples under tick speed 100 or 1000", n=len(high))
-    out.measured("chaos_mixed_samples", split.mixed)
-    out.measured("tickspeed_changes_queued", chaos.tickspeed_queued(r.chaos, t0, t1))
-    out.measured("tickspeed_changes_applied", split.applied)
-    out.table("chaos_regimes", chaos.regime_table(split))
-
-    totals, per_action = chaos.actions(r.chaos)
-    for key in ("planned", "sent", "applied", "late", "unsupported", "skip_offline", "overrun"):
-        out.measured(f"chaos_actions_{key}", getattr(totals, key))
-    out.value("chaos_lag_s", distribution(totals.lags, ("p50", "p99", "max")), "no action was sent", n=len(totals.lags))
-    out.table("chaos_actions", chaos.action_table(per_action))
-    out.measured("not_respawned", chaos.not_respawned(r.bots, t0))
-    out.table("log_errors_chaos", chaos.error_table(e for e in r.errors if t0 <= r.seconds(e.t_ns) <= t1))
-
-    slope = memory.slope_mib_per_h(r.process, t0, t1)
-    if slope is None:
-        out.missing("memory_slope_mib_per_h_chaos", Availability.UNAVAILABLE, "fewer than two process samples")
-    else:
-        weak = "weak: window shorter than 30 min" if t1 - t0 < memory.SLOPE_MIN_S else None
-        out.measured("memory_slope_mib_per_h_chaos", slope, n=r.process_n(t0, t1), reason=weak)
-    ends = memory.start_end(r.process, t0, t1)
-    for name, sample in (("start", ends and ends[0]), ("end", ends and ends[1])):
-        out.value(f"threads_{name}_chaos", sample.threads if sample else None, "no process samples in chaos")
-        if sample and sample.handles is None:
-            out.missing(f"handles_{name}_chaos", Availability.NOT_APPLICABLE, "handle counts exist on Windows only")
-        else:
-            out.value(f"handles_{name}_chaos", sample.handles if sample else None, "no process samples in chaos")
-
-
 def _health_section(out: _Out, r: _Run) -> None:
     recorded = r.meta.get("health") or {}
     out.value("server_exit_code", recorded.get("server_exit"), "not recorded in run.json")
@@ -622,16 +581,13 @@ def _health_section(out: _Out, r: _Run) -> None:
         totals.append(int(recorded["decode_errors"]))
     out.value("decode_errors", max(totals, default=None), "no bot events")
     if bots:
-        joins = load.join(bots)
-        out.measured("joined", joins.joined)
-        out.measured("rejoin_failed", joins.rejoin_failed)
+        out.measured("joined", load.join(bots).joined)
     else:
         out.value("joined", recorded.get("joined"), "no bot events")
-        out.missing("rejoin_failed", Availability.UNAVAILABLE, "no bot events")
-    end = r.marks.get("chaos0") or r.marks.get("steady1") or r.marks.get("stop")
+    end = r.marks.get("steady1") or r.marks.get("stop")
     last = load.last_at(bots, "stat", float(end)) if end is not None else None
     dropped = int(last.data.get("dropped", 0)) if last is not None else recorded.get("dropped")
-    out.value("dropped", dropped, "no stat event before chaos")
+    out.value("dropped", dropped, "no stat event before the end of steady")
 
     interventions = r.meta.get("interventions") or {}
     for key in ("nudges", "retp"):
@@ -657,7 +613,6 @@ _SECTIONS = (
     _load_section,
     _work_section,
     _efficiency_section,
-    _chaos_section,
 )
 
 
