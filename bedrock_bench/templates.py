@@ -1,17 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
 """Render a server's config templates and merge them onto the files in its server directory.
 
-``servers/<server>/server.toml`` holds a ``[config]`` table that maps each file in the server directory to the
-template that produces it, both relative paths, the template inside the server's folder::
-
-    [config]
-    "server.properties" = "server.properties"
-    "plugins/bstats/config.toml" = "bstats.toml"
-
-Each template is rendered with Jinja (``StrictUndefined``, no autoescaping) and merged onto its target by the target's
-format: properties set or add keys, YAML, TOML and JSON deep merge. Lists and empty mappings replace. A target that
-does not exist yet gets the rendered text as is. Every key the template sets is reported with its value before and
-after, and every written file with its sha256.
+A template is a file in ``servers/<server>/`` named like the config file it produces, in that file's own format.
+Each adapter names the templates it writes. A template is rendered with Jinja (``StrictUndefined``, no autoescaping)
+and merged onto its target by the target's format: properties set or add keys, YAML, TOML and JSON deep merge. Lists
+and empty mappings replace. A target that does not exist yet gets the rendered text as is. Every key the template sets
+is recorded with its value before and after, and every written file with its sha256.
 """
 
 from __future__ import annotations
@@ -22,7 +16,7 @@ import json
 import math
 import re
 import tomllib
-from collections.abc import Iterator, Mapping
+from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -30,75 +24,17 @@ from typing import Any
 import jinja2
 
 from bedrock_bench.config import ConfigError
-
-SERVER_FILE = "server.toml"
+from bedrock_bench.model import ConfigFile, KeyChange
 
 FORMATS = {".properties": "properties", ".yml": "yaml", ".yaml": "yaml", ".toml": "toml", ".json": "json"}
 
 
-@dataclass(frozen=True)
-class KeyChange:
-    key: str  # property name, or dotted path for YAML, TOML and JSON
-    before: Any  # None when the key or the file was absent
-    after: Any
-
-
-@dataclass(frozen=True)
-class WrittenFile:
-    path: str  # relative to the server directory
-    template: str  # relative to the server's config folder
-    sha256: str
-    created: bool
-    keys: tuple[KeyChange, ...]
-
-    def to_json(self) -> dict[str, Any]:
-        return {
-            "path": self.path,
-            "template": self.template,
-            "sha256": self.sha256,
-            "created": self.created,
-            "keys": [{"key": k.key, "before": k.before, "after": k.after} for k in self.keys],
-        }
-
-
-# --------------------------------------------------------------------------------------------------------------------
-# The [config] map
-# --------------------------------------------------------------------------------------------------------------------
-
-
-def load_config_map(folder: Path) -> dict[str, str]:
-    """The ``[config]`` map of ``folder/server.toml``: target file -> template, both checked to stay inside."""
-    path = folder / SERVER_FILE
-    try:
-        data = tomllib.loads(path.read_text(encoding="utf-8"))
-    except (OSError, tomllib.TOMLDecodeError) as exc:
-        raise ConfigError(f"{path}: {exc}") from exc
-    return parse_config_map(folder, data.get("config", {}), source=path)
-
-
-def parse_config_map(folder: Path, table: Any, *, source: Path | None = None) -> dict[str, str]:
-    """Check a ``[config]`` table: string paths only, none leaving its folder, every template present."""
-    where = source or folder / SERVER_FILE
-    if not isinstance(table, Mapping):
-        raise ConfigError(f"{where}: [config] must be a table of target file = template")
-    result: dict[str, str] = {}
-    for target, template in table.items():
-        if not isinstance(template, str):
-            raise ConfigError(f"{where}: config.{target} must be a template path, got {type(template).__name__}")
-        _check_relative(target, f"{where}: config target {target!r}")
-        _check_relative(template, f"{where}: config.{target} template {template!r}")
-        if PurePosixPath(target).suffix.lower() not in FORMATS:
-            raise ConfigError(f"{where}: config target {target!r} has no known format ({', '.join(FORMATS)})")
-        if not (folder / template).is_file():
-            raise ConfigError(f"{where}: config.{target} template {template} does not exist")
-        result[target] = template
-    return result
-
-
-def _check_relative(ref: str, what: str) -> None:
-    path = PurePosixPath(ref)
-    if not ref or "\\" in ref or ":" in ref or path.is_absolute() or ".." in path.parts:
-        raise ConfigError(f"{what} must be a relative path inside the folder, with forward slashes and no '..'")
+def file_format(path: str) -> str:
+    """``properties``, ``yaml``, ``toml`` or ``json``, from the file name."""
+    fmt = FORMATS.get(PurePosixPath(path).suffix.lower())
+    if fmt is None:
+        raise ConfigError(f"{path} has no known config format ({', '.join(FORMATS)})")
+    return fmt
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -106,8 +42,8 @@ def _check_relative(ref: str, what: str) -> None:
 # --------------------------------------------------------------------------------------------------------------------
 
 
-def render(folder: Path, template: str, variables: Mapping[str, Any]) -> str:
-    """Render ``folder/template`` with ``variables``. An undefined variable is an error."""
+def render(folder: Path, name: str, variables: Mapping[str, Any]) -> str:
+    """Render ``folder/name`` with ``variables``. An undefined variable is an error."""
     env = jinja2.Environment(
         loader=jinja2.FileSystemLoader(folder),
         undefined=jinja2.StrictUndefined,
@@ -115,27 +51,58 @@ def render(folder: Path, template: str, variables: Mapping[str, Any]) -> str:
         keep_trailing_newline=True,
     )
     try:
-        return env.get_template(template).render(variables)
+        return env.get_template(name).render(variables)
     except jinja2.TemplateError as exc:
-        raise ConfigError(f"{folder / template}: {exc}") from exc
+        raise ConfigError(f"{folder / name}: {exc}") from exc
 
 
-def apply_templates(folder: Path, server_dir: Path, variables: Mapping[str, Any]) -> list[WrittenFile]:
-    """Render every template in ``folder``'s ``[config]`` map and merge it onto its file in ``server_dir``."""
-    written = []
-    for target, template in load_config_map(folder).items():
-        rendered = render(folder, template, variables)
-        path = server_dir / target
-        existing = path.read_bytes().decode("utf-8-sig") if path.is_file() else None
-        try:
-            text, keys = merge(FORMATS[PurePosixPath(target).suffix.lower()], existing, rendered)
-        except ConfigError as exc:
-            raise ConfigError(f"{folder / template} -> {target}: {exc}") from exc
-        data = text.encode("utf-8")
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(data)
-        written.append(WrittenFile(target, template, hashlib.sha256(data).hexdigest(), existing is None, tuple(keys)))
-    return written
+def apply(
+    folder: Path, name: str, server_dir: Path, variables: Mapping[str, Any], *, target: str | None = None
+) -> ConfigFile:
+    """Render ``folder/name`` and merge it onto ``server_dir/target``; ``target`` defaults to ``name``."""
+    target = target or name
+    fmt = file_format(target)
+    rendered = render(folder, name, variables)
+    path = server_dir / target
+    existing = path.read_bytes().decode("utf-8-sig") if path.is_file() else None
+    try:
+        text, keys = merge(fmt, existing, rendered)
+    except ConfigError as exc:
+        raise ConfigError(f"{folder / name} -> {target}: {exc}") from exc
+    data = text.encode("utf-8")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(data)
+    return ConfigFile(target, hashlib.sha256(data).hexdigest(), name, existing is None, tuple(keys))
+
+
+def readback(server_dir: Path, files: Iterable[ConfigFile]) -> list[str]:
+    """Written values that are no longer in their file; empty when every key reads back."""
+    problems = []
+    for written in files:
+        if not written.keys:
+            continue
+        path = server_dir / written.path
+        if not path.is_file():
+            problems.append(f"{written.path} is missing after the run")
+            continue
+        found = values(file_format(written.path), path.read_bytes().decode("utf-8-sig"))
+        for change in written.keys:
+            value = found.get(change.key)
+            if value != change.after:
+                problems.append(
+                    f"{written.path}: {change.key} was written as {change.after!r} and read back as {value!r}"
+                )
+    return problems
+
+
+def values(fmt: str, text: str) -> dict[str, Any]:
+    """Every key in a config file's text, named and valued the way :func:`merge` reports them."""
+    if fmt == "properties":
+        return {key: value for _, key, value in _properties(text, strict=False)}
+    if fmt == "yaml":
+        return {e.path: _yaml_scalar(e.value) for e in _yaml_entries(text, strict=False) if e.value}
+    data = _parse_toml(text, "the file") if fmt == "toml" else _parse_json(text, "the file")
+    return {".".join(path): value for path, value in _leaves(data)}
 
 
 def merge(fmt: str, existing: str | None, rendered: str) -> tuple[str, list[KeyChange]]:

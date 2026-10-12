@@ -9,19 +9,17 @@ from pathlib import Path
 import pytest
 
 from bedrock_bench.config import ConfigError
-from bedrock_bench.templates import KeyChange, apply_templates, load_config_map, merge, render
+from bedrock_bench.model import ConfigFile, KeyChange
+from bedrock_bench.templates import apply, merge, readback, render
 
 VARIABLES = {"workload": {"server": {"view_distance": 10, "simulation_distance": 4}}, "run": {"port": 19132}}
 
 
-def make_folder(root: Path, config: str, templates: dict[str, str]) -> Path:
-    folder = root / "configs" / "srv"
+def make_folder(root: Path, templates: dict[str, str]) -> Path:
+    folder = root / "servers" / "srv"
     folder.mkdir(parents=True)
-    (folder / "server.toml").write_text(f"schema = 1\n\n[config]\n{config}", encoding="utf-8", newline="\n")
     for name, text in templates.items():
-        path = folder / name
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8", newline="\n")
+        (folder / name).write_text(text, encoding="utf-8", newline="\n")
     return folder
 
 
@@ -32,64 +30,17 @@ def write(path: Path, text: str) -> None:
 
 class TestRender:
     def test_variables(self, tmp_path: Path) -> None:
-        folder = make_folder(tmp_path, "", {"server.properties": "view-distance={{ workload.server.view_distance }}\n"})
+        folder = make_folder(tmp_path, {"server.properties": "view-distance={{ workload.server.view_distance }}\n"})
         assert render(folder, "server.properties", VARIABLES) == "view-distance=10\n"
 
     def test_undefined_variable_fails(self, tmp_path: Path) -> None:
-        folder = make_folder(tmp_path, "", {"server.properties": "level-name={{ run.level_name }}\n"})
+        folder = make_folder(tmp_path, {"server.properties": "level-name={{ run.level_name }}\n"})
         with pytest.raises(ConfigError, match="level_name"):
             render(folder, "server.properties", VARIABLES)
 
     def test_values_are_not_escaped(self, tmp_path: Path) -> None:
-        folder = make_folder(tmp_path, "", {"server.properties": "motd={{ motd }}\n"})
+        folder = make_folder(tmp_path, {"server.properties": "motd={{ motd }}\n"})
         assert render(folder, "server.properties", {"motd": "<a & 'b'>"}) == "motd=<a & 'b'>\n"
-
-
-class TestConfigMap:
-    def test_load(self, tmp_path: Path) -> None:
-        folder = make_folder(
-            tmp_path,
-            '"server.properties" = "server.properties"\n"plugins/bstats/config.toml" = "bstats.toml"\n',
-            {"server.properties": "", "bstats.toml": ""},
-        )
-        assert load_config_map(folder) == {
-            "server.properties": "server.properties",
-            "plugins/bstats/config.toml": "bstats.toml",
-        }
-
-    @pytest.mark.parametrize(
-        "line",
-        [
-            '"server.properties" = "../bds/server.properties"',
-            '"server.properties" = "sub/../../server.properties"',
-            '"server.properties" = "/etc/server.properties"',
-            '"server.properties" = "C:/server.properties"',
-            '"server.properties" = "..\\\\bds\\\\server.properties"',
-            '"../server.properties" = "server.properties"',
-            '"/tmp/server.properties" = "server.properties"',
-        ],
-    )
-    def test_paths_must_stay_inside_the_folder(self, tmp_path: Path, line: str) -> None:
-        (tmp_path / "servers" / "bds").mkdir(parents=True)
-        (tmp_path / "servers" / "bds" / "server.properties").write_text("", encoding="utf-8")
-        folder = make_folder(tmp_path, line + "\n", {"server.properties": ""})
-        with pytest.raises(ConfigError, match="inside the folder"):
-            load_config_map(folder)
-
-    def test_missing_template(self, tmp_path: Path) -> None:
-        folder = make_folder(tmp_path, '"server.properties" = "server.properties"\n', {})
-        with pytest.raises(ConfigError, match="does not exist"):
-            load_config_map(folder)
-
-    def test_unknown_format(self, tmp_path: Path) -> None:
-        folder = make_folder(tmp_path, '"server.ini" = "server.ini"\n', {"server.ini": ""})
-        with pytest.raises(ConfigError, match="no known format"):
-            load_config_map(folder)
-
-    def test_old_key_tables_are_rejected(self, tmp_path: Path) -> None:
-        folder = make_folder(tmp_path, '"server.properties" = { view-distance = 10 }\n', {})
-        with pytest.raises(ConfigError, match="template path"):
-            load_config_map(folder)
 
 
 class TestProperties:
@@ -234,50 +185,83 @@ class TestAbsentFile:
         assert keys == [KeyChange(key, None, after)]
 
 
-class TestApplyTemplates:
-    def test_writes_every_mapped_file(self, tmp_path: Path) -> None:
-        folder = make_folder(
-            tmp_path,
-            '"server.properties" = "server.properties"\n"plugins/bstats/config.toml" = "bstats.toml"\n',
-            {
-                "server.properties": "# why\nview-distance={{ workload.server.view_distance }}\n"
-                "server-port={{ run.port }}\n",
-                "bstats.toml": "# why\nenabled = false\n",
-                "helper.py": "not a config file\n",
-            },
-        )
+class TestApply:
+    def test_merges_onto_the_file_and_records_every_key(self, tmp_path: Path) -> None:
+        template = "# why\nview-distance={{ workload.server.view_distance }}\nserver-port={{ run.port }}\n"
+        folder = make_folder(tmp_path, {"server.properties": template})
         server_dir = tmp_path / "server"
         write(server_dir / "server.properties", "server-name=x\r\nview-distance=32\r\n")
 
-        written = apply_templates(folder, server_dir, VARIABLES)
+        written = apply(folder, "server.properties", server_dir, VARIABLES)
 
-        props = (server_dir / "server.properties").read_bytes()
-        bstats = (server_dir / "plugins" / "bstats" / "config.toml").read_bytes()
-        assert props == b"server-name=x\r\nview-distance=10\r\nserver-port=19132\r\n"
-        assert bstats == b"# why\nenabled = false\n"
+        data = (server_dir / "server.properties").read_bytes()
+        assert data == b"server-name=x\r\nview-distance=10\r\nserver-port=19132\r\n"
+        assert written == ConfigFile(
+            "server.properties",
+            hashlib.sha256(data).hexdigest(),
+            "server.properties",
+            False,
+            (KeyChange("view-distance", "32", "10"), KeyChange("server-port", None, "19132")),
+        )
+
+    def test_target_in_a_subfolder_is_created(self, tmp_path: Path) -> None:
+        folder = make_folder(tmp_path, {"bstats.toml": "# why\nenabled = false\n", "helper.py": "not a config\n"})
+        server_dir = tmp_path / "server"
+        written = apply(folder, "bstats.toml", server_dir, VARIABLES, target="plugins/bstats/config.toml")
+        data = (server_dir / "plugins" / "bstats" / "config.toml").read_bytes()
+        assert data == b"# why\nenabled = false\n"
         assert not (server_dir / "helper.py").exists()
-        assert [w.to_json() for w in written] == [
-            {
-                "path": "server.properties",
-                "template": "server.properties",
-                "sha256": hashlib.sha256(props).hexdigest(),
-                "created": False,
-                "keys": [
-                    {"key": "view-distance", "before": "32", "after": "10"},
-                    {"key": "server-port", "before": None, "after": "19132"},
-                ],
-            },
-            {
-                "path": "plugins/bstats/config.toml",
-                "template": "bstats.toml",
-                "sha256": hashlib.sha256(bstats).hexdigest(),
-                "created": True,
-                "keys": [{"key": "enabled", "before": None, "after": False}],
-            },
-        ]
+        assert (written.path, written.template, written.created) == ("plugins/bstats/config.toml", "bstats.toml", True)
+        assert written.written_sha256 == hashlib.sha256(data).hexdigest()
+        assert written.keys == (KeyChange("enabled", None, False),)
 
     def test_error_names_template_and_target(self, tmp_path: Path) -> None:
-        folder = make_folder(tmp_path, '"config.json" = "config.json"\n', {"config.json": '{"a": 1}'})
+        folder = make_folder(tmp_path, {"config.json": '{"a": 1}'})
         write(tmp_path / "server" / "config.json", "[1, 2]")
         with pytest.raises(ConfigError, match=r"config\.json -> config\.json: the existing file must be a JSON object"):
-            apply_templates(folder, tmp_path / "server", VARIABLES)
+            apply(folder, "config.json", tmp_path / "server", VARIABLES)
+
+    def test_unknown_format(self, tmp_path: Path) -> None:
+        folder = make_folder(tmp_path, {"server.ini": ""})
+        with pytest.raises(ConfigError, match="no known config format"):
+            apply(folder, "server.ini", tmp_path / "server", VARIABLES)
+
+    def test_template_outside_the_folder_is_not_found(self, tmp_path: Path) -> None:
+        folder = make_folder(tmp_path, {})
+        write(tmp_path / "servers" / "server.properties", "a=1\n")
+        with pytest.raises(ConfigError):
+            apply(folder, "../server.properties", tmp_path / "server", VARIABLES, target="server.properties")
+
+
+class TestReadback:
+    @pytest.mark.parametrize(
+        ("name", "template", "rewritten"),
+        [
+            ("server.properties", "a=1\nb=x\n", "# saved\nb=x\na=1\n"),
+            ("pocketmine.yml", "s:\n  a: 1\n  b: x\n", "s:\n  b: 'x'\n  a: 1  # kept\n"),
+            ("config.toml", "[s]\na = 1\nb = 'x'\n", 's = { b = "x", a = 1 }\n'),
+            ("config.json", '{"s": {"a": 1, "b": "x"}}', '{\n  "s": {"b": "x", "a": 1}\n}\n'),
+        ],
+    )
+    def test_same_values_in_another_layout_read_back(
+        self, tmp_path: Path, name: str, template: str, rewritten: str
+    ) -> None:
+        folder = make_folder(tmp_path, {name: template})
+        written = apply(folder, name, tmp_path / "server", VARIABLES)
+        assert readback(tmp_path / "server", [written]) == []
+        write(tmp_path / "server" / name, rewritten)
+        assert readback(tmp_path / "server", [written]) == []
+
+    def test_changed_and_missing(self, tmp_path: Path) -> None:
+        folder = make_folder(tmp_path, {"server.properties": "a=1\nb=2\n"})
+        written = apply(folder, "server.properties", tmp_path / "server", VARIABLES)
+        write(tmp_path / "server" / "server.properties", "a=9\n")
+        assert readback(tmp_path / "server", [written]) == [
+            "server.properties: a was written as '1' and read back as '9'",
+            "server.properties: b was written as '2' and read back as None",
+        ]
+        (tmp_path / "server" / "server.properties").unlink()
+        assert readback(tmp_path / "server", [written]) == ["server.properties is missing after the run"]
+
+    def test_files_without_keys_are_skipped(self, tmp_path: Path) -> None:
+        assert readback(tmp_path, [ConfigFile("version.txt", "0" * 64)]) == []

@@ -2,9 +2,9 @@
 """The server adapter contract (.github/CONTRIBUTING.md#adding-a-server).
 
 Adapters are the only code that knows servers by name. Each one says how to fetch and verify a build, how to lay out a
-fresh server directory with every config override categorised, how to launch it, and how to talk to its console: the
-ready line, log prefix and levels, the monotonic tick probe, and the commands for effects, teleports and positions.
-Phases, samplers, metrics and reports only use what an adapter declares here.
+fresh server directory with its configs rendered from the templates in ``servers/<server>/``, how to launch it, and
+how to talk to its console: the ready line, log prefix and levels, the monotonic tick probe, and the commands for
+effects, teleports and positions. Phases, samplers, metrics and reports only use what an adapter declares here.
 
 A server is a black box: adapters read what the server prints and what the operating system reports about the
 process, and never hook into it.
@@ -23,10 +23,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
+from bedrock_bench import config, templates
 from bedrock_bench.model import (
     LOG_LEVELS,
     PLATFORMS,
     Arm,
+    ConfigFile,
     Install,
     LaunchSpec,
     Layout,
@@ -246,10 +248,7 @@ class ServerAdapter(abc.ABC):
 
     @abc.abstractmethod
     def prepare(self, install: Install, ctx: RunContext) -> Layout:
-        """Make a fresh server copy under ``ctx.work_dir`` and render its configs.
-
-        Returns every config change from the server's defaults as an :class:`Override` with its category.
-        """
+        """Make a fresh server copy under ``ctx.work_dir`` and render its configs with :meth:`write_config`."""
 
     @abc.abstractmethod
     def launch(self, layout: Layout) -> LaunchSpec:
@@ -258,6 +257,31 @@ class ServerAdapter(abc.ABC):
     def server_process(self, launched: psutil.Process) -> psutil.Process:
         """The process to measure. Override when a launcher starts the server as a child; match by exe path."""
         return launched
+
+    # ---- config templates -----------------------------------------------------------------------------------------
+
+    def folder(self) -> Path:
+        """``servers/<name>/``: the server's server.toml, config templates and helper sources."""
+        return config.server_dir(self.name)
+
+    def template_variables(self, ctx: RunContext) -> dict[str, Any]:
+        """What a template can use: ``workload``, and ``run`` with the ports and the number of server CPUs."""
+        return {
+            "workload": ctx.workload,
+            "run": {
+                "port": ctx.machine.port,
+                "port_v6": ctx.machine.port + 1,
+                "server_cpu_count": len(ctx.placement.server_cpus),
+            },
+        }
+
+    def write_config(self, server_dir: Path, name: str, ctx: RunContext, *, target: str | None = None) -> ConfigFile:
+        """Render the template ``name`` from :meth:`folder` onto ``server_dir/target`` (``name`` when not given)."""
+        return templates.apply(self.folder(), name, server_dir, self.template_variables(ctx), target=target)
+
+    def readback(self, layout: Layout) -> list[str]:
+        """Rendered config values that changed while the server ran; empty when all read back."""
+        return templates.readback(layout.server_dir, layout.config_files)
 
     def tick_thread(self, threads: Sequence[ThreadInfo]) -> int | None:
         return apply_tick_rule(self.tick_thread_rule, threads)

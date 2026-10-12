@@ -329,9 +329,21 @@ class Override:
 
 
 @dataclass(frozen=True)
+class KeyChange:
+    key: str  # property name, or dotted path for YAML, TOML and JSON
+    before: Any  # None when the key or the file was absent
+    after: Any
+
+
+@dataclass(frozen=True)
 class ConfigFile:
+    """A config file written into the server directory, rendered from a template in ``servers/<server>/``."""
+
     path: str  # relative to the server directory
     written_sha256: str
+    template: str | None = None  # file name in the server's folder
+    created: bool = False  # the file did not exist before
+    keys: tuple[KeyChange, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -346,10 +358,10 @@ class Layout:
     """What ``prepare`` produced: a fresh server copy with rendered configs."""
 
     server_dir: Path
-    overrides: tuple[Override, ...]
     config_files: tuple[ConfigFile, ...]
     world: WorldInfo
     extra: Mapping[str, Any] = field(default_factory=dict)  # adapter-private data ``launch`` needs
+    overrides: tuple[Override, ...] = ()
 
 
 @dataclass(frozen=True)
