@@ -1,5 +1,5 @@
 settings:
-  # One async worker per server CPU; auto counts every CPU of the machine, not the server's.
+  # One async worker per server CPU, since auto counts every CPU of the machine.
   async-workers: {{ run.server_cpu_count }}
 memory:
   # Altay ships PocketMine-MP's 1024 MB limit, which stops the server about 23 s into the 100-bot join.
