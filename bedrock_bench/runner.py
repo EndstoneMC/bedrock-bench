@@ -18,9 +18,9 @@ profile, machine or scenario version, takes the machine lock for the whole matri
 ``invalid`` run is rerun up to ``rerun_invalid`` times; ``server_failed`` is a result and never rerun. The matrix
 exits with the worst final status and writes the report.
 
-``smoke`` is ``run-one`` with ``scenarios/smoke.toml`` plus adapter checks: every harness command accepted without an
-error line, movement corrections seen where the feature file declares movement validation, and every chaos-dialect
-command sent once when chaos support provides a list.
+``smoke`` is ``run-one`` with ``configs/scenarios/smoke.toml`` plus adapter checks: every harness command accepted
+without an error line, movement corrections seen where the feature file declares movement validation, and every
+chaos-dialect command sent once when chaos support provides a list.
 """
 
 from __future__ import annotations

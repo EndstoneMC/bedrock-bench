@@ -305,7 +305,7 @@ class TestCommands:
             dialect.render("gamemode", player="a07", mode="hardcore")
 
     def test_every_catalogue_command_is_rendered_or_unsupported(self) -> None:
-        catalogue = ROOT / "scenarios" / "chaos-actions.toml"
+        catalogue = ROOT / "configs" / "scenarios" / "chaos-actions.toml"
         if not catalogue.is_file():
             pytest.skip("no chaos catalogue")
         commands = tomllib.loads(catalogue.read_text(encoding="utf-8")).get("command", {})

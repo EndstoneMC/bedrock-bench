@@ -19,7 +19,7 @@ from bedrock_bench.grid import cell
 from bedrock_bench.model import Scenario
 
 ROOT = config.project_root()
-CATALOGUE_FILE = ROOT / "scenarios" / "chaos-actions.toml"
+CATALOGUE_FILE = ROOT / "configs" / "scenarios" / "chaos-actions.toml"
 
 #: Action intervals from SPEC.md section 6.3.
 SPEC_INTERVALS = {

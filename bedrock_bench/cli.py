@@ -65,7 +65,12 @@ def _configure_doctor(p: argparse.ArgumentParser) -> None:
 
 
 def _configure_fetch(p: argparse.ArgumentParser) -> None:
-    p.add_argument("targets", nargs="+", metavar="TARGET", help="a matrix file or name, or server@version")
+    p.add_argument(
+        "targets",
+        nargs="+",
+        metavar="TARGET",
+        help="a matrix (a name in configs/matrices/ or a path), or server@version",
+    )
     p.add_argument(
         "--accept-eula",
         action="store_true",
@@ -88,7 +93,9 @@ def _configure_bots(p: argparse.ArgumentParser) -> None:
 
 def _configure_prepare_world(p: argparse.ArgumentParser) -> None:
     p.add_argument("server", metavar="SERVER@VERSION")
-    p.add_argument("--scenario", required=True, metavar="S", help="template scenario: a name or a path")
+    p.add_argument(
+        "--scenario", required=True, metavar="S", help="template scenario: a name in configs/scenarios/ or a path"
+    )
     _add_machine(p)
     p.add_argument("--variant", metavar="V")
 
@@ -102,7 +109,7 @@ def _configure_smoke(p: argparse.ArgumentParser) -> None:
 
 
 def _configure_run(p: argparse.ArgumentParser) -> None:
-    p.add_argument("matrix", metavar="MATRIX", help="matrix file or name")
+    p.add_argument("matrix", metavar="MATRIX", help="a name in configs/matrices/ or a path")
     _add_machine(p)
     p.add_argument("--repeats", type=int, metavar="N", help="override the matrix repeat count")
     p.add_argument("--order", type=_order, metavar="ORDER", help="rotate, sequential or seeded:N")
@@ -113,9 +120,9 @@ def _configure_run(p: argparse.ArgumentParser) -> None:
 
 def _configure_run_one(p: argparse.ArgumentParser) -> None:
     p.add_argument("--server", metavar="S@V", help="server@version to run (or use --matrix and --arm)")
-    p.add_argument("--matrix", metavar="MATRIX", help="matrix file or name that defines the arm")
+    p.add_argument("--matrix", metavar="MATRIX", help="matrix that defines the arm: a name or a path")
     p.add_argument("--arm", metavar="ID", help="arm id inside --matrix")
-    p.add_argument("--scenario", required=True, metavar="S", help="scenario name or path")
+    p.add_argument("--scenario", required=True, metavar="S", help="a name in configs/scenarios/ or a path")
     _add_machine(p)
     p.add_argument("--variant", metavar="V")
     p.add_argument("--repeat", type=int, default=1, metavar="K", help="repeat index (default: 1)")

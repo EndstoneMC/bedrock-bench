@@ -643,7 +643,7 @@ class DragonflyAdapter(ServerAdapter):
         return parse_positions(lines)
 
     def chaos_dialect(self) -> ChaosDialect:
-        """dfbench commands for the commands of ``scenarios/chaos-actions.toml``, with the parameters listed there."""
+        """dfbench commands for the commands of ``configs/scenarios/chaos-actions.toml``, with their parameters."""
 
         def tp(player: str, x: float, y: float, z: float) -> str:
             return self.cmd_tp(player, x, y, z)

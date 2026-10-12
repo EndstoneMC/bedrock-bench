@@ -233,7 +233,7 @@ class TestCommands:
 
     def test_chaos_catalogue(self) -> None:
         chaos = pytest.importorskip("bedrock_bench.chaos")
-        if not (ROOT / "scenarios" / "chaos-actions.toml").is_file():
+        if not (ROOT / "configs" / "scenarios" / "chaos-actions.toml").is_file():
             pytest.skip("no chaos catalogue")
         dialect = make_adapter().chaos_dialect()
         assert chaos.check_dialect(dialect) == []

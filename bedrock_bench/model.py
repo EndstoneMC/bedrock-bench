@@ -243,7 +243,7 @@ class Arm:
 
 @dataclass(frozen=True)
 class Matrix:
-    """``matrices/<name>.toml``: which arms run which scenarios, how often and in which order."""
+    """``configs/matrices/<name>.toml``: which arms run which scenarios, how often and in which order."""
 
     name: str
     path: Path
@@ -350,7 +350,7 @@ class PhaseSpec:
 
 @dataclass(frozen=True)
 class Scenario:
-    """``scenarios/<name>.toml`` after defaults and ``extends`` are resolved.
+    """``configs/scenarios/<name>.toml`` after defaults and ``extends`` are resolved.
 
     ``sha256`` is the hash of ``resolved`` in canonical JSON, so two files with the same effective content hash
     the same.

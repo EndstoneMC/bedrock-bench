@@ -52,7 +52,7 @@ UPDATE_SNAPSHOTS = os.environ.get("BBENCH_UPDATE_SNAPSHOTS") == "1"
 
 #: Protocols with a bot build: 2193 -> bots/loadbot, 1001 -> bots/legacy1001.
 BOT_PROTOCOLS = frozenset({2193, 1001})
-#: Files in scenarios/ that are not scenarios.
+#: Files in configs/scenarios/ that are not scenarios.
 NOT_SCENARIOS = frozenset({"chaos-actions"})
 FAKE_VERSION = "1.0.0"
 PLAYER = "a07"

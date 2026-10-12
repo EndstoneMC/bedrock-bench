@@ -664,23 +664,23 @@ class TestClaims:
 class TestResolve:
     def test_bare_name_resolves_in_project(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("BBENCH_ROOT", str(tmp_path))
-        (tmp_path / "scenarios").mkdir()
-        (tmp_path / "scenarios" / "smoke.toml").write_text("[server]\ncsg = false\n")
+        (tmp_path / "configs" / "scenarios").mkdir(parents=True)
+        (tmp_path / "configs" / "scenarios" / "smoke.toml").write_text("[server]\ncsg = false\n")
         assert config.project_root() == tmp_path.resolve()
-        assert config.resolve("scenarios", "smoke") == tmp_path.resolve() / "scenarios" / "smoke.toml"
+        assert config.resolve("scenarios", "smoke") == tmp_path.resolve() / "configs" / "scenarios" / "smoke.toml"
         assert config.available("scenarios") == ["smoke"]
         assert config.load_scenario("smoke").name == "smoke"
 
     def test_dotted_name_is_a_name(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("BBENCH_ROOT", str(tmp_path))
-        (tmp_path / "matrices").mkdir()
-        (tmp_path / "matrices" / "endstone-0.11.14.toml").write_text(MATRIX)
+        (tmp_path / "configs" / "matrices").mkdir(parents=True)
+        (tmp_path / "configs" / "matrices" / "endstone-0.11.14.toml").write_text(MATRIX)
         assert config.load_matrix("endstone-0.11.14").name == "endstone-0.11.14"
 
     def test_missing_lists_available(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("BBENCH_ROOT", str(tmp_path))
-        (tmp_path / "scenarios").mkdir()
-        (tmp_path / "scenarios" / "smoke.toml").write_text("")
+        (tmp_path / "configs" / "scenarios").mkdir(parents=True)
+        (tmp_path / "configs" / "scenarios" / "smoke.toml").write_text("")
         with pytest.raises(ConfigError, match=r"no such scenario \(available: smoke\)"):
             config.resolve("scenarios", "spread100")
 

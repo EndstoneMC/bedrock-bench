@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Seeded chaos: a plan made before the run and an executor that never skips for backlog (SPEC.md section 6.3).
 
-The catalogue (``scenarios/chaos-actions.toml``) declares two vocabularies:
+The catalogue (``configs/scenarios/chaos-actions.toml``) declares two vocabularies:
 
 - **commands**: the console commands a server's chaos dialect renders (:meth:`ServerAdapter.chaos_dialect`), with
   their parameter names and an example each;
@@ -66,7 +66,7 @@ log = logging.getLogger(__name__)
 
 #: Format id on the first line of ``chaos-plan.jsonl``.
 PLAN_FORMAT = "bedrock-bench/chaos-plan/1"
-#: Default catalogue (``scenarios/chaos-actions.toml``).
+#: Default catalogue (``configs/scenarios/chaos-actions.toml``).
 CATALOGUE = "chaos-actions"
 CATALOGUE_SCHEMA = 1
 
@@ -160,7 +160,7 @@ class Catalogue:
 
 
 def load_catalogue(ref: str | Path = CATALOGUE) -> Catalogue:
-    """Load ``scenarios/<ref>.toml`` (or a path)."""
+    """Load ``configs/scenarios/<ref>.toml`` (or a path)."""
     path = config.resolve("scenarios", ref)
     return parse_catalogue(config.load_toml(path), name=path.stem, file=path)
 

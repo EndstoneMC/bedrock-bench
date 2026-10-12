@@ -3,8 +3,8 @@
 
 ``FakeBench.create(tmp_path)`` lays out a small project mirror and an environment for ``bbench`` subprocesses:
 
-- ``features/`` and ``scenarios/`` copies, so names resolve the same way as in a checkout; ``BBENCH_ROOT`` points
-  at the workspace and ``BBENCH_CACHE`` into it;
+- ``features/`` and ``configs/scenarios/`` copies, so names resolve the same way as in a checkout; ``BBENCH_ROOT``
+  points at the workspace and ``BBENCH_CACHE`` into it;
 - a ``.dist-info`` folder that registers ``fakes.fake_adapter`` under the ``bedrock_bench.adapters`` entry point
   group, with ``tests/`` and that folder on ``PYTHONPATH``;
 - ``BBENCH_BOT_CMD``, the JSON argv that replaces the loadbot binary with ``fake_bots.py``;
@@ -284,9 +284,9 @@ class FakeBench:
         (root / "features").mkdir(exist_ok=True)
         for adapter in FAKE_ADAPTERS:
             shutil.copyfile(FEATURES_DIR / f"{adapter.name}.toml", root / "features" / f"{adapter.name}.toml")
-        (root / "scenarios").mkdir(exist_ok=True)
+        (root / "configs" / "scenarios").mkdir(parents=True, exist_ok=True)
         for scenario in FAKE_SCENARIOS.glob("*.toml"):
-            shutil.copyfile(scenario, root / "scenarios" / scenario.name)
+            shutil.copyfile(scenario, root / "configs" / "scenarios" / scenario.name)
         entry_points = register_entry_point(root / "entry-points")
 
         cpus = host_cpus()
@@ -318,8 +318,8 @@ class FakeBench:
     # ---- inputs ----------------------------------------------------------------------------------------------------
 
     def scenario(self, name: str = "fake-quick", **tables: Mapping[str, Any]) -> Path:
-        """``scenarios/<name>.toml``; with ``tables`` a new scenario that extends ``fake-quick`` with them."""
-        path = self.root / "scenarios" / f"{name}.toml"
+        """``configs/scenarios/<name>.toml``; with ``tables`` a new scenario that extends ``fake-quick`` with them."""
+        path = self.root / "configs" / "scenarios" / f"{name}.toml"
         if tables:
             path.write_text(toml_dumps({"extends": "fake-quick", **tables}), encoding="utf-8", newline="\n")
         assert path.is_file(), f"no scenario {name}"
@@ -361,7 +361,7 @@ class FakeBench:
         repeats: int = 1,
         order: str = "rotate",
     ) -> Path:
-        """``matrices/<name>.toml`` with no cooldown and no reruns.
+        """``configs/matrices/<name>.toml`` with no cooldown and no reruns.
 
         An arm is a server tag (``fake_bds`` gets ``@1.0.0``) or an ``[[arm]]`` table whose ``server`` is one.
         """
@@ -376,8 +376,8 @@ class FakeBench:
             },
             "arm": [_arm_table(arm) for arm in arms],
         }
-        path = self.root / "matrices" / f"{name}.toml"
-        path.parent.mkdir(exist_ok=True)
+        path = self.root / "configs" / "matrices" / f"{name}.toml"
+        path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(toml_dumps(data), encoding="utf-8", newline="\n")
         return path
 

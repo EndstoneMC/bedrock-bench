@@ -5,8 +5,8 @@ Every loader rejects unknown keys, so a typo fails loudly instead of falling bac
 :class:`ConfigError` naming the file and the dotted key; the CLI turns them into exit code 2.
 
 Scenarios, matrices, artifact pins and feature files are referenced by path or by bare name. A bare name resolves
-inside the project checkout, for example ``spread100`` -> ``scenarios/spread100.toml``. Machine profiles and claims
-files are always paths.
+inside the project checkout, for example ``spread100`` -> ``configs/scenarios/spread100.toml``. Machine profiles
+and claims files are always paths.
 """
 
 from __future__ import annotations
@@ -64,8 +64,13 @@ ENV_ROOT = "BBENCH_ROOT"
 #: JSON schemas of the result files, shipped as package data.
 SCHEMA_DIR = Path(__file__).resolve().parent / "schemas"
 
-#: Config directories at the project root, one per input kind that resolves by name.
-CONFIG_KINDS = ("scenarios", "matrices", "artifacts", "features")
+#: Where each input kind that resolves by name lives, relative to the project root.
+CONFIG_DIRS = {
+    "scenarios": "configs/scenarios",
+    "matrices": "configs/matrices",
+    "artifacts": "artifacts",
+    "features": "features",
+}
 _SINGULAR = {
     "scenarios": "scenario",
     "matrices": "matrix",
@@ -113,7 +118,7 @@ class ConfigError(ValueError):
 
 
 def project_root() -> Path:
-    """The checkout that holds ``scenarios/``, ``matrices/``, ``servers/`` and friends.
+    """The checkout that holds ``configs/`` and the other harness inputs.
 
     ``$BBENCH_ROOT`` wins; otherwise the checkout this package was imported from; otherwise the working directory.
     """
@@ -121,18 +126,18 @@ def project_root() -> Path:
     if override:
         return Path(override).expanduser().resolve()
     candidate = Path(__file__).resolve().parents[1]
-    if (candidate / "pyproject.toml").is_file() and (candidate / "scenarios").is_dir():
+    if (candidate / "pyproject.toml").is_file() and (candidate / "configs").is_dir():
         return candidate
     return Path.cwd()
 
 
 def resolve(kind: str, ref: str | Path) -> Path:
     """Resolve a config reference: a path (anything with a directory part or a ``.toml`` suffix) or a bare name."""
-    if kind not in CONFIG_KINDS:
+    if kind not in CONFIG_DIRS:
         raise ValueError(f"unknown config kind {kind!r}")
     path = Path(ref)
     if path.suffix != ".toml" and len(path.parts) == 1:
-        path = project_root() / kind / f"{ref}.toml"
+        path = project_root() / CONFIG_DIRS[kind] / f"{ref}.toml"
     if not path.is_file():
         names = available(kind)
         hint = f" (available: {', '.join(names)})" if names else ""
@@ -142,7 +147,7 @@ def resolve(kind: str, ref: str | Path) -> Path:
 
 def available(kind: str) -> list[str]:
     """Names of the inputs of one kind in the project checkout."""
-    folder = project_root() / kind
+    folder = project_root() / CONFIG_DIRS[kind]
     return sorted(p.stem for p in folder.glob("*.toml")) if folder.is_dir() else []
 
 
@@ -548,7 +553,7 @@ PHASE_DEFS: Mapping[str, _PhaseDef] = {
 
 
 def load_scenario(ref: str | Path) -> Scenario:
-    """Load ``scenarios/<ref>.toml`` (or a path), resolving ``extends`` and defaults."""
+    """Load ``configs/scenarios/<ref>.toml`` (or a path), resolving ``extends`` and defaults."""
     path = resolve("scenarios", ref)
     data = _load_scenario_tree(path, ())
     return parse_scenario(data, name=path.stem, file=path)

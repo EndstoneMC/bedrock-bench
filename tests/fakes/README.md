@@ -97,8 +97,8 @@ assert run.exit_code == 4
 
 - `PYTHONPATH` gets `tests/` and a throwaway `.dist-info` folder. The folder registers `fakes.fake_adapter` under the
   `bedrock_bench.adapters` entry point group, the way a third-party adapter package registers.
-- `BBENCH_ROOT` points at the workspace, which holds copies of `features/` and `scenarios/` plus the generated
-  machine profiles and `matrices/`.
+- `BBENCH_ROOT` points at the workspace, which holds copies of `features/` and `configs/scenarios/` plus the
+  generated machine profiles and `configs/matrices/`.
 - `BBENCH_CACHE` points into the workspace.
 - `BBENCH_BOT_CMD` is a JSON array, the argv prefix that runs `fake_bots.py` in place of the loadbot binary.
 

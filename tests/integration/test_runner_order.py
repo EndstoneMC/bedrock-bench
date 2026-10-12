@@ -133,7 +133,7 @@ def test_runner_refuses_mixed_placement(matrix_run: tuple[FakeBench, subprocess.
         pytest.skip("needs two CPUs to swap the server and bot sets")
     other = bench.machine("swapped", server_cpus=bench.bot_cpus, bot_cpus=bench.server_cpus)
     before = bench.run_dirs()
-    matrix = bench.root / "matrices" / f"{MATRIX}.toml"
+    matrix = bench.root / "configs" / "matrices" / f"{MATRIX}.toml"
     result = bench.bbench("run", matrix, "--machine", other, "--out", bench.out, "--repeats", "3")
     refused = (ExitCode.USAGE, ExitCode.ENV_GATE)
     assert result.returncode in refused, "adding runs on another placement to a matrix directory is refused"

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Seeded stress for BDS-hosted servers (docs/WORKLOADS.md): spread100, then 15 minutes of every action in
-# scenarios/chaos-actions.toml, random tick speed cycling included. A robustness check; never ranked.
+# configs/scenarios/chaos-actions.toml, random tick speed cycling included. A robustness check; never ranked.
 name = "chaos"
 description = "spread100 followed by 15 minutes of seeded chaos with the full action set; never ranked"
 extends = "spread100"
