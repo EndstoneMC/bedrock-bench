@@ -140,8 +140,8 @@ The machine profile (`machines/*.toml`) names three CPU sets and a priority:
   `cpu_core` sysfs). Otherwise an explicit list such as `0-15`.
 - **Bot CPUs.** `auto` takes the rest. At least 4 logical CPUs, or `doctor` refuses.
 - **Harness CPUs.** By default the bot set.
-- **Priority.** `normal` by default; the Endstone 0.11.14 reproduction matrix uses `above_normal` to match the legacy
-  runs. Every arm of a matrix gets the same priority.
+- **Priority.** `normal` by default; the `endstone-0.11.14` and `endstone-0.11.14-csg` matrices use `above_normal` to
+  match the legacy runs. Every arm of a matrix gets the same priority.
 
 On Windows the server starts suspended, gets its affinity and priority, and only then resumes, so thread pools sized
 at startup (JVM, BDS) see the restricted set. On Linux affinity is set before `exec`. In Docker the container gets

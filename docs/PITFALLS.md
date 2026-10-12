@@ -1,6 +1,6 @@
 # Pitfalls
 
-Every trap below was hit at least once while building the benchmark behind Endstone 0.11.14's published figures, or
+Every trap below was hit at least once while building the benchmark behind Endstone's published 0.11.14 figures, or
 was found while reviewing that work. Each entry says what went wrong and what the harness does about it now.
 
 Status: **H** handled by design, **G** guarded by a validity gate (a run that hits it is invalid or failed),
@@ -151,9 +151,9 @@ Status: **H** handled by design, **G** guarded by a validity gate (a run that hi
   every bot got the same UUID and kicked the previous one. Those adapters add the allowlisted `-fake-xuid` flag. *H*
 - **Nukkit kicks hovering bots.** Nukkit kicks players that fly when flight is off. Its adapter enables `allow-flight`.
   *H*
-- **PocketMine-MP speaks an older protocol.** PocketMine-MP 5.44 supports protocol 1001 only, and its login needs fields
-  that the matching library version did not send. A separate frontend built from the same core behaviour handles it,
-  with the login back-port as a documented patch; such runs are flagged `bot_protocol_differs`. *H*
+- **PocketMine-MP speaks an older protocol.** `pocketmine@5.44.3` supports protocol 1001 only, and its login needs
+  fields that the matching library version did not send. A separate frontend built from the same core behaviour handles
+  it, with the login back-port as a documented patch; such runs are flagged `bot_protocol_differs`. *H*
 - **Hovering bots on servers without physics.** On servers without player physics the bots stay at the teleport height.
   The y distribution is reported so this is visible. *D, H*
 - **Mangled text in pipes.** The section sign `§` and other non-ASCII text broke when passed through console pipes in
@@ -163,9 +163,9 @@ Status: **H** handled by design, **G** guarded by a validity gate (a run that hi
 
 - **Client-side chunk generation.** With it, BDS sends about 100 chunks per player at view distance 10; without it,
   about 450, a 4.4-fold difference in chunk work. BDS does not use it on flat, legacy or void worlds even when the
-  property is on, and older Endstone launchers turned it off. `spread100` compares only servers that support it;
-  `spread100-equal` turns it off everywhere for cross-server tables; the `csg_matches` gate checks the effective
-  setting. *H, G*
+  property is on, and older Endstone launchers turned it off. Every ranking scenario turns it off on every server,
+  Endstone included; `spread100-csg` keeps it on only to reproduce the legacy figures; the `csg_matches` gate checks
+  the effective setting. *H, G*
 - **World generation differs.** Each server family generates different terrain from the same seed, or none at all. The
   world type is recorded, `spread100-pregen` separates delivery from generation, and the parity rows show the
   generator. *H, D*
@@ -174,7 +174,7 @@ Status: **H** handled by design, **G** guarded by a validity gate (a run that hi
   are built per server by its own pipeline (a bot tour by default) and validated by per-cell coverage. *H, G*
 - **Nukkit's watchdog.** With default settings Nukkit took about 2 minutes per spawn under 100 joining bots, and its
   first autosave stalled the main thread long enough for the watchdog to shut the server down. That is a
-  `server_failed` outcome; a `no-watchdog` variant is a `rescue` override with a footnote. *H, D*
+  `server_failed` outcome; the `nukkit@b3caad6+no-watchdog` variant is a `rescue` override with a footnote. *H, D*
 - **PocketMine-MP's memory limit.** The default 1 GiB main-thread memory limit crashed PocketMine-MP about 23 s into a
   100-bot join. Setting the limits to 0 is a `rescue` override with a footnote. Crash upload and the updater are
   turned off. *H, D*
@@ -206,18 +206,18 @@ Status: **H** handled by design, **G** guarded by a validity gate (a run that hi
     from vanilla BDS on Windows. *D*
 - **Allocators.** Endstone preloads mimalloc on Linux and LeviLamina replaces the allocator on Windows; both trade
   memory for speed. The allocator is recorded as a fact, and variants can switch it where the server allows. *H, D*
-- **LeviLamina's BDS build.** LeviLamina pins BDS 1.26.51.1, not the build vanilla runs on elsewhere. It is compared
-  with vanilla BDS 1.26.51.1. *H*
+- **LeviLamina's BDS build.** `levilamina@26.51.6` runs on `bds@1.26.51.1`, not the build vanilla runs on elsewhere.
+  It is compared with `bds@1.26.51.1`. *H*
 - **LeviOptimize rewrites its config.** It merges its config on upgrade and saves it on shutdown, so a second run would
   inherit changes. The pinned config is copied into every run. *H*
 - **LeviLamina's extra threads.** It adds about 28 threads. They are grouped in the diagnostic thread table. *H*
 - **LeviOptimize options that change gameplay.** Enabling all LeviOptimize options changes simulation. That variant
-  (`lo-all`) is `nonvanilla` with fidelity V2. *H*
-- **Endstone 0.11.13's DevTools thread.** A DevTools thread spins at about 0.7 of a core in Endstone 0.11.13 (fixed in
-  0.11.14). It is footnoted as a `known_issue`; its CPU is not subtracted. *D*
+  (`levilamina@26.51.6+levioptimize-all`) is `nonvanilla` with fidelity V2. *H*
+- **`endstone@0.11.13`'s DevTools thread.** A DevTools thread spins at about 0.7 of a core in `endstone@0.11.13` (fixed
+  in `endstone@0.11.14`). It is footnoted as a `known_issue`; its CPU is not subtracted. *D*
 - **Which build is running.** The legacy Windows runs swapped Endstone's runtime library into a PyPI install of
-  0.11.13, so every arm printed the same version banner. Endstone is installed as a whole wheel from PyPI per version,
-  and the banner must match the arm. *H, G*
+  `endstone@0.11.13`, so every arm printed the same version banner. Endstone is installed as a whole wheel from PyPI
+  per version, and the banner must match the arm. *H, G*
 - **Error counts that mean different things.** A broad "ERR" pattern counted harmless lines; BDS prints a multi-line
   `TRANSPORT TYPE ERROR` banner at every start; LeviLamina uses three-letter levels; the Endstone launcher logs its own
   crash handling as errors. Each adapter maps its levels and lists benign lines, and error counts are never compared

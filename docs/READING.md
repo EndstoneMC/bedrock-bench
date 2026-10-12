@@ -41,9 +41,9 @@ a counter can observe the feature, the report prints the observed value next to 
 
 Every server receives the same bots doing the same things, but servers respond differently:
 
-- **Chunks.** BDS with client-side chunk generation sends about 100 chunks per player at view distance 10; servers
-  without it send the full disc of about 450. `spread100` compares only BDS-hosted servers for this reason, and
-  `spread100-equal` turns client-side generation off everywhere for cross-server tables.
+- **Chunks.** BDS with client-side chunk generation sends about 100 chunks per player at view distance 10; without it,
+  the full disc of about 450. Every ranking scenario turns it off on every server, Endstone included. `spread100-csg`
+  keeps it on only to reproduce the legacy figures and never appears in a cross-server table.
 - **Movement.** Servers that validate movement send corrections, servers with physics make the bots fall to the
   ground, servers without either leave the bots hovering at the teleport height (visible in the y distribution).
 - **Other traffic.** Actor moves, block updates and locator-bar packets per player per second.
@@ -106,20 +106,23 @@ packet). Invalid runs are rerun once and are not results about the server.
 
 ## Worked example
 
-The legacy Endstone 0.11.14 comparison (Windows, 100 spread players, one run each) read like this:
+The legacy comparison in Endstone's BENCHMARK.md for 0.11.14 (Windows, 100 spread players, one run each) read like
+this:
 
-| | Vanilla BDS 1.26.52 | Endstone 0.11.13 | Endstone 0.11.14 |
+| | `bds@1.26.52.3` | `endstone@0.11.13` | `endstone@0.11.14` |
 |---|--:|--:|--:|
 | Steady TPS | 9.40 | 11.28 | 20.0 |
 | Tick-thread CPU per tick | 105 ms | 89 ms | 43 ms |
 
 How to read it with the rules above:
 
-- Vanilla and 0.11.13 are saturated: TPS is below 20 and the tick thread is busy almost all the time, so their
-  per-tick figures are close to the real time per tick, 1.8 to 2.1 times the 50 ms budget. 0.11.14 holds 20 TPS with
-  43 ms of tick-thread CPU per tick, so it is not saturated but has only about 14% headroom left at this load.
+- `bds@1.26.52.3` and `endstone@0.11.13` are saturated: TPS is below 20 and the tick thread is busy almost all the
+  time, so their per-tick figures are close to the real time per tick, 1.8 to 2.1 times the 50 ms budget.
+  `endstone@0.11.14` holds 20 TPS with 43 ms of tick-thread CPU per tick, so it is not saturated but has only about
+  14% headroom left at this load.
 - All three run the same BDS build with client-side generation on and are vanilla on every exercised feature, so the
-  comparison is within one fidelity section.
+  comparison is within one fidelity section. That workload is `spread100-csg`; the `spread100` headline turns
+  client-side generation off and will not match these figures.
 - Each figure is a single run, so none of the differences meet the separation rule. The new harness repeats each arm at
   least 3 times. [REPRODUCING-endstone-0.11.14.md](REPRODUCING-endstone-0.11.14.md) explains how to check these
   figures, and [PROVENANCE.md](../published/legacy-0.11.14/PROVENANCE.md) where each came from.

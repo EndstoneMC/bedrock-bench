@@ -11,10 +11,10 @@ Results come with what the server actually did: its declared feature parity with
 defaults with a reason, and observed work counters such as movement corrections and chunks sent per player. There is
 no composite score.
 
-> **Status:** v0.1 is under construction. `legacy/` holds the scripts behind Endstone 0.11.14's
-> [BENCHMARK.md](https://github.com/EndstoneMC/endstone/blob/main/BENCHMARK.md) and is removed once the new harness
-> replaces it. [`published/legacy-0.11.14/PROVENANCE.md`](published/legacy-0.11.14/PROVENANCE.md) traces each
-> published figure back to its run.
+> **Status:** v0.1 is under construction. `legacy/` holds the scripts behind Endstone's
+> [BENCHMARK.md](https://github.com/EndstoneMC/endstone/blob/main/BENCHMARK.md) for 0.11.14 and is removed once the
+> new harness replaces it. [`published/legacy-0.11.14/PROVENANCE.md`](published/legacy-0.11.14/PROVENANCE.md) traces
+> each published figure back to its run.
 
 ## What it measures
 
@@ -102,7 +102,7 @@ Read [docs/READING.md](docs/READING.md) before comparing servers. In short:
 | [PLATFORMS](docs/PLATFORMS.md) | Windows, Linux, Docker, hybrid CPUs, WSL2 |
 | [RESULTS_SCHEMA](docs/RESULTS_SCHEMA.md) | run directory, file formats, schemas, versioning |
 | [PROFILING](docs/PROFILING.md) | profiling outside measured runs |
-| [REPRODUCING-endstone-0.11.14](docs/REPRODUCING-endstone-0.11.14.md) | checking the published Endstone 0.11.14 figures |
+| [REPRODUCING-endstone-0.11.14](docs/REPRODUCING-endstone-0.11.14.md) | checking the figures in Endstone's BENCHMARK.md for 0.11.14 |
 | [ADDING_A_SERVER](docs/ADDING_A_SERVER.md) | adapter walkthrough and checklist |
 | [adr/](docs/adr/) | design decisions |
 | [bots/README](bots/README.md) | bot flags, events, build, patch policy |

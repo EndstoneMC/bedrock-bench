@@ -31,7 +31,7 @@ runs/<matrix>/
 ```
 
 The run id is `<UTC yyyymmddThhmmssZ>-<arm>-<scenario>-r<repeat>-<4 hex>`, for example
-`20261012T135800Z-endstone-0.11.14-spread100-r1-3fa2`. Existing run directories are never overwritten or deleted.
+`20261012T135800Z-endstone@0.11.14-spread100-r1-3fa2`. Existing run directories are never overwritten or deleted.
 
 ## Time
 
@@ -66,7 +66,7 @@ Memory is in MiB (2^20 bytes). Reports convert to GiB by dividing by 1024.
 | `official`, `nonstandard` | whether the run used only released artifacts and standard settings, and what was not |
 | `harness` | harness version, git describe, dirty flag, Python version, backend (`native-windows`, `native-linux`, `docker-linux`) |
 | `matrix` | matrix name, repeat, position in the run order, order mode |
-| `arm` | id, server, version, variant, hosted BDS version, Python version, local artifact |
+| `arm` | id (`<server>@<version>`, plus `+<variant>`), server, version, variant, hosted BDS version, Python version, local artifact |
 | `artifacts` | every downloaded file: name, url, sha256, size, source (`mojang`, `pypi`, `github`, ...) |
 | `install` | hash of the installed tree; for BDS-hosted servers the executable's sha256 before and after the run |
 | `server` | pid, launcher pids, banner version, facts (allocator, JVM heap, thread census at idle, effective client-side generation setting) |
@@ -101,7 +101,7 @@ before writing and a test checks it. Raw logs are the server's own output; check
   "schema": "bedrock-bench/metrics/1",
   "schema_minor": 0,
   "analysis_version": 1,
-  "run_id": "20261012T135800Z-endstone-0.11.14-spread100-r1-3fa2",
+  "run_id": "20261012T135800Z-endstone@0.11.14-spread100-r1-3fa2",
   "status": "ok",
   "status_reasons": [],
   "flags": [],

@@ -8,6 +8,7 @@ accepted; a later record supersedes an earlier one and says so.
 | [0001](0001-one-bot-source.md) | One bot source for every server | accepted |
 | [0002](0002-no-composite-score.md) | No composite score | accepted |
 | [0003](0003-tick-cpu-is-not-mspt.md) | Tick-thread CPU per tick is not MSPT | accepted |
-| [0004](0004-legacy-faithful-headline.md) | Keep the legacy workload for the headline scenario | accepted |
+| [0004](0004-legacy-faithful-headline.md) | Keep the legacy workload for the headline scenario | superseded by [0005](0005-csg-off-headline.md) |
+| [0005](0005-csg-off-headline.md) | Client-side generation off in every ranking scenario | accepted |
 
 New records use the next number and the same sections: status and date, context, decision, consequences.

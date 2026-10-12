@@ -1,6 +1,6 @@
 # 0004. Keep the legacy workload for the headline scenario
 
-- Status: accepted
+- Status: superseded by [0005](0005-csg-off-headline.md)
 - Date: 2026-10-12
 
 ## Context

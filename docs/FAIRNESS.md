@@ -20,9 +20,8 @@ configured to match the scenario, and how config changes are categorised.
 6. **One bot.** One source and one flag set for every server; compatibility flags come from an allowlist; the bot build
    and protocol are recorded, and the PocketMine-MP protocol 1001 build is flagged `bot_protocol_differs`
    ([ADR 0001](adr/0001-one-bot-source.md)).
-7. **Equal chunk work for cross-server tables.** `spread100-equal` (client-side generation off) is the only scenario
-   that ranks servers of different families. `spread100` compares only BDS-hosted servers, which all support
-   client-side generation. `report --publish` refuses a cross-server table without the equal-chunk scenario.
+7. **Equal chunk work.** Every ranking scenario runs client-side generation off, Endstone included. `spread100-csg`
+   only reproduces the legacy figures of BDS-hosted servers; `report --publish` refuses a cross-server table from it.
 8. **World mode never mixed in one table.** Fresh worlds and templates go in separate tables. Templates are built by
    each server's own pipeline and validated at 99% per-cell coverage; they are never shared between servers.
 9. **Every config change is categorised** (below). `rescue` footnotes state the default-config outcome, for example
@@ -36,11 +35,11 @@ configured to match the scenario, and how config changes are categorised.
     hit. Each adapter raises them (PocketMine-MP helper plugin, Nukkit helper, PowerNukkitX `packetLimit`) and records
     the change as a `harness` override. LeviLamina's IP frequency limit stays at its default. `dropped == 0` is checked.
 13. **Same-build baselines.** A BDS-hosted server is shown with its ratio to vanilla BDS of the exact build it hosts
-    (LeviLamina 26.51.x against BDS 1.26.51.1, Endstone 0.11.14 against BDS 1.26.52.3). Otherwise the arm is flagged
-    `different_bds_build`.
+    (`levilamina@26.51.6` against `bds@1.26.51.1`, `endstone@0.11.14` against `bds@1.26.52.3`). Otherwise the arm is
+    flagged `different_bds_build`.
 14. **Confounders are disclosed, not hidden.** Allocator (Endstone uses mimalloc on Linux, LeviLamina on Windows), JVM
     heap, known server bugs that change the work (see [PITFALLS.md](PITFALLS.md#server-and-config-parity)), and known
-    issues such as the DevTools thread that spins in Endstone 0.11.13 (`known_issue`). They appear as facts and
+    issues such as the DevTools thread that spins in `endstone@0.11.13` (`known_issue`). They appear as facts and
     footnotes; nothing is subtracted.
 15. **Chaos is never ranked.** It is shown at normal tick speed only, with delivered and unsupported action counts.
 
@@ -61,7 +60,7 @@ config. The exact keys, defaults and reasons are in each server's page under [se
 | Max players | 200 | `max-players` | `max-players` | `max-players` | `maxPlayers` | `Players.MaxCount` |
 | Autosave | every 6000 ticks | server default | `ticks-per.autosave` | `ticks-per.autosave` | `autosaveDelay` | n/a |
 | Player data saved | yes | server default | `player.save-player-data` | `save-player-data` | `savePlayerData` | `Players.SaveData`, `World.SaveData` |
-| Client-side generation | on in `spread100`, off in `spread100-equal` | `client-side-chunk-generation-enabled` | not supported | not supported | not supported | not supported |
+| Client-side generation | off (on in `spread100-csg`) | `client-side-chunk-generation-enabled` | not supported | not supported | not supported | not supported |
 | Fixed tick rate | yes | n/a | n/a | `auto-tick-rate: false` | `autoTickRate: false` | n/a |
 | Worlds loaded | one | one | one | one | `loadAllLevels: false` | one |
 | Heap | machine profile | n/a | n/a | `-Xms` = `-Xmx` | `-Xms` = `-Xmx` | n/a |
@@ -83,14 +82,15 @@ default, value, reason)` in `run.json`.
 | `nonvanilla` | Changes gameplay to save work | LeviOptimize options that alter simulation | yes |
 
 Variants select alternative override sets for one server (for example a `stock` variant without a rescue override, or
-LeviLamina's `lo-all`). A variant is part of the arm id and appears in every table.
+LeviLamina's `levioptimize-all`). A variant is appended to the arm id with `+`, as in
+`levilamina@26.51.6+levioptimize-all`, and appears in every table.
 
 ## Equal-work rules
 
-- `spread100` (client-side generation on where supported) is the headline for comparing BDS-hosted servers against
-  vanilla BDS. They all run the same BDS build and receive the same chunk requests.
-- `spread100-equal` (client-side generation off in the server config and the bot) is the cross-server headline. Every
-  server builds and sends the full disc, 317 columns at view distance 10.
+- `spread100` (client-side generation off in the server config and the bot) is the headline for every server,
+  Endstone included. Every server builds and sends the full disc, 317 columns at view distance 10.
+- `spread100-csg` (client-side generation on where supported) only reproduces the legacy figures of BDS-hosted servers
+  in Endstone's BENCHMARK.md. It never appears in a cross-server table.
 - `spread100-pregen` separates chunk delivery from generation. Each server loads a template built by its own pipeline;
   template hashes are recorded.
 - `csg_effective` (median chunks per player below half the disc) is checked against the scenario. A mismatch makes the

@@ -62,8 +62,8 @@ classes it found.
   so server trees stay under the limit. Keep the cache root short; set `BBENCH_CACHE` to something like `C:\bb` if your
   profile path is long. Enabling long paths in Windows does not help every program a server runs.
 - **Console.** Commands are written with LF line endings and UTF-8 encoding.
-- **Priority.** `above_normal` is available for matrices that need it (the Endstone 0.11.14 reproduction). The default
-  is `normal`, the same for every arm.
+- **Priority.** `above_normal` is available for matrices that need it (`endstone-0.11.14` and `endstone-0.11.14-csg`).
+  The default is `normal`, the same for every arm.
 
 ## Linux
 

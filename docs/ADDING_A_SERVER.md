@@ -210,7 +210,7 @@ Notes on each part:
 - **`facts()`** reports what the run should record about the process: allocator, JVM flags, the effective
   client-side generation setting.
 - **Variants** (`variants = {"stock": "default memory limits"}`) select alternative override sets. An arm may only use a
-  declared variant.
+  declared variant, and its id is the tag plus the variant: `chorus@1.4.2+stock`.
 
 ### Rules for config changes
 

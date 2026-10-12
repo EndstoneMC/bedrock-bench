@@ -20,8 +20,12 @@ Besides the harness version, entries name the versions that decide whether two r
   `validate` and `docs`.
 - Adapters for vanilla BDS, Endstone (from PyPI), LeviLamina, PocketMine-MP, Nukkit, PowerNukkitX and Dragonfly.
 - Go load bot built from one source for every server, with a protocol 1001 build for PocketMine-MP.
-- Scenarios `smoke`, `spread100`, `spread100-equal`, `spread100-pregen`, `chaos` and `chaos-portable`.
-- Matrices for the Endstone 0.11.14 comparison, the cross-server comparison and LeviLamina 26.51.
+- Server builds written as tags, `<server>@<version>` with `+<variant>` for a variant, in matrices, on the command line,
+  in run ids and in reports.
+- Scenarios `smoke`, `spread100`, `spread100-csg`, `spread100-pregen`, `chaos` and `chaos-portable`. `spread100` runs
+  every server with client-side generation off, Endstone included.
+- Matrices `endstone-0.11.14` and `endstone-0.11.14-csg` (`bds@1.26.52.3`, `endstone@0.11.13`, `endstone@0.11.14`),
+  `cross-server` and `levilamina-26.51`.
 - Metrics for tick rate, dip depth, recovery, tick-thread CPU per tick, process cores, memory, view-load latency and
   work counters, documented in `docs/METRICS.md`.
 - Declared feature parity per server with evidence, shown next to every cost table.
@@ -29,8 +33,8 @@ Besides the harness version, entries name the versions that decide whether two r
 - Result schemas `bedrock-bench/run/1`, `bedrock-bench/metrics/1` and `bedrock-bench/bot/1`; analysis version 1.
 - Docker runtime for Linux servers, with the bots in the server's network namespace.
 - Documentation: methodology, reading guide, fairness controls, workloads, pitfalls, platforms, results schema,
-  profiling, reproduction guide for Endstone 0.11.14, and a guide to adding a server.
-- Provenance of every figure in Endstone 0.11.14's BENCHMARK.md, with the legacy result summaries archived under
+  profiling, reproduction guide for Endstone's 0.11.14 figures, and a guide to adding a server.
+- Provenance of every figure in Endstone's BENCHMARK.md for 0.11.14, with the legacy result summaries archived under
   `published/legacy-0.11.14/`.
 
 [Unreleased]: https://github.com/EndstoneMC/bedrock-bench/commits/main

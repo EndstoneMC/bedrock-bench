@@ -67,8 +67,8 @@ A decode error in the bot makes the run invalid; it means the bot did not see ev
 | Scenario | Purpose | Differences |
 |---|---|---|
 | `smoke` | Check an adapter end to end | 4 bots, view distance 4, settle 30-60 s, steady 20 s. Every dialect command is sent once and must not error; decode errors must be 0; the probe must advance at idle; movement corrections must appear where the feature file declares movement validation. |
-| `spread100` | Endstone vs vanilla headline: identical work among BDS-hosted servers | Client-side generation on where the server supports it; the bots announce support for it. |
-| `spread100-equal` | Cross-server headline | Client-side generation off in the server config and the bot. Every server builds and sends the full disc, 317 columns at view distance 10. |
+| `spread100` | Headline for every server, Endstone included | Client-side generation off in the server config and the bot. Every server builds and sends the full disc, 317 columns at view distance 10. |
+| `spread100-csg` | Reproduces the legacy figures in Endstone's BENCHMARK.md; BDS-hosted servers only, never in a cross-server table | Client-side generation on where the server supports it; the bots announce support for it (`-csg`). |
 | `spread100-pregen` | Delivery without generation | Each server loads a world template built by its own pipeline (`bbench prepare-world`), validated at 99% per-cell coverage. Client-side generation off. |
 | `chaos-portable` | Robustness across servers, never ranked | After spread, 15 minutes of actions every adapter supports, at normal tick speed. |
 | `chaos` | Full stress for BDS-family servers | Adds the actions only BDS-family servers support, including random tick speed cycling. |
@@ -79,12 +79,12 @@ Every scenario lists the features whose parity rows the report must show (`exerc
 match for efficiency metrics to be comparable (`requires`). For `spread100`:
 
 ```
-terrain.vanilla_generator, chunks.client_side_generation, chunks.subchunk_requests,
-player.server_authoritative_movement, player.physics, player.locator_bar, world.autosave
+terrain.vanilla_generator, chunks.subchunk_requests, player.server_authoritative_movement, player.physics,
+player.locator_bar, world.autosave
 ```
 
-`spread100-equal` and `spread100-pregen` do not exercise client-side generation. The scenario files are authoritative;
-`run.json` records the fully resolved scenario (`scenario.resolved`).
+`spread100-csg` adds `chunks.client_side_generation`. The scenario files are authoritative; `run.json` records the
+fully resolved scenario (`scenario.resolved`).
 
 ### World templates
 

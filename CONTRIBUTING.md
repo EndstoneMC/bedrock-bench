@@ -93,7 +93,8 @@ Follow [docs/ADDING_A_SERVER.md](docs/ADDING_A_SERVER.md). The pull request need
 Results under `published/` are read by people deciding which server to run. A publication must satisfy all of these:
 
 - Made with `bbench report --publish`, which enforces at least 3 `ok` runs per cell (or a cell that is all failures),
-  released artifacts only (no `artifact = "<path>"` overrides), and the equal-chunk scenario for any cross-server table.
+  released artifacts only (no `artifact = "<path>"` overrides), and no client-side generation scenario
+  (`spread100-csg`) in a cross-server table.
 - A clean harness checkout (`run.json` records `harness.dirty = false`) at a tagged or recorded commit.
 - One machine profile per table. The report refuses mixed `machine.profile_sha256`.
 - Parity rows and work counters next to every cost table, as the report lays them out. Do not crop them away when
