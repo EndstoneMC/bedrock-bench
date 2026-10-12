@@ -12,12 +12,12 @@ from typing import Any
 
 import pytest
 
-from bedrock_bench import adapters, bots, config, fetch
+from bedrock_bench import adapters, bots, config, fetch, templates
 from bedrock_bench.adapters import dragonfly
 from bedrock_bench.adapters.dragonfly import DRAGONFLY_DIALECT, DragonflyAdapter
 from bedrock_bench.cache import Cache
 from bedrock_bench.config import ConfigError
-from bedrock_bench.model import Arm, Install, LogLine, Machine, OverrideCategory, Placement, RunContext
+from bedrock_bench.model import Arm, ConfigFile, Install, KeyChange, LogLine, Machine, Placement, RunContext
 from workloads import WORKLOAD, with_overrides
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -194,91 +194,43 @@ class TestCommands:
 # --------------------------------------------------------------------------------------------------------------------
 
 
-class TestSettings:
-    def test_overrides_and_types(self, tmp_path: Path) -> None:
-        settings = dragonfly.load_settings(ROOT / dragonfly.SETTINGS_FILE)
-        values, overrides = dragonfly.render_settings(
-            settings, tomllib.loads(DEFAULTS), dragonfly.settings_context(make_ctx(tmp_path))
-        )
-        assert values["Network.Address"] == "127.0.0.1:19672"
-        assert values["Server.AuthEnabled"] is False
-        assert values["Players.MaximumChunkRadius"] == 10
-        assert values["Players.MaxCount"] == 200
-        assert values["Bench.TickRange"] == 4
-        assert values["Bench.Difficulty"] == "easy"
-        assert values["Bench.GameMode"] == "survival"
-        assert values["Bench.SaveIntervalSeconds"] == 300
-        assert values["Bench.IdleTicking"] is True
-        assert values["World.Folder"] == "bench"
-        by_key = {o.key: o for o in overrides}
-        harness = {k for k, o in by_key.items() if o.category is OverrideCategory.HARNESS}
-        assert harness == {
-            "Network.Address",
-            "Server.Name",
-            "Server.AuthEnabled",
-            "Bench.LogLevel",
-            "Bench.IdleTicking",
+class TestTemplate:
+    def test_every_key_has_a_reason(self) -> None:
+        lines = (config.server_dir("dragonfly") / dragonfly.CONFIG).read_text(encoding="utf-8").splitlines()
+        for index, entry in enumerate(lines):
+            if entry and not entry.startswith(("#", "[")):
+                assert lines[index - 1].startswith("# "), entry
+
+    def test_values_and_types(self, tmp_path: Path) -> None:
+        layout = make_adapter().prepare(make_install(tmp_path), make_ctx(tmp_path))
+        (written,) = layout.config_files
+        assert (written.path, written.template, written.created) == ("config.toml", "config.toml", True)
+        values = {k.key: k.after for k in written.keys}
+        assert values == {
+            "Network.Address": "127.0.0.1:19672",
+            "Server.Name": "bedrock-bench",
+            "Server.AuthEnabled": False,
+            "World.SaveData": True,
+            "World.Folder": "bench",
+            "Players.MaximumChunkRadius": 10,
+            "Players.MaxCount": 200,
+            "Players.SaveData": True,
+            "Bench.LogLevel": "info",
+            "Bench.IdleTicking": True,
+            "Bench.TickRange": 4,
+            "Bench.Difficulty": "easy",
+            "Bench.GameMode": "survival",
+            "Bench.SaveIntervalSeconds": 300,
         }
-        assert "Players.SaveData" not in by_key and "World.SaveData" not in by_key  # equal to the defaults
-        assert by_key["Bench.GameMode"].default == "creative"
-        assert by_key["Server.AuthEnabled"].default == "true" and by_key["Server.AuthEnabled"].value == "false"
-        assert by_key["Players.MaxCount"].category is OverrideCategory.PARITY
-        assert not any(o.category.footnoted for o in overrides)
+        assert all(k.before is None for k in written.keys), "dfbench starts without a config.toml"
 
     def test_unknown_key(self) -> None:
-        setting = dragonfly.Setting("Players.MaxCont", 1, OverrideCategory.PARITY, "typo")
+        written = ConfigFile("config.toml", "0" * 64, keys=(KeyChange("Players.MaxCont", None, 1),))
+        with pytest.raises(ConfigError, match="Players.MaxCont is not a setting"):
+            dragonfly.check_settings(written, tomllib.loads(DEFAULTS), "dfbench -defaults")
+        table = ConfigFile("config.toml", "0" * 64, keys=(KeyChange("Network", None, 1),))
         with pytest.raises(ConfigError, match="not a setting"):
-            dragonfly.render_settings([setting], tomllib.loads(DEFAULTS), {})
-
-    def test_bad_placeholder_and_type(self) -> None:
-        defaults = tomllib.loads(DEFAULTS)
-        with pytest.raises(ConfigError, match="placeholder"):
-            dragonfly.render_settings(
-                [dragonfly.Setting("Players.MaxCount", "{nope}", OverrideCategory.PARITY, "x")], defaults, {}
-            )
-        for key, value in (("Players.MaxCount", "many"), ("Server.AuthEnabled", "maybe"), ("Server.Name", 3)):
-            with pytest.raises(ConfigError, match="like its default"):
-                dragonfly.render_settings([dragonfly.Setting(key, value, OverrideCategory.HARNESS, "x")], defaults, {})
-
-    @pytest.mark.parametrize(
-        ("schema", "fmt", "body"),
-        [
-            (2, "toml", '[config.file."config.toml".harness]\n"Server.Name" = { value = "x", reason = "y" }\n'),
-            (1, "toml", '[config.file."config.toml".tuning]\n"Server.Name" = { value = "x", reason = "y" }\n'),
-            (1, "toml", '[config.file."config.toml".harness]\n"Server.Name" = { value = "x" }\n'),
-            (1, "toml", '[config.file."config.toml".harness]\nName = { value = "x", reason = "y" }\n'),
-            (1, "yaml", '[config.file."config.toml".harness]\n"Server.Name" = { value = "x", reason = "y" }\n'),
-            (
-                1,
-                "toml",
-                '[config.file."config.toml".harness]\n"Server.Name" = { value = "x", reason = "y" }\n'
-                '[config.file."config.toml".parity]\n"Server.Name" = { value = "z", reason = "y" }\n',
-            ),
-        ],
-    )
-    def test_settings_file_is_checked(self, write_file: Any, schema: int, fmt: str, body: str) -> None:
-        text = f'schema = {schema}\n[config.file."config.toml"]\nformat = "{fmt}"\n{body}'
-        with pytest.raises(ConfigError):
-            dragonfly.load_settings(write_file("config.toml", text))
-
-    def test_settings_file_needs_a_config_table(self, write_file: Any) -> None:
-        with pytest.raises(ConfigError):
-            dragonfly.load_settings(write_file("config.toml", "schema = 1\n[artifacts]\n"))
-
-    def test_dump_toml_round_trips(self) -> None:
-        values = {
-            "Network.Address": "127.0.0.1:1",
-            "Players.MaxCount": 200,
-            "Bench.IdleTicking": True,
-            "Network.Transport": ["raknet"],
-            "Server.Name": 'quote " and \\',
-        }
-        assert tomllib.loads(dragonfly.dump_toml(values)) == {
-            "Network": {"Address": "127.0.0.1:1", "Transport": ["raknet"]},
-            "Players": {"MaxCount": 200},
-            "Bench": {"IdleTicking": True},
-            "Server": {"Name": 'quote " and \\'},
-        }
+            dragonfly.check_settings(table, tomllib.loads(DEFAULTS), "dfbench -defaults")
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -336,14 +288,12 @@ def project(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     (src / "go.mod").write_text(f"module example/dfbench\n\ngo 1.26.0\n\nrequire (\n\t{MODULE} {MODULE_VERSION}\n)\n")
     (src / "go.sum").write_text(f"{MODULE} {MODULE_VERSION} {go_sum}\n{MODULE} {MODULE_VERSION}/go.mod h1:x=\n")
     (src / "main.go").write_text("package main\n\nfunc main() {}\n")
-    settings = (ROOT / dragonfly.SETTINGS_FILE).read_text(encoding="utf-8")
-    (root / dragonfly.SETTINGS_FILE).write_text(
+    (src / "server.toml").write_text(
         f'schema = 1\nserver = "dragonfly"\n\n[artifacts]\nsource = "web"\n\n'
         f'[artifacts.version."{VERSION}"]\nprotocol = 2193\n\n[artifacts.version."{VERSION}".any]\n'
         f'url = "https://proxy.golang.org/{MODULE}/@v/{MODULE_VERSION}.zip"\n'
         f'sha256 = "{hashlib.sha256(b"module zip").hexdigest()}"\nsize = {len(b"module zip")}\n'
-        f'module = "{MODULE}"\nmodule_version = "{MODULE_VERSION}"\ngo_sum = "{go_sum}"\n\n'
-        + settings[settings.index('\n[config.file."config.toml"]\n') :]
+        f'module = "{MODULE}"\nmodule_version = "{MODULE_VERSION}"\ngo_sum = "{go_sum}"\n'
     )
     monkeypatch.setenv("BBENCH_ROOT", str(root))
     fake = FakeGo(zip_path, go_sum)
@@ -474,7 +424,7 @@ class TestPrepare:
         path.write_text(path.read_text().replace("MaxCount = 200", "MaxCount = 0"))
         assert adapter.readback(layout) == ["config.toml: Players.MaxCount was written as 200 and read back as 0"]
         path.unlink()
-        assert adapter.readback(layout)[0].startswith("config.toml cannot be read")
+        assert adapter.readback(layout) == ["config.toml is missing after the run"]
 
     def test_tampered_install(self, tmp_path: Path) -> None:
         install = make_install(tmp_path)
@@ -532,12 +482,15 @@ class TestDataFiles:
         (tmp_path / "console.go").write_bytes(b"package main\n")
         assert dragonfly.source_sha256(tmp_path) != first
 
-    def test_settings_match_a_real_build(self) -> None:
-        """With BBENCH_DFBENCH pointing at a built dfbench, every setting must be a key of its defaults."""
+    def test_template_matches_a_real_build(self, tmp_path: Path) -> None:
+        """With BBENCH_DFBENCH pointing at a built dfbench, every key of the template must be a key of its defaults."""
         exe = os.environ.get("BBENCH_DFBENCH")
         if not exe:
-            pytest.skip("set BBENCH_DFBENCH to a dfbench binary to check the settings against it")
+            pytest.skip("set BBENCH_DFBENCH to a dfbench binary to check the template against it")
         defaults = tomllib.loads(subprocess.run([exe, "-defaults"], capture_output=True, text=True, check=True).stdout)
-        for setting in dragonfly.load_settings(ROOT / dragonfly.SETTINGS_FILE):
-            assert dragonfly.lookup(defaults, setting.key)[0], setting.key
+        text = templates.render(
+            config.server_dir("dragonfly"), dragonfly.CONFIG, make_adapter().template_variables(make_ctx(tmp_path))
+        )
+        for key in templates.values("toml", text):
+            assert dragonfly.lookup(defaults, key)[0], key
         assert defaults == tomllib.loads(DEFAULTS), "DEFAULTS in this test is out of date"

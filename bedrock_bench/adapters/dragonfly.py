@@ -7,8 +7,8 @@ folder's ``server.toml``, which must be the version its ``go.mod`` requires. Go 
 fetch also checks the module zip against its pinned sha256, and records the build's defaults (``dfbench -defaults``)
 next to the binary. See servers/dragonfly/README.md.
 
-- Config: ``config.toml`` gets only the keys of the ``[config]`` table of ``servers/dragonfly/server.toml``.
-  Every other key keeps the build's default, and each written value that differs from its default is an override.
+- Config: ``config.toml`` is rendered from the template of the same name in ``servers/dragonfly/``. Every key it sets
+  must be a setting of the build; every other key keeps the build's default.
 - Console: Go's standard log format with a level; ``gametime`` reads the overworld's tick counter, ``positions``
   lists every player, and ``Player spawned: <name>`` is printed once a player is in the world.
 - Dragonfly only generates flat worlds.
@@ -40,8 +40,6 @@ from bedrock_bench.model import (
     LaunchSpec,
     Layout,
     LogLine,
-    Override,
-    OverrideCategory,
     PlayerPos,
     RunContext,
     WorldInfo,
@@ -53,12 +51,10 @@ if TYPE_CHECKING:
 
     from bedrock_bench.cache import Cache
 
-SETTINGS_FILE = "servers/dragonfly/server.toml"  # its [config] table
 CONFIG = "config.toml"  # what dfbench reads in the server directory
 DEFAULTS = "defaults.toml"  # 'dfbench -defaults' of the build, kept in the install
 BUILD_INFO = "build.json"  # 'dfbench -version' of the build and the module it links, kept in the install
 FACTS = "dfbench.json"  # written by dfbench when the server starts
-SERVER_NAME = "bedrock-bench"
 
 #: Go runtime settings that would change how the server runs; a run never inherits them from the user's shell.
 GO_RUNTIME_ENV = ("GOMAXPROCS", "GOGC", "GOMEMLIMIT", "GODEBUG")
@@ -120,53 +116,6 @@ def parse_positions(lines: Sequence[LogLine]) -> list[PlayerPos] | None:
 # --------------------------------------------------------------------------------------------------------------------
 
 
-@dataclass(frozen=True)
-class Setting:
-    """One value from the ``[config]`` table of ``servers/dragonfly/server.toml``."""
-
-    key: str  # dotted path into config.toml, e.g. "Players.MaxCount"
-    template: Any  # a TOML value; a string may hold {placeholders}
-    category: OverrideCategory
-    reason: str
-
-
-def load_settings(path: Path) -> tuple[Setting, ...]:
-    """Read the ``[config.file."config.toml"]`` table of the server file: ``"Section.Key" = {value, reason}``."""
-    path, formats, entries = config.load_config_table(path)
-    config.single_config_file(path, formats, CONFIG, "toml")
-    settings: list[Setting] = []
-    seen: set[str] = set()
-    for e in entries:
-        if not isinstance(e.entry, dict) or set(e.entry) != {"value", "reason"}:
-            raise ConfigError('must be { value = ..., reason = "..." }', file=path, key=e.where)
-        if not isinstance(e.entry["reason"], str) or not e.entry["reason"]:
-            raise ConfigError("reason must be a non-empty string", file=path, key=e.where)
-        if not re.fullmatch(r"[A-Za-z]\w*(?:\.[A-Za-z]\w*)+", e.key):
-            raise ConfigError("must be a dotted path such as Players.MaxCount", file=path, key=e.where)
-        if e.key in seen:
-            raise ConfigError("key appears in two categories", file=path, key=e.where)
-        seen.add(e.key)
-        settings.append(Setting(e.key, e.entry["value"], e.category, e.entry["reason"]))
-    return tuple(settings)
-
-
-def settings_context(ctx: RunContext) -> dict[str, str]:
-    """Placeholder values for the settings file."""
-    server, world = ctx.workload.server, ctx.workload.world
-    return {
-        "server_name": SERVER_NAME,
-        "port": str(ctx.machine.port),
-        "view_distance": str(server.view_distance),
-        "tick_distance": str(server.tick_distance),
-        "max_players": str(server.max_players),
-        "difficulty": server.difficulty,
-        "gamemode": server.gamemode,
-        "autosave_s": str(round(server.autosave_ticks / 20)),
-        "save_player_data": "true" if server.save_player_data else "false",
-        "level_name": world.level_name,
-    }
-
-
 def lookup(tree: Mapping[str, Any], key: str) -> tuple[bool, Any]:
     """``(True, value)`` for a dotted key present in a parsed TOML document, else ``(False, None)``."""
     node: Any = tree
@@ -177,90 +126,12 @@ def lookup(tree: Mapping[str, Any], key: str) -> tuple[bool, Any]:
     return True, node
 
 
-def render_settings(
-    settings: Sequence[Setting], defaults: Mapping[str, Any], context: Mapping[str, str]
-) -> tuple[dict[str, Any], list[Override]]:
-    """The values to write, keyed by dotted path, and the overrides among them.
-
-    Every key must exist in the build's defaults; values take the type of the default they replace.
-    """
-    values: dict[str, Any] = {}
-    overrides: list[Override] = []
-    for setting in settings:
-        found, default = lookup(defaults, setting.key)
+def check_settings(written: ConfigFile, defaults: Mapping[str, Any], defaults_cmd: str) -> None:
+    """Refuse a written key that the build's defaults do not have, such as a misspelt one."""
+    for change in written.keys:
+        found, default = lookup(defaults, change.key)
         if not found or isinstance(default, Mapping):
-            raise ConfigError(f"{setting.key} is not a setting of this Dragonfly build (see 'dfbench -defaults')")
-        template = setting.template
-        if isinstance(template, str):
-            try:
-                template = template.format_map(context)
-            except (KeyError, IndexError, ValueError) as exc:
-                known = ", ".join(sorted(context))
-                raise ConfigError(
-                    f"{setting.key}: bad placeholder in {setting.template!r} ({exc}); known: {known}"
-                ) from None
-        value = _coerce(setting.key, template, default)
-        values[setting.key] = value
-        if value != default:
-            overrides.append(
-                Override(setting.category, CONFIG, setting.key, toml_text(default), toml_text(value), setting.reason)
-            )
-    return values, overrides
-
-
-def _coerce(key: str, value: Any, default: Any) -> Any:
-    try:
-        if isinstance(default, bool):
-            if isinstance(value, bool):
-                return value
-            lowered = str(value).strip().lower()
-            if lowered in ("true", "false"):
-                return lowered == "true"
-            raise ValueError(value)
-        if isinstance(default, int):
-            if isinstance(value, bool):
-                raise ValueError(value)
-            return int(value)
-        if isinstance(default, str):
-            if not isinstance(value, str):
-                raise ValueError(value)
-            return value
-        if isinstance(default, list):
-            if not isinstance(value, list):
-                raise ValueError(value)
-            return list(value)
-    except ValueError:
-        raise ConfigError(f"{key}: {value!r} is not a {type(default).__name__} like its default") from None
-    raise ConfigError(f"{key}: cannot set a {type(default).__name__}")
-
-
-def toml_text(value: Any) -> str:
-    """A value as written in TOML, without quotes around a plain string (for run.json overrides)."""
-    if isinstance(value, str):
-        return value
-    return _toml_value(value)
-
-
-def _toml_value(value: Any) -> str:
-    if isinstance(value, bool):
-        return "true" if value else "false"
-    if isinstance(value, int):
-        return str(value)
-    if isinstance(value, str):
-        return json.dumps(value, ensure_ascii=False)  # a TOML basic string
-    if isinstance(value, list):
-        return "[" + ", ".join(_toml_value(v) for v in value) + "]"
-    raise TypeError(f"cannot write {type(value).__name__} as TOML")
-
-
-def dump_toml(values: Mapping[str, Any]) -> str:
-    """A TOML document from dotted keys: ``{"Players.MaxCount": 200}`` -> ``[Players]`` / ``MaxCount = 200``."""
-    tables: dict[str, list[str]] = {}
-    for key, value in values.items():
-        table, _, name = key.rpartition(".")
-        tables.setdefault(table, []).append(f"{name} = {_toml_value(value)}")
-    blocks = [f"[{table}]\n" + "\n".join(lines) + "\n" for table, lines in tables.items()]
-    return "\n".join(blocks)
+            raise ConfigError(f"{written.path}: {change.key} is not a setting of this build (see '{defaults_cmd}')")
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -541,24 +412,16 @@ class DragonflyAdapter(ServerAdapter):
             raise fetch.FetchError(f"the fresh copy of {exe_rel} does not match the verified install")
 
         defaults = config.load_toml(server_dir / DEFAULTS)
-        settings = load_settings(config.project_root() / SETTINGS_FILE)
-        values, overrides = render_settings(settings, defaults, settings_context(ctx))
-        folder = lookup(defaults, "World.Folder")[1]
-        world = self._prepare_world(server_dir / str(values.get("World.Folder", folder)), ctx)
-
-        # Dragonfly's tables in alphabetical order, then [Bench]; keys keep the order of the settings file.
-        ordered = dict(sorted(values.items(), key=lambda kv: (kv[0].startswith("Bench."), kv[0].rpartition(".")[0])))
-        path = server_dir / CONFIG
-        path.write_text(dump_toml(ordered), encoding="utf-8", newline="\n")
+        written = self.write_config(server_dir, CONFIG, ctx)
+        check_settings(written, defaults, "dfbench -defaults")
+        folder = {k.key: k.after for k in written.keys}.get("World.Folder", lookup(defaults, "World.Folder")[1])
         return Layout(
             server_dir=server_dir,
-            overrides=tuple(overrides),
-            config_files=(ConfigFile(CONFIG, sha256_file(path)),),
-            world=world,
+            config_files=(written,),
+            world=self._prepare_world(server_dir / str(folder), ctx),
             extra={
                 "exe": exe_rel,
                 "exe_sha256": exe_sha256,
-                "settings": values,
                 "dragonfly_module": install.extra.get("dragonfly_module"),
                 "go": install.extra.get("go"),
             },
@@ -580,20 +443,6 @@ class DragonflyAdapter(ServerAdapter):
         """The dfbench binary in the run's copy; its sha256 is checked before and after the run."""
         return layout.server_dir / layout.extra["exe"]
 
-    def readback(self, layout: Layout) -> list[str]:
-        """Written config.toml values that changed while the server ran; empty when all read back."""
-        path = layout.server_dir / CONFIG
-        try:
-            found = tomllib.loads(path.read_text(encoding="utf-8"))
-        except (OSError, tomllib.TOMLDecodeError) as exc:
-            return [f"{CONFIG} cannot be read after the run: {exc}"]
-        problems = []
-        for key, value in layout.extra.get("settings", {}).items():
-            present, now = lookup(found, key)
-            if not present or now != value:
-                problems.append(f"{CONFIG}: {key} was written as {value!r} and read back as {now!r}")
-        return problems
-
     # ---- commands -------------------------------------------------------------------------------------------------
 
     def cmd_positions(self) -> str | None:
@@ -610,7 +459,7 @@ class DragonflyAdapter(ServerAdapter):
             runtime = json.loads((layout.server_dir / FACTS).read_text(encoding="utf-8"))
         except (OSError, ValueError):
             runtime = {}
-        settings = layout.extra.get("settings", {})
+        settings = {k.key: k.after for f in layout.config_files for k in f.keys}
         return {
             "allocator": "go",
             "csg_setting": False,
@@ -630,16 +479,12 @@ __all__ = [
     "DRAGONFLY_DIALECT",
     "DragonflyAdapter",
     "ModulePin",
-    "Setting",
     "build_dfbench",
+    "check_settings",
     "check_source",
     "describe_binary",
-    "dump_toml",
-    "load_settings",
     "lookup",
     "parse_positions",
-    "render_settings",
     "required_version",
-    "settings_context",
     "source_sha256",
 ]

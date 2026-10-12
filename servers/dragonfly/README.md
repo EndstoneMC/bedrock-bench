@@ -15,7 +15,8 @@ Dragonfly's example server plus a console on standard input. Adapter:
 | `main.go` | flags, server start, version banner, idle ticking |
 | `config.go` | `config.toml` loading and the `[Bench]` table |
 | `console.go` | console commands |
-| `server.toml` | the pinned Dragonfly module, declared parity, and what the harness writes into the run's `config.toml` |
+| `server.toml` | the pinned Dragonfly module and the `bbench run` default |
+| `config.toml` | template of the run's `config.toml` |
 | `testdata/config.toml` | the `config.toml` the harness writes for `configs/spread-100.toml`; Go and Python tests both check it |
 
 ```shell
@@ -130,21 +131,23 @@ including writing Dragonfly's default `config.toml` when the file is missing.
 
 ## Configuration changes
 
-The values and reasons are in the `[config]` table of [server.toml](server.toml), and every change is recorded in
-run.json with its category ([methodology](../../docs/methodology.md#fairness-and-feature-parity)). Only those keys
-are written into the run's `config.toml`; every other key keeps the build's default as printed by `dfbench -defaults`.
+[config.toml](config.toml) is the template of the run's `config.toml`. It holds only the keys the harness sets, each
+with a one-line reason, and run.json records every key it writes. Every other key keeps the build's default as printed
+by `dfbench -defaults`.
 
-- harness: listen on `127.0.0.1` at the machine profile's port, so the bots connect over loopback and the newly built
-  binary never triggers a firewall prompt; the server name; offline login; log level `info`, because at `debug`
-  Dragonfly logs every packet it does not handle; `Bench.IdleTicking` on (see Caveats).
-- parity: view distance (`Players.MaximumChunkRadius`, 32 by default), simulation distance (`Bench.TickRange`),
-  difficulty, max players, world folder, and the autosave interval in seconds. `Bench.GameMode` is the scenario's game
-  mode, because a new Dragonfly world puts players in creative, where they take no damage and may fly.
-- `World.SaveData` and `Players.SaveData` are written as `true` and read back. Dragonfly saves world and player data by
-  default in this build, so neither is an override.
+- Listen on `127.0.0.1` at the machine profile's port, so the bots connect over loopback and the newly built binary
+  never triggers a firewall prompt.
+- The server name and offline login.
+- Log level `info`, because at `debug` Dragonfly logs every packet it does not handle.
+- `Bench.IdleTicking` on (see Caveats).
+- The same view distance (`Players.MaximumChunkRadius`, 32 by default), simulation distance (`Bench.TickRange`),
+  difficulty, max players, world folder and autosave interval as every server.
+- `Bench.GameMode` is the workload's game mode, because a new Dragonfly world puts players in creative, where they take
+  no damage and may fly.
+- `World.SaveData` and `Players.SaveData` are written as `true`, the default, and read back.
 
 Left at their defaults: the RakNet transport, join and quit messages (printed to every player and to the console), and
-Dragonfly's random tick speed of 3, which is fixed when the world is created. Nothing is `rescue` or `nonvanilla`.
+Dragonfly's random tick speed of 3, which is fixed when the world is created.
 
 ## Caveats
 

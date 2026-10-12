@@ -18,7 +18,7 @@ from bedrock_bench.adapters import chorus
 from bedrock_bench.adapters.chorus import CHORUS_DIALECT, ChorusAdapter
 from bedrock_bench.cache import Cache
 from bedrock_bench.config import ConfigError
-from bedrock_bench.model import Install, LogLine, OverrideCategory, Placement, RunContext
+from bedrock_bench.model import Install, LogLine, Placement, RunContext
 from workloads import WORKLOAD, with_overrides
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -211,50 +211,12 @@ class TestCommands:
 # --------------------------------------------------------------------------------------------------------------------
 
 
-class TestSettings:
-    def test_every_key_is_a_setting_of_the_build(self) -> None:
-        defaults = tomllib.loads(DEFAULTS)
-        for setting in chorus.load_settings(ROOT / chorus.SETTINGS_FILE):
-            present, value = chorus.lookup(defaults, setting.key)
-            assert present and not isinstance(value, dict), setting.key
-
-    def test_unknown_key(self) -> None:
-        setting = chorus.Setting("server.max_player", "1", OverrideCategory.PARITY, "typo")
-        with pytest.raises(ConfigError, match="not a setting"):
-            chorus.render_settings([setting], tomllib.loads(DEFAULTS), {})
-
-    def test_bad_placeholder_and_type(self) -> None:
-        defaults = tomllib.loads(DEFAULTS)
-        with pytest.raises(ConfigError, match="placeholder"):
-            chorus.render_settings([chorus.Setting("level.seed", "{nope}", OverrideCategory.PARITY, "x")], defaults, {})
-        for key, value, kind in (
-            ("server.max_players", "many", None),
-            ("server.authentication", "maybe", None),
-            ("level.name", 3, None),
-            ("server.threads", "auto", "int"),
-        ):
-            with pytest.raises(ConfigError, match="is not a"):
-                chorus.render_settings([chorus.Setting(key, value, OverrideCategory.PARITY, "x", kind)], defaults, {})
-
-    @pytest.mark.parametrize(
-        ("file", "body"),
-        [
-            ("config.toml", 'harness]\n"server.name" = { value = "x", reason = "y" }\n'),
-            ("chorus.toml", 'tuning]\n"server.name" = { value = "x", reason = "y" }\n'),
-            ("chorus.toml", 'harness]\n"server.name" = { value = "x" }\n'),
-            ("chorus.toml", 'harness]\n"server.name" = { value = "x", reason = "y", type = "f" }\n'),
-            ("chorus.toml", 'harness]\nname = { value = "x", reason = "y" }\n'),
-            (
-                "chorus.toml",
-                'harness]\n"server.name" = { value = "x", reason = "y" }\n'
-                '[config.file."chorus.toml".parity]\n"server.name" = { value = "z", reason = "y" }\n',
-            ),
-        ],
-    )
-    def test_settings_file_is_checked(self, write_file: Any, file: str, body: str) -> None:
-        text = f'schema = 1\n[config.file."{file}"]\nformat = "toml"\n[config.file."{file}".{body}'
-        with pytest.raises(ConfigError):
-            chorus.load_settings(write_file("chorus/server.toml", text))
+class TestTemplate:
+    def test_every_key_has_a_reason(self) -> None:
+        lines = (config.server_dir("chorus") / chorus.CONFIG).read_text(encoding="utf-8").splitlines()
+        for index, entry in enumerate(lines):
+            if entry and not entry.startswith(("#", "[")):
+                assert lines[index - 1].startswith("# "), entry
 
 
 class TestPrepare:
@@ -280,21 +242,19 @@ class TestPrepare:
         assert adapter.launch(layout).argv == (str(server / chorus.EXE),)
         assert adapter.executable(layout).read_bytes() == b"chorusbench binary"
 
-        by_key = {o.key: o for o in layout.overrides}
-        harness = {k for k, o in by_key.items() if o.category is OverrideCategory.HARNESS}
-        assert harness == {"network.ip", "network.port", "server.authentication", "console commands"}
-        assert by_key["server.threads"].default == "auto" and by_key["server.threads"].value == "4"
-        assert by_key["level.autosave"].default == "1m" and by_key["level.autosave"].value == "300s"
-        assert by_key["server.authentication"].value == "false"
-        assert "network.transport" not in by_key and "level.chunk_saving" not in by_key  # equal to the defaults
-        assert not any(o.category.footnoted for o in layout.overrides)
+        (written_file,) = layout.config_files
+        assert (written_file.template, written_file.created) == (chorus.CONFIG, True)
+        assert all(k.before is None for k in written_file.keys), "chorusbench starts without a chorus.toml"
+        assert {k.key for k in written_file.keys} == {
+            f"{table}.{key}" for table, values in written.items() for key in values
+        }
 
     def test_benchmark_workload(self, tmp_path: Path) -> None:
         ctx = dataclasses.replace(make_ctx(tmp_path), workload=WORKLOAD)
         layout = make_adapter().prepare(make_install(tmp_path), ctx)
         written = (layout.server_dir / chorus.CONFIG).read_text(encoding="utf-8")
-        assert written.startswith('[network]\nip = "127.0.0.1"\nport = 19672\ntransport = "RakNet"\n\n[server]\n')
-        assert 'autosave = "300s"\n' in written
+        assert written.startswith("[server]\n")
+        assert 'autosave = "300s"\n' in written and "threads = 4\n" in written
 
     def test_readback(self, tmp_path: Path) -> None:
         adapter = make_adapter()
@@ -305,8 +265,8 @@ class TestPrepare:
         assert adapter.readback(layout) == [
             "chorus.toml: level.max_view_distance was written as 10 and read back as 32"
         ]
-        path.write_text("[server\n", encoding="utf-8")
-        assert adapter.readback(layout)[0].startswith("chorus.toml cannot be read")
+        path.unlink()
+        assert adapter.readback(layout) == ["chorus.toml is missing after the run"]
 
     def test_tampered_install(self, tmp_path: Path) -> None:
         install = make_install(tmp_path)

@@ -26,6 +26,8 @@ PHASE_KEYS: Mapping[str, Mapping[str, type]] = {
     "steady": {"delay_s": float, "duration_s": float},
     "teardown": {"bot_quit_timeout_s": float, "stop_timeout_s": float, "crash_log_lines": int},
 }
+DIFFICULTY_IDS: Mapping[str, int] = {"peaceful": 0, "easy": 1, "normal": 2, "hard": 3}
+GAMEMODE_IDS: Mapping[str, int] = {"survival": 0, "creative": 1, "adventure": 2}
 
 
 @dataclass(frozen=True)
@@ -75,6 +77,16 @@ class ServerParams:
     max_players: int
     autosave_ticks: int
     save_player_data: bool
+
+    @property
+    def difficulty_id(self) -> int:
+        """``difficulty`` as a number: peaceful 0, easy 1, normal 2, hard 3."""
+        return DIFFICULTY_IDS[self.difficulty]
+
+    @property
+    def gamemode_id(self) -> int:
+        """``gamemode`` as a number: survival 0, creative 1, adventure 2."""
+        return GAMEMODE_IDS[self.gamemode]
 
 
 @dataclass(frozen=True)

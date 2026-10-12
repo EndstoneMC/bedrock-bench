@@ -15,7 +15,8 @@ console commands the harness needs. Adapter: [chorus.py](../../bedrock_bench/ada
 | `build.rs` | embeds the Chorus commit from `Cargo.lock` and the compiler version |
 | `Cargo.toml` | Chorus at the pinned commit |
 | `Cargo.lock` | every git dependency by commit and every crate by checksum |
-| `server.toml` | the pinned commit, toolchain and lock hash, declared parity, and what the harness writes into the run's `chorus.toml` |
+| `server.toml` | the pinned commit, toolchain and lock hash, and the `bbench run` default |
+| `chorus.toml` | template of the run's `chorus.toml` |
 
 ```shell
 cargo +1.95.0 build --release --locked
@@ -105,21 +106,18 @@ Chorus's own `tp` and `gamemode` act only on the player who sends them, and it h
 
 ## Configuration changes
 
-The values and reasons are in the `[config]` table of [server.toml](server.toml), and every change is recorded in
-run.json with its category ([methodology](../../docs/methodology.md#fairness-and-feature-parity)). Only those keys
-are written into the run's `chorus.toml`; every other key keeps the build's default as printed by
-`chorusbench -defaults`. Chorus refuses unknown keys.
+[chorus.toml](chorus.toml) is the template of the run's `chorus.toml`. It holds only the keys the harness sets, each
+with a one-line reason, and run.json records every key it writes. Every other key keeps the build's default as printed
+by `chorusbench -defaults`. Chorus refuses unknown keys.
 
-- harness: listen on `127.0.0.1` at the machine profile's port, so the bots connect over loopback and the newly built
-  binary never triggers a firewall prompt; offline login. The RakNet transport is written and read back; it is the
-  default.
-- parity: view distance (`level.max_view_distance`, 32 by default, which also caps generation), max players, level name,
-  seed, and the autosave interval in seconds. `server.threads` is the number of server CPUs: `auto` counts every CPU of
-  the machine on Windows, not the server's CPU set.
-- `level.chunk_saving` is written as `modified`, the default, and read back.
-- chorusbench's four console commands are recorded as a harness change.
-
-Nothing is `rescue` or `nonvanilla`.
+- Listen on `127.0.0.1` at the machine profile's port, so the bots connect over loopback and the newly built binary
+  never triggers a firewall prompt.
+- Offline login.
+- The same view distance (`level.max_view_distance`, 32 by default, which also caps generation), max players, level
+  name, seed and autosave interval as every server.
+- `server.threads` is the number of server CPUs: `auto` counts every CPU of the machine on Windows, not the server's
+  CPU set.
+- The RakNet transport and `level.chunk_saving = "modified"` are written as their defaults and read back.
 
 ## Caveats
 

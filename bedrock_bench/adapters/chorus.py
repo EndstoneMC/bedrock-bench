@@ -7,8 +7,8 @@ folder's ``server.toml``, from the ``Cargo.lock`` committed next to it, which pi
 dependency. ``chorusbench -version`` must report the pinned commit and the bots' protocol; ``chorusbench -defaults``
 is kept next to the binary. See servers/chorus/README.md.
 
-- Config: ``chorus.toml`` gets only the keys of the ``[config]`` table of ``servers/chorus/server.toml``.
-  Chorus fills in every other key, and each written value that differs from the build's default is an override.
+- Config: ``chorus.toml`` is rendered from the template of the same name in ``servers/chorus/``. Every key it sets
+  must be a setting of the build; Chorus fills in every other key.
 - Console: ``HH:MM:SS LEVEL text`` log lines; command replies have no prefix. chorusbench adds ``gametime``,
   ``positions``, ``tpp`` (teleport another player) and ``kick``, and logs their failures at error level.
 - The Bevy schedule runs on the main thread, the first one created; the task pools are diagnostic groups.
@@ -23,25 +23,22 @@ import re
 import shutil
 import stat
 import tomllib
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from bedrock_bench import __version__, config, fetch
 from bedrock_bench.adapters.base import Dialect, ServerAdapter, format_coord, host_os, quote_player
-from bedrock_bench.adapters.dragonfly import dump_toml, lookup, run_command, toml_text
+from bedrock_bench.adapters.dragonfly import check_settings, run_command
 from bedrock_bench.adapters.standalone import parse_helper_positions
 from bedrock_bench.config import ConfigError
 from bedrock_bench.model import (
     ArtifactRef,
-    ConfigFile,
     Install,
     LaunchSpec,
     Layout,
     LogLine,
-    Override,
-    OverrideCategory,
     PlayerPos,
     RunContext,
     WorldInfo,
@@ -53,7 +50,6 @@ if TYPE_CHECKING:
 
     from bedrock_bench.cache import Cache
 
-SETTINGS_FILE = "servers/chorus/server.toml"  # its [config] table
 CONFIG = "chorus.toml"  # what Chorus reads in the server directory
 DEFAULTS = "defaults.toml"  # 'chorusbench -defaults' of the build, kept in the install
 BUILD_INFO = "build.json"  # 'chorusbench -version' of the build, kept in the install
@@ -90,115 +86,6 @@ CHORUS_DIALECT = Dialect(
     tick_cmd="gametime",
     tick_re=re.compile(r"^Gametime is (?P<tick>\d+)$"),
 )
-
-# --------------------------------------------------------------------------------------------------------------------
-# chorus.toml
-# --------------------------------------------------------------------------------------------------------------------
-
-KINDS = ("str", "int", "bool")
-
-
-@dataclass(frozen=True)
-class Setting:
-    """One value from the ``[config]`` table of ``servers/chorus/server.toml``."""
-
-    key: str  # dotted path into chorus.toml, e.g. "server.max_players"
-    template: Any  # a TOML value; a string may hold {placeholders}
-    category: OverrideCategory
-    reason: str
-    kind: str | None = None  # str, int or bool; None takes the type of the default
-
-
-def load_settings(path: Path) -> tuple[Setting, ...]:
-    """Read the ``[config.file."chorus.toml"]`` table: ``"section.key" = {value, reason, type?}`` entries."""
-    path, formats, entries = config.load_config_table(path)
-    config.single_config_file(path, formats, CONFIG, "toml")
-    settings: list[Setting] = []
-    seen: set[str] = set()
-    for e in entries:
-        entry, where = e.entry, e.where
-        if not isinstance(entry, dict) or not {"value", "reason"} <= set(entry) <= {"value", "reason", "type"}:
-            raise ConfigError('must be { value = ..., reason = "..." } with an optional type', file=path, key=where)
-        if not isinstance(entry["reason"], str) or not entry["reason"]:
-            raise ConfigError("reason must be a non-empty string", file=path, key=where)
-        kind = entry.get("type")
-        if kind is not None and kind not in KINDS:
-            raise ConfigError(f"type must be one of {', '.join(KINDS)}", file=path, key=where)
-        if not re.fullmatch(r"[a-z]\w*(?:\.[a-z]\w*)+", e.key):
-            raise ConfigError("must be a dotted path such as server.max_players", file=path, key=where)
-        if e.key in seen:
-            raise ConfigError("key appears in two categories", file=path, key=where)
-        seen.add(e.key)
-        settings.append(Setting(e.key, entry["value"], e.category, entry["reason"], kind))
-    return tuple(settings)
-
-
-def settings_context(ctx: RunContext) -> dict[str, str]:
-    """Placeholder values for the settings, from the workload, the machine profile and the placement."""
-    server, world = ctx.workload.server, ctx.workload.world
-    return {
-        "port": str(ctx.machine.port),
-        "max_players": str(server.max_players),
-        "view_distance": str(server.view_distance),
-        "autosave_s": str(round(server.autosave_ticks / 20)),
-        "level_name": world.level_name,
-        "seed": str(world.seed),
-        "server_cpu_count": str(len(ctx.placement.server_cpus)),
-    }
-
-
-def render_settings(
-    settings: Sequence[Setting], defaults: Mapping[str, Any], context: Mapping[str, str]
-) -> tuple[dict[str, Any], list[Override]]:
-    """The values to write, keyed by dotted path, and the overrides among them.
-
-    Every key must exist in the build's defaults.
-    """
-    values: dict[str, Any] = {}
-    overrides: list[Override] = []
-    for setting in settings:
-        found, default = lookup(defaults, setting.key)
-        if not found or isinstance(default, Mapping):
-            raise ConfigError(f"{setting.key} is not a setting of this Chorus build (see 'chorusbench -defaults')")
-        template = setting.template
-        if isinstance(template, str):
-            try:
-                template = template.format_map(context)
-            except (KeyError, IndexError, ValueError) as exc:
-                known = ", ".join(sorted(context))
-                raise ConfigError(
-                    f"{setting.key}: bad placeholder in {setting.template!r} ({exc}); known: {known}"
-                ) from None
-        value = _coerce(setting.key, template, setting.kind or type(default).__name__)
-        values[setting.key] = value
-        if value != default:
-            overrides.append(
-                Override(setting.category, CONFIG, setting.key, toml_text(default), toml_text(value), setting.reason)
-            )
-    return values, overrides
-
-
-def _coerce(key: str, value: Any, kind: str) -> Any:
-    try:
-        if kind == "bool":
-            if isinstance(value, bool):
-                return value
-            lowered = str(value).strip().lower()
-            if lowered in ("true", "false"):
-                return lowered == "true"
-            raise ValueError(value)
-        if kind == "int":
-            if isinstance(value, bool):
-                raise ValueError(value)
-            return int(value)
-        if kind == "str":
-            if not isinstance(value, str):
-                raise ValueError(value)
-            return value
-    except ValueError:
-        raise ConfigError(f"{key}: {value!r} is not a {kind}") from None
-    raise ConfigError(f"{key}: cannot set a {kind}")
-
 
 # --------------------------------------------------------------------------------------------------------------------
 # Building chorusbench
@@ -452,31 +339,18 @@ class ChorusAdapter(ServerAdapter):
         if exe_sha256 != install.extra["exe_sha256"]:
             raise fetch.FetchError(f"the fresh copy of {exe_rel} does not match the verified install")
 
-        defaults = config.load_toml(server_dir / DEFAULTS)
-        settings = load_settings(config.project_root() / SETTINGS_FILE)
-        values, overrides = render_settings(settings, defaults, settings_context(ctx))
-        level = server_dir / "worlds" / str(values["level.name"])
+        written = self.write_config(server_dir, CONFIG, ctx)
+        check_settings(written, config.load_toml(server_dir / DEFAULTS), "chorusbench -defaults")
+        level = server_dir / "worlds" / str({k.key: k.after for k in written.keys}["level.name"])
         if level.exists():
             raise RuntimeError(f"the fresh server copy already has a world at {level}")
-        path = server_dir / CONFIG
-        path.write_text(dump_toml(values), encoding="utf-8", newline="\n")
-        commands = Override(
-            OverrideCategory.HARNESS,
-            "chorusbench",
-            "console commands",
-            None,
-            "gametime, positions, tpp, kick",
-            "Chorus's console has no tick counter, no position list, and no teleport or kick of another player",
-        )
         return Layout(
             server_dir=server_dir,
-            overrides=(*overrides, commands),
-            config_files=(ConfigFile(CONFIG, sha256_file(path)),),
+            config_files=(written,),
             world=WorldInfo(fresh=True, generator="custom", path=level),
             extra={
                 "exe": exe_rel,
                 "exe_sha256": exe_sha256,
-                "settings": values,
                 **{key: install.extra.get(key) for key in ("chorus_commit", "chorusbench", "rustc", "target")},
             },
         )
@@ -487,20 +361,6 @@ class ChorusAdapter(ServerAdapter):
     def executable(self, layout: Layout) -> Path:
         """The chorusbench binary in the run's copy; its sha256 is checked before and after the run."""
         return layout.server_dir / layout.extra["exe"]
-
-    def readback(self, layout: Layout) -> list[str]:
-        """Written chorus.toml values that changed while the server ran; empty when all read back."""
-        path = layout.server_dir / CONFIG
-        try:
-            found = tomllib.loads(path.read_text(encoding="utf-8"))
-        except (OSError, tomllib.TOMLDecodeError) as exc:
-            return [f"{CONFIG} cannot be read after the run: {exc}"]
-        problems = []
-        for key, value in layout.extra.get("settings", {}).items():
-            present, now = lookup(found, key)
-            if not present or now != value:
-                problems.append(f"{CONFIG}: {key} was written as {value!r} and read back as {now!r}")
-        return problems
 
     # ---- commands -------------------------------------------------------------------------------------------------
 
@@ -551,17 +411,13 @@ class ChorusAdapter(ServerAdapter):
 __all__ = [
     "CHORUS_DIALECT",
     "ChorusAdapter",
-    "Setting",
     "SourcePin",
     "build_chorusbench",
     "cargo_env",
     "check_source",
     "describe_binary",
-    "load_settings",
     "lock_sha256",
     "locked_commit",
-    "render_settings",
     "rustc_version",
-    "settings_context",
     "source_sha256",
 ]
