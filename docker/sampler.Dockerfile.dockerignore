@@ -1,0 +1,8 @@
+# Build context of a manual build from the project root: only what the Dockerfile reads.
+*
+!pyproject.toml
+!uv.lock
+!README.md
+!src/bedrock_bench/
+**/__pycache__
+**/*.pyc

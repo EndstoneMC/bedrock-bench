@@ -1,0 +1,90 @@
+# Docker images of the Docker runtime (machine profiles with runtime.kind = "docker").
+#
+# [base] pins every base image by digest. Each Dockerfile repeats its pins as the defaults of its build arguments,
+# so a manual `docker build` gives the same image; the unit tests keep the two equal. Built images are tagged
+# bedrock-bench/<key>:<hash of the Dockerfile, build arguments and context files>, so any change gives a new tag.
+#
+# [image.<key>] keys:
+#   role         server: a server adapter's LaunchSpec.image may name it; harness: used by the runtime itself;
+#                build: tooling only, never built by the runtime
+#   dockerfile   Dockerfile to build, or
+#   pull         a [base] image used as it is
+#   bases        build argument -> [base] key
+#   args         literal build arguments
+#   context      project files and folders the build reads; {version} is the arm's version
+#   per_version  build arguments taken from a pinned artifact of the arm's version: artifacts = <catalog>,
+#                platform = <platform key>, args = templates over {version}, {url} and {sha256}
+#
+# Server files (BDS, jars, phars) never go into an image: each run copies them into a fresh volume.
+
+schema = 1
+
+[base]
+debian = "debian:bookworm-20261005-slim@sha256:7c7b2c966bc9ee8cedfeef67e0e279108992c77681fa595db4a9d65c06ccc587"
+python = "python:3.13.16-slim-bookworm@sha256:a1165e272e578941b84abc79e4ab38a0305cd12803a5c4247979ac7655f4d641"
+temurin = "eclipse-temurin:21.0.12.1_1-jre-noble@sha256:000fd431958bc81a24abe1e8e5f0f0fd3ae365a594bd50aadb20696805f9408c"
+golang = "golang:1.26.3-bookworm@sha256:386d475a660466863d9f8c766fec64d7fdad3edac2c6a05020c09534d71edb4b"
+uv = "ghcr.io/astral-sh/uv:0.11.14@sha256:1025398289b62de8269e70c45b91ffa37c373f38118d7da036fb8bb8efc85d97"
+
+[image.runtime]
+role = "harness"
+pull = "debian"
+description = "holds the pod's namespaces and runs the mounted bot binary"
+
+[image.sampler]
+role = "harness"
+dockerfile = "docker/sampler.Dockerfile"
+bases = { UV_IMAGE = "uv", BASE_IMAGE = "python" }
+context = ["pyproject.toml", "uv.lock", "README.md", "src/bedrock_bench"]
+description = "this package for the sampler sidecars, the engine probe and the process inspection"
+
+[image.bds]
+role = "server"
+dockerfile = "docker/bds.Dockerfile"
+bases = { BASE_IMAGE = "debian" }
+args = { DEBIAN_SNAPSHOT = "20261005T000000Z" }
+context = ["docker/debian-snapshot.sh"]
+description = "Bedrock Dedicated Server's Linux build (files copied in per run)"
+
+[image.endstone]
+role = "server"
+dockerfile = "docker/endstone.Dockerfile"
+bases = { BASE_IMAGE = "python" }
+args = { DEBIAN_SNAPSHOT = "20261005T000000Z" }
+context = ["docker/debian-snapshot.sh", "servers/endstone/requirements/{version}.txt"]
+description = "Endstone from PyPI, hash-checked, on the BDS build it hosts (files copied in per run)"
+
+[image.endstone.per_version]
+artifacts = "endstone"
+platform = "linux-cp313"
+args = { ENDSTONE_VERSION = "{version}", ENDSTONE_WHEEL_URL = "{url}", ENDSTONE_WHEEL_SHA256 = "{sha256}" }
+
+[image.jvm]
+role = "server"
+dockerfile = "docker/jvm.Dockerfile"
+bases = { BASE_IMAGE = "temurin" }
+description = "Eclipse Temurin 21 JRE for the JVM servers"
+
+[image.php]
+role = "server"
+dockerfile = "docker/php.Dockerfile"
+bases = { BASE_IMAGE = "debian" }
+context = ["docker/debian-snapshot.sh"]
+description = "PocketMine-MP 5 PHP 8.2 build"
+
+[image.php.args]
+DEBIAN_SNAPSHOT = "20261005T000000Z"
+PHP_URL = "https://github.com/pmmp/PHP-Binaries/releases/download/php-build-524/PHP-8.2-Linux-x86_64-PM5.tar.gz"
+PHP_SHA256 = "000fc605878d24be3d6faa6991c0d3a39ae90a0f9ff24d9f4e4722ef823082fc"
+
+[image.dragonfly]
+role = "server"
+pull = "debian"
+description = "statically linked Go servers such as dfbench (the binary is copied in per run)"
+
+[image.bots]
+role = "build"
+dockerfile = "docker/bots.Dockerfile"
+bases = { GO_IMAGE = "golang" }
+context = ["bots/core", "bots/loadbot"]
+description = "builds bots/bin/linux-amd64/<module> without a local Go toolchain"

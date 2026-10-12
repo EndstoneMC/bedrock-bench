@@ -1,0 +1,5 @@
+# Build context of a manual build from the project root: only what the Dockerfile reads.
+*
+!bots/core/
+!bots/loadbot/
+!bots/legacy1001/

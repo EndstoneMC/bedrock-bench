@@ -1,0 +1,2 @@
+# Build context of a manual build from the project root: only what the Dockerfile reads.
+*
