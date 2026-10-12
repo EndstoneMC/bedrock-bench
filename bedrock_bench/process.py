@@ -291,11 +291,6 @@ def apply_placement(proc: psutil.Process, cpus: Sequence[int] | None, priority: 
     impl.set_priority(proc.pid, priority)
 
 
-def pin_current_process(cpus: Sequence[int]) -> None:
-    """Move the harness itself onto its CPU set."""
-    platform.current().set_affinity(os.getpid(), cpus)
-
-
 def _norm_path(path: str | Path) -> str:
     return os.path.normcase(os.path.realpath(path))
 

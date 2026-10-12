@@ -11,7 +11,7 @@ Every arm of a matrix uses the same bot source and the same flags (rule R2 in
 |---|---|
 | `core/` | Everything that does not depend on the protocol: flags, events, chunk accounting, the walk, identities, sub-chunk request ranges, the stdin protocol and the fleet that runs the bots. It does not import gophertunnel. |
 | `loadbot/` | Protocol 2193 (Bedrock 1.26.5x), built on upstream [gophertunnel](https://github.com/Sandertv/gophertunnel) v1.62.0. Translates packets into `core.Session` calls. |
-| `legacy1001/` | Protocol 1001, for PocketMine-MP only ([Protocol 1001](#protocol-1001)). Same core, gophertunnel v1.57.1 plus one [patch](#patches). |
+| `legacy1001/` | Protocol 1001, for PocketMine-MP and Allay ([Protocol 1001](#protocol-1001)). Same core, gophertunnel v1.57.1 plus one [patch](#patches). |
 
 Go cannot link two versions of one module into one binary, so each protocol is its own module and binary. A new
 protocol frontend implements `core.Frontend`: one `RunSession` that dials, logs in, spawns, calls `Session.Spawned`
@@ -20,12 +20,14 @@ and then reports packets through the other `Session` methods until the session e
 ## Building
 
 ```sh
-bbench bots build                          # every module, for this host
-bbench bots build --module loadbot         # one module
+bbench bots build                          # loadbot, for this host
+bbench bots build --module legacy1001      # the protocol 1001 bot
 bbench bots build --target linux/amd64     # cross-compile
 bbench bots fetch                          # loadbot from the release, checked against its SHA256SUMS
-bbench bots fetch --module legacy1001      # the PocketMine-MP bot
 ```
+
+`legacy1001` builds only once the gophertunnel fork tag under [Patches](#patches) is published. Until then CI and the
+release leave it out.
 
 Binaries land in `bots/bin/<goos>-<goarch>/`, each with a `<name>.json` manifest that records its sha256 and its
 `-version` output. The harness hashes the binary before every run and records it in `run.json`.
@@ -194,8 +196,8 @@ Shutdown (`quit`, `stop`, end of stdin, SIGINT, SIGTERM, Ctrl+Break, or a failed
 
 ## Protocol 1001
 
-`legacy1001` is the bot for servers that speak protocol 1001. In the matrices that is `pocketmine@5.44.3`; every
-other server gets `loadbot`. Runs with it are flagged `bot_protocol_differs` (rule R2).
+`legacy1001` is the bot for servers that speak protocol 1001. In the matrices that is `pocketmine@5.44.3` and
+`allay@0.14.0`; every other server gets `loadbot`. Runs with it are flagged `bot_protocol_differs` (rule R2).
 
 It is `loadbot` built against gophertunnel v1.57.1, the last release for protocol 1001. PocketMine-MP 5.44.3 rejects
 that release's offline login, so the module carries the login back-port listed under [Patches](#patches). Upstream
@@ -212,7 +214,8 @@ GOWORK=off go test ./...
 
 `GOWORK=off` is required. `go.work` covers `core` and `loadbot` only, because a workspace resolves one gophertunnel
 version for all its modules. The module downloads gophertunnel from the fork tag described under
-[Patches](#patches), so that tag must be published before it builds.
+[Patches](#patches), so that tag must be published before it builds, and until then the PocketMine-MP and Allay arms
+cannot run.
 
 `TestLoginRequestFormat` checks the login a server receives against the format PocketMine-MP expects, and fails
 against unpatched v1.57.1. `TestLoopbackSession` runs a whole session against an in-process protocol 1001 server.
@@ -234,11 +237,11 @@ Upstream changes to the same files that the back-port leaves out:
   never sets it, so it never reaches the wire.
 - The login parsing changes made before v1.58.0 (#474 and the `Validate` part of #481). The bot never parses a login.
 
-Neither bot carries the changes of the modified gophertunnel snapshot the legacy harness used. The radius is
-requested with a normal `RequestChunkRadius` packet after spawn (`-radius`), and `TestSubChunkHeightMapWireLayout` in
-`loadbot` shows that upstream decodes the sub-chunk height maps the snapshot patched. If a pinned server sends
-something upstream cannot decode, the bot reports a `decode_error` naming the packet, the run is invalid, and the
-fix goes through the policy below.
+Neither bot carries the changes of the modified gophertunnel snapshot that Endstone's earlier benchmark scripts
+used. The radius is requested with a normal `RequestChunkRadius` packet after spawn (`-radius`), and
+`TestSubChunkHeightMapWireLayout` in `loadbot` shows that upstream decodes the sub-chunk height maps the snapshot
+patched. If a pinned server sends something upstream cannot decode, the bot reports a `decode_error` naming the
+packet, the run is invalid, and the fix goes through the policy below.
 
 ### Policy
 

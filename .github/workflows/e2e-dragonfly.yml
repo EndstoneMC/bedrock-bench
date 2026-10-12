@@ -10,6 +10,7 @@ on:
       - bots/**
       - configs/servers/dragonfly/**
       - configs/scenarios/smoke.toml
+      - configs/scenarios/chaos-actions.toml
       - pyproject.toml
       - uv.lock
       - .github/ci-machine.toml
@@ -20,6 +21,7 @@ on:
       - bots/**
       - configs/servers/dragonfly/**
       - configs/scenarios/smoke.toml
+      - configs/scenarios/chaos-actions.toml
       - pyproject.toml
       - uv.lock
       - .github/ci-machine.toml

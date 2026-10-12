@@ -8,6 +8,8 @@ on:
       - bots/**
       - configs/servers/dragonfly/**
       - bedrock_bench/schemas/bot-event.schema.json
+      - bedrock_bench/results.py
+      - bedrock_bench/cli.py
       - .github/scripts/build-go.sh
       - .github/workflows/bots.yml
   pull_request:
@@ -15,6 +17,8 @@ on:
       - bots/**
       - configs/servers/dragonfly/**
       - bedrock_bench/schemas/bot-event.schema.json
+      - bedrock_bench/results.py
+      - bedrock_bench/cli.py
       - .github/scripts/build-go.sh
       - .github/workflows/bots.yml
   workflow_call:
@@ -61,7 +65,7 @@ jobs:
       - name: Verify, tidy check, vet and test each module
         shell: bash
         run: |
-          for dir in bots/core bots/loadbot bots/legacy1001 configs/servers/dragonfly; do
+          for dir in bots/core bots/loadbot configs/servers/dragonfly; do
             echo "::group::$dir"
             (cd "$dir" && go mod verify && go mod tidy -diff && go vet ./... && go test ./...)
             echo "::endgroup::"
@@ -132,14 +136,12 @@ jobs:
         with:
           name: go-built-on-linux
           path: ${{ runner.temp }}/bin
-      - name: Validate -selftest-output of each bot
+      - name: Validate the bot's -selftest-output
         env:
           UV_LOCKED: "1"
         run: |
-          for bot in loadbot legacy1001; do
-            exe="$RUNNER_TEMP/bin/$bot-linux-amd64"
-            chmod +x "$exe"
-            mkdir -p "$RUNNER_TEMP/selftest/$bot"
-            "$exe" -selftest-output >"$RUNNER_TEMP/selftest/$bot/bots.jsonl"
-            uv run bbench validate "$RUNNER_TEMP/selftest/$bot/bots.jsonl"
-          done
+          exe="$RUNNER_TEMP/bin/loadbot-linux-amd64"
+          chmod +x "$exe"
+          mkdir -p "$RUNNER_TEMP/selftest"
+          "$exe" -selftest-output >"$RUNNER_TEMP/selftest/bots.jsonl"
+          uv run bbench validate "$RUNNER_TEMP/selftest/bots.jsonl"

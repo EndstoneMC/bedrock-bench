@@ -818,8 +818,3 @@ def power_settings() -> dict[str, object]:
         return {}
     guid = match.group(1).lower()
     return {"scheme": POWER_SCHEMES.get(guid, (match.group(2) or "custom").strip()), "guid": guid}
-
-
-def long_paths_enabled() -> bool | None:
-    value = _registry_value(r"SYSTEM\CurrentControlSet\Control\FileSystem", "LongPathsEnabled")
-    return None if value is None else value == "1"

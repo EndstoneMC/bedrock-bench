@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: Apache-2.0
 #
-# Reproducible builds of the Go programs: the two load bots and the Dragonfly helper.
+# Reproducible builds of the Go programs: the load bots and the Dragonfly helper.
 #
 #   .github/scripts/build-go.sh OUT_DIR [PROGRAM...]
 #
-# Builds each PROGRAM (default: all) for linux/amd64 and windows/amd64 into OUT_DIR and writes OUT_DIR/SHA256SUMS.
-# Each module is built on its own (GOWORK=off) with exactly the dependencies its go.mod pins. Keep the flags in sync
-# with `bbench bots build` so a local build reproduces the release checksums.
+# Builds each PROGRAM (default: loadbot and dfbench) for linux/amd64 and windows/amd64 into OUT_DIR and writes
+# OUT_DIR/SHA256SUMS. legacy1001 builds only once its gophertunnel fork tag is published (bots/README.md#patches).
+# Each module is built on its own (GOWORK=off) with exactly the dependencies its go.mod pins. `bbench bots build` uses
+# the same build flags but stamps its own version and commit; only this script reproduces the release SHA256SUMS.
 set -euo pipefail
 
 TARGETS=(linux/amd64 windows/amd64)
-ALL_PROGRAMS=(loadbot legacy1001 dfbench)
+PROGRAMS=(loadbot legacy1001 dfbench)
+DEFAULT_PROGRAMS=(loadbot dfbench)
 
 source_dir() {
     case "$1" in
@@ -19,7 +21,7 @@ source_dir() {
         legacy1001) echo bots/legacy1001 ;;
         dfbench) echo configs/servers/dragonfly ;;
         *)
-            echo "unknown program: $1 (expected one of: ${ALL_PROGRAMS[*]})" >&2
+            echo "unknown program: $1 (expected one of: ${PROGRAMS[*]})" >&2
             return 1
             ;;
     esac
@@ -35,7 +37,7 @@ mkdir -p "$1"
 out=$(cd "$1" && pwd)
 shift
 programs=("$@")
-[[ ${#programs[@]} -gt 0 ]] || programs=("${ALL_PROGRAMS[@]}")
+[[ ${#programs[@]} -gt 0 ]] || programs=("${DEFAULT_PROGRAMS[@]}")
 
 version=$(git -C "$root" describe --tags --always --match 'v*')
 commit=$(git -C "$root" rev-parse HEAD)

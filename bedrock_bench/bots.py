@@ -137,11 +137,6 @@ def source_dir(module: str, root: Path | None = None) -> Path:
     return (root or project_root()) / "bots" / module
 
 
-def available_modules(root: Path | None = None) -> list[str]:
-    """Modules whose source exists in this checkout."""
-    return [m for m in MODULES if (source_dir(m, root) / "go.mod").is_file()]
-
-
 def binary_path(module: str, target: Target | None = None, root: Path | None = None) -> Path:
     """``bots/bin/<goos>-<goarch>/<module>[.exe]`` in the checkout."""
     _check_module(module)
@@ -495,12 +490,8 @@ def build_cli(args: argparse.Namespace) -> int:
     if args.module:
         _check_module(args.module)
         modules = [args.module]
-    elif args.action == "build":
-        modules = available_modules(root)
     else:
         modules = ["loadbot"]
-    if not modules:
-        raise ConfigError(f"no bot sources under {root / 'bots'}")
     try:
         for module in modules:
             for target in targets:
@@ -563,7 +554,6 @@ class BotFleet:
         self._last: dict[str, dict[str, Any]] = {}
         self._eof = False
         self._junk: deque[str] = deque(maxlen=50)
-        self._stderr_tail: deque[str] = deque(maxlen=200)
         self._stdin_lock = threading.Lock()
         self._threads: list[threading.Thread] = []
         self._stderr_file: IO[bytes] | None = None
@@ -755,8 +745,8 @@ class BotFleet:
 
     def _read_stderr(self) -> None:
         assert self._proc is not None and self._proc.stderr is not None
-        for raw in self._proc.stderr:
-            self._stderr_tail.append(raw.decode("utf-8", errors="replace").rstrip())
+        for _ in self._proc.stderr:
+            pass
 
     def __len__(self) -> int:
         with self._cond:
@@ -808,8 +798,3 @@ class BotFleet:
     def junk_lines(self) -> list[str]:
         """Lines on stdout that were not events (kept for diagnostics, at most 50)."""
         return list(self._junk)
-
-    @property
-    def stderr_tail(self) -> list[str]:
-        """The last stderr lines when stderr is not written to a file."""
-        return list(self._stderr_tail)

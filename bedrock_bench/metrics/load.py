@@ -71,10 +71,6 @@ def timed_events(raw: Iterable[Mapping[str, Any]], origin_mono_ns: int = 0, orig
     return [item[2] for item in timed]
 
 
-def of_kind(bots: Sequence[BotEvent], *kinds: str) -> list[BotEvent]:
-    return [e for e in bots if e.ev in kinds]
-
-
 def first_per_bot(bots: Sequence[BotEvent], kind: str) -> dict[str, BotEvent]:
     out: dict[str, BotEvent] = {}
     for event in bots:

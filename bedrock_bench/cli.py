@@ -81,7 +81,7 @@ def _configure_fetch(p: argparse.ArgumentParser) -> None:
 
 def _configure_bots(p: argparse.ArgumentParser) -> None:
     p.add_argument("action", choices=("build", "fetch"), help="build from source, or download a release binary")
-    p.add_argument("--module", choices=("loadbot", "legacy1001"), help="bot module (default: all)")
+    p.add_argument("--module", choices=("loadbot", "legacy1001"), help="bot module (default: loadbot)")
     p.add_argument(
         "--target",
         dest="targets",
