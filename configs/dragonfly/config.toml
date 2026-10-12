@@ -1,0 +1,38 @@
+[Network]
+# The bots connect over loopback, and a loopback-only listener never triggers a firewall prompt for the new build.
+Address = "127.0.0.1:{{ run.port }}"
+
+[Server]
+# Names the benchmark server in the server list.
+Name = "bedrock-bench"
+# The bots log in offline with self-signed identities.
+AuthEnabled = false
+
+[World]
+# The world is saved to disk, as on every server.
+SaveData = true
+# Fixed world folder, checked absent before launch.
+Folder = "{{ workload.world.level_name }}"
+
+[Players]
+# Same view distance on every server.
+MaximumChunkRadius = {{ workload.server.view_distance }}
+# Room for every bot.
+MaxCount = {{ workload.server.max_players }}
+# Player data is saved, as on every server.
+SaveData = {{ workload.server.save_player_data | lower }}
+
+# dfbench's own table: settings Dragonfly only exposes through its Go API.
+[Bench]
+# At debug level Dragonfly logs every packet it does not handle.
+LogLevel = "info"
+# Dragonfly skips the ticks of an empty world, which would stop the tick counter the probe reads while idle.
+IdleTicking = true
+# Same simulation distance on every server.
+TickRange = {{ workload.server.tick_distance }}
+# Same difficulty on every server.
+Difficulty = "{{ workload.server.difficulty }}"
+# A new Dragonfly world puts players in creative, so every server gets the workload's game mode.
+GameMode = "{{ workload.server.gamemode }}"
+# Same autosave interval on every server, in seconds.
+SaveIntervalSeconds = {{ workload.server.autosave_ticks // 20 }}

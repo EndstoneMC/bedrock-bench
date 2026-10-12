@@ -1,0 +1,27 @@
+[server]
+# The bots log in offline with self-signed identities.
+authentication = false
+# Room for every bot.
+max_players = {{ workload.server.max_players }}
+# Task pools sized to the server's CPUs, since "auto" counts every CPU of the machine on Windows.
+threads = {{ run.server_cpu_count }}
+
+[network]
+# The bots connect over loopback, and a loopback-only listener never triggers a firewall prompt for the new build.
+ip = "127.0.0.1"
+# Port from the machine profile, away from 19132 so a local game cannot collide.
+port = {{ run.port }}
+# The bots speak RakNet.
+transport = "RakNet"
+
+[level]
+# Fixed world folder, checked absent before launch.
+name = "{{ workload.world.level_name }}"
+# Same seed on every server; Chorus generates its own terrain from it.
+seed = {{ workload.world.seed }}
+# Same view distance on every server.
+max_view_distance = {{ workload.server.view_distance }}
+# Same autosave interval on every server.
+autosave = "{{ workload.server.autosave_ticks // 20 }}s"
+# Chorus's default, written down: only chunks that changed are saved.
+chunk_saving = "modified"
