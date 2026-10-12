@@ -83,8 +83,7 @@ Held in the adapter:
 - It sends whole chunk columns, at most 16 per player per tick, and never lets clients generate terrain. Sub-chunk
   sending exists but is off by default and stays off.
 - It sends no movement corrections and no locator-bar packets, and computes no movement for players, so bots
-  teleported to the spread height keep hovering there. The `[features]` rows say so, and `corrections_per_bot_s`,
-  `locator_pkts_per_bot_s` and `airborne_frac_steady` check it in every run.
+  teleported to the spread height keep hovering there.
 - After a slow tick the world loop runs the ticks it fell behind back to back, without skipping any, so the tick
   counter catches up with the wall clock.
 - Effects last 1,000,000 s, because Allay's `effect` takes whole seconds and has no `infinite`. Effect ids must be
