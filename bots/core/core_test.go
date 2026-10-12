@@ -211,7 +211,6 @@ func TestBlockToChunkFloors(t *testing.T) {
 
 func TestParseCommand(t *testing.T) {
 	five := 5
-	on := true
 	good := []struct {
 		line    string
 		control bool
@@ -223,7 +222,6 @@ func TestParseCommand(t *testing.T) {
 		{`{"op":"reconnect","bot":"a07"}`, true, Command{Op: OpReconnect, Bot: "a07"}},
 		{`{"op":"reconnect","i":5,"delay_ms":5}`, true, Command{Op: OpReconnect, I: &five, DelayMS: &five}},
 		{`{"op":"disconnect","i":5}`, true, Command{Op: OpDisconnect, I: &five}},
-		{`{"op":"jitter","on":true}`, true, Command{Op: OpJitter, On: &on}},
 		{`{"op":"radius","radius":8}`, true, Command{Op: OpRadius, Radius: 8}},
 		{`{"op":"radius","radius":8,"bot":"a01"}`, true, Command{Op: OpRadius, Radius: 8, Bot: "a01"}},
 	}
@@ -246,7 +244,7 @@ func TestParseCommand(t *testing.T) {
 		{`{"op":"reconnect"}`, true},
 		{`{"op":"reconnect","i":-1}`, true},
 		{`{"op":"disconnect","bot":"a1","delay_ms":10}`, true},
-		{`{"op":"jitter"}`, true},
+		{`{"op":"jitter","on":true}`, true},
 		{`{"op":"radius","radius":0}`, true},
 		{`{"op":"radius","radius":97}`, true},
 		{`{"op":"radius","r":8}`, true},

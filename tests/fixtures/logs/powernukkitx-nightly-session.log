@@ -46,9 +46,9 @@ WARNING: sun.misc.Unsafe::invokeCleaner will be removed in a future release
 18:36:01 [main] [INFO] Game rule randomtickspeed has been updated to 3
 18:36:16 [main] [INFO] a03 died
 18:36:16 [main] [INFO] Killed a03
-18:36:20 [main] [INFO] a03[/127.0.0.1:60876] logged out due to Kicked by admin. Reason: chaos
+18:36:20 [main] [INFO] a03[/127.0.0.1:60876] logged out due to Kicked by admin. Reason: test
 18:36:20 [main] [INFO] a03 left the game
-18:36:20 [main] [INFO] Kicked a03 from the game: 'chaos'
+18:36:20 [main] [INFO] Kicked a03 from the game: 'test'
 18:36:21 [main] [INFO] Gametime is 1070
 18:36:28 [main] [INFO] Loaded level list: bench, bench, bench
 18:36:59 [main] [INFO] Gametime is 1830

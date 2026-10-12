@@ -75,8 +75,8 @@
 18:41:49 [main] [INFO] a01 died
 18:41:49 [main] [INFO] Killed a01
 18:41:54 [main] [INFO] a00 left the game
-18:41:54 [main] [INFO] a00[/127.0.0.1:53348] logged out due to Kicked! Reason: chaos
-18:41:54 [main] [INFO] Kicked a00 from the game: 'chaos'
+18:41:54 [main] [INFO] a00[/127.0.0.1:53348] logged out due to Kicked! Reason: test
+18:41:54 [main] [INFO] Kicked a00 from the game: 'test'
 18:41:56 [main] [INFO] positions: 3
 18:41:56 [main] [INFO] position: a01 126.80 65.51 108.45 0
 18:41:56 [main] [INFO] position: a03 1286.66 300.00 1924.14 0

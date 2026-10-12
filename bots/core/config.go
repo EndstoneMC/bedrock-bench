@@ -45,9 +45,6 @@ type Config struct {
 	FakeXUID         bool
 	IdentitySeed     string
 	Control          bool
-	RejoinOnDrop     bool
-	RadiusJitter     time.Duration
-	JitterPaused     bool
 	ProgressInterval time.Duration
 	StatInterval     time.Duration
 	PktInterval      time.Duration
@@ -72,9 +69,6 @@ func (c *Config) Register(fs *flag.FlagSet) {
 	fs.BoolVar(&c.FakeXUID, "fake-xuid", false, "send XUID 2535400000000000+index in the offline login")
 	fs.StringVar(&c.IdentitySeed, "identity-seed", "bedrock-bench", "UUIDv5 namespace for bot identities (a UUID, or any string)")
 	fs.BoolVar(&c.Control, "control", false, "accept JSON control commands on stdin besides \"quit\"")
-	fs.BoolVar(&c.RejoinOnDrop, "rejoin-on-drop", false, "rejoin after a kick or a dropped connection (chaos only)")
-	fs.DurationVar(&c.RadiusJitter, "radius-jitter", 0, "re-request a random radius in 4..16 at this mean interval (chaos only)")
-	fs.BoolVar(&c.JitterPaused, "jitter-paused", false, "keep radius jitter off until a jitter control command turns it on")
 	fs.DurationVar(&c.ProgressInterval, "progress-interval", 5*time.Second, "interval of per-bot progress events")
 	fs.DurationVar(&c.StatInterval, "stat-interval", 10*time.Second, "interval of aggregate stat events")
 	fs.DurationVar(&c.PktInterval, "pkt-interval", 60*time.Second, "interval of packet-mix events")
@@ -113,9 +107,6 @@ func (c *Config) Validate() error {
 	}
 	if c.IdentitySeed == "" {
 		errs = append(errs, errors.New("-identity-seed must not be empty"))
-	}
-	if c.RadiusJitter < 0 {
-		errs = append(errs, fmt.Errorf("-radius-jitter must not be negative, got %v", c.RadiusJitter))
 	}
 	for name, d := range map[string]time.Duration{
 		"-progress-interval": c.ProgressInterval, "-stat-interval": c.StatInterval, "-pkt-interval": c.PktInterval,

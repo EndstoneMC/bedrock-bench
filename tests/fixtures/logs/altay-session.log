@@ -85,10 +85,10 @@ Command output | Teleported a01 to 1300.5, 300, 1300.5
 [17:44:46.629] [Server thread/INFO]: a02 died
 Command output | Killed a02
 [17:44:46.630] [Server thread/INFO]: [CONSOLE: Killed a02]
-[17:44:47.623] [Server thread/INFO]: [NetworkSession: a03] Session closed: Kicked by admin. Reason: chaos
+[17:44:47.623] [Server thread/INFO]: [NetworkSession: a03] Session closed: Kicked by admin. Reason: test
 [17:44:47.623] [Server thread/INFO]: a03 left the game
-Command output | Kicked a03 from the game: 'chaos'
-[17:44:47.625] [Server thread/INFO]: [CONSOLE: Kicked a03 from the game: 'chaos']
+Command output | Kicked a03 from the game: 'test'
+[17:44:47.625] [Server thread/INFO]: [CONSOLE: Kicked a03 from the game: 'test']
 Command output | positions: 3
 Command output | position: a00 1280.51 300.00 1280.43 0
 Command output | position: a01 1269.94 300.00 1295.54 0

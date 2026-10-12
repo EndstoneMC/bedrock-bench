@@ -59,7 +59,6 @@ GOLDEN_ANGLE = math.radians(137.508)
 SUBCHUNKS_PER_COLUMN = 24
 MOVE_REPORT_S = 0.5
 RETRY_DELAY_S = 1.0
-REJOIN_DELAY_S = 1.0
 RESPAWN_DELAY_S = 0.3
 
 #: Received packet kinds counted in ``pkt`` events, with a typical size in bytes.
@@ -146,9 +145,6 @@ def parse_flags(argv: Sequence[str]) -> argparse.Namespace:
     flag("fake-xuid", go_bool, False, "fake XUIDs")
     flag("identity-seed", str, "bedrock-bench", "UUIDv5 namespace")
     flag("control", go_bool, False, "accept JSON operations on stdin")
-    flag("rejoin-on-drop", go_bool, False, "rejoin after a drop or kick")
-    flag("radius-jitter", go_duration, 0.0, "mean radius re-request interval")
-    flag("jitter-paused", go_bool, False, "jitter off until 'jitter on'")
     flag("progress-interval", go_duration, 5.0, "progress event interval")
     flag("stat-interval", go_duration, 10.0, "stat event interval")
     flag("pkt-interval", go_duration, 60.0, "packet-mix event interval")
@@ -335,7 +331,6 @@ class Fleet:
         self.decode_errors = 0
         self.fatal: int | None = None
         self.tx_pkts = 0.0
-        self.jitter = flags.radius_jitter > 0 and not flags.jitter_paused
         self.offsets: dict[int, list[tuple[int, int]]] = {}
         self.last_pkt = dict.fromkeys(PACKETS, 0)
 
@@ -497,9 +492,6 @@ class Fleet:
     def _offline(self, bot: Bot, now: float) -> None:
         self._close(bot)
         bot.state = "offline"
-        if self.flags.rejoin_on_drop and not self.quit.is_set():
-            bot.rejoin = True
-            bot.next_dial = now + REJOIN_DELAY_S
 
     # ---- messages --------------------------------------------------------------------------------------------------
 
@@ -599,8 +591,6 @@ class Fleet:
         bot = next((b for b in self.bots if b.name == op.get("bot")), None)
         if name == "stop":
             self.quit.set()
-        elif name == "jitter":
-            self.jitter = bool(op.get("on", True))
         elif name == "disconnect" and bot is not None and bot.state == "online":
             self._send(bot, {"op": "quit"})
             self._close(bot)

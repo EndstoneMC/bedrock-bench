@@ -26,7 +26,7 @@ const (
 const MaxRejoinFailures = 5
 
 var (
-	// RetryDelay is the pause between join attempts and before a rejoin after a drop.
+	// RetryDelay is the pause between join attempts.
 	RetryDelay = 3 * time.Second
 	// ShutdownGrace bounds how long sessions get to close at shutdown.
 	ShutdownGrace = 10 * time.Second
@@ -76,7 +76,6 @@ type Fleet struct {
 
 	bots      []*Bot
 	botsMu    sync.Mutex
-	jitter    atomic.Bool
 	decodeLim *RateLimiter
 
 	ctx      context.Context // cancelled when sessions must close
@@ -100,7 +99,6 @@ func NewFleet(cfg *Config, fe Frontend, em *Emitter, stderr io.Writer) *Fleet {
 		decodeLim: NewRateLimiter(10, time.Second),
 		stopCh:    make(chan struct{}),
 	}
-	f.jitter.Store(!cfg.JitterPaused)
 	f.ctx, f.cancel = context.WithCancel(context.Background())
 	em.OnError(func(err error) {
 		f.Logf("", "event output failed, stopping: %v", err)
@@ -338,10 +336,7 @@ func (f *Fleet) runBot(b *Bot) {
 			f.C.Dropped.Add(1)
 			f.em.Emit(EvDropped, Lifecycle{Bot: b.Name, Session: number, Err: errString(end.Err)})
 		}
-		if !cfg.RejoinOnDrop || !f.sleep(RetryDelay) {
-			return
-		}
-		number++
+		return
 	}
 }
 
@@ -379,8 +374,6 @@ func (f *Fleet) apply(c Command) {
 	switch c.Op {
 	case OpQuit:
 		f.requestStop(ExitOK)
-	case OpJitter:
-		f.jitter.Store(*c.On)
 	case OpRadius:
 		if !c.Targets() {
 			for _, b := range f.snapshotBots() {
@@ -612,9 +605,6 @@ func (s *Session) Leave() <-chan struct{} { return s.leave }
 
 // Requests delivers radius commands for this bot.
 func (s *Session) Requests() <-chan Command { return s.requests }
-
-// JitterOn reports whether radius jitter is currently enabled.
-func (s *Session) JitterOn() bool { return s.fleet.jitter.Load() }
 
 // Probing reports whether this bot sends latency probes.
 func (s *Session) Probing() bool { return s.Bot.Index < s.fleet.cfg.ProbeBots }

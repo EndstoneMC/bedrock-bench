@@ -17,7 +17,6 @@ const (
 	OpStop       = "stop"       // JSON form of quit
 	OpReconnect  = "reconnect"  // close one bot's session and rejoin after delay_ms (default 3000)
 	OpDisconnect = "disconnect" // close one bot's session and stay offline until a reconnect
-	OpJitter     = "jitter"     // turn radius jitter on or off
 	OpRadius     = "radius"     // request a chunk radius for one bot, or every online bot
 )
 
@@ -32,7 +31,6 @@ type Command struct {
 	Op      string `json:"op"`
 	Bot     string `json:"bot,omitempty"`
 	I       *int   `json:"i,omitempty"`
-	On      *bool  `json:"on,omitempty"`
 	Radius  int    `json:"radius,omitempty"`
 	DelayMS *int   `json:"delay_ms,omitempty"`
 }
@@ -69,7 +67,7 @@ func ParseCommand(line string, control bool) (Command, error) {
 	}
 	switch c.Op {
 	case OpQuit, OpStop:
-		if c.Targets() || c.On != nil || c.Radius != 0 || c.DelayMS != nil {
+		if c.Targets() || c.Radius != 0 || c.DelayMS != nil {
 			return Command{}, fmt.Errorf("bad control line %q: %s takes no arguments", line, c.Op)
 		}
 		c.Op = OpQuit
@@ -79,10 +77,6 @@ func ParseCommand(line string, control bool) (Command, error) {
 		}
 		if c.Op == OpDisconnect && c.DelayMS != nil {
 			return Command{}, fmt.Errorf("bad control line %q: disconnect takes no delay_ms", line)
-		}
-	case OpJitter:
-		if c.On == nil {
-			return Command{}, fmt.Errorf("bad control line %q: jitter needs on", line)
 		}
 	case OpRadius:
 		if c.Radius < 1 || c.Radius > MaxRadius {

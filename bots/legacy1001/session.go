@@ -5,9 +5,7 @@ package main
 import (
 	"context"
 	"errors"
-	"hash/fnv"
 	"log/slog"
-	"math/rand/v2"
 	"net"
 	"sync/atomic"
 	"time"
@@ -97,7 +95,6 @@ type botConn struct {
 	cfg  *core.Config
 	conn *minecraft.Conn
 	gd   minecraft.GameData
-	rng  *rand.Rand
 	done chan struct{} // closed when play returns
 
 	handledTeleport atomic.Bool // acknowledge a server teleport in the next input
@@ -110,14 +107,11 @@ type botConn struct {
 
 func newBotConn(s *core.Session, conn *minecraft.Conn) *botConn {
 	cfg := s.Config()
-	h := fnv.New64a()
-	_, _ = h.Write([]byte(cfg.IdentitySeed))
 	return &botConn{
 		s:      s,
 		cfg:    cfg,
 		conn:   conn,
 		gd:     conn.GameData(),
-		rng:    rand.New(rand.NewPCG(h.Sum64(), uint64(s.Bot.Index))),
 		done:   make(chan struct{}),
 		walker: core.NewWalker(cfg.Walk, s.Bot.Index),
 	}
@@ -147,9 +141,6 @@ func (b *botConn) play(ctx context.Context) core.SessionEnd {
 
 	readErr := make(chan error, 1)
 	go func() { readErr <- b.readLoop() }()
-	if b.cfg.RadiusJitter > 0 {
-		go b.jitterLoop()
-	}
 	if b.s.Probing() {
 		go b.probeLoop()
 	}
@@ -260,22 +251,4 @@ func (b *botConn) walkTick() error {
 		b.s.TxPacket(packet.IDPlayerAuthInput)
 	}
 	return err
-}
-
-// jitterLoop re-requests a random chunk radius in 4..16 at a mean interval of -radius-jitter while jitter is on.
-func (b *botConn) jitterLoop() {
-	mean := b.cfg.RadiusJitter
-	for {
-		wait := mean/2 + time.Duration(b.rng.Int64N(int64(mean)))
-		select {
-		case <-b.done:
-			return
-		case <-time.After(wait):
-		}
-		if !b.s.JitterOn() {
-			continue
-		}
-		b.requestRadius(int32(4 + b.rng.IntN(13)))
-		_ = b.conn.Flush()
-	}
 }

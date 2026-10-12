@@ -87,9 +87,6 @@ run, the harness builds the flags from the scenario (`configs/scenarios/`) and r
 | `-fake-xuid` | false | Send XUID 2535400000000000 + index, for servers that derive the player UUID from the XUID. |
 | `-identity-seed` | `bedrock-bench` | Name space of the bot UUIDs ([What a bot does](#what-a-bot-does)). |
 | `-control` | false | Accept the JSON commands on stdin ([Commands on stdin](#commands-on-stdin)). |
-| `-rejoin-on-drop` | false | Rejoin 3 s after a kick or a lost connection. Chaos scenarios only. |
-| `-radius-jitter` | 0 | Re-request a random radius in 4..16 at this mean interval (uniform in 0.5x..1.5x). Chaos scenarios only. |
-| `-jitter-paused` | false | Keep radius jitter off until `{"op":"jitter","on":true}`. |
 | `-progress-interval` | 5s | Interval of `progress` events. |
 | `-stat-interval` | 10s | Interval of `stat` events (and `rtt` events when probing). |
 | `-pkt-interval` | 60s | Interval of `pkt` events. |
@@ -184,7 +181,6 @@ kicks included), `kicked`, `left`, `rejoins`, `rejoin_failed`, `deaths`, `rx_pkt
 |---|---|
 | `{"op":"reconnect","bot":"a07"}` | Close the session (`left`) and rejoin after `delay_ms` (default 3000). Also brings back a bot that was disconnected. |
 | `{"op":"disconnect","i":7}` | Close the session (`left`) and stay offline until a `reconnect`. |
-| `{"op":"jitter","on":true}` | Turn radius jitter on or off. |
 | `{"op":"radius","radius":8}` | Request a chunk radius, for one bot when addressed, otherwise for every online bot. |
 | `{"op":"stop"}` | Same as `quit`. |
 
