@@ -66,7 +66,6 @@ NAME_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 SERVER_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 VERSION_RE = re.compile(r"^[0-9A-Za-z][0-9A-Za-z._-]*$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
-METRIC_ID_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 PLATFORM_KEY_RE = re.compile(r"^[a-z0-9][a-z0-9_.-]*$")
 HEAP_RE = re.compile(r"^[1-9][0-9]*[MG]$")
 PYTHON_RE = re.compile(r"^3\.[0-9]+$")
@@ -715,50 +714,6 @@ def _equals(expected: Any, message: str) -> Callable[[Any], None]:
             raise ValueError(message)
 
     return check
-
-
-# --------------------------------------------------------------------------------------------------------------------
-# Benchmark file
-# --------------------------------------------------------------------------------------------------------------------
-
-#: The setup shared by every server.
-BENCHMARK_FILE = "configs/benchmark.toml"
-
-
-@dataclass(frozen=True)
-class ReportMetric:
-    """One core metric of the report: its column, where its value comes from, and how it is shown."""
-
-    column: str  # key in summary.json, column prefix in summary.csv
-    metric: str  # metrics.json id
-    title: str  # report.md header and chart title, with the unit
-    stat: str | None = None  # key of a distribution value
-    decimals: int | None = None  # None: three significant digits
-
-
-def load_report_metrics(path: Path | None = None) -> tuple[ReportMetric, ...]:
-    """The core metrics in the ``[report]`` table of configs/benchmark.toml, in report order."""
-    path = path or project_root() / BENCHMARK_FILE
-    report = _Table(load_toml(path), file=path).table("report", required=True)
-    entries = report.raw("metrics")
-    report.finish()
-    if not isinstance(entries, list) or not entries:
-        raise report.error("metrics", "expected a non-empty array of tables")
-    rules = {
-        "column": {"pattern": METRIC_ID_RE.pattern},
-        "metric": {"pattern": METRIC_ID_RE.pattern},
-        "stat": {"pattern": METRIC_ID_RE.pattern},
-        "decimals": {"minimum": 0},
-    }
-    metrics = tuple(
-        ReportMetric(**_read_dataclass(_Table(entry, file=path, where=f"report.metrics[{i}]"), ReportMetric, rules))
-        for i, entry in enumerate(entries)
-    )
-    columns = [m.column for m in metrics]
-    for column in columns:
-        if columns.count(column) > 1:
-            raise report.error("metrics", f"column {column!r} appears twice")
-    return metrics
 
 
 # --------------------------------------------------------------------------------------------------------------------

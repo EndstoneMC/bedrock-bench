@@ -1,12 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
 """Render a summary as ``report.md``, laid out like the results section of a benchmark paper.
 
-An Environment table, one Results table with a row per server, and
-one-line notes: every run that is not ok, every flag, every ``rescue`` and ``nonvanilla`` override (rule R6) and every
-metric an ok run could not provide. There is no composite score.
+The config and its bot count, an Environment table, one Results table with a row per server, and one-line notes:
+every run that is not ok, every flag, every server the session skipped and every metric an ok run could not provide.
+There is no composite score.
 
-The renderer reads only the summary, so ``report.md`` can always be regenerated from ``summary.json``. The Results
-columns are the summary's ``columns``, from configs/benchmark.toml.
+The renderer reads only the summary, so ``report.md`` can always be regenerated from ``summary.json``.
 """
 
 from __future__ import annotations
@@ -15,7 +14,7 @@ import math
 from collections.abc import Mapping, Sequence
 from typing import Any
 
-from bedrock_bench.model import Flag, Gate, OverrideCategory
+from bedrock_bench.model import Flag, Gate
 
 _FLAG_TEXT: dict[str, str] = {
     Flag.SETTLE_CAPPED: "the settle phase hit its time cap before chunk delivery slowed down{runs}",
@@ -95,15 +94,6 @@ def flag_text(flag: str, *, count: int, total: int, arm: Mapping[str, Any]) -> s
     return template.format(runs=_runs(count, total), bds=arm.get("bds") or "?")
 
 
-def override_text(override: Mapping[str, Any]) -> str:
-    """The note for a ``rescue`` or ``nonvanilla`` override."""
-    default = override.get("default")
-    change = f"`{override.get('file')}` `{override.get('key')}` = `{override.get('value')}`"
-    change += f" (default `{default}`)" if default is not None else " (not set by default)"
-    lead = "rescue override" if override.get("category") == OverrideCategory.RESCUE else "non-vanilla override"
-    return f"{lead} {change}: {str(override.get('reason') or '').rstrip('.')}"
-
-
 def status_text(run: Mapping[str, Any]) -> str:
     """The note for a run that is not ok: its status and reasons."""
     return f"{run.get('status')}: {'; '.join(run.get('reasons') or ()) or 'no reason recorded'}"
@@ -129,7 +119,7 @@ def availability_text(label: str, stat: Mapping[str, Any], n_ok: int) -> str | N
 def render(summary: Mapping[str, Any]) -> str:
     """The markdown report of a summary, including its ``publish`` result when present."""
     servers = list(summary.get("servers") or ())
-    blocks = ["# Results", *_environment(summary, servers)]
+    blocks = ["# Results", _config(summary), *_environment(summary, servers)]
     if "publish" in summary:
         problems = summary["publish"].get("problems") or ()
         blocks += ["## Publication check", "\n".join(f"- Refused: {p}" for p in problems) or "Passed."]
@@ -139,6 +129,12 @@ def render(summary: Mapping[str, Any]) -> str:
     if notes:
         blocks += ["## Notes", "\n".join(f"- {n}" for n in notes)]
     return "\n\n".join(blocks) + "\n"
+
+
+def _config(summary: Mapping[str, Any]) -> str:
+    config = (summary.get("environment") or {}).get("config") or {}
+    bots = config.get("bots")
+    return f"Config `{config.get('name') or '?'}`" + (f", {bots} bots." if bots is not None else ".")
 
 
 def _tag(server: Mapping[str, Any]) -> str:
@@ -162,9 +158,6 @@ def _environment(summary: Mapping[str, Any], servers: Sequence[Mapping[str, Any]
     for bot in env.get("bots") or ():
         gophertunnel = f", gophertunnel {bot['gophertunnel']}" if bot.get("gophertunnel") else ""
         rows.append(["Bots", f"{bot.get('module')}, protocol {bot.get('protocol')}{gophertunnel}"])
-    workload = env.get("workload") or {}
-    if workload.get("sha256"):
-        rows.append(["Workload", f"{workload.get('name')}, sha256 `{str(workload['sha256'])[:12]}`"])
     rows.append(["Servers", ", ".join(_tag(s) for s in servers) or "-"])
     return ["## Environment", "\n".join(_table(["", ""], rows, numeric=False))]
 
@@ -195,6 +188,9 @@ def _notes(summary: Mapping[str, Any], servers: Sequence[Mapping[str, Any]]) -> 
             f"Metrics were computed with analysis version {summary.get('analysis_version')}; this harness uses "
             f"{current}. Run `bbench analyze` to recompute them."
         )
+    for line in summary.get("skipped") or ():
+        tag, _, reason = str(line).partition(": ")
+        notes.append(f"`{tag}`: skipped, {reason.rstrip('.')}" if reason else f"`{tag}`: skipped")
     for server in servers:
         tag = f"`{server['tag']}`"
         notes += [f"{tag} run `{run['run_id']}`: {status_text(run)}" for run in server["runs"] if run["status"] != "ok"]
@@ -202,7 +198,6 @@ def _notes(summary: Mapping[str, Any], servers: Sequence[Mapping[str, Any]]) -> 
             f"{tag}: " + flag_text(flag, count=count, total=server["n_total"], arm=server["arm"])
             for flag, count in server["flags"].items()
         ]
-        notes += [f"{tag}: {override_text(o)}" for o in server.get("overrides") or ()]
         for column in summary.get("columns") or ():
             text = availability_text(column["title"], server["metrics"].get(column["column"]) or {}, server["n_ok"])
             if text:

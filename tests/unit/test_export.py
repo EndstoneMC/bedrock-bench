@@ -12,8 +12,8 @@ from pathlib import Path
 import pytest
 
 from bedrock_bench import cli
-from bedrock_bench.config import load_report_metrics
 from bedrock_bench.report import SUMMARY_FILE, export, write
+from bedrock_bench.report.aggregate import CORE_METRICS
 from fixtures.runs import synthetic
 
 OK_RUNS = ("synthetic-dip", "synthetic-midnight", "synthetic-steady")
@@ -40,7 +40,7 @@ def report_dir(tmp_path: Path) -> Path:
 
 def test_summary_has_one_row_per_tag_with_median_min_max_over_ok_runs(report_dir: Path) -> None:
     columns, rows = read(report_dir / export.SUMMARY_CSV)
-    metrics = [f"{m.column}_{stat}" for m in load_report_metrics() for stat in ("median", "min", "max")]
+    metrics = [f"{m.column}_{stat}" for m in CORE_METRICS for stat in ("median", "min", "max")]
     assert columns == ["server", "version", "runs_ok", "runs_total", *metrics]
     assert len(rows) == 1
     row = rows[0]

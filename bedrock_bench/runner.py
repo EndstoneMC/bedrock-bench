@@ -438,7 +438,7 @@ def run_session(args: argparse.Namespace) -> int:
     finally:
         lock.release()
     _summarize(session, progress)
-    _write_report(session_dir)
+    _write_report(session_dir, skipped)
     return code
 
 
@@ -554,7 +554,7 @@ def _summarize(session: str, progress: _Progress) -> None:
     _say(f"session {session}: {summary}")
 
 
-def _write_report(session_dir: Path) -> None:
+def _write_report(session_dir: Path, skipped: Sequence[str]) -> None:
     if not session_dir.is_dir() or not any(session_dir.iterdir()):
         return
     try:
@@ -562,7 +562,7 @@ def _write_report(session_dir: Path) -> None:
     except ImportError:
         return
     try:
-        written = report.write(session_dir)
+        written = report.write(session_dir, skipped=skipped)
     except report.ReportError as exc:
         _say(f"bbench run: no report: {exc}")
         return

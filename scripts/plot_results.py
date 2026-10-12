@@ -12,7 +12,7 @@ not measured:
 
 ``summary.csv``
     ``server,version,runs_ok,runs_total``, then ``<metric>_median,<metric>_min,<metric>_max`` across the ok runs for
-    each core metric in configs/benchmark.toml ``[report]``.
+    each core metric of the report.
 ``tps.csv``
     ``run_id,server,version,t_s,tps``: one row per probe sample, ``t_s`` in seconds since all bots joined.
 ``view_load.csv``
@@ -27,17 +27,19 @@ Figures, written to ``--out`` (default ``results/``) in each format:
     One chart per core metric: the median of the ok runs, with a line from the lowest to the highest run.
 ``view_load``
     View load time of every player in every ok run, per tag.
+
+Chart titles come from the ``columns`` of ``summary.json``, written next to the CSV files.
 """
 
 from __future__ import annotations
 
 import argparse
 import csv
+import json
 import math
 import random
 import statistics
 import sys
-import tomllib
 from collections import Counter, defaultdict
 from collections.abc import Sequence
 from pathlib import Path
@@ -105,18 +107,18 @@ def tag(row: dict[str, str]) -> str:
     return f"{row['server']}@{row['version']}"
 
 
-def titles() -> dict[str, str]:
-    """Chart title of each core metric, from configs/benchmark.toml."""
-    path = ROOT / "configs" / "benchmark.toml"
+def titles(session: Path) -> dict[str, str]:
+    """Chart title of each core metric, from the session's summary.json."""
+    path = session / "summary.json"
     if not path.is_file():
         return {}
-    with path.open("rb") as f:
-        return {m["column"]: m["title"] for m in tomllib.load(f).get("report", {}).get("metrics", ())}
+    with path.open(encoding="utf-8") as f:
+        return {c["column"]: c["title"] for c in json.load(f).get("columns", ())}
 
 
 def colours(servers: set[str]) -> dict[str, str]:
-    """A colour per server, in the order of the configs/ folders; servers without a folder follow alphabetically."""
-    known = sorted(p.parent.name for p in (ROOT / "configs").glob("*/server.toml"))
+    """A colour per server, in the order of the servers/ folders; servers without a folder follow alphabetically."""
+    known = sorted(p.parent.name for p in (ROOT / "servers").glob("*/server.toml"))
     order = [*known, *sorted(servers - set(known))]
     return {s: PALETTE[i % len(PALETTE)] for i, s in enumerate(order)}
 
@@ -272,7 +274,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     tps = read_csv(args.session / "tps.csv") if (args.session / "tps.csv").is_file() else []
     views = read_csv(args.session / "view_load.csv") if (args.session / "view_load.csv").is_file() else []
     colour = colours({row["server"] for row in summary})
-    title = titles()
+    title = titles(args.session)
     metrics = [c.removesuffix("_median") for c in summary[0] if c.endswith("_median")]
 
     written: list[Path] = []

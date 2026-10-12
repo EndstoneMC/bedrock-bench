@@ -2,8 +2,8 @@
 """Reports: ``bbench report <dir>``.
 
 ``write`` aggregates the run directories below ``<dir>`` into ``summary.json``, renders ``report.md`` and writes the
-CSV files next to them, optionally checking the publication rules. The runner calls it at the end of ``bbench run``;
-the CLI entry point is ``report_cli``.
+CSV files next to them, optionally checking the publication rules. The runner calls it at the end of ``bbench run``
+with the servers it skipped, which are kept in ``session.json``; the CLI entry point is ``report_cli``.
 
 Exit codes: 2 when the directory cannot be reported or ``--publish`` refuses; otherwise the worst run status (0 all ok,
 4 a server failed, 5 a run is invalid), as for ``bbench run``.
@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -24,9 +25,11 @@ from bedrock_bench.report.aggregate import (
     ReportError,
     RunRecord,
     load_runs,
+    load_skipped,
     publish_problems,
     statuses,
     summarize,
+    write_skipped,
     write_summary,
 )
 
@@ -51,22 +54,29 @@ class Report:
 
 def build(report_dir: Path, *, publish: bool = False) -> tuple[dict[str, Any], str, tuple[str, ...] | None]:
     """Summary, markdown and publication problems for a directory of runs, without writing anything."""
-    return _build(load_runs(Path(report_dir)), publish)
+    return _build(load_runs(Path(report_dir)), load_skipped(Path(report_dir)), publish)
 
 
-def _build(runs: list[RunRecord], publish: bool) -> tuple[dict[str, Any], str, tuple[str, ...] | None]:
-    summary = summarize(runs)
+def _build(
+    runs: list[RunRecord], skipped: Sequence[str], publish: bool
+) -> tuple[dict[str, Any], str, tuple[str, ...] | None]:
+    summary = summarize(runs, skipped)
     problems = tuple(publish_problems(summary)) if publish else None
     if problems is not None:
         summary["publish"] = {"problems": list(problems)}
     return summary, markdown.render(summary), problems
 
 
-def write(report_dir: Path, *, publish: bool = False) -> Report:
-    """Write ``summary.json``, ``report.md`` and the CSV files into ``report_dir``. Run directories are not touched."""
+def write(report_dir: Path, *, publish: bool = False, skipped: Sequence[str] | None = None) -> Report:
+    """Write ``summary.json``, ``report.md`` and the CSV files into ``report_dir``. Run directories are not touched.
+
+    ``skipped`` replaces the servers recorded in ``session.json``; None keeps them.
+    """
     report_dir = Path(report_dir)
     runs = load_runs(report_dir)
-    summary, text, problems = _build(runs, publish)
+    if skipped is not None:
+        write_skipped(report_dir, skipped)
+    summary, text, problems = _build(runs, load_skipped(report_dir), publish)
     summary_path = report_dir / SUMMARY_FILE
     report_path = report_dir / REPORT_FILE
     write_summary(summary, summary_path)

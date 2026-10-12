@@ -9,7 +9,9 @@ Rules (docs/methodology.md#statistics-and-run-status):
 - One row per server tag. Only ``ok`` runs enter the statistics; ``server_failed`` and ``invalid`` runs are counted
   and listed with their reasons, never averaged.
 - Each statistic is the median, min and max over the ok runs.
-- A report holds one machine, one machine profile and one workload; mixed inputs are refused, not averaged.
+- A report holds one machine, one machine profile and one config; mixed inputs are refused, not averaged.
+
+The core metrics, their order and their titles are fixed here, so every report has the same columns.
 """
 
 from __future__ import annotations
@@ -23,10 +25,12 @@ from pathlib import Path
 from typing import Any
 
 from bedrock_bench import ANALYSIS_VERSION, __version__
-from bedrock_bench.config import ReportMetric, load_report_metrics
-from bedrock_bench.model import Availability, Flag, OverrideCategory, Status, canonical_json
+from bedrock_bench.model import Availability, Flag, Status, canonical_json
 
 SUMMARY_SCHEMA = "bedrock-bench/summary/2"
+
+#: Written by ``bbench run`` next to the run directories: ``{"skipped": ["<tag>: <reason>", ...]}``.
+SESSION_FILE = "session.json"
 
 #: Minimum ok runs per server for ``bbench report --publish`` (unless every run of it failed).
 PUBLISH_MIN_OK = 3
@@ -34,6 +38,31 @@ PUBLISH_MIN_OK = 3
 
 class ReportError(ValueError):
     """A directory cannot be reported: missing, empty or mixing inputs that must not be mixed."""
+
+
+@dataclass(frozen=True)
+class CoreMetric:
+    """One column of the Results table and of summary.csv."""
+
+    column: str  # key in summary.json, column prefix in summary.csv
+    metric: str  # metrics.json id
+    title: str  # report.md header and chart title, with the unit
+    stat: str | None = None  # key of a distribution value
+    decimals: int | None = None  # None: three significant digits
+
+
+CORE_METRICS: tuple[CoreMetric, ...] = (
+    CoreMetric("tps", "tps_window_steady", "TPS", decimals=2),
+    CoreMetric("tick_cpu_ms_per_tick", "tick_cpu_ms_per_tick_steady", "Tick-thread CPU per tick (ms)"),
+    CoreMetric("process_cpu_cores", "process_cores_steady", "Server CPU (cores)", decimals=2),
+    CoreMetric("memory_mib", "private_mib_steady", "Memory (MiB)", decimals=0),
+    CoreMetric("view_load_lowest_tps", "tps_load_low5", "Lowest TPS while views load", decimals=2),
+    CoreMetric("view_load_p50_s", "view_t90_own_s", "View load time, median player (s)", stat="median"),
+    CoreMetric("view_load_p90_s", "view_t90_own_s", "View load time, p90 player (s)", stat="p90"),
+    CoreMetric("view_load_max_s", "view_t90_own_s", "View load time, slowest player (s)", stat="max"),
+    CoreMetric("view_load_chunks_per_s", "chunks_per_s_load", "Chunks per second while views load"),
+    CoreMetric("chunks_in_view_per_player", "chunks_per_bot", "Chunks in view per player", stat="median", decimals=0),
+)
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -86,6 +115,19 @@ def load_runs(report_dir: Path) -> list[RunRecord]:
     if not records:
         raise ReportError(f"{report_dir.as_posix()}: no run directories (expected <run_id>/run.json)")
     return records
+
+
+def load_skipped(report_dir: Path) -> list[str]:
+    """The servers the session left out, each as ``"<tag>: <reason>"``; empty without a session file."""
+    path = Path(report_dir) / SESSION_FILE
+    if not path.is_file():
+        return []
+    return [str(line) for line in _read_json(path).get("skipped") or ()]
+
+
+def write_skipped(report_dir: Path, skipped: Sequence[str]) -> None:
+    text = json.dumps({"skipped": list(skipped)}, indent=2) + "\n"
+    (Path(report_dir) / SESSION_FILE).write_text(text, encoding="utf-8", newline="\n")
 
 
 def make_record(
@@ -180,8 +222,8 @@ def core_metric(entries: Sequence[Mapping[str, Any] | None], part: str | None) -
 # --------------------------------------------------------------------------------------------------------------------
 
 
-def summarize(runs: Sequence[RunRecord]) -> dict[str, Any]:
-    """Build the ``summary.json`` document from loaded runs."""
+def summarize(runs: Sequence[RunRecord], skipped: Sequence[str] = ()) -> dict[str, Any]:
+    """Build the ``summary.json`` document from loaded runs and the servers the session skipped."""
     if not runs:
         raise ReportError("no runs to report")
     versions = sorted({r.analysis_version for r in runs if r.analysis_version is not None})
@@ -193,8 +235,7 @@ def summarize(runs: Sequence[RunRecord]) -> dict[str, Any]:
     by_tag: dict[str, list[RunRecord]] = {}
     for record in runs:
         by_tag.setdefault(record.tag, []).append(record)
-    metrics = load_report_metrics()
-    servers = [_server(sorted(by_tag[tag], key=lambda r: r.run_id), metrics) for tag in sorted(by_tag)]
+    servers = [_server(sorted(by_tag[tag], key=lambda r: r.run_id)) for tag in sorted(by_tag)]
     _flag_missing_builds(servers)
     return {
         "schema": SUMMARY_SCHEMA,
@@ -204,8 +245,9 @@ def summarize(runs: Sequence[RunRecord]) -> dict[str, Any]:
         "n_runs": len(runs),
         "status_counts": {status.value: sum(r.status is status for r in runs) for status in Status},
         "environment": _environment(runs, servers),
-        "columns": [{"column": m.column, "title": m.title, "decimals": m.decimals} for m in metrics],
+        "columns": [{"column": m.column, "title": m.title, "decimals": m.decimals} for m in CORE_METRICS],
         "servers": servers,
+        "skipped": list(skipped),
     }
 
 
@@ -223,10 +265,10 @@ def _pick(mapping: Mapping[str, Any] | None, keys: Iterable[str]) -> dict[str, A
 
 
 def _check_same(runs: Sequence[RunRecord]) -> None:
-    """Refuse a directory that mixes workloads, machine profiles or machines."""
-    workloads = sorted({str((r.run.get("workload") or {}).get("sha256")) for r in runs})
-    if len(workloads) > 1:
-        raise ReportError(f"runs used different workloads (sha256 {', '.join(workloads)})")
+    """Refuse a directory that mixes configs, machine profiles or machines."""
+    configs = sorted({str((r.run.get("workload") or {}).get("sha256")) for r in runs})
+    if len(configs) > 1:
+        raise ReportError(f"runs used different configs (sha256 {', '.join(configs)})")
     machines = [r.run.get("machine") or {} for r in runs]
     profiles = sorted({str(m.get("profile_sha256")) for m in machines})
     if len(profiles) > 1:
@@ -249,12 +291,19 @@ def _environment(runs: Sequence[RunRecord], servers: Sequence[Mapping[str, Any]]
         "python": sorted({str(h["python"]) for h in harness if h.get("python")}),
         "harness": _distinct(_pick(h, ("version", "git", "dirty")) for h in harness),
         "bots": _distinct(_pick(r.run.get("bot"), _BOT_KEYS) for r in runs),
-        "workload": _pick(runs[-1].run.get("workload"), ("name", "sha256")),
+        "config": _config(runs[-1].run),
         "servers": [s["arm"] for s in servers],
     }
 
 
-def _server(runs: Sequence[RunRecord], metrics: Sequence[ReportMetric]) -> dict[str, Any]:
+def _config(run: Mapping[str, Any]) -> dict[str, Any]:
+    """Name, bot count and hash of the config a run used."""
+    workload = run.get("workload") or {}
+    bots = ((workload.get("params") or {}).get("bots") or {}).get("n")
+    return {**_pick(workload, ("name", "sha256")), **({"bots": bots} if bots is not None else {})}
+
+
+def _server(runs: Sequence[RunRecord]) -> dict[str, Any]:
     ok = [r for r in runs if r.status is Status.OK]
     flags: dict[str, int] = {}
     for record in runs:
@@ -278,21 +327,8 @@ def _server(runs: Sequence[RunRecord], metrics: Sequence[ReportMetric]) -> dict[
             for r in runs
         ],
         "flags": dict(sorted(flags.items())),
-        "overrides": _footnoted_overrides(runs),
-        "metrics": {m.column: core_metric([r.metrics.get(m.metric) for r in ok], m.stat) for m in metrics},
+        "metrics": {m.column: core_metric([r.metrics.get(m.metric) for r in ok], m.stat) for m in CORE_METRICS},
     }
-
-
-def _footnoted_overrides(runs: Sequence[RunRecord]) -> list[dict[str, Any]]:
-    """The ``rescue`` and ``nonvanilla`` overrides of a server's runs (rule R6)."""
-    order = {category.value: i for i, category in enumerate(OverrideCategory)}
-    found = _distinct(
-        _pick(o, ("category", "file", "key", "default", "value", "reason"))
-        for r in runs
-        for o in r.run.get("overrides") or ()
-        if OverrideCategory(o.get("category")).footnoted
-    )
-    return sorted(found, key=lambda o: (order.get(o.get("category"), 99), o.get("file"), o.get("key")))
 
 
 def _flag_missing_builds(servers: Sequence[dict[str, Any]]) -> None:
@@ -341,15 +377,19 @@ def write_summary(summary: Mapping[str, Any], path: Path) -> None:
 
 
 __all__ = [
+    "CORE_METRICS",
     "PUBLISH_MIN_OK",
     "SUMMARY_SCHEMA",
+    "CoreMetric",
     "ReportError",
     "RunRecord",
     "core_metric",
     "load_runs",
+    "load_skipped",
     "make_record",
     "publish_problems",
     "statuses",
     "summarize",
+    "write_skipped",
     "write_summary",
 ]

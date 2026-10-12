@@ -355,24 +355,3 @@ class TestResolve:
 
 def test_override_category_footnotes() -> None:
     assert {c for c in OverrideCategory if c.footnoted} == {OverrideCategory.RESCUE, OverrideCategory.NONVANILLA}
-
-
-class TestReportMetrics:
-    def test_project_file(self) -> None:
-        metrics = config.load_report_metrics()
-        assert metrics[0] == config.ReportMetric("tps", "tps_window_steady", "TPS", decimals=2)
-        assert len({m.column for m in metrics}) == len(metrics)
-
-    @pytest.mark.parametrize(
-        ("entries", "error"),
-        [
-            ('{ column = "tps", metric = "tps_window_steady", title = "TPS", unit = "tps" }', r"unit: unknown key"),
-            ('{ column = "tps", title = "TPS" }', r"metric: is required"),
-            ('{ column = "a", metric = "m", title = "A" }, { column = "a", metric = "n", title = "B" }', "twice"),
-        ],
-    )
-    def test_rejects(self, tmp_path: Path, entries: str, error: str) -> None:
-        path = tmp_path / "benchmark.toml"
-        path.write_text(f"[report]\nmetrics = [{entries}]\n", encoding="utf-8")
-        with pytest.raises(ConfigError, match=error):
-            config.load_report_metrics(path)

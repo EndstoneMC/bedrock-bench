@@ -9,9 +9,9 @@ from typing import Any
 
 import pytest
 
-from bedrock_bench.config import load_report_metrics
 from bedrock_bench.metrics import registry
 from bedrock_bench.report.aggregate import (
+    CORE_METRICS,
     ReportError,
     core_metric,
     load_runs,
@@ -38,7 +38,7 @@ def run_doc(
         "run_id": f"20261012T1200{repeat:02d}Z-{server}@{version}-r{repeat}",
         "status": "ok",
         "arm": {"server": server, "version": version, "bds": bds},
-        "workload": {"name": "benchmark", "sha256": workload},
+        "workload": {"name": "spread-100", "sha256": workload, "params": {"bots": {"n": 100}}},
         "machine": {"fingerprint_id": fingerprint, "profile_sha256": profile, "cpu": "Test CPU"},
         "official": True,
         "nonstandard": [],
@@ -182,7 +182,7 @@ class TestSummarize:
         summary = summarize(_session())
         metrics = by_tag(summary)["bds@1.26.52.3"]["metrics"]
         assert list(metrics) == [c["column"] for c in summary["columns"]]
-        assert [c["column"] for c in summary["columns"]] == [m.column for m in load_report_metrics()]
+        assert [c["column"] for c in summary["columns"]] == [m.column for m in CORE_METRICS]
         assert metrics["memory_mib"] == {
             "values": [None, None, None],
             "n": 0,
@@ -191,7 +191,7 @@ class TestSummarize:
         }
 
     def test_core_metrics_name_registered_metrics(self) -> None:
-        for metric in load_report_metrics():
+        for metric in CORE_METRICS:
             declared = registry.get(metric.metric)
             assert metric.stat is None or metric.stat in declared.stats, metric.column
 
@@ -203,7 +203,7 @@ class TestSummarize:
     def test_environment(self) -> None:
         env = summarize(_session())["environment"]
         assert env["machine"] == {"cpu": "Test CPU"}
-        assert env["workload"] == {"name": "benchmark", "sha256": "b" * 64}
+        assert env["config"] == {"name": "spread-100", "sha256": "b" * 64, "bots": 100}
         assert [s["version"] for s in env["servers"]] == ["1.26.52.3", "0.11.13", "0.11.14"]
 
     def test_refuses_mixed_inputs(self) -> None:
@@ -211,7 +211,7 @@ class TestSummarize:
             summarize([record("bds", "1.0"), record("bds", "1.0", repeat=2, profile="c" * 64)])
         with pytest.raises(ReportError, match="different machines"):
             summarize([record("bds", "1.0"), record("bds", "1.0", repeat=2, fingerprint="m2")])
-        with pytest.raises(ReportError, match="different workloads"):
+        with pytest.raises(ReportError, match="different configs"):
             summarize([record("bds", "1.0"), record("bds", "1.0", repeat=2, workload="d" * 64)])
         other = metrics_doc(tps_window_steady=20.0) | {"analysis_version": 2}
         with pytest.raises(ReportError, match="different analysis versions"):

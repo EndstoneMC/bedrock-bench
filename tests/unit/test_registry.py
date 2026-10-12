@@ -8,9 +8,9 @@ from pathlib import Path
 
 import pytest
 
-from bedrock_bench.config import load_report_metrics
 from bedrock_bench.metrics import compute, health, registry
 from bedrock_bench.metrics.registry import METRICS, UNITS, render_docs, render_markdown
+from bedrock_bench.report.aggregate import CORE_METRICS
 from fixtures.runs import synthetic
 
 
@@ -53,7 +53,7 @@ def test_ids_are_valid_json_keys_and_windowed_templates_expand() -> None:
 
 
 def test_every_metric_is_read_by_the_report_or_a_gate() -> None:
-    report = {m.metric for m in load_report_metrics()}
+    report = {m.metric for m in CORE_METRICS}
     gates = inspect.getsource(health).replace('f"', '"')
     for metric in METRICS:
         key = '"' + metric.template.replace("<W>", "{window}") + '"'

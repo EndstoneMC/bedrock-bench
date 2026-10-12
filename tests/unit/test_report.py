@@ -23,16 +23,7 @@ from bedrock_bench.report.markdown import (
 )
 
 BASE_RUN = json.loads((project_root() / "tests" / "fixtures" / "run.ok.json").read_text(encoding="utf-8"))
-WORKLOAD = {"name": "benchmark", "sha256": "8" * 64}
-
-RESCUE = {
-    "category": "rescue",
-    "file": "pocketmine.yml",
-    "key": "memory.main-limit",
-    "default": "1024",
-    "value": "0",
-    "reason": "the default limit crashes the server at about 23 s",
-}
+WORKLOAD = {"name": "spread-100", "sha256": "8" * 64, "params": {"bots": {"n": 100}}}
 
 
 def metric(value: Any, window: str = "steady", **extra: Any) -> dict[str, Any]:
@@ -48,13 +39,12 @@ def write_run(
     bds: str | None = None,
     status: str = "ok",
     reasons: Sequence[str] = (),
-    overrides: Sequence[dict[str, Any]] = (),
     flags: Sequence[str] = (),
     profile: str | None = None,
 ) -> None:
     server, _, version = tag.partition("@")
     run_id = f"20261012T1200{repeat:02d}Z-{tag}-r{repeat}"
-    run = {key: copy.deepcopy(BASE_RUN[key]) for key in ("harness", "machine", "placement", "bot", "overrides")}
+    run = {key: copy.deepcopy(BASE_RUN[key]) for key in ("harness", "machine", "placement", "bot")}
     run.update(
         run_id=run_id,
         status=status,
@@ -65,7 +55,6 @@ def write_run(
         arm={"server": server, "version": version, "bds": bds, "python": "3.13" if bds else None, "artifact": None},
         workload=WORKLOAD,
     )
-    run["overrides"] += list(overrides)
     if profile:
         run["machine"]["profile_sha256"] = profile
     doc = {
@@ -119,7 +108,6 @@ def session(report_dir: Path, *, pocketmine_fails: bool = True) -> None:
             {} if failed else headline(5.0, 0.0, 1.3, 5120.0, 400.0, tick_cpu_ms_per_tick_steady=NO_TICK),
             status="server_failed" if failed else "ok",
             reasons=["server_alive: exited with code 255"] if failed else (),
-            overrides=[RESCUE],
         )
 
 
@@ -163,13 +151,15 @@ class TestRender:
         titles = [line for line in markdown.splitlines() if line.startswith("#")]
         assert titles == ["# Results", "## Environment", "## Results", "## Notes"]
 
+    def test_config_and_bot_count_on_top(self, markdown: str) -> None:
+        assert markdown.startswith("# Results\n\nConfig `spread-100`, 100 bots.\n\n## Environment\n")
+
     def test_environment(self, markdown: str) -> None:
         env = section(markdown, "Environment")
         assert table_row(env, "CPU") == ["CPU", "Intel(R) Core(TM) i7-14700F"]
         assert table_row(env, "Server CPUs")[1] == "0-15 (16 logical)"
         assert table_row(env, "Bot CPUs")[1] == "16-27 (12 logical)"
         assert table_row(env, "Python")[1] == "3.13.5"
-        assert table_row(env, "Workload")[1] == "benchmark, sha256 `888888888888`"
         assert table_row(env, "Servers")[1] == (
             "`bds@1.26.52.3`, `endstone@0.11.14` (bds 1.26.52.3, python 3.13), `pocketmine@5.44.3`"
         )
@@ -191,10 +181,6 @@ class TestRender:
         assert (
             "- `pocketmine@5.44.3` run `20261012T120003Z-pocketmine@5.44.3-r3`: server_failed: server_alive: "
             "exited with code 255"
-        ) in notes
-        assert (
-            "- `pocketmine@5.44.3`: rescue override `pocketmine.yml` `memory.main-limit` = `0` (default `1024`): "
-            "the default limit crashes the server at about 23 s"
         ) in notes
         assert "- `pocketmine@5.44.3`: Tick-thread CPU per tick (ms): not applicable (no tick thread)" in notes
         assert all(line.startswith("- ") for line in notes)
@@ -218,6 +204,16 @@ class TestNotes:
         partial = {"n": 2, "availability": "measured", "reasons": ["sampler died"]}
         assert availability_text("TPS", partial, 3) == "TPS: unavailable in 1 of 3 ok runs (sampler died)"
         assert availability_text("TPS", {"n": 0, "availability": "unavailable"}, 0) is None
+
+    def test_skipped_servers(self, report_dir: Path) -> None:
+        skipped = ["chorus@95ca835: its player list gives the bots decode errors", "levilamina@26.51.6"]
+        write(report_dir, skipped=skipped)
+        notes = section(build(report_dir)[1], "Notes")
+        assert "- `chorus@95ca835`: skipped, its player list gives the bots decode errors\n" in notes
+        assert "- `levilamina@26.51.6`: skipped\n" in notes
+        assert json.loads((report_dir / "summary.json").read_text(encoding="utf-8"))["skipped"] == skipped
+        write(report_dir)
+        assert json.loads((report_dir / "summary.json").read_text(encoding="utf-8"))["skipped"] == skipped
 
     def test_not_ok_without_reasons(self, tmp_path: Path) -> None:
         write_run(tmp_path, "bds@1.0", 1, {}, status="invalid")

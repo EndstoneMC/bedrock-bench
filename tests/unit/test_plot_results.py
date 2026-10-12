@@ -17,6 +17,7 @@ import pytest
 
 from bedrock_bench.config import available, project_root
 from bedrock_bench.report import export, write
+from bedrock_bench.report.aggregate import CORE_METRICS
 from fixtures.runs import synthetic
 
 pytest.importorskip("matplotlib")
@@ -55,6 +56,13 @@ def test_writes_every_figure(tmp_path: Path) -> None:
     names = ["tps_over_time", "view_load", *metrics]
     assert sorted(p.name for p in out.iterdir()) == sorted(f"{n}.{fmt}" for n in names for fmt in ("png", "svg"))
     assert all(p.stat().st_size > 0 for p in out.iterdir())
+
+
+def test_titles_come_from_the_report(tmp_path: Path) -> None:
+    directory = session(tmp_path / "session", ["synthetic"])
+    titles = load_script().titles(directory)
+    assert list(titles) == [m.column for m in CORE_METRICS]
+    assert titles["view_load_p90_s"] == "View load time, p90 player (s)"
 
 
 def test_a_tag_without_an_ok_run_keeps_its_place(tmp_path: Path) -> None:

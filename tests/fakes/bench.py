@@ -276,8 +276,7 @@ class FakeBench:
     @classmethod
     def create(cls, root: Path) -> FakeBench:
         root.mkdir(parents=True, exist_ok=True)
-        (root / "configs").mkdir(exist_ok=True)
-        shutil.copyfile(TESTS_DIR.parent / "configs" / "benchmark.toml", root / "configs" / "benchmark.toml")
+        shutil.copytree(TESTS_DIR.parent / "configs", root / "configs", dirs_exist_ok=True)
         for adapter in FAKE_ADAPTERS:
             (root / "servers" / adapter.name).mkdir(parents=True, exist_ok=True)
             shutil.copyfile(SERVERS_DIR / adapter.name / "server.toml", root / "servers" / adapter.name / "server.toml")
