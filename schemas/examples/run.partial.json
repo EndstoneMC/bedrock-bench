@@ -1,0 +1,44 @@
+{
+  "schema": "bedrock-bench/run/1",
+  "analysis_version": 1,
+  "partial": true,
+  "run_id": "20261012T135800Z-endstone-0.11.14-spread100-r1-3fa2",
+  "status": null,
+  "harness": {
+    "version": "0.1.0",
+    "git": "v0.1.0-0-g1a2b3c4",
+    "dirty": false,
+    "python": "3.13.5",
+    "backend": "native-windows"
+  },
+  "matrix": {
+    "name": "endstone-0.11.14",
+    "repeat": 1,
+    "order_index": 1,
+    "order": "rotate"
+  },
+  "arm": {
+    "id": "endstone-0.11.14",
+    "server": "endstone",
+    "version": "0.11.14",
+    "variant": null,
+    "bds": "1.26.52.3",
+    "python": "3.13",
+    "artifact": null
+  },
+  "scenario": {
+    "name": "spread100",
+    "sha256": "83fde07571339706af46a1f25f1bcd6c405932197baf69c927046d1877298580"
+  },
+  "time": {
+    "origin_mono_ns": 81234567890123,
+    "origin_epoch_ms": 1791813480000
+  },
+  "marks": {
+    "ready": 14.2,
+    "idle0": 24.2,
+    "idle1": 44.2,
+    "bots_start": 44.3,
+    "alljoined": null
+  }
+}

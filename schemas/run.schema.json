@@ -1,0 +1,368 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/EndstoneMC/bedrock-bench/schemas/run.schema.json",
+  "title": "bedrock-bench run",
+  "description": "run.json (and run.partial.json while a run is in progress): provenance, configuration, phase marks and outcome of one run. Marks are seconds since time.origin. No hostname, user name or absolute path may appear. A partial file sets partial = true; a finished run must carry its status and exit code; an ok run must be complete.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "analysis_version", "run_id", "status", "harness", "arm", "scenario", "time"],
+  "properties": {
+    "schema": { "const": "bedrock-bench/run/1" },
+    "schema_minor": { "$ref": "#/$defs/count" },
+    "analysis_version": { "type": "integer", "minimum": 1 },
+    "partial": { "type": "boolean", "description": "true only in run.partial.json" },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[0-9]{8}T[0-9]{6}Z-[a-z0-9][a-z0-9._-]*-r[0-9]+-[0-9a-f]{4}$",
+      "description": "<UTCyyyymmddThhmmssZ>-<arm>-<scenario>-r<k>-<4hex>"
+    },
+    "status": {
+      "description": "null only while partial",
+      "oneOf": [{ "$ref": "#/$defs/status" }, { "type": "null" }]
+    },
+    "status_reasons": { "$ref": "#/$defs/strings" },
+    "flags": { "type": "array", "items": { "$ref": "#/$defs/flag" } },
+    "exit_code": { "enum": [0, 2, 3, 4, 5, 130] },
+    "official": { "type": "boolean" },
+    "nonstandard": { "type": "array", "items": { "$ref": "#/$defs/flag" } },
+    "harness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "python", "backend"],
+      "properties": {
+        "version": { "type": "string", "minLength": 1 },
+        "git": { "type": ["string", "null"] },
+        "dirty": { "type": ["boolean", "null"] },
+        "python": { "type": "string", "minLength": 1 },
+        "backend": { "enum": ["native-windows", "native-linux", "docker-linux"] }
+      }
+    },
+    "matrix": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "repeat"],
+      "properties": {
+        "name": { "type": ["string", "null"] },
+        "repeat": { "type": "integer", "minimum": 1 },
+        "order_index": { "type": ["integer", "null"], "minimum": 0 },
+        "order": { "type": ["string", "null"], "pattern": "^(rotate|sequential|seeded:[0-9]+)$" }
+      }
+    },
+    "arm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "server", "version"],
+      "properties": {
+        "id": { "$ref": "#/$defs/name" },
+        "server": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "version": { "$ref": "#/$defs/version" },
+        "variant": { "type": ["string", "null"] },
+        "bds": { "type": ["string", "null"] },
+        "python": { "type": ["string", "null"] },
+        "artifact": { "description": "file name of a local artifact override", "oneOf": [{ "$ref": "#/$defs/relpath" }, { "type": "null" }] }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "sha256", "source"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "url": { "type": ["string", "null"] },
+          "sha256": { "$ref": "#/$defs/sha256" },
+          "size": { "type": ["integer", "null"], "minimum": 0 },
+          "source": { "enum": ["mojang", "pypi", "github", "maven", "web", "build", "local"] }
+        }
+      }
+    },
+    "install": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tree_sha256"],
+      "properties": {
+        "tree_sha256": { "$ref": "#/$defs/sha256" },
+        "exe_sha256_before": { "$ref": "#/$defs/sha256_or_null" },
+        "exe_sha256_after": { "$ref": "#/$defs/sha256_or_null" }
+      }
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pid"],
+      "properties": {
+        "pid": { "type": ["integer", "null"] },
+        "aux_pids": { "type": "array", "items": { "type": "integer" } },
+        "banner_version": { "type": ["string", "null"] },
+        "facts": {
+          "type": "object",
+          "description": "observed facts reported by the adapter; open-ended",
+          "properties": {
+            "allocator": { "type": ["string", "null"], "description": "default, mimalloc, glibc, jvm, go, ..." },
+            "jvm_heap_mib": { "type": ["integer", "null"], "minimum": 0 },
+            "thread_census_idle": { "type": "object", "additionalProperties": { "$ref": "#/$defs/count" } },
+            "csg_setting": { "type": ["boolean", "null"] }
+          }
+        }
+      }
+    },
+    "overrides": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["category", "file", "key", "default", "value", "reason"],
+        "properties": {
+          "category": { "enum": ["harness", "parity", "rescue", "nonvanilla"] },
+          "file": { "$ref": "#/$defs/relpath" },
+          "key": { "type": "string", "minLength": 1 },
+          "default": { "type": ["string", "null"] },
+          "value": { "type": "string" },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "config_files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "written_sha256"],
+        "properties": {
+          "path": { "$ref": "#/$defs/relpath" },
+          "written_sha256": { "$ref": "#/$defs/sha256" },
+          "after_sha256": { "$ref": "#/$defs/sha256_or_null" }
+        }
+      }
+    },
+    "parity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["row"],
+      "properties": {
+        "file_sha256": { "$ref": "#/$defs/sha256_or_null" },
+        "range": { "type": ["string", "null"], "description": "version prefix of the matching [range] table" },
+        "row": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/feature_key" },
+          "additionalProperties": { "enum": ["vanilla", "partial", "altered", "absent", "unknown"] }
+        },
+        "fidelity": { "enum": ["V0", "V1", "V2", null] },
+        "does_less": { "type": "array", "items": { "$ref": "#/$defs/feature_key" } }
+      }
+    },
+    "bot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["module", "protocol", "argv"],
+      "properties": {
+        "module": { "enum": ["loadbot", "legacy1001"] },
+        "protocol": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256_or_null" },
+        "version": { "type": ["string", "null"] },
+        "vcs": { "type": ["string", "null"] },
+        "go": { "type": ["string", "null"] },
+        "gophertunnel": { "type": ["string", "null"] },
+        "patches": { "$ref": "#/$defs/strings" },
+        "argv": { "$ref": "#/$defs/strings" }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "sha256"],
+      "properties": {
+        "name": { "$ref": "#/$defs/name" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "resolved": { "type": "object", "description": "the scenario after defaults and extends; its canonical JSON hashes to sha256" }
+      }
+    },
+    "machine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fingerprint_id", "os", "cpu", "logical", "profile_sha256"],
+      "properties": {
+        "fingerprint_id": { "type": "string", "minLength": 1 },
+        "label": { "type": ["string", "null"] },
+        "os": { "type": "string" },
+        "kernel": { "type": ["string", "null"] },
+        "cpu": { "type": "string" },
+        "logical": { "type": "integer", "minimum": 1 },
+        "physical": { "type": ["integer", "null"], "minimum": 1 },
+        "core_classes": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "performance": { "$ref": "#/$defs/cpus" },
+            "efficiency": { "$ref": "#/$defs/cpus" }
+          }
+        },
+        "ram_gib": { "type": ["number", "null"], "minimum": 0 },
+        "virtualized": { "type": ["boolean", "null"] },
+        "power": { "type": ["string", "null"] },
+        "tsc_hz_calibrated": { "type": ["number", "null"], "minimum": 0 },
+        "profile_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "placement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["server_cpus", "bot_cpus", "harness_cpus", "priority", "kind"],
+      "properties": {
+        "server_cpus": { "$ref": "#/$defs/cpus" },
+        "bot_cpus": { "$ref": "#/$defs/cpus" },
+        "harness_cpus": { "$ref": "#/$defs/cpus" },
+        "priority": { "enum": ["normal", "above_normal"] },
+        "kind": { "enum": ["physical", "vcpu"] },
+        "method": { "type": ["string", "null"], "description": "suspended-launch, preexec, cpuset" },
+        "verified": { "type": ["boolean", "null"] }
+      }
+    },
+    "time": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin_mono_ns", "origin_epoch_ms"],
+      "properties": {
+        "origin_mono_ns": { "type": "integer" },
+        "origin_epoch_ms": { "type": "integer", "minimum": 0 },
+        "end_mono_ns": { "type": ["integer", "null"] },
+        "end_epoch_ms": { "type": ["integer", "null"], "minimum": 0 },
+        "drift_ms": { "type": ["number", "null"] }
+      }
+    },
+    "world": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fresh"],
+      "properties": {
+        "fresh": { "type": "boolean" },
+        "generator": { "enum": ["vanilla", "custom", "flat", null] },
+        "template_sha256": { "$ref": "#/$defs/sha256_or_null" }
+      }
+    },
+    "marks": {
+      "type": "object",
+      "description": "seconds since time.origin; null when the phase was not reached",
+      "propertyNames": { "pattern": "^[a-z][a-z0-9_]*$" },
+      "additionalProperties": { "type": ["number", "null"] }
+    },
+    "settle": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "settle_s": { "type": ["number", "null"], "minimum": 0 },
+        "capped": { "type": "boolean" },
+        "views_incomplete": { "type": "boolean" }
+      }
+    },
+    "interventions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "nudges": { "$ref": "#/$defs/count" },
+        "nudged": { "$ref": "#/$defs/strings" },
+        "retp": { "$ref": "#/$defs/count" },
+        "retp_bots": { "$ref": "#/$defs/strings" },
+        "in_measured": { "$ref": "#/$defs/count" }
+      }
+    },
+    "spread": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source": { "enum": ["querytarget", "helper", "bots", null] },
+        "players": { "$ref": "#/$defs/count_or_null" },
+        "cells_occupied": { "$ref": "#/$defs/count_or_null" },
+        "max_per_cell": { "$ref": "#/$defs/count_or_null" },
+        "worst_offset_blocks": { "type": ["number", "null"], "minimum": 0 }
+      }
+    },
+    "health": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "died": { "type": "boolean" },
+        "server_exit": { "type": ["integer", "null"] },
+        "crash_files": { "type": "array", "items": { "$ref": "#/$defs/relpath" } },
+        "joined": { "$ref": "#/$defs/count_or_null" },
+        "failed": { "$ref": "#/$defs/count_or_null" },
+        "dropped": { "$ref": "#/$defs/count_or_null" },
+        "decode_errors": { "$ref": "#/$defs/count_or_null" }
+      }
+    },
+    "interference": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "idle_foreign_cores": { "type": ["number", "null"], "minimum": 0 },
+        "windows": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "foreign_cores": { "type": ["number", "null"], "minimum": 0 },
+              "peak_10s": { "type": ["number", "null"], "minimum": 0 },
+              "server_set": { "type": ["number", "null"], "minimum": 0 },
+              "harness_cores": { "type": ["number", "null"], "minimum": 0 },
+              "top": { "type": "array" }
+            }
+          }
+        }
+      }
+    },
+    "files": {
+      "type": "object",
+      "description": "every raw file of the run directory with its hash",
+      "propertyNames": { "$ref": "#/$defs/relpath" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sha256", "bytes"],
+        "properties": {
+          "sha256": { "$ref": "#/$defs/sha256" },
+          "bytes": { "$ref": "#/$defs/count" }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "required": ["partial"], "properties": { "partial": { "const": true } } },
+      "else": {
+        "required": ["status_reasons", "flags", "exit_code"],
+        "properties": { "status": { "$ref": "#/$defs/status" } }
+      }
+    },
+    {
+      "if": { "required": ["status"], "properties": { "status": { "const": "ok" } } },
+      "then": {
+        "required": [
+          "official", "nonstandard", "matrix", "artifacts", "install", "server", "overrides", "config_files",
+          "parity", "bot", "machine", "placement", "world", "marks", "settle", "interventions", "spread", "health",
+          "interference", "files"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "status": { "enum": ["ok", "server_failed", "invalid"] },
+    "name": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "version": { "type": "string", "pattern": "^[0-9A-Za-z][0-9A-Za-z.+_-]*$" },
+    "flag": { "type": "string", "pattern": "^[a-z][a-z0-9_]*(:[A-Za-z0-9_.-]+)?$" },
+    "feature_key": { "type": "string", "pattern": "^[a-z]+\\.[a-z_]+$" },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "sha256_or_null": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
+    "count": { "type": "integer", "minimum": 0 },
+    "count_or_null": { "type": ["integer", "null"], "minimum": 0 },
+    "strings": { "type": "array", "items": { "type": "string" } },
+    "cpus": { "type": "array", "items": { "type": "integer", "minimum": 0 }, "uniqueItems": true },
+    "relpath": {
+      "type": "string",
+      "minLength": 1,
+      "description": "a path relative to the run or server directory; absolute paths and home references are rejected",
+      "pattern": "^(?![A-Za-z]:)(?![/\\\\~])(?!.*(^|[/\\\\])\\.\\.([/\\\\]|$))"
+    }
+  }
+}

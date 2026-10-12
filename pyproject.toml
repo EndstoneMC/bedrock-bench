@@ -1,0 +1,75 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bedrock-bench"
+dynamic = ["version"]
+description = "Reproducible, fair benchmarks for Minecraft Bedrock servers"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+authors = [{ name = "The bedrock-bench contributors" }]
+keywords = ["minecraft", "bedrock", "benchmark", "performance"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Games/Entertainment",
+    "Topic :: System :: Benchmark",
+]
+dependencies = ["psutil>=5.9"]
+
+[project.scripts]
+bbench = "bedrock_bench.cli:main"
+
+[project.urls]
+Repository = "https://github.com/EndstoneMC/bedrock-bench"
+Issues = "https://github.com/EndstoneMC/bedrock-bench/issues"
+
+[dependency-groups]
+dev = [
+    "jsonschema>=4.21",
+    "pytest>=8.2",
+    "ruff>=0.6",
+]
+
+[tool.hatch.version]
+path = "src/bedrock_bench/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bedrock_bench"]
+
+[tool.hatch.build.targets.sdist]
+exclude = ["/legacy", "/runs", "/cache", "/bots/bin"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+pythonpath = ["tests"]
+addopts = ["-ra", "--strict-markers", "--strict-config", "--import-mode=importlib"]
+xfail_strict = true
+markers = [
+    "integration: end-to-end runs against the fake server and fake bots",
+    "windows: needs a Windows host",
+    "linux: needs a Linux host",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+src = ["src", "tests"]
+extend-exclude = ["legacy"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["bedrock_bench"]

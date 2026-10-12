@@ -1,0 +1,16 @@
+* text=auto eol=lf
+
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+*.gz binary
+*.zip binary
+*.png binary
+*.jar binary
+*.phar binary
+
+uv.lock linguist-generated=true
+docs/METRICS.md linguist-generated=true
+docs/FEATURES.md linguist-generated=true
+legacy/** linguist-vendored=true

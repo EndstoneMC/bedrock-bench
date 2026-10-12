@@ -1,14 +1,33 @@
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Benchmark output and local caches
+/runs/
+/cache/
+/bots/bin/
+
+# Server binaries and downloads are fetched, never committed
 *.exe
 *.dll
+*.so
 *.pdb
 *.jar
 *.phar
 *.whl
 *.zip
-/work/
-/servers/
-/results/raw/
-.venv/
-venv/
+
+# Editors and OS
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

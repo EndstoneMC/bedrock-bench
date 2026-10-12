@@ -1,0 +1,451 @@
+{
+  "schema": "bedrock-bench/run/1",
+  "schema_minor": 0,
+  "analysis_version": 1,
+  "run_id": "20261012T135800Z-endstone-0.11.14-spread100-r1-3fa2",
+  "status": "ok",
+  "status_reasons": [],
+  "flags": [],
+  "exit_code": 0,
+  "official": true,
+  "nonstandard": [],
+  "harness": {
+    "version": "0.1.0",
+    "git": "v0.1.0-0-g1a2b3c4",
+    "dirty": false,
+    "python": "3.13.5",
+    "backend": "native-windows"
+  },
+  "matrix": {
+    "name": "endstone-0.11.14",
+    "repeat": 1,
+    "order_index": 1,
+    "order": "rotate"
+  },
+  "arm": {
+    "id": "endstone-0.11.14",
+    "server": "endstone",
+    "version": "0.11.14",
+    "variant": null,
+    "bds": "1.26.52.3",
+    "python": "3.13",
+    "artifact": null
+  },
+  "artifacts": [
+    {
+      "name": "bedrock-server-1.26.52.3.zip",
+      "url": "https://www.minecraft.net/bedrockdedicatedserver/bin-win/bedrock-server-1.26.52.3.zip",
+      "sha256": "0973ad571de450584cfdc5bde5621e5f010d3d5f3b58a7dfb692749ea57056f6",
+      "size": 123456789,
+      "source": "mojang"
+    },
+    {
+      "name": "endstone-0.11.14-cp313-cp313-win_amd64.whl",
+      "url": "https://files.pythonhosted.org/packages/endstone-0.11.14-cp313-cp313-win_amd64.whl",
+      "sha256": "4c6f2c73f9f59ad8bb0dd368e206fc1104116fd701d36b6c87f2d8aa4e6d97b6",
+      "size": 23456789,
+      "source": "pypi"
+    }
+  ],
+  "install": {
+    "tree_sha256": "dc9c5edb8b2d479e697b4b0b8ab874f32b325138598ce9e7b759eb8292110622",
+    "exe_sha256_before": "9095bdb859308b62acf04036ffd4adfe366d7f737d276eb6c46ae434f3816c9b",
+    "exe_sha256_after": "9095bdb859308b62acf04036ffd4adfe366d7f737d276eb6c46ae434f3816c9b"
+  },
+  "server": {
+    "pid": 12345,
+    "aux_pids": [
+      12300
+    ],
+    "banner_version": "0.11.14",
+    "facts": {
+      "allocator": "default",
+      "jvm_heap_mib": null,
+      "thread_census_idle": {
+        "MC_SERVER": 1,
+        "Async Thread #": 7
+      },
+      "csg_setting": true
+    }
+  },
+  "overrides": [
+    {
+      "category": "harness",
+      "file": "server.properties",
+      "key": "online-mode",
+      "default": "true",
+      "value": "false",
+      "reason": "offline bots"
+    },
+    {
+      "category": "parity",
+      "file": "server.properties",
+      "key": "view-distance",
+      "default": "32",
+      "value": "10",
+      "reason": "scenario view distance"
+    }
+  ],
+  "config_files": [
+    {
+      "path": "server.properties",
+      "written_sha256": "b264807709578e5c5fee1de72a80ab0dab5692bfcee892db3a58e0e9b0d63c72",
+      "after_sha256": "b264807709578e5c5fee1de72a80ab0dab5692bfcee892db3a58e0e9b0d63c72"
+    }
+  ],
+  "parity": {
+    "file_sha256": "5b8a8b56dada6ce7567442b4935298df7de2badd7becdcf4915a59487338ca4b",
+    "range": "0.11",
+    "row": {
+      "terrain.vanilla_generator": "vanilla",
+      "chunks.client_side_generation": "vanilla",
+      "chunks.subchunk_requests": "vanilla",
+      "player.server_authoritative_movement": "vanilla",
+      "player.physics": "vanilla",
+      "player.locator_bar": "vanilla",
+      "world.autosave": "vanilla"
+    },
+    "fidelity": "V1",
+    "does_less": []
+  },
+  "bot": {
+    "module": "loadbot",
+    "protocol": 2193,
+    "sha256": "75410280889e4a70dcb1283602b1eee43739f072c981e9fc52884222b38f576d",
+    "version": "0.1.0",
+    "vcs": "1a2b3c4",
+    "go": "go1.26.3",
+    "gophertunnel": "v1.62.0",
+    "patches": [],
+    "argv": [
+      "loadbot",
+      "-addr",
+      "127.0.0.1:19672",
+      "-n",
+      "100",
+      "-prefix",
+      "a",
+      "-csg"
+    ]
+  },
+  "scenario": {
+    "name": "spread100",
+    "sha256": "83fde07571339706af46a1f25f1bcd6c405932197baf69c927046d1877298580",
+    "resolved": {
+      "name": "spread100",
+      "exercises": [
+        "terrain.vanilla_generator",
+        "chunks.client_side_generation",
+        "chunks.subchunk_requests",
+        "player.server_authoritative_movement",
+        "player.physics",
+        "player.locator_bar",
+        "world.autosave"
+      ],
+      "requires": [],
+      "bots": {
+        "n": 100,
+        "prefix": "a",
+        "stagger_ms": 300,
+        "radius": 16,
+        "loadscreen": true,
+        "walk": "circle",
+        "spawn_timeout_s": 180.0,
+        "join_retries": 0,
+        "identity_seed": "bedrock-bench",
+        "progress_interval_s": 5.0,
+        "stat_interval_s": 10.0,
+        "pkt_interval_s": 60.0,
+        "probe_bots": 0,
+        "decode_errors": "count",
+        "rejoin_on_drop": false,
+        "radius_jitter_s": 0.0
+      },
+      "grid": {
+        "columns": 11,
+        "spacing": 640,
+        "origin": 1280,
+        "y": 300.0,
+        "warn_offset_blocks": 200.0
+      },
+      "world": {
+        "seed": 20261010,
+        "level_name": "bench",
+        "source": "fresh",
+        "template_radius": 12,
+        "min_coverage": 0.99
+      },
+      "server": {
+        "csg": true,
+        "view_distance": 10,
+        "tick_distance": 4,
+        "difficulty": "easy",
+        "gamemode": "survival",
+        "max_players": 200,
+        "autosave_ticks": 6000,
+        "save_player_data": true
+      },
+      "probe": {
+        "interval_s": 5.0,
+        "max_gap_s": 15.0,
+        "lagging_p99_ms": 1000.0
+      },
+      "phases": [
+        {
+          "name": "boot",
+          "delay_s": 0.0,
+          "duration_s": null,
+          "cap_s": 600.0,
+          "options": {}
+        },
+        {
+          "name": "idle",
+          "delay_s": 10.0,
+          "duration_s": 20.0,
+          "cap_s": null,
+          "options": {}
+        },
+        {
+          "name": "join",
+          "delay_s": 0.0,
+          "duration_s": null,
+          "cap_s": 300.0,
+          "options": {
+            "pre_bots_s": 0.0
+          }
+        },
+        {
+          "name": "settle",
+          "delay_s": 0.0,
+          "duration_s": null,
+          "cap_s": 900.0,
+          "options": {
+            "min_s": 300.0,
+            "rate_per_bot": 0.1,
+            "rate_window_s": 60.0,
+            "eval_interval_s": 5.0,
+            "max_data_age_s": 5.0,
+            "min_view_frac": 0.0,
+            "view_complete_frac": 0.95,
+            "view_median_frac": 0.5,
+            "retp_after_s": 20.0,
+            "retp_max": 3,
+            "nudge_after_s": 60.0,
+            "nudge_min_y": 290.0,
+            "nudge_max_uniq": 30,
+            "nudge_max": 2,
+            "nudge_step": 16.0
+          }
+        },
+        {
+          "name": "spread",
+          "delay_s": 0.0,
+          "duration_s": null,
+          "cap_s": null,
+          "options": {
+            "query_timeout_s": 10.0
+          }
+        },
+        {
+          "name": "steady",
+          "delay_s": 15.0,
+          "duration_s": 90.0,
+          "cap_s": null,
+          "options": {}
+        },
+        {
+          "name": "teardown",
+          "delay_s": 0.0,
+          "duration_s": null,
+          "cap_s": null,
+          "options": {
+            "bot_quit_timeout_s": 10.0,
+            "stop_timeout_s": 180.0,
+            "crash_log_lines": 200
+          }
+        }
+      ]
+    }
+  },
+  "machine": {
+    "fingerprint_id": "bc020a35b7f9cb13",
+    "label": "reference",
+    "os": "Windows 11 10.0.26200",
+    "kernel": null,
+    "cpu": "Intel(R) Core(TM) i7-14700F",
+    "logical": 28,
+    "physical": 20,
+    "core_classes": {
+      "performance": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "efficiency": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27
+      ]
+    },
+    "ram_gib": 64,
+    "virtualized": false,
+    "power": "High performance",
+    "tsc_hz_calibrated": null,
+    "profile_sha256": "e2117902a6160d376d5dc211b18153b162124cdf234b6ded56308dfde1a7a449"
+  },
+  "placement": {
+    "server_cpus": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "bot_cpus": [
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27
+    ],
+    "harness_cpus": [
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27
+    ],
+    "priority": "above_normal",
+    "kind": "physical",
+    "method": "suspended-launch",
+    "verified": true
+  },
+  "time": {
+    "origin_mono_ns": 81234567890123,
+    "origin_epoch_ms": 1791813480000,
+    "end_mono_ns": 81946567890123,
+    "end_epoch_ms": 1791814192000,
+    "drift_ms": 0.4
+  },
+  "world": {
+    "fresh": true,
+    "generator": "vanilla",
+    "template_sha256": null
+  },
+  "marks": {
+    "ready": 14.2,
+    "idle0": 24.2,
+    "idle1": 44.2,
+    "bots_start": 44.3,
+    "alljoined": 75.1,
+    "settled": 395.0,
+    "steady0": 410.0,
+    "steady1": 500.0,
+    "chaos0": null,
+    "chaos1": null,
+    "stop": 501.2
+  },
+  "settle": {
+    "settle_s": 319.9,
+    "capped": false,
+    "views_incomplete": false
+  },
+  "interventions": {
+    "nudges": 0,
+    "nudged": [],
+    "retp": 1,
+    "retp_bots": [
+      "a63"
+    ],
+    "in_measured": 0
+  },
+  "spread": {
+    "source": "querytarget",
+    "players": 100,
+    "cells_occupied": 100,
+    "max_per_cell": 1,
+    "worst_offset_blocks": 12.5
+  },
+  "health": {
+    "died": false,
+    "server_exit": 0,
+    "crash_files": [],
+    "joined": 100,
+    "failed": 0,
+    "dropped": 0,
+    "decode_errors": 0
+  },
+  "interference": {
+    "idle_foreign_cores": 0.05,
+    "windows": {
+      "steady": {
+        "foreign_cores": 0.04,
+        "peak_10s": 0.3,
+        "server_set": 0.01,
+        "harness_cores": 0.12,
+        "top": []
+      }
+    }
+  },
+  "files": {
+    "server.log.gz": {
+      "sha256": "836ff184e7b41b1e13cb5fd89fa1de98dbbab99e9d2918913ff43b86a5c7c213",
+      "bytes": 81234
+    },
+    "bots.jsonl.gz": {
+      "sha256": "10b8ecc0d7ffa69355fc2ad96eae450ee66556bf2f10dba7dc85a2fbcddcdea1",
+      "bytes": 912345
+    },
+    "series/probe.csv": {
+      "sha256": "ba9c736f19e7f60b7f6764adb0b7908c0a2b394e09b6c09863528c7f2bc86095",
+      "bytes": 4567
+    }
+  }
+}

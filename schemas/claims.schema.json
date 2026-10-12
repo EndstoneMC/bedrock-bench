@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/EndstoneMC/bedrock-bench/schemas/claims.schema.json",
+  "title": "bedrock-bench claims",
+  "description": "claims/<name>.toml, loaded as JSON: relational statements that bbench report --claims checks against a matrix report. expr and inconclusive_if are Python expressions evaluated by report/claims.py over a whitelisted AST; a claim is inconclusive when inconclusive_if holds or it does not apply to the machine.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "matrix", "claim"],
+  "properties": {
+    "schema": { "const": 1 },
+    "matrix": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$", "description": "matrix the claims refer to" },
+    "claim": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "text", "expr"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+          "text": { "type": "string", "minLength": 1, "description": "the claim in words, as published" },
+          "expr": { "type": "string", "minLength": 1 },
+          "inconclusive_if": { "type": "string", "minLength": 1 },
+          "scenario": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+          "machine": { "type": "string", "description": "machine profile label the claim is restricted to" },
+          "source": { "type": "string", "description": "where the claimed figure was published" }
+        }
+      }
+    }
+  }
+}

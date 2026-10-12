@@ -1,0 +1,25 @@
+# Shape of a claims file (schemas/claims.schema.json). The names that expressions may use are defined by
+# report/claims.py; the ones below only illustrate the format.
+schema = 1
+matrix = "endstone-0.11.14"
+
+[[claim]]
+id = "endstone-holds-20-tps"
+text = "Endstone 0.11.14 holds 20 TPS with 100 spread players"
+scenario = "spread100"
+expr = "median('endstone-0.11.14', 'tps_window_steady') >= 19.8"
+
+[[claim]]
+id = "endstone-vs-vanilla-tps"
+text = "Endstone 0.11.14 ticks at least 1.8 times as fast as vanilla BDS 1.26.52.3"
+scenario = "spread100"
+expr = "median('endstone-0.11.14', 'tps_window_steady') / median('bds-1.26.52.3', 'tps_window_steady') >= 1.8"
+inconclusive_if = "median('bds-1.26.52.3', 'tps_window_steady') >= 19.5"
+
+[[claim]]
+id = "endstone-tick-cpu"
+text = "Endstone 0.11.14 spends about 42.9 ms of tick-thread CPU per tick"
+scenario = "spread100"
+machine = "reference"
+expr = "abs(median('endstone-0.11.14', 'tick_cpu_ms_per_tick_steady') / 42.9 - 1) <= 0.15"
+source = "https://github.com/EndstoneMC/endstone/blob/main/BENCHMARK.md"

@@ -1,0 +1,82 @@
+{
+  "schema": "bedrock-bench/metrics/1",
+  "schema_minor": 0,
+  "analysis_version": 1,
+  "run_id": "20261012T135800Z-endstone-0.11.14-spread100-r1-3fa2",
+  "status": "ok",
+  "status_reasons": [],
+  "flags": [],
+  "metrics": {
+    "tps_window_steady": {
+      "value": 19.98,
+      "unit": "tps",
+      "window": "steady",
+      "n": 19,
+      "availability": "measured"
+    },
+    "tps_load_low5": {
+      "value": 17.5,
+      "unit": "tps",
+      "window": "load",
+      "n": 70,
+      "availability": "measured"
+    },
+    "tps_stats_steady": {
+      "value": {
+        "min": 19.7,
+        "median": 20.0,
+        "max": 20.3,
+        "n": 18
+      },
+      "unit": "tps",
+      "window": "steady",
+      "n": 18,
+      "availability": "measured"
+    },
+    "recovery_s": {
+      "value": 410.0,
+      "unit": "s",
+      "window": "load",
+      "n": null,
+      "availability": "measured",
+      "censored": true
+    },
+    "tick_cpu_ms_per_tick_steady": {
+      "value": 42.9,
+      "unit": "ms",
+      "window": "steady",
+      "n": 900,
+      "availability": "measured"
+    },
+    "mspt_saturated_steady": {
+      "value": null,
+      "unit": "ms",
+      "window": "steady",
+      "n": null,
+      "availability": "not_applicable",
+      "reason": "tps_window >= 19.5"
+    },
+    "private_mib_steady": {
+      "value": null,
+      "unit": "mib",
+      "window": "steady",
+      "n": 0,
+      "availability": "unavailable",
+      "reason": "process sampler produced no rows"
+    }
+  },
+  "tables": {
+    "pkt_mix_steady": {
+      "columns": [
+        "packet",
+        "per_bot_s"
+      ],
+      "rows": [
+        [
+          "LevelChunk",
+          0.4
+        ]
+      ]
+    }
+  }
+}

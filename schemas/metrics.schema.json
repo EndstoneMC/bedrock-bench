@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/EndstoneMC/bedrock-bench/schemas/metrics.schema.json",
+  "title": "bedrock-bench metrics",
+  "description": "metrics.json: every metric computed from one run's raw files. bbench analyze regenerates it byte for byte. Metric ids carry their unit as a suffix (_s, _ms, _mib, _cores, _ms_per_s, _frac, _per_bot_s, ...); docs/METRICS.md documents each one.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "analysis_version", "status", "flags", "metrics"],
+  "properties": {
+    "schema": { "const": "bedrock-bench/metrics/1" },
+    "schema_minor": { "type": "integer", "minimum": 0 },
+    "analysis_version": { "type": "integer", "minimum": 1 },
+    "run_id": { "type": "string" },
+    "status": { "enum": ["ok", "server_failed", "invalid"] },
+    "status_reasons": { "type": "array", "items": { "type": "string" } },
+    "flags": { "type": "array", "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]*(:[A-Za-z0-9_.-]+)?$" } },
+    "metrics": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-z][a-z0-9_]*$" },
+      "additionalProperties": { "$ref": "#/$defs/metric" }
+    },
+    "tables": {
+      "type": "object",
+      "description": "diagnostic and work tables (threads_top_steady, pkt_mix_steady, chaos_regimes, ...)",
+      "propertyNames": { "pattern": "^[a-z][a-z0-9_]*$" }
+    }
+  },
+  "$defs": {
+    "metric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "unit", "availability"],
+      "properties": {
+        "value": {
+          "description": "a number for scalar metrics, an object for distributions (min, p5, median, max, n, ...); null when not measured"
+        },
+        "unit": { "type": "string" },
+        "window": { "type": ["string", "null"], "description": "idle, join, settle, load, steady, chaos or run" },
+        "n": { "type": ["integer", "null"], "minimum": 0 },
+        "availability": { "enum": ["measured", "not_applicable", "unavailable"] },
+        "reason": { "type": "string", "minLength": 1 },
+        "censored": { "type": "boolean", "description": "true when value is a lower bound (shown as >value)" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "availability": { "const": "measured" } } },
+          "then": { "properties": { "value": { "not": { "type": "null" } } } },
+          "else": { "properties": { "value": { "type": "null" } } }
+        },
+        {
+          "if": { "properties": { "availability": { "const": "unavailable" } } },
+          "then": { "required": ["reason"] }
+        }
+      ]
+    }
+  }
+}

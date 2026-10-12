@@ -1,0 +1,218 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/EndstoneMC/bedrock-bench/schemas/bot-event.schema.json",
+  "title": "bedrock-bench bot event",
+  "description": "One JSON line written by the load bot (bots/README.md). Every event carries v, ev, t (UTC epoch ms) and mono_ms (bot monotonic ms since start); the harness adds rx_ns (harness monotonic ns at receipt) when it stores the line. Counters in stat are cumulative; pkt counts are deltas since the previous pkt event. Unknown extra fields are allowed so older readers keep working.",
+  "type": "object",
+  "required": ["v", "ev", "t", "mono_ms"],
+  "properties": {
+    "v": { "const": 1 },
+    "ev": {
+      "enum": [
+        "hello", "dial", "spawned", "join_failed", "tp", "first_chunk", "progress", "stat", "pkt", "rtt",
+        "died", "respawned", "dim", "left", "dropped", "rejoin", "kicked", "decode_error", "alljoined",
+        "bot_summary", "done"
+      ]
+    },
+    "t": { "type": "integer", "minimum": 0 },
+    "mono_ms": { "type": "number", "minimum": 0 },
+    "rx_ns": { "type": "integer" }
+  },
+  "allOf": [
+    { "if": { "properties": { "ev": { "const": "hello" } } }, "then": { "$ref": "#/$defs/hello" } },
+    { "if": { "properties": { "ev": { "const": "dial" } } }, "then": { "$ref": "#/$defs/dial" } },
+    { "if": { "properties": { "ev": { "const": "spawned" } } }, "then": { "$ref": "#/$defs/spawned" } },
+    { "if": { "properties": { "ev": { "const": "join_failed" } } }, "then": { "$ref": "#/$defs/join_failed" } },
+    { "if": { "properties": { "ev": { "const": "tp" } } }, "then": { "$ref": "#/$defs/tp" } },
+    { "if": { "properties": { "ev": { "const": "first_chunk" } } }, "then": { "$ref": "#/$defs/first_chunk" } },
+    { "if": { "properties": { "ev": { "const": "progress" } } }, "then": { "$ref": "#/$defs/progress" } },
+    { "if": { "properties": { "ev": { "const": "stat" } } }, "then": { "$ref": "#/$defs/stat" } },
+    { "if": { "properties": { "ev": { "const": "pkt" } } }, "then": { "$ref": "#/$defs/pkt" } },
+    { "if": { "properties": { "ev": { "const": "rtt" } } }, "then": { "$ref": "#/$defs/rtt" } },
+    {
+      "if": { "properties": { "ev": { "enum": ["died", "respawned", "dim", "left", "dropped", "rejoin", "kicked"] } } },
+      "then": { "$ref": "#/$defs/lifecycle" }
+    },
+    { "if": { "properties": { "ev": { "const": "decode_error" } } }, "then": { "$ref": "#/$defs/decode_error" } },
+    { "if": { "properties": { "ev": { "const": "alljoined" } } }, "then": { "$ref": "#/$defs/alljoined" } },
+    { "if": { "properties": { "ev": { "const": "bot_summary" } } }, "then": { "$ref": "#/$defs/bot_summary" } }
+  ],
+  "$defs": {
+    "bot": { "type": "string", "minLength": 1 },
+    "index": { "type": "integer", "minimum": 0 },
+    "count": { "type": "integer", "minimum": 0 },
+    "ms": { "type": "number", "minimum": 0 },
+    "ms_or_null": { "type": ["number", "null"], "minimum": 0 },
+    "coord": { "type": ["number", "null"] },
+    "hello": {
+      "required": ["build", "flags", "intervals_ms"],
+      "properties": {
+        "build": {
+          "type": "object",
+          "required": ["module", "version", "protocol"],
+          "properties": {
+            "module": { "enum": ["loadbot", "legacy1001"] },
+            "version": { "type": "string" },
+            "vcs": { "type": "string" },
+            "go": { "type": "string" },
+            "gophertunnel": { "type": "string" },
+            "patches": { "type": "array", "items": { "type": "string" } },
+            "protocol": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "flags": { "type": "object" },
+        "intervals_ms": {
+          "type": "object",
+          "required": ["progress", "stat", "pkt"],
+          "properties": {
+            "progress": { "type": "integer", "minimum": 1 },
+            "stat": { "type": "integer", "minimum": 1 },
+            "pkt": { "type": "integer", "minimum": 1 }
+          }
+        }
+      }
+    },
+    "dial": {
+      "required": ["bot", "i"],
+      "properties": { "bot": { "$ref": "#/$defs/bot" }, "i": { "$ref": "#/$defs/index" } }
+    },
+    "spawned": {
+      "required": ["bot", "i", "session", "join_ms", "radius", "dim"],
+      "properties": {
+        "bot": { "$ref": "#/$defs/bot" },
+        "i": { "$ref": "#/$defs/index" },
+        "session": { "type": "integer", "minimum": 1 },
+        "join_ms": { "$ref": "#/$defs/ms" },
+        "radius": { "type": "integer", "minimum": 0 },
+        "dim": { "type": "integer" }
+      }
+    },
+    "join_failed": {
+      "required": ["bot", "i", "stage", "err"],
+      "properties": {
+        "bot": { "$ref": "#/$defs/bot" },
+        "i": { "$ref": "#/$defs/index" },
+        "stage": { "enum": ["dial", "login", "spawn"] },
+        "err": { "type": "string" }
+      }
+    },
+    "tp": {
+      "required": ["bot", "pos", "dim", "n"],
+      "properties": {
+        "bot": { "$ref": "#/$defs/bot" },
+        "pos": { "type": "array", "prefixItems": [{ "type": "number" }, { "type": "number" }, { "type": "number" }], "items": false, "minItems": 3 },
+        "dim": { "type": "integer" },
+        "n": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "first_chunk": {
+      "required": ["bot", "dt_ms"],
+      "properties": { "bot": { "$ref": "#/$defs/bot" }, "dt_ms": { "$ref": "#/$defs/ms" } }
+    },
+    "progress": {
+      "required": ["rows"],
+      "properties": {
+        "rows": {
+          "type": "array",
+          "description": "[bot, uniq, in_view, x, y, z, dim, corrections, teleports]; position is null until the server has placed the bot",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              { "$ref": "#/$defs/bot" },
+              { "$ref": "#/$defs/count" },
+              { "$ref": "#/$defs/count" },
+              { "$ref": "#/$defs/coord" },
+              { "$ref": "#/$defs/coord" },
+              { "$ref": "#/$defs/coord" },
+              { "type": ["integer", "null"] },
+              { "$ref": "#/$defs/count" },
+              { "$ref": "#/$defs/count" }
+            ],
+            "items": false,
+            "minItems": 9
+          }
+        }
+      }
+    },
+    "stat": {
+      "required": [
+        "online", "joined", "failed", "dropped", "left", "rejoins", "deaths", "rx_pkts", "tx_pkts", "rx_bytes",
+        "tx_bytes", "corrections", "level_chunks", "subchunks", "uniq", "in_view", "decode_errors"
+      ],
+      "properties": {
+        "online": { "$ref": "#/$defs/count" },
+        "joined": { "$ref": "#/$defs/count" },
+        "failed": { "$ref": "#/$defs/count" },
+        "dropped": { "$ref": "#/$defs/count" },
+        "left": { "$ref": "#/$defs/count" },
+        "rejoins": { "$ref": "#/$defs/count" },
+        "deaths": { "$ref": "#/$defs/count" },
+        "rx_pkts": { "$ref": "#/$defs/count" },
+        "tx_pkts": { "$ref": "#/$defs/count" },
+        "rx_bytes": { "$ref": "#/$defs/count" },
+        "tx_bytes": { "$ref": "#/$defs/count" },
+        "corrections": { "$ref": "#/$defs/count" },
+        "level_chunks": { "$ref": "#/$defs/count" },
+        "subchunks": { "$ref": "#/$defs/count" },
+        "uniq": { "$ref": "#/$defs/count" },
+        "in_view": { "$ref": "#/$defs/count" },
+        "decode_errors": { "$ref": "#/$defs/count" }
+      }
+    },
+    "pkt": {
+      "required": ["rx"],
+      "properties": {
+        "rx": { "type": "object", "additionalProperties": { "$ref": "#/$defs/count" } },
+        "tx": { "type": "object", "additionalProperties": { "$ref": "#/$defs/count" } }
+      }
+    },
+    "rtt": {
+      "required": ["n", "p50_ms", "p99_ms", "max_ms", "lost"],
+      "properties": {
+        "n": { "$ref": "#/$defs/count" },
+        "p50_ms": { "$ref": "#/$defs/ms_or_null" },
+        "p99_ms": { "$ref": "#/$defs/ms_or_null" },
+        "max_ms": { "$ref": "#/$defs/ms_or_null" },
+        "lost": { "$ref": "#/$defs/count" }
+      }
+    },
+    "lifecycle": {
+      "required": ["bot"],
+      "properties": {
+        "bot": { "$ref": "#/$defs/bot" },
+        "dim": { "type": "integer" },
+        "session": { "type": "integer", "minimum": 1 },
+        "reason": { "type": "string" },
+        "err": { "type": "string" }
+      }
+    },
+    "decode_error": {
+      "required": ["bot", "pkt_id", "err", "total"],
+      "properties": {
+        "bot": { "type": ["string", "null"] },
+        "pkt_id": { "type": ["integer", "null"], "minimum": 0 },
+        "err": { "type": "string" },
+        "total": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "alljoined": {
+      "required": ["joined", "failed"],
+      "properties": { "joined": { "$ref": "#/$defs/count" }, "failed": { "$ref": "#/$defs/count" } }
+    },
+    "bot_summary": {
+      "required": ["bot", "uniq", "in_view", "chunks", "corrections", "first_seen_ms"],
+      "properties": {
+        "bot": { "$ref": "#/$defs/bot" },
+        "uniq": { "$ref": "#/$defs/count" },
+        "in_view": { "$ref": "#/$defs/count" },
+        "chunks": { "$ref": "#/$defs/count" },
+        "corrections": { "$ref": "#/$defs/count" },
+        "first_seen_ms": {
+          "type": "array",
+          "description": "delta-encoded ms since the bot's first tp, one entry per in-view chunk in arrival order",
+          "items": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  }
+}
