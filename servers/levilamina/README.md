@@ -41,7 +41,7 @@ bbench fetch levilamina@26.51.6 --accept-eula
    `plugins/LeviLamina/config/Config.json` with the files here. If their keys or
    config `version` changed, the files here no longer fit both releases, and the adapter needs one set per release.
 3. Add a `[features.range."<major>.<minor>"]` to `server.toml` if parity changed, and run
-   `bbench smoke levilamina@<version>`.
+   `bbench smoke configs/smoke.toml levilamina@<version>`.
 
 ## How a run starts
 
@@ -89,8 +89,8 @@ Otherwise LeviLamina's generated configuration runs the benchmark as it is.
 ## Caveats
 
 - LeviLamina 26.51.6 runs on `bds@1.26.51.1`, not the build vanilla BDS runs by default. For a baseline on the same
-  build, run both in one session: `bbench run bds@1.26.51.1 levilamina@26.51.6`. Without that baseline the report
-  flags it `different_bds_build`.
+  build, run both in one session: `bbench run configs/spread-100.toml bds@1.26.51.1 levilamina@26.51.6`. Without that
+  baseline the report flags it `different_bds_build`.
 - mimalloc is linked into `LeviLamina.dll` and cannot be switched off. It does not show up as a separate module, so
   `facts.allocator` takes it from `allocator` in `[artifacts]`. The allocator is a disclosed confounder
   ([fairness](../../docs/methodology.md#fairness-and-feature-parity)).

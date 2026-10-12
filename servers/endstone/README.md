@@ -47,7 +47,7 @@ CheckNetIsolation LoopbackExempt -a -p=S-1-15-2-1958404141-86561845-1752920682-3
    ```
 
 3. Add a range for the release to `[features]` in `server.toml`.
-4. Run `bbench smoke endstone@<version>`.
+4. Run `bbench smoke configs/smoke.toml endstone@<version>`.
 
 ## How a run starts
 

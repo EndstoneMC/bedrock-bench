@@ -47,7 +47,7 @@ non-test Go files, the Go version and the harness version, so editing dfbench or
 gets a fresh copy with no world folder.
 
 To measure a dfbench built elsewhere, for example against a Dragonfly fork, pass it as the arm's artifact:
-`bbench smoke dragonfly@devel --artifact path/to/dfbench`. A dfbench whose Dragonfly comes
+`bbench smoke configs/smoke.toml dragonfly@devel --artifact path/to/dfbench`. A dfbench whose Dragonfly comes
 from a `replace` directive or a Go workspace reports Dragonfly version `devel`, so its banner matches only an arm
 tagged `devel`, and the run is marked `unpublished_artifact`.
 
@@ -64,7 +64,7 @@ A build from a commit is tagged with the commit's first seven characters, a rele
 4. If `dfbench -defaults` changed, update `DEFAULTS` in `tests/unit/test_adapter_dragonfly.py`; with
    `BBENCH_DFBENCH=<path to dfbench>` that test compares them. If the rendered `config.toml` changed, update
    `testdata/config.toml`.
-5. `bbench fetch dragonfly@<version>` and `bbench smoke dragonfly@<version>`.
+5. `bbench fetch dragonfly@<version>` and `bbench smoke configs/smoke.toml dragonfly@<version>`.
 
 ## How a run starts
 

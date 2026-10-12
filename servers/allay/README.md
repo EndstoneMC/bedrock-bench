@@ -77,9 +77,9 @@ Held in the adapter:
 ## Caveats
 
 - No bot has joined Allay yet. The protocol 1001 bot builds only once the `EndstoneMC/gophertunnel` fork tag
-  `v1.57.1-bench.1` is published ([Patches](../../bots/README.md#patches)), so `bbench smoke allay@0.14.0` waits on
-  that tag. Until then the join line, the command replies with players online and the rows observed by a counter
-  come from the source only.
+  `v1.57.1-bench.1` is published ([Patches](../../bots/README.md#patches)), so
+  `bbench smoke configs/smoke.toml allay@0.14.0` waits on that tag. Until then the join line, the command replies with
+  players online and the rows observed by a counter come from the source only.
 - The world is flat: bedrock, three layers of dirt and grass, with the surface at y 5 and air below y 0. There is no
   seed. The spawn point of a fresh world differs between runs; bots are teleported to their cells after they join.
 - It sends whole chunk columns, at most 16 per player per tick, and never lets clients generate terrain. Sub-chunk

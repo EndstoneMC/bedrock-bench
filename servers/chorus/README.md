@@ -59,7 +59,8 @@ the run is marked `unpublished_artifact`.
 3. Add a range to `[features]`, re-checking each class against the new source.
 4. If `chorusbench -defaults` changed, update `DEFAULTS` in `tests/unit/test_adapter_chorus.py`; with
    `BBENCH_CHORUSBENCH=<path to chorusbench>` that test compares them.
-5. `bbench fetch chorus@<version>`, then `loadbot -decode-errors fail` and `bbench smoke chorus@<version>`.
+5. `bbench fetch chorus@<version>`, then `loadbot -decode-errors fail` and
+   `bbench smoke configs/smoke.toml chorus@<version>`.
 
 ## How a run starts
 
