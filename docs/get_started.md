@@ -235,7 +235,12 @@ runs/endstone-0.11.14/
   <run id>/        one run: run.json, metrics.json, server.log.gz, bots.jsonl.gz, series/, config/, crash/
   summary.json     every metric aggregated over the repeats
   report.md        the rendered report
+  summary.csv      one row per server: runs ok and total, each core metric's median, min and max
+  tps.csv          TPS of every probe sample of every ok run, against seconds since all bots joined
+  view_load.csv    seconds until each player held 90% of its view, empty if it never did
 ```
+
+`uv run scripts/plot_results.py runs/endstone-0.11.14` draws the figures from the CSV files into `results/`.
 
 The run id is `<UTC time>-<arm>-<scenario>-r<repeat>-<4 hex>`, and run directories are never overwritten. `run.json`
 records what ran (artifact hashes, config changes, scenario, machine, placement, interference) and the run's status.

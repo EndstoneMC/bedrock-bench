@@ -94,7 +94,8 @@ installs and the E3 world templates are not.
 uv run bbench fetch endstone-0.11.14 --accept-eula   # every pin the matrix needs
 uv run bbench run endstone-0.11.14 --dry-run         # print the run order
 uv run bbench run endstone-0.11.14 --machine local/my-machine.toml
-uv run bbench report runs/endstone-0.11.14           # summary.json and report.md
+uv run bbench report runs/endstone-0.11.14           # summary.json, report.md and the CSV files
+uv run scripts/plot_results.py runs/endstone-0.11.14  # figures into results/
 ```
 
 `bbench run` writes the report when it finishes, and `bbench report` rebuilds it from the run directories. Without
