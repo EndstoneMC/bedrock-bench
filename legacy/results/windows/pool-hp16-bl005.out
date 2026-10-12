@@ -1,0 +1,38 @@
+23:43:33 arm dll-net2 {'endstone_runtime.dll': 'e22fedb5374f874a', 'endstone_runtime.pdb': '993ac4f7e3ab18df', '_python.cp313-win_amd64.pyd': '9f49226f485f8be3 (pypi)', '_python.pdb': '5cb59c7d518d00c1 (pypi)'}
+23:43:38 server 36904 0x7ff626ab0000 ['[23:43:35 INFO]: Version: 1.26.52.3', '[23:43:35 INFO]: This server is running Endstone version: 0.11.13 (Minecraft: 26.52)']
+23:43:41 devtools tid 44040 0 ms/s suspended None
+23:43:51 mark idle0
+23:44:11 mark idle1
+23:44:11 thread names ['Gameface Layout(0)', 'IO Thread(0)', 'LevelDB(0)', 'LevelDBCompaction(0)', 'MC_SERVER', 'Main', 'REST Thread(0)', 'Streaming Pool(0)', 'Streaming Pool(1)', 'Streaming Pool(10)', 'Streaming Pool(11)', 'Streaming Pool(12)', 'Streaming Pool(13)', 'Streaming Pool(14)', 'Streaming Pool(2)', 'Streaming Pool(3)', 'Streaming Pool(4)', 'Streaming Pool(5)', 'Streaming Pool(6)', 'Streaming Pool(7)', 'Streaming Pool(8)', 'Streaming Pool(9)', 'sentry-http']
+23:44:11 window idle tps 19.972459310124272 [('MC_SERVER', 10), ('34336@ucrtbase.dll', 1), ('28768@ucrtbase.dll', 0), ('Main', 0), ('8752@nvoglv64.dll', 0), ('sentry-http', 0), ('49232@CRYPT32.dll', 0), ('49020@ntdll.dll', 0)] other 341 devtools 0 mem {'ws': 448.2, 'private': 1116.8, 'peak_ws': 452.7}
+23:44:11 mark prof_start
+23:44:23 mark bots_start
+23:44:58 mark alljoined
+23:45:23 mark storm_prof_end
+23:45:28 window storm_prof tps 19.97452156657029 [('Streaming Pool(0)', 915), ('Streaming Pool(1)', 914), ('Streaming Pool(2)', 913), ('Streaming Pool(3)', 843), ('MC_SERVER', 657), ('Streaming Pool(4)', 267), ('REST Thread(0)', 85), ('28768@ucrtbase.dll', 53)] other 4945 devtools 0 mem {'ws': 3599.6, 'private': 4365.9, 'peak_ws': 3599.6}
+23:45:58 re-teleported ['a50', 'a49']
+23:45:58 settle 60s uniq=9176 uniq/s=164.3 (1.64/bot) tps30=19.290889491623005 view_min=0 view_med=0 below=0 airborne=0 deaths=0 nudged=0
+23:46:28 settle 90s uniq=9834 uniq/s=90.4 (0.90/bot) tps30=20.01567540963422 view_min=0 view_med=95 below=0 airborne=0 deaths=0 nudged=0
+23:46:58 settle 120s uniq=10075 uniq/s=15.0 (0.15/bot) tps30=19.994455870620524 view_min=0 view_med=95 below=0 airborne=0 deaths=0 nudged=0
+23:47:28 settle 150s uniq=10262 uniq/s=7.1 (0.07/bot) tps30=19.998126508861485 view_min=67 view_med=99 below=0 airborne=0 deaths=0 nudged=0
+23:47:58 settle 180s uniq=10358 uniq/s=3.2 (0.03/bot) tps30=20.017016265343848 view_min=67 view_med=99 below=0 airborne=0 deaths=0 nudged=0
+23:48:28 settle 210s uniq=10414 uniq/s=2.1 (0.02/bot) tps30=19.98929353449035 view_min=67 view_med=101 below=0 airborne=0 deaths=0 nudged=0
+23:48:58 settle 240s uniq=10488 uniq/s=2.2 (0.02/bot) tps30=19.953592474272188 view_min=67 view_med=101 below=0 airborne=0 deaths=0 nudged=0
+23:49:28 settle 270s uniq=10540 uniq/s=2.1 (0.02/bot) tps30=19.999452215004162 view_min=67 view_med=103 below=0 airborne=0 deaths=0 nudged=0
+23:49:58 settle 300s uniq=10554 uniq/s=1.1 (0.01/bot) tps30=19.997526048968293 view_min=67 view_med=103 below=0 airborne=0 deaths=0 nudged=0
+23:49:58 mark settled
+23:50:01 window storm_full tps 19.918212422745896 [('MC_SERVER', 849), ('Streaming Pool(0)', 274), ('Streaming Pool(1)', 215), ('Streaming Pool(2)', 210), ('Streaming Pool(3)', 196), ('Streaming Pool(4)', 62), ('28768@ucrtbase.dll', 60), ('REST Thread(0)', 51)] other 2722 devtools 0 mem {'ws': 4096.1, 'private': 4866.3, 'peak_ws': 4098.7}
+23:50:16 spread {'players': 100, 'cells_occupied': 100, 'max_per_cell': 1, 'worst_offset_blocks': 116.5}
+23:50:16 mark unprof0
+23:51:46 mark unprof1
+23:51:48 window steady_unprof tps 19.981079069965805 [('MC_SERVER', 892), ('28768@ucrtbase.dll', 64), ('LevelDB(0)', 53), ('REST Thread(0)', 42), ('15028@ucrtbase.dll', 18), ('Streaming Pool(0)', 9), ('IO Thread(0)', 1), ('34336@ucrtbase.dll', 0)] other 2108 devtools 0 mem {'ws': 4126.1, 'private': 4896.2, 'peak_ws': 4126.1}
+23:51:55 server exit 0
+23:51:56 restored dll-pypi
+== pool-hp16-bl005
+  tps join    {'min': 19.81, 'p5': 19.81, 'median': 20.01, 'max': 20.13, 'n': 6}
+  tps settle  {'min': 17.82, 'p5': 19.35, 'median': 19.98, 'max': 20.19, 'n': 61}
+  tps steady  {'min': 19.37, 'p5': 19.83, 'median': 20.02, 'max': 20.43, 'n': 18}
+  settle_s 300.2  join_s {'median': 3.67, 'p90': 4.9, 'max': 5.21, 'n': 100}
+  t90_after_tp_s {'median': 83.31, 'p90': 179.53, 'max': 369.93, 'n': 100}  last_bot_90pct_after_first_connect_s 394.8  (BOT lines every 60 s)
+  server_exit 0  died_during_run False  log_errors 0
+exit=0

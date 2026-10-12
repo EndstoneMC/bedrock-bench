@@ -1,0 +1,91 @@
+{
+ "tps": {
+  "join": {
+   "min": 19.59,
+   "p5": 19.59,
+   "median": 19.82,
+   "max": 20.28,
+   "n": 6
+  },
+  "settle": {
+   "min": 18.61,
+   "p5": 19.52,
+   "median": 19.99,
+   "max": 20.46,
+   "n": 66
+  },
+  "load": {
+   "min": 18.61,
+   "p5": 19.59,
+   "median": 19.99,
+   "max": 20.46,
+   "n": 72
+  },
+  "steady": {
+   "min": 19.84,
+   "p5": 19.84,
+   "median": 19.99,
+   "max": 20.27,
+   "n": 18
+  }
+ },
+ "main_ms_s_steady": 833,
+ "process_cores_steady": 1.04,
+ "main_ms_s_load": 776,
+ "process_cores_load": 1.94,
+ "settle_s": 327.1,
+ "join_s": {
+  "median": 3.72,
+  "p90": 4.99,
+  "max": 5.22,
+  "n": 100
+ },
+ "t90_after_tp_s": {
+  "median": 132.07,
+  "p90": 256.03,
+  "max": 441.79,
+  "n": 99
+ },
+ "last_bot_90pct_after_first_connect_s": 454.8,
+ "bot_dump_period_s": 60,
+ "final_uniq_per_bot": {
+  "min": 0,
+  "median": 103,
+  "max": 161,
+  "n": 100
+ },
+ "log_errors": 0,
+ "chaos_first5": {
+  "tps_min": 1.08,
+  "tps_median": 2.02,
+  "mc_ms_s_median": 973.0,
+  "errors_at_5min": 232,
+  "online_min": 48,
+  "ws_mb_first_last": [
+   4077.7,
+   3488.0
+  ],
+  "private_mb_first_last": [
+   4828.0,
+   4280.7
+  ]
+ },
+ "chaos_full": {
+  "minutes": 10.0,
+  "tps_min": 1.08,
+  "tps_median": 17.2,
+  "crash": false,
+  "error_lines": 585,
+  "command_feedback_errors": 965,
+  "not_respawned": [
+   "a20",
+   "a86"
+  ]
+ },
+ "memory_chaos_run": {
+  "ws_mb_max": 4148.1,
+  "private_mb_max": 4893.1,
+  "ws_mb_at_chaos_start": 4077.7,
+  "private_mb_at_chaos_start": 4828.0
+ }
+}

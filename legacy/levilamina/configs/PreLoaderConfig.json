@@ -1,0 +1,7 @@
+{
+    "colorLog": true,
+    "logLevel": 4,
+    "logPath": "./logs/",
+    "modsPath": "./plugins/",
+    "version": 1
+}

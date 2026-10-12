@@ -1,0 +1,73 @@
+{
+    "version": 42,
+    "language": "system",
+    "logRotate": {
+        "rotateOnOpen": true,
+        "maxFileSize": 33554432,
+        "interval": "Daily",
+        "compress": true,
+        "keepUncompressed": 7,
+        "cleanup": true,
+        "maxFiles": 1024,
+        "maxAgeDays": 120,
+        "totalSizeCap": 536870912
+    },
+    "modules": {
+        "command": {
+            "tpdimCommand": {
+                "enabled": true,
+                "permission": "GameDirectors"
+            },
+            "crashCommand": {
+                "enabled": false,
+                "permission": "GameDirectors"
+            },
+            "versionCommand": {
+                "enabled": true,
+                "permission": "GameDirectors"
+            },
+            "modManageCommand": {
+                "enabled": true,
+                "permission": "Admin"
+            }
+        },
+        "crashLogger": {
+            "enabled": true,
+            "builtin": false,
+            "uploadToSentry": true
+        },
+        "disableAutoCompactionLog": true
+    },
+    "targeted": {
+        "enableStatistics": true,
+        "simpleServerLogger": {
+            "enabled": false,
+            "playerChat": true,
+            "playerCommand": true,
+            "playerPermission": true
+        },
+        "forceEnableCheatCommands": true,
+        "checkRunningBDS": true,
+        "preserveInputLine": true,
+        "netherNetPatch": {
+            "enable": true,
+            "singlePort": true,
+            "serverIP": "",
+            "stunServers": [
+                "stun:stun.l.google.com:19302",
+                "stun:stun.miwifi.com:3478"
+            ]
+        },
+        "playerInfo": {
+            "alwaysLaunch": false
+        },
+        "vulnerabilityFixes": {
+            "enable": true,
+            "subChunkRequest": true,
+            "itemReadUserData": true,
+            "disconnectClient": true,
+            "limitIPFrequency": true,
+            "simulatedPlayerChunkLoading": true
+        }
+    }
+}

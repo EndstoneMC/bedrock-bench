@@ -1,0 +1,31 @@
+22:24:15 arm dll-after {'endstone_runtime.dll': 'ed43d5e170ccb982', 'endstone_runtime.pdb': 'd82d29d00917ee18', '_python.cp313-win_amd64.pyd': '9f49226f485f8be3 (pypi)', '_python.pdb': '5cb59c7d518d00c1 (pypi)'}
+22:24:19 server 46648 0x7ff7605e0000 ['[22:24:16 INFO]: Version: 1.26.52.3', '[22:24:16 INFO]: This server is running Endstone version: 0.11.13 (Minecraft: 26.52)']
+22:24:22 devtools tid 43880 0 ms/s suspended None
+22:24:32 mark idle0
+22:24:52 mark idle1
+22:24:52 thread names ['Gameface Layout(0)', 'IO Thread(0)', 'LevelDB(0)', 'LevelDBCompaction(0)', 'MC_SERVER', 'Main', 'REST Thread(0)', 'Streaming Pool(0)', 'Streaming Pool(1)', 'Streaming Pool(2)', 'Streaming Pool(3)', 'Streaming Pool(4)', 'Streaming Pool(5)', 'Streaming Pool(6)', 'sentry-http']
+22:24:52 window idle tps 19.98 [('MC_SERVER', 10), ('5776@ucrtbase.dll', 1), ('41072@ucrtbase.dll', 1), ('Main', 0), ('19212@nvoglv64.dll', 0), ('sentry-http', 0), ('50576@CRYPT32.dll', 0), ('26732@ntdll.dll', 0)] other 2004
+22:24:52 mark prof_start
+22:25:04 mark bots_start
+22:25:39 mark alljoined
+22:26:04 mark storm_prof_end
+22:26:06 window storm_prof tps 19.99 [('Streaming Pool(0)', 878), ('Streaming Pool(1)', 876), ('Streaming Pool(2)', 671), ('MC_SERVER', 497), ('REST Thread(0)', 238), ('Streaming Pool(3)', 210), ('Streaming Pool(4)', 98), ('41072@ucrtbase.dll', 48)] other 4909
+22:26:36 settle 57s uniq=3420 uniq/s=63.1 (0.63/bot) tps30=19.92 view_min=0 view_med=0 below=0 airborne=0 deaths=0 nudged=0
+22:27:06 settle 87s uniq=6483 uniq/s=85.3 (0.85/bot) tps30=20.0 view_min=0 view_med=17 below=0 airborne=55 deaths=0 nudged=55
+22:27:36 settle 117s uniq=9667 uniq/s=104.1 (1.04/bot) tps30=19.78 view_min=0 view_med=17 below=0 airborne=55 deaths=0 nudged=55
+22:28:06 settle 147s uniq=9975 uniq/s=58.2 (0.58/bot) tps30=19.98 view_min=0 view_med=97 below=0 airborne=0 deaths=0 nudged=0
+22:28:36 settle 177s uniq=10081 uniq/s=6.9 (0.07/bot) tps30=20.02 view_min=0 view_med=97 below=0 airborne=0 deaths=0 nudged=0
+22:29:06 settle 207s uniq=10153 uniq/s=3.0 (0.03/bot) tps30=19.96 view_min=0 view_med=99 below=0 airborne=0 deaths=0 nudged=0
+22:29:36 settle 237s uniq=10205 uniq/s=2.1 (0.02/bot) tps30=19.9 view_min=0 view_med=99 below=0 airborne=0 deaths=0 nudged=0
+22:30:06 settle 267s uniq=10246 uniq/s=1.5 (0.02/bot) tps30=20.0 view_min=0 view_med=101 below=0 airborne=0 deaths=0 nudged=0
+22:30:36 settle 297s uniq=10293 uniq/s=1.5 (0.01/bot) tps30=19.73 view_min=0 view_med=101 below=0 airborne=0 deaths=0 nudged=0
+22:31:06 settle 327s uniq=10317 uniq/s=1.2 (0.01/bot) tps30=20.01 view_min=0 view_med=101 below=0 airborne=0 deaths=0 nudged=0
+22:31:06 mark settled
+22:31:08 window storm_full tps 19.94 [('MC_SERVER', 783), ('Streaming Pool(0)', 384), ('Streaming Pool(1)', 351), ('Streaming Pool(2)', 175), ('REST Thread(0)', 99), ('41072@ucrtbase.dll', 57), ('Streaming Pool(3)', 35), ('45408@ucrtbase.dll', 17)] other 2726
+22:31:23 spread {'players': 100, 'cells_occupied': 99, 'max_per_cell': 2, 'worst_offset_blocks': 2409.6}
+22:31:23 mark unprof0
+22:32:53 mark unprof1
+22:32:53 window steady_unprof tps 20.01 [('MC_SERVER', 836), ('41072@ucrtbase.dll', 57), ('REST Thread(0)', 46), ('LevelDB(0)', 39), ('Streaming Pool(0)', 25), ('45408@ucrtbase.dll', 18), ('IO Thread(0)', 1), ('5776@ucrtbase.dll', 0)] other 1599
+22:33:01 server exit 0
+22:33:01 restored dll-pypi
+exit=0

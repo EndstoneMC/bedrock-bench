@@ -1,0 +1,17 @@
+{
+    "version": 18,
+    "features": {
+        "optMovingBlock": false,
+        "fixChunkLeak": true,
+        "optSeenPercent": false,
+        "optPushEntity": {
+            "enable": false,
+            "disableVec0Push": true,
+            "maxPushTimes": -1,
+            "unlimitedPlayerPush": false
+        }
+    },
+    "commands": {
+        "timingCommand": true
+    }
+}

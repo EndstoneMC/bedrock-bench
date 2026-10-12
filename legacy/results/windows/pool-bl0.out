@@ -1,0 +1,176 @@
+23:52:07 arm dll-net2 {'endstone_runtime.dll': 'e22fedb5374f874a', 'endstone_runtime.pdb': '993ac4f7e3ab18df', '_python.cp313-win_amd64.pyd': '9f49226f485f8be3 (pypi)', '_python.pdb': '5cb59c7d518d00c1 (pypi)'}
+23:52:12 server 38260 0x7ff621770000 ['[23:52:09 INFO]: Version: 1.26.52.3', '[23:52:09 INFO]: This server is running Endstone version: 0.11.13 (Minecraft: 26.52)']
+23:52:15 devtools tid 42116 0 ms/s suspended None
+23:52:25 mark idle0
+23:52:45 mark idle1
+23:52:45 thread names ['Gameface Layout(0)', 'IO Thread(0)', 'LevelDB(0)', 'LevelDBCompaction(0)', 'MC_SERVER', 'Main', 'REST Thread(0)', 'Streaming Pool(0)', 'Streaming Pool(1)', 'Streaming Pool(2)', 'Streaming Pool(3)', 'Streaming Pool(4)', 'Streaming Pool(5)', 'Streaming Pool(6)', 'sentry-http']
+23:52:45 window idle tps 20.013816049223323 [('MC_SERVER', 10), ('7340@ucrtbase.dll', 1), ('40956@ucrtbase.dll', 1), ('Main', 0), ('50200@nvoglv64.dll', 0), ('sentry-http', 0), ('48648@CRYPT32.dll', 0), ('20664@ntdll.dll', 0)] other 2170 devtools 0 mem {'ws': 450.1, 'private': 1118.5, 'peak_ws': 454.5}
+23:52:45 mark prof_start
+23:52:57 mark bots_start
+23:53:32 mark alljoined
+23:53:58 mark storm_prof_end
+23:54:03 window storm_prof tps 19.903539884191066 [('Streaming Pool(1)', 725), ('Streaming Pool(5)', 720), ('Streaming Pool(0)', 718), ('Streaming Pool(3)', 718), ('Streaming Pool(2)', 716), ('Streaming Pool(4)', 714), ('Streaming Pool(6)', 713), ('MC_SERVER', 708)] other 7083 devtools 0 mem {'ws': 3394.6, 'private': 4151.8, 'peak_ws': 3394.6}
+23:54:19 SERVER DIED 23:54:19
+23:54:19 ABORT bedrock_server.exe exited during the run
+Exception in thread Thread-3:
+Exception in thread Thread-5:
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "C:\Users\Vincent\AppData\Roaming\uv\python\cpython-3.13.5-windows-x86_64-none\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "D:\Projects\Endstone\endstone\.venv\Lib\site-packages\psutil\_pswindows.py", line 666, in wrapper
+    return fun(self, *args, **kwargs)
+  File "D:\Projects\Endstone\endstone\.venv\Lib\site-packages\psutil\_pswindows.py", line 930, in threads
+    rawlist = cext.proc_threads(self.pid)
+  File "C:\Users\Vincent\AppData\Local\Temp\claude\d--Projects-Endstone-endstone\7967334b-4dde-4367-ae32-73653b87ea94\scratchpad\work-profile\scripts\harness.py", line 99, in run
+    self.srv.cmd("time query gametime")
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Vincent\AppData\Local\Temp\claude\d--Projects-Endstone-endstone\7967334b-4dde-4367-ae32-73653b87ea94\scratchpad\endstone-bench\run_endstone.py", line 265, in cmd
+    self._write(s)
+    ~~~~~~~~~~~^^^
+  File "C:\Users\Vincent\AppData\Local\Temp\claude\d--Projects-Endstone-endstone\7967334b-4dde-4367-ae32-73653b87ea94\scratchpad\endstone-bench\run_endstone.py", line 259, in _write
+    self.p.stdin.write(s + "\n")
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+ProcessLookupError: [Errno 3] force no such process (originated from psutil_pid_is_running -> 0)
+OSError: [Errno 22] Invalid argument
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Vincent\AppData\Roaming\uv\python\cpython-3.13.5-windows-x86_64-none\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "C:\Users\Vincent\AppData\Local\Temp\claude\d--Projects-Endstone-endstone\7967334b-4dde-4367-ae32-73653b87ea94\scratchpad\work-profile\scripts\threads.py", line 99, in run
+    self.series.append((time.perf_counter(), self.table.snapshot()))
+                                             ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Vincent\AppData\Local\Temp\claude\d--Projects-Endstone-endstone\7967334b-4dde-4367-ae32-73653b87ea94\scratchpad\work-profile\scripts\threads.py", line 79, in snapshot
+    self.refresh()
+    ~~~~~~~~~~~~^^
+  File "C:\Users\Vincent\AppData\Local\Temp\claude\d--Projects-Endstone-endstone\7967334b-4dde-4367-ae32-73653b87ea94\scratchpad\work-profile\scripts\threads.py", line 60, in refresh
+    for t in self.proc.threads():
+             ~~~~~~~~~~~~~~~~~^^
+  File "D:\Projects\Endstone\endstone\.venv\Lib\site-packages\psutil\__init__.py", line 949, in threads
+    return self._proc.threads()
+           ~~~~~~~~~~~~~~~~~~^^
+  File "D:\Projects\Endstone\endstone\.venv\Lib\site-packages\psutil\_pswindows.py", line 668, in wrapper
+    raise convert_oserror(err, pid=self.pid, name=self._name) from err
+psutil.NoSuchProcess: process no longer exists (pid=38260)
+23:55:57 crash files ['C:\\Users\\Vincent\\AppData\\Local\\Temp\\claude\\d--Projects-Endstone-endstone\\7967334b-4dde-4367-ae32-73653b87ea94\\scratchpad\\endstone-bench\\server\\.sentry-native\\48787fda-2b31-4a4e-bed5-321b717865f0.run.lock', 'C:\\Users\\Vincent\\AppData\\Local\\Temp\\claude\\d--Projects-Endstone-endstone\\7967334b-4dde-4367-ae32-73653b87ea94\\scratchpad\\endstone-bench\\server\\.sentry-native\\settings.dat', 'C:\\Users\\Vincent\\AppData\\Local\\Temp\\claude\\d--Projects-Endstone-endstone\\7967334b-4dde-4367-ae32-73653b87ea94\\scratchpad\\endstone-bench\\server\\.sentry-native\\48787fda-2b31-4a4e-bed5-321b717865f0.run\\session.json', 'C:\\Users\\Vincent\\AppData\\Local\\Temp\\claude\\d--Projects-Endstone-endstone\\7967334b-4dde-4367-ae32-73653b87ea94\\scratchpad\\endstone-bench\\server\\.sentry-native\\48787fda-2b31-4a4e-bed5-321b717865f0.run\\__sentry-breadcrumb1', 'C:\\Users\\Vincent\\AppData\\Local\\Temp\\claude\\d--Projects-Endstone-endstone\\7967334b-4dde-4367-ae32-73653b87ea94\\scratchpad\\endstone-bench\\server\\.sentry-native\\48787fda-2b31-4a4e-bed5-321b717865f0.run\\__sentry-breadcrumb2', 'C:\\Users\\Vincent\\AppData\\Local\\Temp\\claude\\d--Projects-Endstone-endstone\\7967334b-4dde-4367-ae32-73653b87ea94\\scratchpad\\endstone-bench\\server\\.sentry-native\\48787fda-2b31-4a4e-bed5-321b717865f0.run\\__sentry-event']
+23:55:57 last log lines:
+    [23:53:28 INFO]: Gave Water Breathing * 0 to a86 for an infinite duration
+    [23:53:28 INFO]: Gave Saturation * 255 to a86 for an infinite duration
+    [23:53:28 INFO]: Teleported a86 to 7040.50, 300.00, 5760.50
+    [23:53:28 INFO]: Gave Resistance * 255 to a87 for an infinite duration
+    [23:53:28 INFO]: Gave Fire Resistance * 0 to a87 for an infinite duration
+    [23:53:29 INFO]: Gave Water Breathing * 0 to a87 for an infinite duration
+    [23:53:29 INFO]: Player Spawned: a89 xuid: , pfid:
+    [23:53:29 INFO]: a89 joined the game
+    [23:53:29 INFO]: Gave Saturation * 255 to a87 for an infinite duration
+    [23:53:29 INFO]: Teleported a87 to 7680.50, 300.00, 5760.50
+    [23:53:29 INFO]: Gave Resistance * 255 to a88 for an infinite duration
+    [23:53:29 INFO]: Gave Fire Resistance * 0 to a88 for an infinite duration
+    [23:53:29 INFO]: Player Spawned: a90 xuid: , pfid:
+    [23:53:29 INFO]: a90 joined the game
+    [23:53:29 INFO]: Gave Water Breathing * 0 to a88 for an infinite duration
+    [23:53:29 INFO]: Teleported a88 to 1280.50, 300.00, 6400.50
+    [23:53:29 INFO]: Gave Resistance * 255 to a89 for an infinite duration
+    [23:53:29 INFO]: Gave Fire Resistance * 0 to a89 for an infinite duration
+    [23:53:29 INFO]: Gave Water Breathing * 0 to a89 for an infinite duration
+    [23:53:29 INFO]: Gave Saturation * 255 to a89 for an infinite duration
+    [23:53:29 INFO]: Teleported a89 to 1920.50, 300.00, 6400.50
+    [23:53:29 INFO]: Gave Resistance * 255 to a90 for an infinite duration
+    [23:53:29 INFO]: Gave Fire Resistance * 0 to a90 for an infinite duration
+    [23:53:29 INFO]: Gave Water Breathing * 0 to a90 for an infinite duration
+    [23:53:29 INFO]: Gave Saturation * 255 to a90 for an infinite duration
+    [23:53:30 INFO]: Teleported a90 to 2560.50, 300.00, 6400.50
+    [23:53:30 INFO]: Player Spawned: a91 xuid: , pfid:
+    [23:53:30 INFO]: a91 joined the game
+    [23:53:30 INFO]: Player Spawned: a92 xuid: , pfid:
+    [23:53:30 INFO]: Gave Resistance * 255 to a91 for an infinite duration
+    [23:53:30 INFO]: a92 joined the game
+    [23:53:30 INFO]: Gave Fire Resistance * 0 to a91 for an infinite duration
+    [23:53:30 INFO]: Gave Water Breathing * 0 to a91 for an infinite duration
+    [23:53:30 INFO]: Player Spawned: a93 xuid: , pfid:
+    [23:53:30 INFO]: a93 joined the game
+    [23:53:30 INFO]: Gave Saturation * 255 to a91 for an infinite duration
+    [23:53:30 INFO]: Teleported a91 to 3200.50, 300.00, 6400.50
+    [23:53:30 INFO]: Gave Resistance * 255 to a92 for an infinite duration
+    [23:53:30 INFO]: Gave Fire Resistance * 0 to a92 for an infinite duration
+    [23:53:30 INFO]: Gave Water Breathing * 0 to a92 for an infinite duration
+    [23:53:30 INFO]: Gave Saturation * 255 to a92 for an infinite duration
+    [23:53:30 INFO]: Teleported a92 to 3840.50, 300.00, 6400.50
+    [23:53:30 INFO]: Gave Resistance * 255 to a93 for an infinite duration
+    [23:53:30 INFO]: Player Spawned: a94 xuid: , pfid:
+    [23:53:30 INFO]: a94 joined the game
+    [23:53:30 INFO]: Gave Fire Resistance * 0 to a93 for an infinite duration
+    [23:53:31 INFO]: Gave Water Breathing * 0 to a93 for an infinite duration
+    [23:53:31 INFO]: Gave Saturation * 255 to a93 for an infinite duration
+    [23:53:31 INFO]: Teleported a93 to 4480.50, 300.00, 6400.50
+    [23:53:31 INFO]: Player Spawned: a95 xuid: , pfid:
+    [23:53:31 INFO]: Gave Resistance * 255 to a94 for an infinite duration
+    [23:53:31 INFO]: a95 joined the game
+    [23:53:31 INFO]: Gave Fire Resistance * 0 to a94 for an infinite duration
+    [23:53:31 INFO]: Gave Water Breathing * 0 to a94 for an infinite duration
+    [23:53:31 INFO]: Player Spawned: a96 xuid: , pfid:
+    [23:53:31 INFO]: Gave Saturation * 255 to a94 for an infinite duration
+    [23:53:31 INFO]: a96 joined the game
+    [23:53:31 INFO]: Teleported a94 to 5120.50, 300.00, 6400.50
+    [23:53:31 INFO]: Gave Resistance * 255 to a95 for an infinite duration
+    [23:53:31 INFO]: Gave Fire Resistance * 0 to a95 for an infinite duration
+    [23:53:31 INFO]: Gave Water Breathing * 0 to a95 for an infinite duration
+    [23:53:31 INFO]: Gave Saturation * 255 to a95 for an infinite duration
+    [23:53:31 INFO]: Player Spawned: a97 xuid: , pfid:
+    [23:53:31 INFO]: a97 joined the game
+    [23:53:31 INFO]: Teleported a95 to 5760.50, 300.00, 6400.50
+    [23:53:31 INFO]: Gave Resistance * 255 to a96 for an infinite duration
+    [23:53:31 INFO]: Gave Fire Resistance * 0 to a96 for an infinite duration
+    [23:53:31 INFO]: Player Spawned: a98 xuid: , pfid:
+    [23:53:31 INFO]: Gave Water Breathing * 0 to a96 for an infinite duration
+    [23:53:31 INFO]: a98 joined the game
+    [23:53:32 INFO]: Gave Saturation * 255 to a96 for an infinite duration
+    [23:53:32 INFO]: Teleported a96 to 6400.50, 300.00, 6400.50
+    [23:53:32 INFO]: Gave Resistance * 255 to a97 for an infinite duration
+    [23:53:32 INFO]: Gave Fire Resistance * 0 to a97 for an infinite duration
+    [23:53:32 INFO]: Gave Water Breathing * 0 to a97 for an infinite duration
+    [23:53:32 INFO]: Player Spawned: a99 xuid: , pfid:
+    [23:53:32 INFO]: a99 joined the game
+    [23:53:32 INFO]: Gave Saturation * 255 to a97 for an infinite duration
+    [23:53:32 INFO]: Teleported a97 to 7040.50, 300.00, 6400.50
+    [23:53:32 INFO]: Gave Resistance * 255 to a98 for an infinite duration
+    [23:53:32 INFO]: Gave Fire Resistance * 0 to a98 for an infinite duration
+    [23:53:32 INFO]: Gave Water Breathing * 0 to a98 for an infinite duration
+    [23:53:32 INFO]: Gave Saturation * 255 to a98 for an infinite duration
+    [23:53:32 INFO]: Teleported a98 to 7680.50, 300.00, 6400.50
+    [23:53:32 INFO]: Gametime is 1605
+    [23:53:32 INFO]: Gave Resistance * 255 to a99 for an infinite duration
+    [23:53:32 INFO]: Gave Fire Resistance * 0 to a99 for an infinite duration
+    [23:53:32 INFO]: Gave Water Breathing * 0 to a99 for an infinite duration
+    [23:53:33 INFO]: Gave Saturation * 255 to a99 for an infinite duration
+    [23:53:33 INFO]: Teleported a99 to 1280.50, 300.00, 7040.50
+    [23:53:37 INFO]: Gametime is 1697
+    [23:53:42 INFO]: Gametime is 1796
+    [23:53:47 INFO]: Gametime is 1897
+    [23:53:52 INFO]: Gametime is 1996
+    [23:53:57 INFO]: Gametime is 2096
+    [23:54:02 INFO]: Gametime is 2195
+    [23:54:07 INFO]: Gametime is 2288
+    [23:54:12 INFO]: Gametime is 2371
+    [23:54:17 INFO]: Gametime is 2450
+    [23:54:19 ERROR]: Server exited with non-zero code 1.
+23:55:57 server exit 1
+23:55:58 restored dll-pypi
+Exception ignored in: <_io.TextIOWrapper name=4 encoding='utf-8'>
+Traceback (most recent call last):
+  File "C:\Users\Vincent\AppData\Local\Temp\claude\d--Projects-Endstone-endstone\7967334b-4dde-4367-ae32-73653b87ea94\scratchpad\endstone-bench\run_endstone.py", line 777, in <module>
+    main()
+OSError: [Errno 22] Invalid argument
+== pool-bl0
+  tps join    {'min': 19.22, 'p5': 19.22, 'median': 19.93, 'max': 20.05, 'n': 6}
+  tps settle  {'min': None, 'p5': None, 'median': None, 'max': None, 'n': 0}
+  tps steady  {'min': None, 'p5': None, 'median': None, 'max': None, 'n': 0}
+  settle_s None  join_s {'median': 3.69, 'p90': 3.98, 'max': 4.6, 'n': 100}
+  t90_after_tp_s {'median': 74.96, 'p90': 87.09, 'max': 91.82, 'n': 99}  last_bot_90pct_after_first_connect_s 94.4  (BOT lines every 60 s)
+  server_exit 1  died_during_run True  log_errors 1
+    23:54:19.453 [23:54:19 ERROR]: Server exited with non-zero code 1.
+exit=0

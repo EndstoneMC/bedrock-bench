@@ -1,0 +1,182 @@
+{
+ "tag": "chaos-levi-opt",
+ "chaos_s": 601,
+ "tps5_all": [
+  1.25,
+  119
+ ],
+ "tps5_min": 1.04,
+ "mon_tps10_all": [
+  1.23,
+  60
+ ],
+ "tps5_normal_executed": [
+  9.42,
+  25
+ ],
+ "tps5_100_1000_executed": [
+  1.21,
+  94
+ ],
+ "mon_normal_executed": [
+  9.5,
+  12
+ ],
+ "mon_100_1000_executed": [
+  1.2,
+  48
+ ],
+ "tps5_per_regime_executed": {
+  "0": [
+   9.42,
+   7
+  ],
+  "1": [
+   9.06,
+   13
+  ],
+  "3": [
+   10.75,
+   5
+  ],
+  "100": [
+   5.16,
+   9
+  ],
+  "1000": [
+   1.2,
+   85
+  ]
+ },
+ "tps5_normal_queued": [
+  1.4,
+  52
+ ],
+ "tps5_100_1000_queued": [
+  1.2,
+  67
+ ],
+ "mon_normal_queued": [
+  1.38,
+  26
+ ],
+ "mon_100_1000_queued": [
+  1.2,
+  34
+ ],
+ "tps5_per_regime_queued": {
+  "0": [
+   9.19,
+   7
+  ],
+  "1": [
+   1.31,
+   39
+  ],
+  "3": [
+   10.92,
+   6
+  ],
+  "100": [
+   5.21,
+   8
+  ],
+  "1000": [
+   1.19,
+   59
+  ]
+ },
+ "tickspeed_changes_executed": 6,
+ "tickspeed_changes_queued": 7,
+ "time_in_1000_executed_s": 427,
+ "proc_cores_chaos": 3.15,
+ "private_mb_start_end_peak": [
+  4878.0,
+  4133.5,
+  4883.3
+ ],
+ "ws_mb_start_end_peak": [
+  4764.3,
+  4123.8,
+  4803.9
+ ],
+ "handles_start_end": [
+  415,
+  422
+ ],
+ "threads_start_end": [
+  54,
+  53
+ ],
+ "window_chaos_mem_mb": {
+  "ws": 4127.3,
+  "private": 4136.2,
+  "peak_ws": 4829.7
+ },
+ "window_chaos_main_ms_s": 997,
+ "crash": false,
+ "server_exit": 0,
+ "crash_files": null,
+ "summary_error_lines": 38,
+ "summary_cmd_feedback": 475,
+ "harness_errors": [],
+ "not_respawned": [
+  "a18",
+  "a28",
+  "a61",
+  "a89"
+ ],
+ "actions": {
+  "blocks": 12,
+  "churn": 12,
+  "churn_one": 11,
+  "cleanup": 4,
+  "dimension": 40,
+  "far_tp": 18,
+  "flash_leave": 27,
+  "gamemode": 33,
+  "kick": 4,
+  "kill": 10,
+  "list_status": 59,
+  "randomtickspeed": 7,
+  "skipped_backlog": 187,
+  "stack": 11,
+  "summon": 7,
+  "tickingarea_add": 4,
+  "tickingarea_remove": 4,
+  "unstack": 10,
+  "view_disconnect": 9,
+  "waypoints_off": 4,
+  "waypoints_on": 4,
+  "weather": 6
+ },
+ "bot_events": {
+  "DIED": 16,
+  "DIM": 20,
+  "DIMDONE": 20,
+  "JOINED": 104,
+  "LEFT": 158,
+  "RADIUS": 2018,
+  "READ_FAILED": 5,
+  "REJOIN_FAILED": 295,
+  "REJOIN_GAVE": 59,
+  "RESPAWNED": 16,
+  "TP": 230
+ },
+ "error_total_chaos": 8,
+ "error_kinds_chaos": [
+  [
+   "#:#:#.# #:#:#.# ERR [Server] Syntax error: Unexpected \"locatorbar\": at \"/gamerule >>locatorbar<< false\"",
+   4
+  ],
+  [
+   "#:#:#.# #:#:#.# ERR [Server] Syntax error: Unexpected \"locatorbar\": at \"/gamerule >>locatorbar<< true\"",
+   4
+  ]
+ ],
+ "error_lines_outside_chaos": 2,
+ "error_lines_outside_chaos_first": [
+  "12:16:01.360 12:16:01.345 ERR [Server] ================ TRANSPORT TYPE ERROR  ===================",
+  "12:16:01.456 12:16:01.450 IFO [CrashLogger] CrashLogger enabled successfully"
+ ]
+}

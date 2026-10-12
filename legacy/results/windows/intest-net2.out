@@ -1,0 +1,34 @@
+14:56:03 arm dll-net2 {'endstone_runtime.dll': 'e22fedb5374f874a', 'endstone_runtime.pdb': '993ac4f7e3ab18df', '_python.cp313-win_amd64.pyd': '9f49226f485f8be3 (pypi)', '_python.pdb': '5cb59c7d518d00c1 (pypi)'}
+14:56:06 server 44456 0x7ff66cc00000 ['[14:56:04 INFO]: Version: 1.26.52.3', '[14:56:04 INFO]: This server is running Endstone version: 0.11.13 (Minecraft: 26.52)']
+14:56:10 devtools tid 1172 0 ms/s suspended None
+14:56:15 mark bots_start
+14:56:17 intest: bots joined; waiting for the on_player_join suites and /test probes
+14:57:17 intest: a00 rejoins as op
+14:58:19 INTEST VERDICT: PASS  total {'passed': 208}
+14:58:19   on_player_join  bench 58 passed
+14:58:19   on_player_join  a00   50 passed
+14:58:19   on_player_join  a01   50 passed
+14:58:19   on_player_join  a00   50 passed
+14:58:19   probe 14:56:17.090 TEXT a01 "{\"rawtext\":[{\"translate\":\"§e%multiplayer.player.joined\",\"with\":{\"rawtext\":[{\"text\":\"a00\"}]}}]}"
+14:58:19   probe 14:56:17.102 TEXT a00 "{\"rawtext\":[{\"translate\":\"§c%commands.generic.error.permissions\",\"with\":{\"rawtext\":[{\"text\":\"test\"}]}}]}"
+14:58:19   probe 14:56:17.102 TEXT a00 "{\"rawtext\":[{\"translate\":\"commands.give.successRecipient\",\"with\":{\"rawtext\":[{\"text\":\"Clock\"},{\"text\":\"1\"}]}}]}\n"
+14:58:19   probe 14:56:17.102 TEXT a00 "{\"rawtext\":[{\"translate\":\"commands.give.successRecipient\",\"with\":{\"rawtext\":[{\"text\":\"Clock\"},{\"text\":\"1\"}]}}]}\n"
+14:58:19   probe 14:56:17.105 TEXT a00 "{\"rawtext\":[{\"translate\":\"§e%multiplayer.player.joined\",\"with\":{\"rawtext\":[{\"text\":\"a00\"}]}}]}"
+14:58:19   probe 14:56:17.200 TEXT a00 "{\"rawtext\":[{\"translate\":\"commands.op.message\",\"with\":{\"rawtext\":null}}]}\n"
+14:58:19   probe 14:56:17.202 TEXT a00 "{\"rawtext\":[{\"translate\":\"§e%multiplayer.player.joined\",\"with\":{\"rawtext\":[{\"text\":\"a01\"}]}}]}"
+14:58:19   probe 14:56:17.505 TEXT a01 "{\"rawtext\":[{\"translate\":\"§c%commands.generic.error.permissions\",\"with\":{\"rawtext\":[{\"text\":\"test\"}]}}]}"
+14:58:19   probe 14:56:17.505 TEXT a01 "{\"rawtext\":[{\"translate\":\"commands.give.successRecipient\",\"with\":{\"rawtext\":[{\"text\":\"Clock\"},{\"text\":\"1\"}]}}]}\n"
+14:58:19   probe 14:56:17.505 TEXT a01 "{\"rawtext\":[{\"translate\":\"commands.give.successRecipient\",\"with\":{\"rawtext\":[{\"text\":\"Clock\"},{\"text\":\"1\"}]}}]}\n"
+14:58:19   probe 14:56:17.509 TEXT a01 "{\"rawtext\":[{\"translate\":\"§e%multiplayer.player.joined\",\"with\":{\"rawtext\":[{\"text\":\"a01\"}]}}]}"
+14:58:19   probe 14:56:26.892 CMD a00 /test
+14:58:19   probe 14:56:26.919 TEXT a00 "§cSyntax error: Unexpected \"\": at \"test>><<\""
+14:58:19   probe 14:56:27.899 CMD a00 /test sender
+14:58:19   probe 14:56:27.914 TEXT a00 "You are a player!"
+14:58:19   probe 14:56:28.899 CMD a00 /test broadcast
+14:58:19   probe 14:56:28.927 TEXT a00 "Hello from a00!"
+14:58:19   probe 14:56:28.927 TEXT a01 "Hello from a00!"
+14:58:19   probe 14:57:18.146 TEXT a01 "{\"rawtext\":[{\"translate\":\"§e%multiplayer.player.left\",\"with\":{\"rawtext\":[{\"text\":\"a00\"}]}}]}"
+14:58:19   probe 14:57:22.127 TEXT a01 "{\"rawtext\":[{\"translate\":\"§e%multiplayer.player.joined\",\"with\":{\"rawtext\":[{\"text\":\"a00\"}]}}]}"
+14:58:20 server exit 0
+14:58:20 restored dll-pypi
+exit=0

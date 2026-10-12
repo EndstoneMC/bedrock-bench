@@ -1,0 +1,180 @@
+22:38:26 arm dll-gen-verify {'endstone_runtime.dll': 'b9372999ff067107', 'endstone_runtime.pdb': 'e53aa898bcadecbc', '_python.cp313-win_amd64.pyd': '9f49226f485f8be3 (pypi)', '_python.pdb': '5cb59c7d518d00c1 (pypi)'}
+22:38:30 server 49876 0x7ff66cc00000 ['[22:38:27 INFO]: Version: 1.26.52.3', '[22:38:27 INFO]: This server is running Endstone version: 0.11.13 (Minecraft: 26.52)']
+22:38:33 devtools tid 7664 0 ms/s suspended None
+22:38:43 mark idle0
+22:39:03 mark idle1
+22:39:03 thread names ['Gameface Layout(0)', 'IO Thread(0)', 'LevelDB(0)', 'LevelDBCompaction(0)', 'MC_SERVER', 'Main', 'REST Thread(0)', 'Streaming Pool(0)', 'Streaming Pool(1)', 'Streaming Pool(2)', 'Streaming Pool(3)', 'Streaming Pool(4)', 'Streaming Pool(5)', 'Streaming Pool(6)', 'sentry-http']
+22:39:03 window idle tps 19.990555498833 [('MC_SERVER', 10), ('10016@ucrtbase.dll', 1), ('45276@ucrtbase.dll', 1), ('Main', 0), ('44468@nvoglv64.dll', 0), ('sentry-http', 0), ('27124@CRYPT32.dll', 0), ('44388@ntdll.dll', 0)] other 246 devtools 0 mem {'ws': 447.6, 'private': 1115.9, 'peak_ws': 452.0}
+22:39:03 mark prof_start
+22:39:15 mark bots_start
+22:39:50 mark alljoined
+22:40:45 mark storm_prof_end
+22:40:48 window storm_prof tps 19.99782826177583 [('Streaming Pool(1)', 911), ('Streaming Pool(0)', 911), ('MC_SERVER', 455), ('Streaming Pool(2)', 337), ('REST Thread(0)', 48), ('45276@ucrtbase.dll', 43), ('Streaming Pool(3)', 38), ('Streaming Pool(4)', 32)] other 3109 devtools 0 mem {'ws': 3185.9, 'private': 3939.9, 'peak_ws': 3185.9}
+22:41:19 re-teleported ['a53', 'a82']
+22:41:19 settle 88s uniq=5733 uniq/s=80.3 (0.80/bot) tps30=19.997760117766344 view_min=0 view_med=17 below=0 airborne=62 deaths=0 nudged=62
+22:41:49 re-teleported ['a53', 'a82']
+22:41:49 settle 119s uniq=9251 uniq/s=109.8 (1.10/bot) tps30=19.98747909564783 view_min=0 view_med=17 below=0 airborne=62 deaths=0 nudged=62
+Exception in thread Thread-3:
+22:41:53 SERVER DIED 22:41:53
+22:41:53 ABORT bedrock_server.exe exited during the run
+Traceback (most recent call last):
+  File "D:\Projects\Endstone\endstone\.venv\Lib\site-packages\psutil\_pswindows.py", line 666, in wrapper
+    return fun(self, *args, **kwargs)
+  File "D:\Projects\Endstone\endstone\.venv\Lib\site-packages\psutil\_pswindows.py", line 930, in threads
+    rawlist = cext.proc_threads(self.pid)
+ProcessLookupError: [Errno 3] force no such process (originated from psutil_pid_is_running -> 0)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Vincent\AppData\Roaming\uv\python\cpython-3.13.5-windows-x86_64-none\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "C:\Users\Vincent\AppData\Local\Temp\claude\d--Projects-Endstone-endstone\7967334b-4dde-4367-ae32-73653b87ea94\scratchpad\work-profile\scripts\threads.py", line 99, in run
+    self.series.append((time.perf_counter(), self.table.snapshot()))
+                                             ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Vincent\AppData\Local\Temp\claude\d--Projects-Endstone-endstone\7967334b-4dde-4367-ae32-73653b87ea94\scratchpad\work-profile\scripts\threads.py", line 79, in snapshot
+    self.refresh()
+    ~~~~~~~~~~~~^^
+  File "C:\Users\Vincent\AppData\Local\Temp\claude\d--Projects-Endstone-endstone\7967334b-4dde-4367-ae32-73653b87ea94\scratchpad\work-profile\scripts\threads.py", line 60, in refresh
+    for t in self.proc.threads():
+             ~~~~~~~~~~~~~~~~~^^
+  File "D:\Projects\Endstone\endstone\.venv\Lib\site-packages\psutil\__init__.py", line 949, in threads
+    return self._proc.threads()
+           ~~~~~~~~~~~~~~~~~~^^
+  File "D:\Projects\Endstone\endstone\.venv\Lib\site-packages\psutil\_pswindows.py", line 668, in wrapper
+    raise convert_oserror(err, pid=self.pid, name=self._name) from err
+psutil.NoSuchProcess: process no longer exists (pid=49876)
+Exception in thread Thread-5:
+Traceback (most recent call last):
+  File "C:\Users\Vincent\AppData\Roaming\uv\python\cpython-3.13.5-windows-x86_64-none\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "C:\Users\Vincent\AppData\Local\Temp\claude\d--Projects-Endstone-endstone\7967334b-4dde-4367-ae32-73653b87ea94\scratchpad\work-profile\scripts\harness.py", line 99, in run
+    self.srv.cmd("time query gametime")
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Vincent\AppData\Local\Temp\claude\d--Projects-Endstone-endstone\7967334b-4dde-4367-ae32-73653b87ea94\scratchpad\endstone-bench\run_endstone.py", line 265, in cmd
+    self._write(s)
+    ~~~~~~~~~~~^^^
+  File "C:\Users\Vincent\AppData\Local\Temp\claude\d--Projects-Endstone-endstone\7967334b-4dde-4367-ae32-73653b87ea94\scratchpad\endstone-bench\run_endstone.py", line 259, in _write
+    self.p.stdin.write(s + "\n")
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+22:42:12 crash files ['C:\\Users\\Vincent\\AppData\\Local\\Temp\\claude\\d--Projects-Endstone-endstone\\7967334b-4dde-4367-ae32-73653b87ea94\\scratchpad\\endstone-bench\\server\\.sentry-native\\b319cdf0-836f-4895-0ff1-0ab4deb40ae7.run.lock', 'C:\\Users\\Vincent\\AppData\\Local\\Temp\\claude\\d--Projects-Endstone-endstone\\7967334b-4dde-4367-ae32-73653b87ea94\\scratchpad\\endstone-bench\\server\\.sentry-native\\settings.dat', 'C:\\Users\\Vincent\\AppData\\Local\\Temp\\claude\\d--Projects-Endstone-endstone\\7967334b-4dde-4367-ae32-73653b87ea94\\scratchpad\\endstone-bench\\server\\.sentry-native\\b319cdf0-836f-4895-0ff1-0ab4deb40ae7.run\\session.json', 'C:\\Users\\Vincent\\AppData\\Local\\Temp\\claude\\d--Projects-Endstone-endstone\\7967334b-4dde-4367-ae32-73653b87ea94\\scratchpad\\endstone-bench\\server\\.sentry-native\\b319cdf0-836f-4895-0ff1-0ab4deb40ae7.run\\__sentry-breadcrumb1', 'C:\\Users\\Vincent\\AppData\\Local\\Temp\\claude\\d--Projects-Endstone-endstone\\7967334b-4dde-4367-ae32-73653b87ea94\\scratchpad\\endstone-bench\\server\\.sentry-native\\b319cdf0-836f-4895-0ff1-0ab4deb40ae7.run\\__sentry-breadcrumb2', 'C:\\Users\\Vincent\\AppData\\Local\\Temp\\claude\\d--Projects-Endstone-endstone\\7967334b-4dde-4367-ae32-73653b87ea94\\scratchpad\\endstone-bench\\server\\.sentry-native\\b319cdf0-836f-4895-0ff1-0ab4deb40ae7.run\\__sentry-event']
+22:42:12 last log lines:
+    [22:39:49 INFO]: Player Spawned: a98 xuid: , pfid:
+    [22:39:49 INFO]: Gave Resistance * 255 to a97 for an infinite duration
+    [22:39:49 INFO]: a98 joined the game
+    [22:39:49 INFO]: Gave Fire Resistance * 0 to a97 for an infinite duration
+    [22:39:49 INFO]: Gave Water Breathing * 0 to a97 for an infinite duration
+    [22:39:50 INFO]: Gave Saturation * 255 to a97 for an infinite duration
+    [22:39:50 INFO]: Teleported a97 to 7040.50, 300.00, 6400.50
+    [22:39:50 INFO]: Player Spawned: a99 xuid: , pfid:
+    [22:39:50 INFO]: Gave Resistance * 255 to a98 for an infinite duration
+    [22:39:50 INFO]: a99 joined the game
+    [22:39:50 INFO]: Gave Fire Resistance * 0 to a98 for an infinite duration
+    [22:39:50 INFO]: Gave Water Breathing * 0 to a98 for an infinite duration
+    [22:39:50 INFO]: Gave Saturation * 255 to a98 for an infinite duration
+    [22:39:50 INFO]: Teleported a98 to 7680.50, 300.00, 6400.50
+    [22:39:50 INFO]: Gave Resistance * 255 to a99 for an infinite duration
+    [22:39:50 INFO]: Gave Fire Resistance * 0 to a99 for an infinite duration
+    [22:39:50 INFO]: [gen-verify] mode=verify calls=8596318 checked=8592588 mismatches=0 raced=3730 fallback=0 synthetic=0/375000 formula=0/35825 update 0.36ms/s (24/s) publish 0.130ms/s [tid 40520 163511/s van 121ms/s 738ns fast 42ms/s 258ns] [tid 23432 1479/s van 1ms/s 676ns fast 0ms/s 243ns] [tid 46512 143623/s van 105ms/s 729ns fast 37ms/s 255ns] [tid 36448 126977/s van 93ms/s 730ns fast 32ms/s 253ns]
+    [22:39:50 INFO]: Gave Water Breathing * 0 to a99 for an infinite duration
+    [22:39:50 INFO]: Gave Saturation * 255 to a99 for an infinite duration
+    [22:39:50 INFO]: Teleported a99 to 1280.50, 300.00, 7040.50
+    [22:39:50 INFO]: Gametime is 1605
+    [22:39:55 INFO]: Gametime is 1695
+    [22:40:00 INFO]: Gametime is 1796
+    [22:40:00 INFO]: [gen-verify] mode=verify calls=13185238 checked=13179301 mismatches=0 raced=5937 fallback=0 synthetic=0/375000 formula=0/35825 update 0.34ms/s (20/s) publish 0.144ms/s [tid 40520 212748/s van 163ms/s 765ns fast 57ms/s 267ns] [tid 46512 215874/s van 165ms/s 764ns fast 56ms/s 262ns] [tid 36448 29790/s van 23ms/s 761ns fast 8ms/s 260ns]
+    [22:40:05 INFO]: Gametime is 1895
+    [22:40:10 INFO]: Gametime is 1995
+    [22:40:10 INFO]: [gen-verify] mode=verify calls=17482902 checked=17474701 mismatches=0 raced=8200 fallback=0 synthetic=0/375000 formula=0/35825 update 0.34ms/s (20/s) publish 0.144ms/s [tid 40520 206498/s van 157ms/s 760ns fast 54ms/s 264ns] [tid 46512 185097/s van 141ms/s 759ns fast 49ms/s 263ns] [tid 36448 36358/s van 28ms/s 758ns fast 10ms/s 264ns]
+    [22:40:15 INFO]: Gametime is 2095
+    [22:40:20 INFO]: Gametime is 2195
+    [22:40:20 INFO]: [gen-verify] mode=verify calls=21460316 checked=21450080 mismatches=0 raced=10236 fallback=0 synthetic=0/375000 formula=0/35825 update 0.34ms/s (20/s) publish 0.151ms/s [tid 40520 181532/s van 138ms/s 761ns fast 49ms/s 269ns] [tid 46512 202858/s van 154ms/s 760ns fast 55ms/s 269ns] [tid 36448 11577/s van 9ms/s 763ns fast 3ms/s 266ns]
+    [22:40:25 INFO]: Gametime is 2296
+    [22:40:30 INFO]: Gametime is 2396
+    [22:40:30 INFO]: [gen-verify] mode=verify calls=25093068 checked=25080902 mismatches=0 raced=12166 fallback=0 synthetic=0/375000 formula=0/35825 update 0.34ms/s (20/s) publish 0.140ms/s [tid 40520 192850/s van 147ms/s 765ns fast 53ms/s 273ns] [tid 46512 162529/s van 124ms/s 765ns fast 44ms/s 273ns] [tid 36448 7620/s van 6ms/s 769ns fast 2ms/s 271ns]
+    [22:40:35 INFO]: Gametime is 2495
+    [22:40:40 INFO]: Gametime is 2596
+    [22:40:40 INFO]: [gen-verify] mode=verify calls=28087641 checked=28074162 mismatches=0 raced=13479 fallback=0 synthetic=0/375000 formula=0/35825 update 0.33ms/s (20/s) publish 0.141ms/s [tid 40520 166222/s van 126ms/s 761ns fast 45ms/s 272ns] [tid 46512 128398/s van 98ms/s 761ns fast 35ms/s 275ns] [tid 36448 3309/s van 3ms/s 758ns fast 1ms/s 271ns]
+    [22:40:45 INFO]: Gametime is 2695
+    [22:40:50 INFO]: Gametime is 2795
+    [22:40:50 INFO]: [gen-verify] mode=verify calls=31075449 checked=31060534 mismatches=0 raced=14915 fallback=0 synthetic=0/375000 formula=0/35825 update 0.32ms/s (20/s) publish 0.146ms/s [tid 40520 134013/s van 102ms/s 762ns fast 37ms/s 273ns] [tid 46512 162522/s van 124ms/s 764ns fast 45ms/s 274ns] [tid 36448 940/s van 1ms/s 789ns fast 0ms/s 384ns]
+    [22:40:55 INFO]: Gametime is 2896
+    [22:41:00 INFO]: Gametime is 2996
+    [22:41:00 INFO]: [gen-verify] mode=verify calls=33285611 checked=33269551 mismatches=0 raced=16060 fallback=0 synthetic=0/375000 formula=0/35825 update 0.33ms/s (20/s) publish 0.134ms/s [tid 40520 111539/s van 85ms/s 764ns fast 31ms/s 275ns] [tid 46512 109013/s van 84ms/s 768ns fast 30ms/s 279ns]
+    [22:41:05 INFO]: Gametime is 3095
+    [22:41:10 INFO]: Gametime is 3195
+    [22:41:10 INFO]: [gen-verify] mode=verify calls=35041195 checked=35024335 mismatches=0 raced=16860 fallback=0 synthetic=0/375000 formula=0/35825 update 0.32ms/s (20/s) publish 0.149ms/s [tid 40520 89431/s van 68ms/s 765ns fast 25ms/s 276ns] [tid 46512 82995/s van 64ms/s 768ns fast 23ms/s 278ns] [tid 36448 2217/s van 2ms/s 765ns fast 1ms/s 278ns]
+    [22:41:15 INFO]: Gametime is 3296
+    [22:41:18 INFO]: Teleported a08 to 6416.50, 300.00, 1280.50
+    [22:41:18 INFO]: Teleported a09 to 7056.50, 300.00, 1280.50
+    [22:41:18 INFO]: Teleported a10 to 7696.50, 300.00, 1280.50
+    [22:41:19 INFO]: Teleported a11 to 1296.50, 300.00, 1920.50
+    [22:41:19 INFO]: Teleported a12 to 1936.50, 300.00, 1920.50
+    [22:41:19 INFO]: Teleported a13 to 2576.50, 300.00, 1920.50
+    [22:41:19 INFO]: Teleported a14 to 3216.50, 300.00, 1920.50
+    [22:41:19 INFO]: Teleported a15 to 3856.50, 300.00, 1920.50
+    [22:41:19 INFO]: Teleported a18 to 5776.50, 300.00, 1920.50
+    [22:41:19 INFO]: Teleported a19 to 6416.50, 300.00, 1920.50
+    [22:41:19 INFO]: Teleported a21 to 7696.50, 300.00, 1920.50
+    [22:41:19 INFO]: Teleported a22 to 1296.50, 300.00, 2560.50
+    [22:41:19 INFO]: Teleported a23 to 1936.50, 300.00, 2560.50
+    [22:41:19 INFO]: Teleported a25 to 3216.50, 300.00, 2560.50
+    [22:41:19 INFO]: Teleported a27 to 4496.50, 300.00, 2560.50
+    [22:41:19 INFO]: Teleported a28 to 5136.50, 300.00, 2560.50
+    [22:41:19 INFO]: Teleported a77 to 1296.50, 300.00, 5760.50
+    [22:41:19 INFO]: Teleported a90 to 2576.50, 300.00, 6400.50
+    [22:41:19 INFO]: Gave Resistance * 255 to a53 for an infinite duration
+    [22:41:19 INFO]: Gave Water Breathing * 0 to a82 for an infinite duration
+    [22:41:20 INFO]: Gametime is 3396
+    [22:41:20 INFO]: [gen-verify] mode=verify calls=36355340 checked=36337864 mismatches=0 raced=17476 fallback=0 synthetic=0/375000 formula=0/35825 update 0.32ms/s (20/s) publish 0.155ms/s [tid 40520 65668/s van 52ms/s 790ns fast 19ms/s 286ns] [tid 46512 65426/s van 52ms/s 791ns fast 19ms/s 289ns]
+    [22:41:25 INFO]: Gametime is 3495
+    [22:41:30 INFO]: Gametime is 3595
+    [22:41:30 INFO]: [gen-verify] mode=verify calls=37208303 checked=37190436 mismatches=0 raced=17866 fallback=0 synthetic=0/375000 formula=0/35825 update 0.31ms/s (20/s) publish 0.149ms/s [tid 40520 42302/s van 34ms/s 801ns fast 12ms/s 295ns] [tid 46512 42650/s van 34ms/s 791ns fast 12ms/s 293ns]
+    [22:41:35 INFO]: Gametime is 3695
+    [22:41:40 INFO]: Gametime is 3796
+    [22:41:40 INFO]: [gen-verify] mode=verify calls=37471340 checked=37453363 mismatches=0 raced=17977 fallback=0 synthetic=0/375000 formula=0/35825 update 0.32ms/s (20/s) publish 0.152ms/s [tid 15748 9/s van 0ms/s 801ns fast 0ms/s 395ns] [tid 40520 12931/s van 10ms/s 805ns fast 4ms/s 310ns] [tid 46512 13332/s van 11ms/s 806ns fast 4ms/s 313ns]
+    [22:41:45 INFO]: Gametime is 3895
+    [22:41:49 INFO]: Teleported a08 to 6400.50, 300.00, 1280.50
+    [22:41:49 INFO]: Teleported a09 to 7040.50, 300.00, 1280.50
+    [22:41:49 INFO]: Teleported a10 to 7680.50, 300.00, 1280.50
+    [22:41:49 INFO]: Teleported a11 to 1280.50, 300.00, 1920.50
+    [22:41:49 INFO]: Teleported a12 to 1920.50, 300.00, 1920.50
+    [22:41:49 INFO]: Teleported a13 to 2560.50, 300.00, 1920.50
+    [22:41:49 INFO]: Teleported a14 to 3200.50, 300.00, 1920.50
+    [22:41:49 INFO]: Teleported a15 to 3840.50, 300.00, 1920.50
+    [22:41:49 INFO]: Teleported a18 to 5760.50, 300.00, 1920.50
+    [22:41:49 INFO]: Teleported a19 to 6400.50, 300.00, 1920.50
+    [22:41:49 INFO]: Teleported a21 to 7680.50, 300.00, 1920.50
+    [22:41:50 INFO]: Teleported a22 to 1280.50, 300.00, 2560.50
+    [22:41:50 INFO]: Teleported a23 to 1920.50, 300.00, 2560.50
+    [22:41:50 INFO]: Teleported a25 to 3200.50, 300.00, 2560.50
+    [22:41:50 INFO]: Teleported a27 to 4480.50, 300.00, 2560.50
+    [22:41:50 INFO]: Teleported a28 to 5120.50, 300.00, 2560.50
+    [22:41:50 INFO]: Teleported a29 to 5760.50, 300.00, 2560.50
+    [22:41:50 INFO]: Teleported a31 to 7040.50, 300.00, 2560.50
+    [22:41:50 INFO]: Teleported a35 to 2560.50, 300.00, 3200.50
+    [22:41:50 INFO]: Teleported a36 to 3200.50, 300.00, 3200.50
+    [22:41:50 INFO]: Teleported a45 to 1920.50, 300.00, 3840.50
+    [22:41:50 INFO]: Teleported a68 to 2560.50, 300.00, 5120.50
+    [22:41:50 INFO]: Gametime is 4003
+    [22:41:50 INFO]: [gen-verify] mode=verify calls=37472977 checked=37455000 mismatches=0 raced=17977 fallback=0 synthetic=0/375000 formula=0/35825 update 0.33ms/s (20/s) publish 0.200ms/s [tid 15748 22/s van 0ms/s 805ns fast 0ms/s 394ns] [tid 40520 100/s van 0ms/s 873ns fast 0ms/s 432ns] [tid 46512 42/s van 0ms/s 764ns fast 0ms/s 231ns]
+    [22:41:53 ERROR]: Server exited with non-zero code 4294967295.
+22:42:12 server exit 4294967295
+22:42:12 restored dll-pypi
+Exception ignored in: <_io.TextIOWrapper name=4 encoding='utf-8'>
+Traceback (most recent call last):
+  File "C:\Users\Vincent\AppData\Local\Temp\claude\d--Projects-Endstone-endstone\7967334b-4dde-4367-ae32-73653b87ea94\scratchpad\endstone-bench\run_endstone.py", line 777, in <module>
+    main()
+OSError: [Errno 22] Invalid argument
+== gen-verify
+  tps join    {'min': 19.91, 'p5': 19.91, 'median': 19.96, 'max': 20.12, 'n': 6}
+  tps settle  {'min': None, 'p5': None, 'median': None, 'max': None, 'n': 0}
+  tps steady  {'min': None, 'p5': None, 'median': None, 'max': None, 'n': 0}
+  settle_s None  join_s {'median': 3.67, 'p90': 4.38, 'max': 4.73, 'n': 100}
+  t90_after_tp_s {'median': 129.99, 'p90': 144.95, 'max': 148.61, 'n': 98}  last_bot_90pct_after_first_connect_s 154.6  (BOT lines every 60 s)
+  server_exit 4294967295  died_during_run True  log_errors 1
+    22:41:53.068 [22:41:53 ERROR]: Server exited with non-zero code 4294967295.
+exit=0
