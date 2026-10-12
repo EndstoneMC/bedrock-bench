@@ -253,9 +253,9 @@ class TestLoadRuns:
 def _matrix() -> list:
     runs = []
     for repeat, (bds, e13, e14) in enumerate(((9.4, 11.0, 20.0), (9.5, 9.0, 19.9), (9.3, 10.2, 19.95)), start=1):
-        runs.append(record("bds-1.26.52.3", "bds", "1.26.52.3", bds, repeat=repeat))
-        runs.append(record("endstone-0.11.13", "endstone", "0.11.13", e13, repeat=repeat, bds="1.26.52.3"))
-        runs.append(record("endstone-0.11.14", "endstone", "0.11.14", e14, repeat=repeat, bds="1.26.52.3"))
+        runs.append(record("bds@1.26.52.3", "bds", "1.26.52.3", bds, repeat=repeat))
+        runs.append(record("endstone@0.11.13", "endstone", "0.11.13", e13, repeat=repeat, bds="1.26.52.3"))
+        runs.append(record("endstone@0.11.14", "endstone", "0.11.14", e14, repeat=repeat, bds="1.26.52.3"))
     return runs
 
 
@@ -263,14 +263,14 @@ class TestSummarize:
     def test_cells_and_counts(self) -> None:
         runs = _matrix()
         runs.append(
-            record("endstone-0.11.14", "endstone", "0.11.14", 1.0, repeat=4, bds="1.26.52.3", status="server_failed")
+            record("endstone@0.11.14", "endstone", "0.11.14", 1.0, repeat=4, bds="1.26.52.3", status="server_failed")
         )
         summary = summarize(runs, features=None)
         assert summary["matrix"] == "m" and summary["n_runs"] == 10
         assert summary["status_counts"] == {"ok": 9, "server_failed": 1, "invalid": 0}
         by_arm = cells(summary)
-        assert list(by_arm) == ["bds-1.26.52.3", "endstone-0.11.13", "endstone-0.11.14"]
-        e14 = by_arm["endstone-0.11.14"]
+        assert list(by_arm) == ["bds@1.26.52.3", "endstone@0.11.13", "endstone@0.11.14"]
+        e14 = by_arm["endstone@0.11.14"]
         assert (e14["n_total"], e14["n_ok"], e14["n_server_failed"]) == (4, 3, 1)
         assert e14["metrics"]["tps_window_steady"]["values"] == [20.0, 19.9, 19.95]  # failed run left out
         assert e14["metrics"]["tps_window_steady"]["median"] == 19.95
@@ -279,8 +279,8 @@ class TestSummarize:
     def test_same_build_baseline(self) -> None:
         runs = [*_matrix(), record("levi", "levilamina", "1.0", bds="1.26.51.1")]
         by_arm = cells(summarize(runs, features=None))
-        assert by_arm["endstone-0.11.14"]["baseline"] == "bds-1.26.52.3"
-        assert by_arm["bds-1.26.52.3"]["baseline"] is None
+        assert by_arm["endstone@0.11.14"]["baseline"] == "bds@1.26.52.3"
+        assert by_arm["bds@1.26.52.3"]["baseline"] is None
         assert by_arm["levi"]["baseline"] is None and by_arm["levi"]["flags"] == {"different_bds_build": 1}
 
     def test_fidelity_sections(self) -> None:

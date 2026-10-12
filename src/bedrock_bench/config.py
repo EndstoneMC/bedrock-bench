@@ -74,7 +74,7 @@ _SINGULAR = {
 
 NAME_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 SERVER_RE = re.compile(r"^[a-z][a-z0-9_]*$")
-VERSION_RE = re.compile(r"^[0-9A-Za-z][0-9A-Za-z.+_-]*$")
+VERSION_RE = re.compile(r"^[0-9A-Za-z][0-9A-Za-z._-]*$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 METRIC_ID_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 PLATFORM_KEY_RE = re.compile(r"^[a-z0-9][a-z0-9_.-]*$")
@@ -210,14 +210,13 @@ def arm_from_ref(
     artifact: Path | None = None,
     bds: str | None = None,
     python: str | None = None,
-    arm_id: str | None = None,
 ) -> Arm:
-    """An arm for a command line ``server@version``, with the default id ``<server>-<version>[-<variant>]``."""
+    """An arm for a command line ``server@version``, with the id ``<server>@<version>[+<variant>]``."""
     server, version = parse_server_ref(ref)
     if variant is not None and not NAME_RE.match(variant):
         raise ConfigError(f"bad variant name {variant!r}")
     return Arm(
-        id=arm_id or _default_arm_id(server, version, variant),
+        id=_arm_id(server, version, variant),
         server=server,
         version=version,
         variant=variant,
@@ -237,8 +236,8 @@ def validate_order(order: str) -> str:
     raise ValueError(f"order must be rotate, sequential or seeded:<int>, got {order!r}")
 
 
-def _default_arm_id(server: str, version: str, variant: str | None) -> str:
-    return f"{server}-{version}" + (f"-{variant}" if variant else "")
+def _arm_id(server: str, version: str, variant: str | None) -> str:
+    return f"{server}@{version}" + (f"+{variant}" if variant else "")
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -750,17 +749,18 @@ def parse_matrix(data: Mapping[str, Any], *, file: Path | None = None) -> Matrix
 
 
 def _read_arm(table: _Table, base_dir: Path, matrix_scenarios: tuple[str, ...]) -> Arm:
-    server = table.get("server", str, pattern=SERVER_RE.pattern)
-    version = table.get("version", str, pattern=VERSION_RE.pattern)
+    try:
+        server, version = parse_server_ref(table.get("server", str))
+    except ConfigError as exc:
+        raise table.error("server", exc.message) from None
     variant = table.get("variant", str, None, pattern=NAME_RE.pattern)
-    arm_id = table.get("id", str, _default_arm_id(server, version, variant), pattern=NAME_RE.pattern)
     bds = table.get("bds", str, None, pattern=VERSION_RE.pattern)
     python = table.get("python", str, None, pattern=PYTHON_RE.pattern)
     artifact = table.get("artifact", str, None)
     scenarios = table.get("scenarios", tuple[str, ...], (), choices=matrix_scenarios)
     table.finish(_explain_arm_key)
     return Arm(
-        id=arm_id,
+        id=_arm_id(server, version, variant),
         server=server,
         version=version,
         variant=variant,
@@ -772,6 +772,8 @@ def _read_arm(table: _Table, base_dir: Path, matrix_scenarios: tuple[str, ...]) 
 
 
 def _explain_arm_key(key: str) -> str | None:
+    if key in ("id", "version"):
+        return 'write the arm as server = "<server>@<version>"; its id is that tag plus "+<variant>"'
     if key in _SCENARIO_KEYS:
         return "per-arm scenario and phase overrides are not allowed (rule R1); use a separate scenario file"
     return None

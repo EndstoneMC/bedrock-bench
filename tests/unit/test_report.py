@@ -28,7 +28,7 @@ from bedrock_bench.report.markdown import (
 )
 
 EXAMPLES = project_root() / "schemas" / "examples"
-MATRIX = "endstone-0.11.14"
+MATRIX = "endstone-0.11.14-csg"
 BASE_RUN = json.loads((EXAMPLES / "run.ok.json").read_text(encoding="utf-8"))
 EXERCISES = BASE_RUN["scenario"]["resolved"]["exercises"]
 CLAIMS = project_root() / "claims" / f"{MATRIX}.toml"
@@ -53,7 +53,7 @@ def write_run(
     repeat: int,
     metrics: dict[str, Any],
     *,
-    scenario: str = "spread100",
+    scenario: str = "spread100-csg",
     bds: str | None = None,
     status: str = "ok",
     reasons: Sequence[str] = (),
@@ -63,7 +63,7 @@ def write_run(
     flags: Sequence[str] = (),
     profile: str | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    server, _, version = arm.partition("-")
+    server, _, version = arm.partition("@")
     digest = hashlib.sha256(f"{arm}/{scenario}/{repeat}".encode()).hexdigest()
     run_id = f"20261012T1200{repeat:02d}Z-{arm}-{scenario}-r{repeat}-{digest[:4]}"
     run = copy.deepcopy(BASE_RUN)
@@ -80,7 +80,7 @@ def write_run(
     run["server"]["banner_version"] = version
     resolved = run["scenario"]["resolved"]
     resolved["name"] = scenario
-    resolved["server"]["csg"] = scenario == "spread100"
+    resolved["server"]["csg"] = scenario == "spread100-csg"
     run["scenario"].update(name=scenario, sha256=hashlib.sha256(scenario.encode()).hexdigest())
     run["parity"].update(row=dict(row or dict.fromkeys(EXERCISES, "vanilla")), fidelity=fidelity)
     if profile:
@@ -115,14 +115,14 @@ def headline(tps: float, tick: float, cores: float, private: float, t90: float, 
 
 
 def endstone_matrix(matrix_dir: Path) -> list[tuple[dict[str, Any], dict[str, Any]]]:
-    """BDS 1.26.52.3 and two Endstone builds hosting it, three repeats each, spread100."""
+    """BDS 1.26.52.3 and two Endstone builds hosting it, three repeats each, spread100-csg."""
     docs = []
     for k, (bds, e13, e14) in enumerate(((9.4, 11.0, 20.0), (9.5, 9.0, 19.9), (9.3, 10.2, 19.95)), start=1):
         recovery = metric(400.0 + k, "s", "load", censored=True)
         docs.append(
             write_run(
                 matrix_dir,
-                "bds-1.26.52.3",
+                "bds@1.26.52.3",
                 k,
                 headline(bds, 105.0 + k, 1.07, 4198.4, 192.0, recovery_s=recovery),
             )
@@ -130,7 +130,7 @@ def endstone_matrix(matrix_dir: Path) -> list[tuple[dict[str, Any], dict[str, An
         docs.append(
             write_run(
                 matrix_dir,
-                "endstone-0.11.13",
+                "endstone@0.11.13",
                 k,
                 headline(e13, 89.0 + k, 1.81, 5017.6, 189.0),
                 bds="1.26.52.3",
@@ -141,7 +141,7 @@ def endstone_matrix(matrix_dir: Path) -> list[tuple[dict[str, Any], dict[str, An
         docs.append(
             write_run(
                 matrix_dir,
-                "endstone-0.11.14",
+                "endstone@0.11.14",
                 k,
                 headline(e14, 42.0 + k * 0.5, 1.04, 5017.6, 81.0, recovery_s=metric(30.0 + k, "s", "load")),
                 bds="1.26.52.3",
@@ -152,7 +152,7 @@ def endstone_matrix(matrix_dir: Path) -> list[tuple[dict[str, Any], dict[str, An
 
 
 def cross_server_scenario(matrix_dir: Path) -> list[tuple[dict[str, Any], dict[str, Any]]]:
-    """spread100-equal: vanilla BDS and a server that does less, with one failed run and a rescue override."""
+    """spread100-pregen: vanilla BDS and a server that does less, with one failed run and a rescue override."""
     docs = []
     reduced = dict.fromkeys(EXERCISES, "vanilla") | {
         "terrain.vanilla_generator": "absent",
@@ -169,17 +169,17 @@ def cross_server_scenario(matrix_dir: Path) -> list[tuple[dict[str, Any], dict[s
     for k in (1, 2, 3):
         docs.append(
             write_run(
-                matrix_dir, "bds-1.26.52.3", k, headline(9.0, 110.0, 1.1, 4300.0, 300.0), scenario="spread100-equal"
+                matrix_dir, "bds@1.26.52.3", k, headline(9.0, 110.0, 1.1, 4300.0, 300.0), scenario="spread100-pregen"
             )
         )
         failed = k == 3
         docs.append(
             write_run(
                 matrix_dir,
-                "pocketmine-5.44.3",
+                "pocketmine@5.44.3",
                 k,
                 {} if failed else headline(4.6, 0.0, 1.07, 6348.8, 400.0, tick_cpu_ms_per_tick_steady=no_tick),
-                scenario="spread100-equal",
+                scenario="spread100-pregen",
                 status="server_failed" if failed else "ok",
                 reasons=["server_alive: exited with code 255"] if failed else (),
                 row=reduced,
@@ -239,12 +239,12 @@ class TestRender:
     def test_sections(self, markdown: str) -> None:
         assert markdown.startswith(f"# Matrix `{MATRIX}`\n")
         assert "15 runs: 14 ok, 1 server_failed, 0 invalid." in markdown
-        spread, equal = markdown.split("## Scenario `spread100`")[1].split("## Scenario `spread100-equal`")
+        spread, equal = markdown.split("## Scenario `spread100-csg`")[1].split("## Scenario `spread100-pregen`")
         assert "### Full vanilla fidelity" in spread and "### Reduced fidelity" not in spread
         assert "### Full vanilla fidelity" in equal and "### Reduced fidelity" in equal
         reduced = equal.split("### Reduced fidelity")[1]
         assert (
-            "- `pocketmine-5.44.3`: `terrain.vanilla_generator` (absent), "
+            "- `pocketmine@5.44.3`: `terrain.vanilla_generator` (absent), "
             "`player.server_authoritative_movement` (absent), `player.physics` (absent)"
         ) in reduced
         assert "Warning:** this table compares different servers" not in markdown
@@ -270,14 +270,14 @@ class TestRender:
 
     def test_difference_rule(self, markdown: str) -> None:
         differences = markdown.split("#### Differences from the hosted vanilla build")[1].split("\n## ")[0]
-        header = table_row(differences, " | `endstone-0.11.13` vs")
-        assert header[1:] == ["`endstone-0.11.13` vs `bds-1.26.52.3`", "`endstone-0.11.14` vs `bds-1.26.52.3`"]
+        header = table_row(differences, " | `endstone@0.11.13` vs")
+        assert header[1:] == ["`endstone@0.11.13` vs `bds@1.26.52.3`", "`endstone@0.11.14` vs `bds@1.26.52.3`"]
         assert table_row(differences, "Steady TPS")[1:] == ["~, 1.09x [0.95, 1.18]", "better, 2.12x [2.09, 2.15]"]
         assert table_row(differences, "Tick-thread CPU per tick")[2] == "better, 0.40x [0.39, 0.41]"
         assert table_row(differences, "TPS recovery after the join")[1:] == ["-", "better"]
 
     def test_failed_runs_and_not_applicable(self, markdown: str) -> None:
-        equal = markdown.split("## Scenario `spread100-equal`")[1]
+        equal = markdown.split("## Scenario `spread100-pregen`")[1]
         full, reduced = equal.split("### Reduced fidelity")
         assert table_row(full, "Runs ok")[1] == "3/3"
         assert re.fullmatch(r"2/3\[\^\d+\]", table_row(reduced, "Runs ok")[1])
@@ -287,7 +287,8 @@ class TestRender:
 
     def test_not_applicable_next_to_measured(self, matrix_dir: Path) -> None:
         summary, _, _ = build(matrix_dir, features=None)
-        cell = next(c for c in summary["scenarios"][0]["cells"] if c["arm"]["id"] == "endstone-0.11.13")
+        scenario = next(s for s in summary["scenarios"] if s["name"] == "spread100-csg")
+        cell = next(c for c in scenario["cells"] if c["arm"]["id"] == "endstone@0.11.13")
         cell["metrics"]["tick_cpu_ms_per_tick_steady"] = {
             "unit": "ms",
             "window": "steady",
@@ -316,8 +317,8 @@ class TestRender:
 
     def test_claims(self, markdown: str) -> None:
         claims = markdown.split("## Claims")[1]
-        assert "From `endstone-0.11.14.toml`: 3 pass, 0 fail, 0 inconclusive, 0 error." in claims
-        assert table_row(claims, "Endstone 0.11.14 holds 20 TPS")[1] == "pass"
+        assert "From `endstone-0.11.14-csg.toml`: 3 pass, 0 fail, 0 inconclusive, 0 error." in claims
+        assert table_row(claims, "endstone@0.11.14 holds 20 TPS")[1] == "pass"
 
     def test_ascii(self, markdown: str) -> None:
         markdown.encode("ascii")
@@ -380,9 +381,9 @@ class TestWrite:
 
     def test_publish_refusal(self, matrix_dir: Path) -> None:
         report = write(matrix_dir, publish=True, features=None)
-        assert report.problems == ("spread100-equal / pocketmine-5.44.3: 2 ok runs, publication needs at least 3",)
+        assert report.problems == ("spread100-pregen / pocketmine@5.44.3: 2 ok runs, publication needs at least 3",)
         assert report.exit_code == 2
-        assert "## Publication check\n\nRefused:\n- spread100-equal / pocketmine-5.44.3" in report.markdown
+        assert "## Publication check\n\nRefused:\n- spread100-pregen / pocketmine@5.44.3" in report.markdown
 
     def test_publish_pass(self, clean_dir: Path) -> None:
         report = write(clean_dir, publish=True, features=None)
@@ -404,11 +405,11 @@ class TestCli:
 
     def test_publish_refused(self, matrix_dir: Path, capsys: pytest.CaptureFixture[str]) -> None:
         assert cli.main(["report", str(matrix_dir), "--publish"]) == 2
-        assert "not publishable: spread100-equal / pocketmine-5.44.3" in capsys.readouterr().err
+        assert "not publishable: spread100-pregen / pocketmine@5.44.3" in capsys.readouterr().err
 
     def test_mixed_machine_profiles(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-        write_run(tmp_path, "bds-1.26.52.3", 1, headline(9.4, 105, 1.0, 4000, 190))
-        write_run(tmp_path, "bds-1.26.52.3", 2, headline(9.4, 105, 1.0, 4000, 190), profile="0" * 64)
+        write_run(tmp_path, "bds@1.26.52.3", 1, headline(9.4, 105, 1.0, 4000, 190))
+        write_run(tmp_path, "bds@1.26.52.3", 2, headline(9.4, 105, 1.0, 4000, 190), profile="0" * 64)
         assert cli.main(["report", str(tmp_path)]) == 2
         assert "different machine profiles" in capsys.readouterr().err
         assert not (tmp_path / SUMMARY_FILE).exists()

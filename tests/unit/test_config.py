@@ -244,14 +244,10 @@ MATRIX = toml(
     priority_override = "above_normal"
 
     [[arm]]
-    id = "bds-1.26.52.3"
-    server = "bds"
-    version = "1.26.52.3"
+    server = "bds@1.26.52.3"
 
     [[arm]]
-    id = "endstone-0.11.14"
-    server = "endstone"
-    version = "0.11.14"
+    server = "endstone@0.11.14"
     bds = "1.26.52.3"
     python = "3.13"
     """
@@ -265,8 +261,8 @@ class TestMatrix:
         assert m.name == "endstone-0.11.14" and m.scenarios == ("spread100",)
         assert (m.repeats, m.order, m.cooldown_s, m.rerun_invalid) == (3, "rotate", 60, 1)
         assert m.priority_override == "above_normal"
-        assert [a.id for a in m.arms] == ["bds-1.26.52.3", "endstone-0.11.14"]
-        endstone = m.arm("endstone-0.11.14")
+        assert [a.id for a in m.arms] == ["bds@1.26.52.3", "endstone@0.11.14"]
+        endstone = m.arm("endstone@0.11.14")
         assert (endstone.server, endstone.version, endstone.bds, endstone.python) == (
             "endstone",
             "0.11.14",
@@ -290,17 +286,17 @@ class TestMatrix:
         m = config.parse_matrix(
             {
                 "matrix": {"name": "x", "scenarios": ["smoke"]},
-                "arm": [{"server": "endstone", "version": "0.11.14", "variant": "glibc-alloc"}],
+                "arm": [{"server": "endstone@0.11.14", "variant": "glibc-alloc"}],
             }
         )
         assert m.repeats == 1 and m.order == "rotate" and m.priority_override is None
-        assert m.arms[0].id == "endstone-0.11.14-glibc-alloc"
+        assert m.arms[0].id == "endstone@0.11.14+glibc-alloc"
 
     @pytest.mark.parametrize("key", ["phases", "steady", "settle", "bots", "world"])
     def test_rule_r1_per_arm_overrides(self, key: str) -> None:
         data = {
             "matrix": {"name": "x", "scenarios": ["s"]},
-            "arm": [{"server": "bds", "version": "1.26.52.3", key: {"duration_s": 1}}],
+            "arm": [{"server": "bds@1.26.52.3", key: {"duration_s": 1}}],
         }
         with pytest.raises(ConfigError, match=r"rule R1"):
             config.parse_matrix(data)
@@ -308,12 +304,14 @@ class TestMatrix:
     @pytest.mark.parametrize(
         ("arm", "message"),
         [
-            ({"server": "bds", "version": 1.26}, r"version: expected a string, got a float \(quote version numbers\)"),
-            ({"server": "bds"}, r"arm\[0\]\.version: is required"),
-            ({"server": "BDS", "version": "1"}, r"arm\[0\]\.server: invalid value"),
-            ({"server": "bds", "version": "1", "colour": "red"}, r"colour: unknown key"),
-            ({"server": "bds", "version": "1", "python": "3"}, r"python: invalid value"),
-            ({"server": "bds", "version": "1", "scenarios": ["other"]}, r"scenarios: must be one of s"),
+            ({"server": "bds@1", "version": "1"}, r"arm\[0\]\.version: write the arm as server"),
+            ({"server": "bds@1", "id": "vanilla"}, r"arm\[0\]\.id: write the arm as server"),
+            ({"server": "bds"}, r"arm\[0\]\.server: expected <server>@<version>"),
+            ({"server": "BDS@1"}, r"arm\[0\]\.server: expected <server>@<version>"),
+            ({"server": "bds@1+x"}, r"arm\[0\]\.server: expected <server>@<version>"),
+            ({"server": "bds@1", "colour": "red"}, r"colour: unknown key"),
+            ({"server": "bds@1", "python": "3"}, r"python: invalid value"),
+            ({"server": "bds@1", "scenarios": ["other"]}, r"scenarios: must be one of s"),
         ],
     )
     def test_bad_arms(self, arm: dict, message: str) -> None:
@@ -321,8 +319,8 @@ class TestMatrix:
             config.parse_matrix({"matrix": {"name": "x", "scenarios": ["s"]}, "arm": [arm]})
 
     def test_duplicate_arm(self) -> None:
-        arm = {"server": "bds", "version": "1"}
-        with pytest.raises(ConfigError, match="duplicate arm id 'bds-1'"):
+        arm = {"server": "bds@1"}
+        with pytest.raises(ConfigError, match="duplicate arm id 'bds@1'"):
             config.parse_matrix({"matrix": {"name": "x", "scenarios": ["s"]}, "arm": [arm, arm]})
 
     @pytest.mark.parametrize(
@@ -338,7 +336,7 @@ class TestMatrix:
     )
     def test_bad_head(self, head: dict, message: str) -> None:
         with pytest.raises(ConfigError, match=message):
-            config.parse_matrix({"matrix": head, "arm": [{"server": "bds", "version": "1"}]})
+            config.parse_matrix({"matrix": head, "arm": [{"server": "bds@1"}]})
 
     def test_needs_arms(self) -> None:
         with pytest.raises(ConfigError, match=r"\[\[arm\]\]"):
@@ -350,11 +348,10 @@ class TestMatrix:
             toml(
                 """
                 [matrix]
-                scenarios = ["spread100-equal", "spread100-pregen"]
+                scenarios = ["spread100", "spread100-pregen"]
 
                 [[arm]]
-                server = "nukkit"
-                version = "1.0"
+                server = "nukkit@1.0"
                 scenarios = ["spread100-pregen"]
                 artifact = "../local/nukkit.jar"
                 """
@@ -469,16 +466,15 @@ def test_parse_cpu_list_rejects(spec: str) -> None:
 
 def test_parse_server_ref() -> None:
     assert config.parse_server_ref("bds@1.26.52.3") == ("bds", "1.26.52.3")
-    for bad in ("bds", "bds@", "@1.0", "BDS@1", "bds@1@2"):
+    for bad in ("bds", "bds@", "@1.0", "BDS@1", "bds@1@2", "bds@1+x"):
         with pytest.raises(ConfigError):
             config.parse_server_ref(bad)
 
 
 def test_arm_from_ref() -> None:
     arm = config.arm_from_ref("endstone@0.11.14", variant="glibc-alloc", artifact=Path("x.whl"))
-    assert arm.id == "endstone-0.11.14-glibc-alloc" and arm.artifact == Path("x.whl")
-    assert config.arm_from_ref("bds@1.26.52.3").id == "bds-1.26.52.3"
-    assert config.arm_from_ref("bds@1.26.52.3", arm_id="vanilla").id == "vanilla"
+    assert arm.id == "endstone@0.11.14+glibc-alloc" and arm.artifact == Path("x.whl")
+    assert config.arm_from_ref("bds@1.26.52.3").id == "bds@1.26.52.3"
     with pytest.raises(ConfigError):
         config.arm_from_ref("bds@1", variant="Bad Variant")
 

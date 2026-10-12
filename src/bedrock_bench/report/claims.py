@@ -3,7 +3,7 @@
 
 A claim turns a published statement into an expression over the summary, for example::
 
-    median('endstone-0.11.14', 'tps_window_steady') / median('bds-1.26.52.3', 'tps_window_steady') >= 1.8
+    median('endstone@0.11.14', 'tps_window_steady') / median('bds@1.26.52.3', 'tps_window_steady') >= 1.8
 
 Expressions are parsed with :mod:`ast` and interpreted node by node; nothing reaches ``eval``. Allowed:
 

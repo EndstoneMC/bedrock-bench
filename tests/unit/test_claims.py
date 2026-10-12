@@ -14,8 +14,8 @@ from bedrock_bench.model import Claim, ClaimSet
 from bedrock_bench.report.aggregate import make_record, summarize
 from bedrock_bench.report.claims import check_claims, evaluate, evaluate_claim, parse_expression
 
-E14 = "endstone-0.11.14"
-BDS = "bds-1.26.52.3"
+E14 = "endstone@0.11.14"
+BDS = "bds@1.26.52.3"
 
 
 def _entry(value: Any) -> dict[str, Any]:
@@ -26,12 +26,12 @@ def _entry(value: Any) -> dict[str, Any]:
     return {"unit": "x", "availability": "measured", "value": value}
 
 
-def _record(arm: str, repeat: int, metrics: dict[str, Any], *, scenario: str = "spread100", label: str = "reference"):
+def _record(arm: str, repeat: int, metrics: dict[str, Any], *, scenario: str, matrix: str, label: str):
     run = {
         "run_id": f"20261012T120000Z-{arm}-{scenario}-r{repeat}-000{repeat}",
         "status": "ok",
-        "matrix": {"name": "endstone-0.11.14", "repeat": repeat},
-        "arm": {"id": arm, "server": arm.split("-")[0], "version": arm.split("-", 1)[1]},
+        "matrix": {"name": matrix, "repeat": repeat},
+        "arm": {"id": arm, "server": arm.split("@")[0], "version": arm.split("@", 1)[1]},
         "scenario": {"name": scenario, "sha256": "b" * 64},
         "machine": {"fingerprint_id": "m", "profile_sha256": "a" * 64, "label": label},
     }
@@ -39,7 +39,13 @@ def _record(arm: str, repeat: int, metrics: dict[str, Any], *, scenario: str = "
     return make_record(run, doc)
 
 
-def summary(*, label: str = "reference", bds_tps: tuple[float, ...] = (9.4, 9.5, 9.3)) -> dict[str, Any]:
+def summary(
+    *,
+    label: str = "reference",
+    bds_tps: tuple[float, ...] = (9.4, 9.5, 9.3),
+    matrix: str = "endstone-0.11.14",
+    scenario: str = "spread100",
+) -> dict[str, Any]:
     runs = []
     for k, (e14_tps, tick, bds) in enumerate(zip((20.0, 19.9, 19.95), (43.1, 42.5, 42.9), bds_tps, strict=True)):
         runs.append(
@@ -53,6 +59,8 @@ def summary(*, label: str = "reference", bds_tps: tuple[float, ...] = (9.4, 9.5,
                     "recovery_s": 30.0 + k,
                     "private_mib_steady": {"availability": "unavailable", "reason": "sampler died"},
                 },
+                scenario=scenario,
+                matrix=matrix,
                 label=label,
             )
         )
@@ -61,6 +69,8 @@ def summary(*, label: str = "reference", bds_tps: tuple[float, ...] = (9.4, 9.5,
                 BDS,
                 k + 1,
                 {"tps_window_steady": bds, "tick_cpu_ms_per_tick_steady": 105.0, "recovery_s": (400.0 + k, True)},
+                scenario=scenario,
+                matrix=matrix,
                 label=label,
             )
         )
@@ -169,7 +179,7 @@ class TestEvaluateClaim:
         [
             ("median('nobody', 'tps_window_steady') > 1", "no runs of arm 'nobody'"),
             (f"median('{E14}', 'unknown_metric_s') > 1", "unknown_metric_s is not recorded"),
-            (f"median('{E14}', 'private_mib_steady') > 1", "not measured for endstone-0.11.14 (sampler died)"),
+            (f"median('{E14}', 'private_mib_steady') > 1", "not measured for endstone@0.11.14 (sampler died)"),
             (f"median('{BDS}', 'recovery_s') > 1", "is censored (>401)"),
             (f"1 / (n_ok('{E14}') - 3) > 0", "division by zero"),
         ],
@@ -198,7 +208,7 @@ class TestEvaluateClaim:
         s["scenarios"].append({**s["scenarios"][0], "name": "chaos"})
         assert evaluate_claim(claim("1 < 2"), s)["verdict"] == "error"
         assert evaluate_claim(claim("1 < 2", scenario="chaos"), s)["verdict"] == "pass"
-        missing = evaluate_claim(claim("1 < 2", scenario="spread100-equal"), s)
+        missing = evaluate_claim(claim("1 < 2", scenario="spread100-pregen"), s)
         assert missing["verdict"] == "inconclusive" and "no runs in this matrix directory" in missing["reason"]
 
 
@@ -243,12 +253,13 @@ def test_shipped_claims_are_valid(path: Path, schema_validator: Any) -> None:
 
 
 def test_endstone_claims_against_a_synthetic_matrix() -> None:
-    claims = config.load_claims("endstone-0.11.14")
-    verdicts = {r["id"]: r["verdict"] for r in evaluate(claims, summary())["results"]}
+    claims = config.load_claims("endstone-0.11.14-csg")
+    where = {"matrix": "endstone-0.11.14-csg", "scenario": "spread100-csg"}
+    verdicts = {r["id"]: r["verdict"] for r in evaluate(claims, summary(**where))["results"]}
     assert verdicts == {
         "endstone-0.11.14-steady-tps": "pass",
         "endstone-0.11.14-vs-vanilla-tps": "pass",
         "endstone-0.11.14-tick-cpu": "pass",
     }
-    elsewhere = {r["id"]: r["verdict"] for r in evaluate(claims, summary(label="laptop"))["results"]}
+    elsewhere = {r["id"]: r["verdict"] for r in evaluate(claims, summary(label="laptop", **where))["results"]}
     assert elsewhere["endstone-0.11.14-tick-cpu"] == "inconclusive"

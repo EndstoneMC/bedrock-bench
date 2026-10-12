@@ -8,7 +8,7 @@ import pytest
 from bedrock_bench.model import Flag, OverrideCategory
 from bedrock_bench.report.footnotes import Footnotes, availability_text, flag_text, override_text, status_text
 
-ARM = {"id": "endstone-0.11.13", "server": "endstone", "version": "0.11.13", "bds": "1.26.52.3"}
+ARM = {"id": "endstone@0.11.13", "server": "endstone", "version": "0.11.13", "bds": "1.26.52.3"}
 
 
 class TestFootnotes:

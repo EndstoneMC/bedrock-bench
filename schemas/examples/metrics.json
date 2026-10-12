@@ -2,7 +2,7 @@
   "schema": "bedrock-bench/metrics/1",
   "schema_minor": 0,
   "analysis_version": 1,
-  "run_id": "20261012T135800Z-endstone-0.11.14-spread100-r1-3fa2",
+  "run_id": "20261012T135800Z-endstone@0.11.14-spread100-r1-3fa2",
   "status": "ok",
   "status_reasons": [],
   "flags": [],

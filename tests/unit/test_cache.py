@@ -55,7 +55,7 @@ class TestPaths:
         assert install.parent == tmp_path / "i" and len(install.name) == 12
         assert c.venv_dir("endstone-0.11.14-cp313") == tmp_path / "venv" / "endstone-0.11.14-cp313"
         assert c.template_dir("nukkit", "1.0", "spread100-pregen").parent == tmp_path / "tpl"
-        work = c.work_dir("20261012T135800Z-endstone-0.11.14-spread100-r1-3fa2")
+        work = c.work_dir("20261012T135800Z-endstone@0.11.14-spread100-r1-3fa2")
         assert work.parent == tmp_path / "w" and len(work.name) == 10
         assert not tmp_path.joinpath("dl").exists(), "paths must not create anything"
 

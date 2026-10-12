@@ -2,7 +2,7 @@
   "schema": "bedrock-bench/run/1",
   "analysis_version": 1,
   "partial": true,
-  "run_id": "20261012T135800Z-endstone-0.11.14-spread100-r1-3fa2",
+  "run_id": "20261012T135800Z-endstone@0.11.14-spread100-r1-3fa2",
   "status": null,
   "harness": {
     "version": "0.1.0",
@@ -18,7 +18,7 @@
     "order": "rotate"
   },
   "arm": {
-    "id": "endstone-0.11.14",
+    "id": "endstone@0.11.14",
     "server": "endstone",
     "version": "0.11.14",
     "variant": null,
