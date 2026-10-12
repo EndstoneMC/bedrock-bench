@@ -15,7 +15,7 @@ version = "1.26.52.3"
 [artifacts]
 source = "mojang"
 
-# Vanilla baseline of the endstone@0.11.14 comparison; endstone@0.11.13 and endstone@0.11.14 host this build.
+# Vanilla baseline for endstone@0.11.14, which hosts this build.
 [artifacts.version."1.26.52.3"]
 protocol = 2193
 

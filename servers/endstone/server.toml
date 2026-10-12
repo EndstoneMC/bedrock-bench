@@ -21,56 +21,6 @@ python = "3.13"
 [artifacts]
 source = "pypi"
 
-[artifacts.version."0.11.13"]
-bds = "1.26.52.3"
-protocol = 2193
-python = "3.13"
-version_marker = "26.52"
-known_issues = [
-    { platforms = ["windows"], text = "The hidden DevTools window keeps a CPU core busy (fixed in 0.11.14).", source = "https://github.com/EndstoneMC/endstone/blob/v0.11.14/CHANGELOG.md" },
-    { platforms = ["windows", "linux"], text = "The scheduler's idle threads use CPU (fixed in 0.11.14).", source = "https://github.com/EndstoneMC/endstone/blob/v0.11.14/CHANGELOG.md" },
-]
-
-[artifacts.version."0.11.13".linux-cp311]
-url = "https://files.pythonhosted.org/packages/44/33/6d28b52739aee11c373a7c473655a5ec3e7fe133acce29c3fc9190fa556e/endstone-0.11.13-cp311-cp311-manylinux_2_31_x86_64.whl"
-sha256 = "6dc2eca2dbd62f0048702aa2038fdfd62b0a2b98498a8faacf562e0222515eb2"
-size = 46310109
-
-[artifacts.version."0.11.13".windows-cp311]
-url = "https://files.pythonhosted.org/packages/5e/be/b638cf27cccc6984d8040e350f803cc457e2d6115d7fc0693c488cf49a79/endstone-0.11.13-cp311-cp311-win_amd64.whl"
-sha256 = "1d9e579ef7c290b2269d039d8242921baaefa1fa355df6be0701018145a52240"
-size = 20418489
-
-[artifacts.version."0.11.13".linux-cp312]
-url = "https://files.pythonhosted.org/packages/ea/3c/301e05d99cf46ed98f821182b2c25504b9c942ba1c0e7df73f18e8b54dd6/endstone-0.11.13-cp312-cp312-manylinux_2_31_x86_64.whl"
-sha256 = "2fde44cbbaab5b43c506e74f954ca166f155cf929b155f9ccb199a8e5447b95e"
-size = 46644008
-
-[artifacts.version."0.11.13".windows-cp312]
-url = "https://files.pythonhosted.org/packages/4f/85/cb70cab3f01757f8841dbf9905263399ac549169e84dccfcce4496279a2a/endstone-0.11.13-cp312-cp312-win_amd64.whl"
-sha256 = "c21b189aa039bb1a99ecd0a7c5849e3a4873648107ab70ce93423352fdc7f8eb"
-size = 20256722
-
-[artifacts.version."0.11.13".linux-cp313]
-url = "https://files.pythonhosted.org/packages/3e/74/aaa43a1ba57c7e88824b7097f7ed4bf27d44cc3fc5fb3b70245cc0427f87/endstone-0.11.13-cp313-cp313-manylinux_2_31_x86_64.whl"
-sha256 = "7195f28e3d4bc56740e86c734440eda947d2d6493dcb96c044c6db0893cab1b6"
-size = 46646873
-
-[artifacts.version."0.11.13".windows-cp313]
-url = "https://files.pythonhosted.org/packages/54/7b/3302aec80cd0d4b725abb6e724d75dcc1c2a6b37893ba924d465e8988557/endstone-0.11.13-cp313-cp313-win_amd64.whl"
-sha256 = "e6c4bd31dba1dd214fc51b5861d70cc8ce24539cf6d19c6ca64cb36c11646574"
-size = 20255462
-
-[artifacts.version."0.11.13".linux-cp314]
-url = "https://files.pythonhosted.org/packages/c7/89/e7f70db4520ff3a8a20c1f2153110f00a0133e0552f2622ef327657007fc/endstone-0.11.13-cp314-cp314-manylinux_2_31_x86_64.whl"
-sha256 = "e7eeb507a6234190e65390e53d0d4d62018a889491770521fd341ffb9a863362"
-size = 46611148
-
-[artifacts.version."0.11.13".windows-cp314]
-url = "https://files.pythonhosted.org/packages/e8/2d/71046925d3287a3e5e0d885023f0cbbcc9d08bb14b90437c7a45cef6c177/endstone-0.11.13-cp314-cp314-win_amd64.whl"
-sha256 = "fcf7519850962e82e367504f7cd110690e589ba31ae9ce9b2100f0c964e37606"
-size = 20474235
-
 [artifacts.version."0.11.14"]
 bds = "1.26.52.3"
 protocol = 2193
