@@ -133,7 +133,7 @@ def _configure_analyze(p: argparse.ArgumentParser) -> None:
 
 
 def _configure_report(p: argparse.ArgumentParser) -> None:
-    p.add_argument("dir", type=Path, metavar="DIR", help="a session directory, or a folder of them")
+    p.add_argument("dir", type=Path, metavar="DIR", help="a session directory, runs/<session>")
     p.add_argument("--format", choices=("md", "json"), default="md")
     p.add_argument(
         "--publish",
