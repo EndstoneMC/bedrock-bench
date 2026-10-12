@@ -424,10 +424,11 @@ server's own output and are not scrubbed, so check them before sharing.
 
 **Schemas.** [`bedrock_bench/schemas/`](../bedrock_bench/schemas/) holds JSON Schema (draft 2020-12) for `run.json`
 and `run.partial.json` (`bedrock-bench/run/1`), `metrics.json` (`bedrock-bench/metrics/1`) and each line of the bot's
-output (`v = 1`). `bbench validate <path>...` checks run directories and files against them, checks raw files against
-the hashes in `run.json`, and checks a claims file through its loader. `summary.json`, the CSVs, the chaos journals and
-the TOML inputs have no schema. `bedrock_bench/config.py` validates the inputs when it loads them. How a schema or the
-analysis version changes is in [CONTRIBUTING.md](../.github/CONTRIBUTING.md#versioning).
+output (`v = 1`). `run.schema.json` describes each section of `run.json`. `bbench validate <path>...` checks run
+directories and files against them, checks raw files against the hashes in `run.json`, and checks a claims file through
+its loader. `summary.json`, the CSVs, the chaos journals and the TOML inputs have no schema. `bedrock_bench/config.py`
+validates the inputs when it loads them. How a schema or the analysis version changes is in
+[CONTRIBUTING.md](../.github/CONTRIBUTING.md#versioning).
 
 ## Publishing and claims
 

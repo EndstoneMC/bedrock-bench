@@ -8,8 +8,8 @@
   "required": ["schema", "analysis_version", "run_id", "status", "harness", "arm", "scenario", "time"],
   "properties": {
     "schema": { "const": "bedrock-bench/run/1" },
-    "schema_minor": { "$ref": "#/$defs/count" },
-    "analysis_version": { "type": "integer", "minimum": 1 },
+    "schema_minor": { "description": "count of additive changes within the major schema version", "$ref": "#/$defs/count" },
+    "analysis_version": { "description": "version of the metric formulas; runs analysed with different versions are never compared", "type": "integer", "minimum": 1 },
     "partial": { "type": "boolean", "description": "true only in run.partial.json" },
     "run_id": {
       "type": "string",
@@ -20,12 +20,13 @@
       "description": "null only while partial",
       "oneOf": [{ "$ref": "#/$defs/status" }, { "type": "null" }]
     },
-    "status_reasons": { "$ref": "#/$defs/strings" },
-    "flags": { "type": "array", "items": { "$ref": "#/$defs/flag" } },
-    "exit_code": { "enum": [0, 2, 3, 4, 5, 130] },
-    "official": { "type": "boolean" },
-    "nonstandard": { "type": "array", "items": { "$ref": "#/$defs/flag" } },
+    "status_reasons": { "description": "the gates that set the status", "$ref": "#/$defs/strings" },
+    "flags": { "description": "shown next to the numbers; never change the status", "type": "array", "items": { "$ref": "#/$defs/flag" } },
+    "exit_code": { "description": "derived from the status, so a run in which the server died never exits 0", "enum": [0, 2, 3, 4, 5, 130] },
+    "official": { "description": "true when the run used a pinned release, the harness bot and a clean checkout", "type": "boolean" },
+    "nonstandard": { "description": "what made the run not official: unpublished_artifact, bot_override or dirty_harness", "type": "array", "items": { "$ref": "#/$defs/flag" } },
     "harness": {
+      "description": "harness version, git describe, dirty checkout, Python version and backend",
       "type": "object",
       "additionalProperties": false,
       "required": ["version", "python", "backend"],
@@ -38,6 +39,7 @@
       }
     },
     "matrix": {
+      "description": "matrix name, repeat, position in the run order and order mode",
       "type": "object",
       "additionalProperties": false,
       "required": ["name", "repeat"],
@@ -49,6 +51,7 @@
       }
     },
     "arm": {
+      "description": "arm id, server, version, variant, hosted BDS version, Python version and local artifact",
       "type": "object",
       "additionalProperties": false,
       "required": ["id", "server", "version"],
@@ -63,6 +66,7 @@
       }
     },
     "artifacts": {
+      "description": "every downloaded file with its url, sha256, size and source",
       "type": "array",
       "items": {
         "type": "object",
@@ -78,6 +82,7 @@
       }
     },
     "install": {
+      "description": "hash of the installed tree; for BDS-hosted servers the executable's sha256 before and after the run",
       "type": "object",
       "additionalProperties": false,
       "required": ["tree_sha256"],
@@ -88,6 +93,7 @@
       }
     },
     "server": {
+      "description": "pid, launcher pids, banner version and facts such as the allocator, JVM heap, idle thread census and effective client-side generation",
       "type": "object",
       "additionalProperties": false,
       "required": ["pid"],
@@ -108,6 +114,7 @@
       }
     },
     "overrides": {
+      "description": "every config change from the server's defaults, with its category and reason (rule R6)",
       "type": "array",
       "items": {
         "type": "object",
@@ -124,6 +131,7 @@
       }
     },
     "config_files": {
+      "description": "sha256 of each config as written and as found after shutdown",
       "type": "array",
       "items": {
         "type": "object",
@@ -137,6 +145,7 @@
       }
     },
     "parity": {
+      "description": "hash of the [features] table, the matching version range, the class of each exercised feature, fidelity and what the arm does less than vanilla",
       "type": "object",
       "additionalProperties": false,
       "required": ["row"],
@@ -153,6 +162,7 @@
       }
     },
     "bot": {
+      "description": "bot module, protocol, binary sha256, build, Go and gophertunnel versions, patches and argv",
       "type": "object",
       "additionalProperties": false,
       "required": ["module", "protocol", "argv"],
@@ -169,6 +179,7 @@
       }
     },
     "scenario": {
+      "description": "scenario name, sha256 and fully resolved content",
       "type": "object",
       "additionalProperties": false,
       "required": ["name", "sha256"],
@@ -179,6 +190,7 @@
       }
     },
     "machine": {
+      "description": "fingerprint id, label, OS, CPU and core classes, RAM, virtualisation, power setting, profile hash and gates",
       "type": "object",
       "additionalProperties": false,
       "required": ["fingerprint_id", "os", "cpu", "logical", "profile_sha256"],
@@ -217,6 +229,7 @@
       }
     },
     "placement": {
+      "description": "server, bot and harness CPUs, priority, physical or vcpu, method and whether it was verified",
       "type": "object",
       "additionalProperties": false,
       "required": ["server_cpus", "bot_cpus", "harness_cpus", "priority", "kind"],
@@ -231,6 +244,7 @@
       }
     },
     "time": {
+      "description": "monotonic and epoch origin pair, end pair and clock drift",
       "type": "object",
       "additionalProperties": false,
       "required": ["origin_mono_ns", "origin_epoch_ms"],
@@ -243,6 +257,7 @@
       }
     },
     "world": {
+      "description": "fresh or template, generator and template hash",
       "type": "object",
       "additionalProperties": false,
       "required": ["fresh"],
@@ -259,6 +274,7 @@
       "additionalProperties": { "type": ["number", "null"] }
     },
     "settle": {
+      "description": "settle duration, whether it hit the cap and whether views were incomplete",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -268,6 +284,7 @@
       }
     },
     "interventions": {
+      "description": "nudges and re-teleports with the bots they hit, and any inside a measured window",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -279,6 +296,7 @@
       }
     },
     "spread": {
+      "description": "position source, players, cells occupied, most players in one cell and worst offset",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -290,6 +308,7 @@
       }
     },
     "health": {
+      "description": "server death and exit code, crash files, joined, failed and dropped bots, decode errors",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -303,6 +322,7 @@
       }
     },
     "interference": {
+      "description": "foreign load before the run and in each window: mean, 10 s peak, load on the server's CPUs, harness cores and the busiest foreign processes",
       "type": "object",
       "additionalProperties": false,
       "properties": {
