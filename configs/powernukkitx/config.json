@@ -1,0 +1,54 @@
+{
+  "format": "leveldb",
+  "enable": true,
+  "generators": {
+    "0": {
+      "name": "normal",
+      "seed": {{ workload.world.seed }},
+      "enableAntiXray": false,
+      "antiXrayMode": "LOW",
+      "preDeobfuscate": true,
+      "dimensionData": {
+        "dimensionName": "minecraft:overworld",
+        "dimensionId": 0,
+        "minHeight": -64,
+        "maxHeight": 319,
+        "height": 384,
+        "chunkSectionCount": 24
+      },
+      "preset": {}
+    },
+    "1": {
+      "name": "nether",
+      "seed": {{ workload.world.seed }},
+      "enableAntiXray": false,
+      "antiXrayMode": "LOW",
+      "preDeobfuscate": true,
+      "dimensionData": {
+        "dimensionName": "minecraft:nether",
+        "dimensionId": 1,
+        "minHeight": 0,
+        "maxHeight": 127,
+        "height": 128,
+        "chunkSectionCount": 8
+      },
+      "preset": {}
+    },
+    "2": {
+      "name": "the_end",
+      "seed": {{ workload.world.seed }},
+      "enableAntiXray": false,
+      "antiXrayMode": "LOW",
+      "preDeobfuscate": true,
+      "dimensionData": {
+        "dimensionName": "minecraft:the_end",
+        "dimensionId": 2,
+        "minHeight": 0,
+        "maxHeight": 255,
+        "height": 256,
+        "chunkSectionCount": 16
+      },
+      "preset": {}
+    }
+  }
+}

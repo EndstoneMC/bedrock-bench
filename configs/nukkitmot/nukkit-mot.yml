@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: Apache-2.0
+network-settings:
+  nethernet:
+    # The bots use RakNet, and NetherNet would also bind UDP 19132.
+    enabled: false
+debug-settings:
+  # No error report upload.
+  automatic-bug-report: false
+  # No usage statistics upload.
+  bstats-metrics: false
+  # No update check when an operator joins.
+  update-notifications: false
+custom-block-settings:
+  # No palette download at first start, since the palettes only matter with custom blocks.
+  auto-download-vanilla-palette: false
+performance-settings:
+  # Every level ticks every tick, so the tick counter shows a slow level.
+  auto-tick-rate: false
+  # The same autosave interval on every server.
+  ticks-per-autosave: {{ workload.server.autosave_ticks }}
+chunk-settings:
+  # The workload's simulation distance.
+  ticking-radius: {{ workload.server.tick_distance }}
+player-settings:
+  # Player data is saved, as on every server.
+  save-player-data: {{ workload.server.save_player_data | lower }}

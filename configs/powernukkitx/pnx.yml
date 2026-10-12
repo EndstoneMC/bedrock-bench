@@ -1,0 +1,41 @@
+# SPDX-License-Identifier: Apache-2.0
+settings:
+  # The machine profile's port, away from 19132 so a local game cannot collide.
+  port: {{ run.port }}
+  # The bots log in offline with self-signed identities.
+  xboxAuth: false
+  # Room for every bot.
+  maxPlayers: {{ workload.server.max_players }}
+  # A fixed world folder, checked absent before launch.
+  defaultLevelName: "{{ workload.world.level_name }}"
+  # The world is saved periodically, as on every server.
+  autoSave: true
+  # The same autosave interval on every server.
+  autosaveDelay: {{ workload.server.autosave_ticks }}
+network-settings:
+  # The bots connect over RakNet.
+  transport: raknet
+  raknet:
+    # Every bot connects from 127.0.0.1, and the per-address limit is sized for one player.
+    packetLimit: 1000000
+misc-settings:
+  # No usage statistics upload.
+  enableMetrics: false
+player-settings:
+  # Player data is saved, as on every server.
+  savePlayerData: {{ workload.server.save_player_data | lower }}
+gameplay-settings:
+  # The same view distance on every server.
+  viewDistance: {{ workload.server.view_distance }}
+  # The same difficulty on every server.
+  difficulty: {{ workload.server.difficulty_id }}
+  # The same game mode on every server.
+  gamemode: {{ workload.server.gamemode_id }}
+chunk-settings:
+  # The same simulation distance on every server.
+  tickRadius: {{ workload.server.tick_distance }}
+level-settings:
+  # Every level ticks every tick, so the tick counter shows a slow level.
+  autoTickRate: false
+  # Only the benchmark level is loaded, as on every server.
+  loadAllLevels: false
