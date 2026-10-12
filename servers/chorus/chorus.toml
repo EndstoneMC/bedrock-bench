@@ -17,11 +17,11 @@ transport = "RakNet"
 [level]
 # Fixed world folder, checked absent before launch.
 name = "{{ workload.world.level_name }}"
-# Same seed on every server; Chorus generates its own terrain from it.
+# Same seed on every server, from which Chorus generates its own terrain.
 seed = {{ workload.world.seed }}
 # Same view distance on every server.
 max_view_distance = {{ workload.server.view_distance }}
 # Same autosave interval on every server.
 autosave = "{{ workload.server.autosave_ticks // 20 }}s"
-# Chorus's default, written down: only chunks that changed are saved.
+# Only chunks that changed are saved, which is Chorus's default.
 chunk_saving = "modified"
