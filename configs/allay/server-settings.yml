@@ -1,0 +1,34 @@
+# SPDX-License-Identifier: Apache-2.0
+generic-settings:
+  # Room for every bot.
+  max-player-count: {{ workload.server.max_players }}
+  # The same game mode on every server, applied when the world is created.
+  default-game-mode: {{ workload.server.gamemode | upper }}
+  # The same difficulty on every server, applied when the world is created.
+  default-difficulty: {{ workload.server.difficulty | upper }}
+  # No dashboard window.
+  enable-gui: false
+network-settings:
+  # The run's port, away from 19132 so a local game cannot collide.
+  port: {{ run.port }}
+  # The bots use IPv4, and IPv6 would bind a second port.
+  enablev6: false
+  # The bots log in offline with self-signed identities.
+  xbox-auth: false
+  # Every bot connects from 127.0.0.1, and the default limit of 120 datagrams per 10 ms is sized for one player.
+  raknet-packet-limit: 2147483647
+world-settings:
+  # The same view distance on every server.
+  view-distance: {{ workload.server.view_distance }}
+  # The same simulation distance on every server.
+  tick-radius: {{ workload.server.tick_distance }}
+storage-settings:
+  # The same autosave interval on every server.
+  chunk-auto-save-cycle: {{ workload.server.autosave_ticks }}
+  # Player data is saved, as on every server.
+  save-player-data: {{ workload.server.save_player_data | lower }}
+bstats-settings:
+  # No usage statistics upload.
+  enable: false
+  # A fixed id, so no generated identifier lands in the run's archived configs.
+  server-uuid: 00000000-0000-0000-0000-000000000000

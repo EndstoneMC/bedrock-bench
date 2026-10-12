@@ -1,27 +1,18 @@
 # SPDX-License-Identifier: Apache-2.0
-# worlds/world-settings.yml as Allay 0.14.0 writes it on its first start, with the world named {level_name}.
-# Height settings shared by the built-in dimensions in all worlds
-built-in-dimensions:
-  minecraft:overworld:
-    min-height: -64
-    max-height: 319
-  minecraft:nether:
-    min-height: 0
-    max-height: 127
-  minecraft:the_end:
-    min-height: 0
-    max-height: 255
 worlds:
-  {level_name}:
+  # One world named after the level, in a folder checked absent before launch.
+  {{ workload.world.level_name }}:
+    # Allay's default storage, written because a world entry has no defaults.
     storage-type: LEVELDB
+    # A platform thread, so the world tick has its own OS thread to measure.
     use-virtual-thread: false
     dimensions:
       minecraft:overworld:
+        # Allay's default generator, since it has no vanilla terrain generator.
         generator-type: FLAT
+        # Allay's default flat layers, written because a world entry has no defaults.
         generator-preset: ''
+        # Lighting on, since a missing value turns it off.
         enable-light-calculation: true
-    overworld: null
-    nether: null
-    the-end: null
-# The default world is the world that newly joined players will be in
-default-world: {level_name}
+# Players join the benchmark world.
+default-world: {{ workload.world.level_name }}
