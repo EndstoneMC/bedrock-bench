@@ -47,21 +47,22 @@ The jar ships no config files, so there is no `defaults/` copy.
 
 ## Configuration changes
 
-The values, the defaults and the reasons are in the `[config]` table of [server.toml](server.toml), and every change is
-recorded in run.json with its category ([methodology](../../docs/methodology.md#fairness-and-feature-parity)).
-`server.properties` and `nukkit-mot.yml` start empty; Nukkit-MOT adds its own defaults and rewrites both on start.
+Prepare renders [server.properties](server.properties) and [nukkit-mot.yml](nukkit-mot.yml) into the server
+directory. Each key the harness sets has its reason in a comment above it, and run.json records every key's value
+before and after. The jar ships neither file, so both are written as rendered; Nukkit-MOT adds its own defaults and
+rewrites both on start.
 
-- harness: the machine profile's port; offline login; `allow-flight=on` (see Caveats); an empty `rcon.password`;
-  NetherNet off, because it listens on UDP 19132 whatever `server-port` says; error reports, bStats and the palette
-  download off; no update check when an operator joins.
-- parity: view and simulation distance, seed, level name, difficulty, game mode, max players, autosave interval and
-  player data. `performance-settings.auto-tick-rate` is off: with it, a slow level is ticked only every few server
-  ticks while the tick counter keeps advancing.
+- `server.properties`: the run's port; offline login; `allow-flight=on` (see Caveats); an empty `rcon.password`; view
+  distance, seed, level name, difficulty, game mode, max players and autosave, the same as on every server.
+- `nukkit-mot.yml`: NetherNet off, because it listens on UDP 19132 whatever `server-port` says; error reports, bStats
+  and the palette download off; no update check when an operator joins; simulation distance, autosave interval and
+  player data, the same as on every server. `performance-settings.auto-tick-rate` is off: with it, a slow level is
+  ticked only every few server ticks while the tick counter keeps advancing.
 
 Held in the adapter:
 
-- `plugins/BenchTick.jar` is installed (harness).
-- `-Xms` and `-Xmx` from the machine profile (parity), and UTF-8 console streams (harness).
+- `plugins/BenchTick.jar` is installed.
+- `-Xms` and `-Xmx` from the machine profile, and UTF-8 console streams.
 
 Left as shipped and recorded in run.json facts: movement mode `server-auth`, async workers `auto`, virtual threads, 4
 chunk sends per player per tick. The Nether and the End load at start as separate levels.

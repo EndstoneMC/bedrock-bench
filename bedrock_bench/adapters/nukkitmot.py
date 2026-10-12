@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
 """Nukkit-MOT (MemoriesOfTime), a multi-version Nukkit fork in Java, run from a pinned Jenkins build on the pinned JDK.
 
-Fetch: the jar from ``servers/nukkitmot/server.toml`` and the JDK from ``servers/runtimes.toml``. The
-jar ships neither ``server.properties`` nor ``nukkit-mot.yml``; both start empty and Nukkit-MOT completes them on
-start. The helper plugin (``plugin.yml`` and the ``*.java`` files in ``servers/nukkitmot``, Nukkit's helper
-without its RakNet reflection) is compiled once against the pinned jar with the JDK's ``javac`` and packed into
+Fetch: the jar from ``servers/nukkitmot/server.toml`` and the JDK from ``servers/runtimes.toml``. The jar ships
+neither ``server.properties`` nor ``nukkit-mot.yml``; prepare renders both from ``servers/nukkitmot`` and Nukkit-MOT
+completes them on start. The helper plugin (``plugin.yml`` and the ``*.java`` files in ``servers/nukkitmot``, Nukkit's
+helper without its RakNet reflection) is compiled once against the pinned jar with the JDK's ``javac`` and packed into
 ``plugins/BenchTick.jar``. It adds ``gametime`` (``time query`` prints the day time, which wraps at 24000),
 and ``positions``.
 
@@ -70,6 +70,7 @@ class NukkitMotAdapter(JavaServer):
     platforms: ClassVar[frozenset[str]] = frozenset({"windows", "linux"})
     dialect: ClassVar[Dialect] = NUKKITMOT_DIALECT
     server_file: ClassVar[str] = JAR
+    config_templates: ClassVar[tuple[str, ...]] = ("server.properties", "nukkit-mot.yml")
 
     # ---- fetch ----------------------------------------------------------------------------------------------------
 

@@ -13,7 +13,7 @@ from bedrock_bench.adapters.nukkit import plugin_files
 from bedrock_bench.adapters.nukkitmot import NUKKITMOT_DIALECT, NukkitMotAdapter
 from bedrock_bench.adapters.standalone import Runtime, main_thread_from_jcmd, yaml_scalars
 from bedrock_bench.cache import Cache
-from bedrock_bench.model import ArtifactRef, Install, LogLine, OverrideCategory, Placement, RunContext
+from bedrock_bench.model import ArtifactRef, Install, LogLine, Placement, RunContext
 from bedrock_bench.provenance import sha256_file
 from workloads import WORKLOAD
 
@@ -202,7 +202,7 @@ class TestPrepare:
         assert not any((install.root / "defaults").iterdir()), "the jar ships no config file"
         assert install.extra["commit"].startswith("9cb0aba") and install.extra["build"] == 1592
 
-    def test_configs_and_overrides(self, install: Install, tmp_path: Path) -> None:
+    def test_prepare_renders_the_templates(self, install: Install, tmp_path: Path) -> None:
         adapter = make_adapter()
         layout = adapter.prepare(install, make_ctx(tmp_path, adapter))
         server = layout.server_dir
@@ -217,15 +217,13 @@ class TestPrepare:
         assert yml["chunk-settings.ticking-radius"] == "4"
         assert yml["custom-block-settings.auto-download-vanilla-palette"] == "false"
         assert "performance-settings.thread-watchdog" not in yml, "the watchdog stays on"
-        by_key = {(o.file, o.key): o for o in layout.overrides}
-        assert by_key[("server.properties", "view-distance")].default == "8"
-        assert by_key[("nukkit-mot.yml", "network-settings.nethernet.enabled")].category is OverrideCategory.HARNESS
-        assert by_key[("nukkit-mot.yml", "performance-settings.auto-tick-rate")].category is OverrideCategory.PARITY
-        assert by_key[("plugins/BenchTick.jar", "plugin")].value == "installed"
-        assert ("server.properties", "gamemode") not in by_key and ("server.properties", "auto-save") not in by_key
-        assert ("nukkit-mot.yml", "player-settings.save-player-data") not in by_key
-        assert not [o for o in layout.overrides if o.category is OverrideCategory.RESCUE]
-        assert [c.path for c in layout.config_files] == ["server.properties", "nukkit-mot.yml"]
+        files = {c.path: c for c in layout.config_files}
+        assert list(files) == ["server.properties", "nukkit-mot.yml"]
+        assert all(c.created for c in files.values()), "the jar ships no config file"
+        assert {c.before for c in files["nukkit-mot.yml"].keys} == {None}
+        changes = {c.key: c.after for c in files["nukkit-mot.yml"].keys}
+        assert changes["performance-settings.ticks-per-autosave"] == "6000"
+        assert changes["player-settings.save-player-data"] == "true"
         assert adapter.readback(layout) == []
 
     def test_readback_after_the_server_rewrites_its_config(self, install: Install, tmp_path: Path) -> None:
