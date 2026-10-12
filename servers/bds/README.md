@@ -41,19 +41,15 @@ bbench fetch bds@1.26.52.3 --accept-eula
 
 ## Configuration changes
 
-The values and reasons are in the `[config]` table of [`server.toml`](server.toml), which every BDS-hosted server
-uses. Each value is written into the run's `server.properties` and read back after the run. It is an override only when
-it differs from what the pinned build ships, and run.json then records the shipped value next to it. Shipped values
-below are those of 1.26.52.3; 1.26.51.1 ships the same.
+[`server.properties`](server.properties) lists the keys the harness sets, each with its reason. It is rendered and
+merged onto the shipped file, so every other key keeps its shipped value. run.json records each key's value before and
+after, and every key is read back after the run. Endstone and LeviLamina keep an identical copy.
 
-- `harness`: `online-mode` (shipped `true`), `transport` (`nethernet`), `allow-list` (`true`),
-  `enable-lan-visibility` (`true`), `server-port` and `server-portv6` (`19132`, `19133`), `server-name`
-  (`Dedicated Server`), `emit-server-telemetry` (absent).
-- `parity`: `view-distance` (`32`), `max-players` (`10`), `level-name` (`Bedrock level`), `level-seed` (empty) and
-  `client-side-chunk-generation-enabled` (`true`), which the scenario sets.
-- Written but equal to the shipped value: `tick-distance` (`4`), `gamemode` (`survival`), `difficulty` (`easy`),
-  `server-build-radius-ratio` (`Disabled`).
-- `max-threads` (shipped `8`) is left alone and recorded in `facts.max_threads`.
+- So the bots can connect: `online-mode`, `transport`, `allow-list`, `enable-lan-visibility`, the two ports.
+- The same workload on every server: view and simulation distance, player limit, world name, seed, game mode,
+  difficulty, client-side generation off, `server-build-radius-ratio` as shipped.
+- Also set: `server-name` and `emit-server-telemetry=false`.
+- `max-threads` is left alone and recorded in `facts.max_threads`.
 
 The shipped file cannot run the benchmark. The bots speak RakNet while the server listens on NetherNet,
 `online-mode=true` rejects an offline login, and `allow-list=true` refuses every bot. With `transport=raknet` alone,

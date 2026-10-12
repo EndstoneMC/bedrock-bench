@@ -32,6 +32,7 @@ from bedrock_bench.adapters.base import (
     format_coord,
     quote_player,
 )
+from bedrock_bench.adapters.bdsfamily import BdsFamily
 from bedrock_bench.config import ConfigError, project_root
 from bedrock_bench.model import Layout, Machine, ThreadInfo, WorldInfo
 from bedrock_bench.workload import SMOKE, WORKLOAD, Workload
@@ -142,6 +143,12 @@ def test_server_folder(cls: type[ServerAdapter]) -> None:
     folder = ROOT / "servers" / cls.name
     missing = [name for name in ("README.md", "server.toml") if not (folder / name).is_file()]
     assert not missing, f"configs/{cls.name}/ needs {', '.join(missing)}"
+
+
+@pytest.mark.parametrize("cls", [cls for cls in REGISTERED if issubclass(cls, BdsFamily)], ids=adapter_id)
+def test_bds_hosted_servers_use_the_vanilla_server_properties(cls: type[ServerAdapter]) -> None:
+    vanilla = (ROOT / "servers" / "bds" / "server.properties").read_bytes()
+    assert (ROOT / "servers" / cls.name / "server.properties").read_bytes() == vanilla
 
 
 @every_adapter

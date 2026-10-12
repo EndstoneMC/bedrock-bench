@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
+import hashlib
 import os
 import tomllib
 import zipfile
@@ -10,17 +11,16 @@ from typing import Any
 
 import pytest
 
-from bedrock_bench import adapters, config, fetch
+from bedrock_bench import adapters, config, fetch, templates
 from bedrock_bench.adapters import bdsfamily
 from bedrock_bench.adapters.bds import BdsAdapter
-from bedrock_bench.adapters.bdsfamily import BDS_DIALECT, Properties, load_property_pins, parse_querytarget
+from bedrock_bench.adapters.bdsfamily import BDS_DIALECT, Properties, parse_querytarget
 from bedrock_bench.cache import Cache
 from bedrock_bench.config import ConfigError
 from bedrock_bench.model import (
     Arm,
     LogLine,
     Machine,
-    OverrideCategory,
     Placement,
     RunContext,
     ThreadInfo,
@@ -210,26 +210,15 @@ class TestProperties:
         with pytest.raises(ValueError):
             props.set("e", "x\ny")
 
-    def test_template_loads(self) -> None:
-        pins = load_property_pins(ROOT / "servers" / "bds" / "server.toml")
-        keys = {pin.key: pin for pin in pins}
-        assert keys["online-mode"].category is OverrideCategory.HARNESS
-        assert keys["view-distance"].category is OverrideCategory.PARITY
-        assert "max-threads" not in keys, "max-threads stays at the shipped default"
-        assert all(pin.reason for pin in pins)
-
-    def test_template_validation(self, tmp_path: Path) -> None:
-        bad = tmp_path / "p.toml"
-        head = 'schema = 1\n[config.file."server.properties"]\nformat = "properties"\n'
-        bad.write_text(head + '[config.file."server.properties".tuning]\nx = { value = "1", reason = "r" }\n')
-        with pytest.raises(ConfigError, match="unknown table"):
-            load_property_pins(bad)
-        bad.write_text(head + '[config.file."server.properties".harness]\nx = { value = "1" }\n')
-        with pytest.raises(ConfigError):
-            load_property_pins(bad)
-        bad.write_text('schema = 1\n[config.file."other.properties"]\nformat = "properties"\n')
-        with pytest.raises(ConfigError, match="exactly one"):
-            load_property_pins(bad)
+    def test_template_keys_each_have_a_reason(self) -> None:
+        text = (ROOT / "servers" / "bds" / "server.properties").read_text(encoding="utf-8")
+        lines = text.splitlines()
+        for index, entry in enumerate(lines):
+            if entry and not entry.startswith("#"):
+                assert index > 0 and lines[index - 1].startswith("# "), entry
+        keys = templates.values("properties", text)
+        assert (keys["online-mode"], keys["transport"]) == ("false", "raknet")
+        assert "max-threads" not in keys, "max-threads stays as shipped"
 
 
 class TestFetchAndPrepare:
@@ -261,29 +250,28 @@ class TestFetchAndPrepare:
         }
         assert {key: props.get(key) for key in expected} == expected
 
-        by_key = {o.key: o for o in layout.overrides}
-        assert by_key["online-mode"].category is OverrideCategory.HARNESS
-        assert (by_key["online-mode"].default, by_key["online-mode"].value) == ("true", "false")
-        assert by_key["view-distance"].category is OverrideCategory.PARITY
-        assert by_key["level-seed"].default == ""
-        assert by_key["emit-server-telemetry"].default is None
-        assert by_key["allow-list"].category is OverrideCategory.HARNESS
-        for unchanged in ("difficulty", "gamemode", "tick-distance", "max-threads", "server-build-radius-ratio"):
-            assert unchanged not in by_key, f"{unchanged} equals the shipped value and is not an override"
-        assert "client-side-chunk-generation-enabled" not in by_key
-        assert all(o.file == "server.properties" for o in layout.overrides)
+        (written,) = layout.config_files
+        assert (written.path, written.template, written.created) == ("server.properties", "server.properties", False)
+        data = (layout.server_dir / "server.properties").read_bytes()
+        assert written.written_sha256 == hashlib.sha256(data).hexdigest()
+        changes = {k.key: (k.before, k.after) for k in written.keys}
+        assert changes["online-mode"] == ("true", "false")
+        assert changes["view-distance"] == ("32", "10")
+        assert changes["level-seed"] == ("", "20261010")
+        assert changes["emit-server-telemetry"] == (None, "false")
+        assert changes["tick-distance"] == ("4", "4")
+        assert "max-threads" not in changes
 
-        assert [c.path for c in layout.config_files] == ["server.properties"]
         assert layout.world.fresh and layout.world.generator == "vanilla"
         assert layout.world.path is not None and not layout.world.path.exists()
         assert local_adapter.readback(layout) == []
         assert local_adapter.executable(layout).is_file()
 
-    def test_csg_off_is_a_parity_override(self, local_adapter: BdsAdapter, tmp_path: Path) -> None:
+    def test_csg_off_is_recorded_with_the_shipped_value(self, local_adapter: BdsAdapter, tmp_path: Path) -> None:
         install = local_adapter.fetch(Cache(tmp_path / "cache"))
         layout = local_adapter.prepare(install, make_ctx(tmp_path, csg=False))
-        csg = next(o for o in layout.overrides if o.key == "client-side-chunk-generation-enabled")
-        assert (csg.category, csg.default, csg.value) == (OverrideCategory.PARITY, "true", "false")
+        csg = next(k for k in layout.config_files[0].keys if k.key == "client-side-chunk-generation-enabled")
+        assert (csg.before, csg.after) == ("true", "false")
 
     def test_readback_catches_changes(self, local_adapter: BdsAdapter, tmp_path: Path) -> None:
         install = local_adapter.fetch(Cache(tmp_path / "cache"))

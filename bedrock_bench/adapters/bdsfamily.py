@@ -1,9 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """Behaviour shared by servers that host Mojang's Bedrock Dedicated Server: vanilla BDS, Endstone and LeviLamina.
 
-- ``server.properties`` is rendered from the ``[config]`` table of ``servers/bds/server.toml``. Every value
-  that differs from what the pinned BDS build ships is recorded as an :class:`~bedrock_bench.model.Override` in its
-  category.
+- ``server.properties`` is rendered from the template of the same name in the server's folder. Endstone and
+  LeviLamina keep their own copy, identical to ``servers/bds/server.properties``.
 - Console: ``Server started.`` is the ready line, ``time query gametime`` the monotonic tick probe and
   ``Player Spawned: <name>`` the in-world signal. The ``TRANSPORT TYPE ERROR`` banner that BDS prints at error level
   when RakNet is selected is benign.
@@ -23,7 +22,6 @@ import json
 import os
 import re
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
@@ -38,7 +36,6 @@ from bedrock_bench.model import (
     LogLine,
     Machine,
     Override,
-    OverrideCategory,
     PlayerPos,
     RunContext,
     WorldInfo,
@@ -51,8 +48,6 @@ if TYPE_CHECKING:
     from bedrock_bench.cache import Cache
 
 PROPERTIES = "server.properties"
-PROPERTIES_TEMPLATE = "servers/bds/server.toml"
-SERVER_NAME = "bedrock-bench"
 
 # --------------------------------------------------------------------------------------------------------------------
 # Console dialect
@@ -160,61 +155,6 @@ class Properties:
     def dump(self, path: Path) -> None:
         with open(path, "w", encoding="utf-8", newline="") as fh:
             fh.write(self.text())
-
-
-@dataclass(frozen=True)
-class PropertyPin:
-    """One value every BDS-hosted server gets, from the ``[config]`` table of ``servers/bds/server.toml``."""
-
-    key: str
-    template: str  # may contain {placeholders} filled from the workload and machine profile
-    category: OverrideCategory
-    reason: str
-
-    def render(self, context: Mapping[str, str]) -> str:
-        try:
-            return self.template.format_map(context)
-        except (KeyError, IndexError, ValueError) as exc:
-            known = ", ".join(sorted(context))
-            raise ConfigError(f"{self.key}: bad placeholder in {self.template!r} ({exc}); known: {known}") from None
-
-
-def load_property_pins(path: Path) -> tuple[PropertyPin, ...]:
-    """Read the ``[config.file."server.properties"]`` table of a server file: ``key = {value, reason}`` entries."""
-    path, formats, entries = config.load_config_table(path)
-    config.single_config_file(path, formats, PROPERTIES, "properties")
-    pins: list[PropertyPin] = []
-    seen: set[str] = set()
-    for e in entries:
-        if not isinstance(e.entry, dict) or set(e.entry) != {"value", "reason"}:
-            raise ConfigError('must be { value = "...", reason = "..." }', file=path, key=e.where)
-        value, reason = e.entry["value"], e.entry["reason"]
-        if not isinstance(value, str) or not isinstance(reason, str) or not reason:
-            raise ConfigError("value and reason must be strings, reason non-empty", file=path, key=e.where)
-        if e.key in seen:
-            raise ConfigError("key appears in two categories", file=path, key=e.where)
-        seen.add(e.key)
-        pins.append(PropertyPin(e.key, value, e.category, reason))
-    return tuple(pins)
-
-
-def property_context(ctx: RunContext, *, csg: bool) -> dict[str, str]:
-    """Placeholder values for the ``[config]`` table of ``servers/bds/server.toml``."""
-    server = ctx.workload.server
-    world = ctx.workload.world
-    return {
-        "server_name": SERVER_NAME,
-        "port": str(ctx.machine.port),
-        "port_v6": str(ctx.machine.port + 1),
-        "view_distance": str(server.view_distance),
-        "tick_distance": str(server.tick_distance),
-        "max_players": str(server.max_players),
-        "difficulty": server.difficulty,
-        "gamemode": server.gamemode,
-        "level_name": world.level_name,
-        "seed": str(world.seed),
-        "csg": "true" if csg else "false",
-    }
 
 
 def parse_bool(value: str | None) -> bool | None:
@@ -366,8 +306,6 @@ class BdsFamily(ServerAdapter):
     dialect: ClassVar[Dialect] = BDS_DIALECT
     tick_thread_rule: ClassVar[str] = "lowest_tid_name:MC_SERVER"
     crash_paths: ClassVar[tuple[str, ...]] = ("%LOCALAPPDATA%/CrashDumps",)
-    #: Server file whose ``[config]`` table holds the server.properties values, relative to the project root.
-    properties_template: ClassVar[str] = PROPERTIES_TEMPLATE
 
     def __init__(self, arm: Arm, machine: Machine) -> None:
         super().__init__(arm, machine)
@@ -390,20 +328,14 @@ class BdsFamily(ServerAdapter):
         self._server_exe = server_dir / exe_rel
 
         world = self._prepare_world(server_dir, ctx)
-        overrides, written, properties_sha = self._render_properties(server_dir, ctx)
+        properties = self.write_config(server_dir, PROPERTIES, ctx)
         extra_overrides, extra_files, extra = self.prepare_extra(server_dir, install, ctx)
         return Layout(
             server_dir=server_dir,
-            overrides=(*overrides, *extra_overrides),
-            config_files=(ConfigFile(PROPERTIES, properties_sha), *extra_files),
+            config_files=(properties, *extra_files),
             world=world,
-            extra={
-                "exe": exe_rel,
-                "exe_sha256": exe_sha256,
-                "bds_version": install.extra.get("bds_version"),
-                "properties": written,
-                **extra,
-            },
+            extra={"exe": exe_rel, "exe_sha256": exe_sha256, "bds_version": install.extra.get("bds_version"), **extra},
+            overrides=tuple(extra_overrides),
         )
 
     def prepare_extra(
@@ -417,36 +349,6 @@ class BdsFamily(ServerAdapter):
         if level_dir.exists():
             raise RuntimeError(f"the fresh server copy already has a world at {level_dir}")
         return WorldInfo(fresh=True, generator="vanilla", path=level_dir)
-
-    def _render_properties(self, server_dir: Path, ctx: RunContext) -> tuple[list[Override], dict[str, str], str]:
-        path = server_dir / PROPERTIES
-        props = Properties.load(path) if path.is_file() else Properties()
-        pins = load_property_pins(config.project_root() / self.properties_template)
-        context = property_context(ctx, csg=ctx.workload.server.csg and self.supports_csg)
-        overrides: list[Override] = []
-        written: dict[str, str] = {}
-        for pin in pins:
-            value = pin.render(context)
-            default = props.get(pin.key)
-            props.set(pin.key, value)
-            written[pin.key] = value
-            if default != value:
-                overrides.append(Override(pin.category, PROPERTIES, pin.key, default, value, pin.reason))
-        props.dump(path)
-        return overrides, written, sha256_file(path)
-
-    def readback(self, layout: Layout) -> list[str]:
-        """Pinned server.properties values that changed while the server ran; empty when all read back."""
-        path = layout.server_dir / PROPERTIES
-        if not path.is_file():
-            return [f"{PROPERTIES} is missing after the run"]
-        props = Properties.load(path)
-        problems = []
-        for key, value in layout.extra.get("properties", {}).items():
-            found = props.get(key)
-            if found != value:
-                problems.append(f"{PROPERTIES}: {key} was written as {value!r} and read back as {found!r}")
-        return problems
 
     def executable(self, layout: Layout) -> Path:
         """The server binary in the run's copy; its sha256 is checked before and after the run."""
@@ -509,14 +411,11 @@ __all__ = [
     "BDS_DIALECT",
     "BdsFamily",
     "Properties",
-    "PropertyPin",
     "bds_dialect",
     "bds_platform",
     "detect_allocator",
     "exe_name",
     "fetch_bds",
-    "load_property_pins",
     "parse_querytarget",
-    "property_context",
     "same_path",
 ]
