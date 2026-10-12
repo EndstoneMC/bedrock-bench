@@ -6,7 +6,7 @@ Every loader rejects unknown keys, so a typo fails loudly instead of falling bac
 
 Scenarios, matrices and server files are referenced by path or by bare name. A bare name resolves inside the project
 checkout, for example ``spread100`` -> ``configs/scenarios/spread100.toml`` and ``bds`` ->
-``configs/servers/bds/server.toml``. Machine profiles and claims files are always paths.
+``configs/bds/server.toml``. Machine profiles and claims files are always paths.
 
 A server file holds ``schema = 1``, an optional ``server`` that must match its folder, and three tables:
 ``[artifacts]`` (download pins), ``[features]`` (declared parity) and ``[config]`` (the values written into the
@@ -73,7 +73,7 @@ SCHEMA_DIR = Path(__file__).resolve().parent / "schemas"
 CONFIG_PATHS = {
     "scenarios": "configs/scenarios/{}.toml",
     "matrices": "configs/matrices/{}.toml",
-    "servers": "configs/servers/{}/server.toml",
+    "servers": "configs/{}/server.toml",
 }
 _SINGULAR = {
     "scenarios": "scenario",
@@ -84,7 +84,7 @@ _SINGULAR = {
 SERVER_FILE = "server.toml"
 SERVER_TABLES = ("artifacts", "features", "config")
 #: JDK and PHP pins shared by the standalone servers, an ``[artifacts]`` table like a server file's.
-RUNTIMES_FILE = "configs/servers/runtimes.toml"
+RUNTIMES_FILE = "configs/runtimes.toml"
 
 NAME_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 SERVER_RE = re.compile(r"^[a-z][a-z0-9_]*$")
@@ -894,7 +894,7 @@ def _cpu_spec(keywords: tuple[str, ...]) -> Callable[[str], None]:
 
 
 def load_server_table(ref: str | Path, table: str) -> tuple[Path, dict[str, Any]]:
-    """One top-level table of ``configs/servers/<ref>/server.toml``, or of a server file given by path.
+    """One top-level table of ``configs/<ref>/server.toml``, or of a server file given by path.
 
     The rest of the file is checked too: ``schema = 1``, ``server`` (when present) equal to the folder name, and no
     keys besides the server tables. A missing table is an error.

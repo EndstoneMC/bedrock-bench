@@ -20,10 +20,10 @@ Go code is vetted and tested per module with `GOWORK=off`, so each module builds
 as the release does (Go 1.25+):
 
 ```sh
-for dir in bots/core bots/loadbot bots/legacy1001 configs/servers/dragonfly; do
+for dir in bots/core bots/loadbot bots/legacy1001 configs/dragonfly; do
   (cd "$dir" && GOWORK=off go vet ./... && GOWORK=off go test ./...)
 done
-gofmt -l bots configs/servers/dragonfly   # prints nothing when every file is formatted
+gofmt -l bots configs/dragonfly   # prints nothing when every file is formatted
 ```
 
 To run benchmarks rather than develop the harness, see [docs/get_started.md](../docs/get_started.md).
@@ -33,7 +33,7 @@ Rules for code:
 - **Only adapters know server names.** Phases, samplers, metrics and the report never branch on a server name. A
   server that needs different behaviour gets an adapter attribute or method, which the harness uses generically.
 - **Servers are black boxes.** Adapters read console output and what the operating system reports about the process.
-  No hooks, and no injected code beyond the helper plugins in `configs/servers/`.
+  No hooks, and no injected code beyond the helper plugins in `configs/`.
 - **Runtime dependencies** are the Python standard library and `psutil`. Anything else needs a strong case.
 - **Metrics are pure functions** of a run's raw files, so `bbench analyze` recomputes them byte for byte.
 - Python follows ruff (line length 120). Go follows gofmt and go vet. Comments are short.
@@ -72,9 +72,9 @@ test for the server's name.
 | File | Holds |
 |---|---|
 | `bedrock_bench/adapters/<id>.py` | The adapter, mostly data. |
-| `configs/servers/<id>/server.toml` | Pinned downloads, declared feature parity, and the config values the harness writes. |
-| `configs/servers/<id>/README.md` | The server page. |
-| `configs/servers/<id>/<files>` | Helper plugin sources and config templates, flat. No binaries, no worlds. |
+| `configs/<id>/server.toml` | Pinned downloads, declared feature parity, and the config values the harness writes. |
+| `configs/<id>/README.md` | The server page. |
+| `configs/<id>/<files>` | Helper plugin sources and config templates, flat. No binaries, no worlds. |
 | `tests/fixtures/logs/<id>.toml`, `tests/fixtures/logs/<id>-session.log` | Hand-written console lines. |
 | `tests/unit/test_adapter_<id>.py` | Unit tests. |
 
@@ -102,8 +102,8 @@ Find out from the server's documentation or source:
 | a Rust crate built from source | `chorus.py` |
 | a fork of a supported server | subclass its adapter, as `altay.py` does |
 
-A new BDS version is a pin in `configs/servers/bds/server.toml`, not an adapter. A runtime that
-`configs/servers/runtimes.toml` lacks gets a pin there, in the same `[artifacts]` shape.
+A new BDS version is a pin in `configs/bds/server.toml`, not an adapter. A runtime that
+`configs/runtimes.toml` lacks gets a pin there, in the same `[artifacts]` shape.
 
 ### server.toml
 
@@ -155,7 +155,7 @@ view-distance = { value = "{view_distance}", default = "16", reason = "the same 
 - **`[config]`.** Every value the harness writes, file by file, in the table of its override category, with the
   server's default and a reason. Entries may also take `type`, `variants` and `skip_variants`. Placeholders in braces
   come from `config_context` in `bedrock_bench/adapters/standalone.py`. BDS-hosted servers have no `[config]` and use
-  the one in `configs/servers/bds/server.toml`. bds and dragonfly use a one-file form: `file = "..."` with
+  the one in `configs/bds/server.toml`. bds and dragonfly use a one-file form: `file = "..."` with
   `[config.<category>]` tables.
 
 Put a short comment above each table saying where its values come from.
@@ -210,12 +210,12 @@ Change nothing else. Write files as UTF-8 with LF line endings.
 
 A helper plugin adds only what the console lacks: a tick counter, a positions command, or a raised per-IP packet
 limit the server has no config key for. It never changes the simulation. Its sources sit flat in
-`configs/servers/<id>/`, and the adapter builds or places them at fetch or prepare time. Config templates the harness
+`configs/<id>/`, and the adapter builds or places them at fetch or prepare time. Config templates the harness
 starts from sit next to them.
 
 ### The server page
 
-`configs/servers/<id>/README.md` opens with one paragraph: language, project link and license. Then come these
+`configs/<id>/README.md` opens with one paragraph: language, project link and license. Then come these
 sections:
 
 - **Setup:** what fetch does, and any license gate.
@@ -331,9 +331,9 @@ Reading server internals, or anything that needs non-public material, is out of 
 Before tagging:
 
 - [ ] CI is green on `main`: lint, tests on Ubuntu and Windows, the Go checks and the Dragonfly smoke.
-- [ ] `bbench smoke <id>@<version>` passes for every version pinned in `configs/servers/`, on each platform its
+- [ ] `bbench smoke <id>@<version>` passes for every version pinned in `configs/`, on each platform its
       adapter declares. CI runs only the Dragonfly smoke. A pin its server README marks as invalid is exempt:
-      `chorus@95ca835` ([caveats](../configs/servers/chorus/README.md#caveats)).
+      `chorus@95ca835` ([caveats](../configs/chorus/README.md#caveats)).
 - [ ] The decode smoke passes. CI never downloads BDS, so this runs by hand: against every pinned server except the
       exempt pins above, run the bot its adapter uses (`legacy1001` for PocketMine-MP and Allay, `loadbot` for the
       others) for at least five minutes of walking and teleports:

@@ -95,7 +95,7 @@ class TestContract:
     def test_registered(self) -> None:
         assert adapters.get("endstone") is EndstoneAdapter
         assert EndstoneAdapter.class_problems() == []
-        assert EndstoneAdapter.features_file == "configs/servers/endstone/server.toml"
+        assert EndstoneAdapter.features_file == "configs/endstone/server.toml"
         assert EndstoneAdapter.tick_thread_rule == "lowest_tid_name:MC_SERVER"
         assert "crash_reports" in EndstoneAdapter.crash_paths
 
@@ -150,11 +150,11 @@ class TestPins:
 
     def test_requirement_locks_are_hashed(self) -> None:
         for version in config.load_artifacts("endstone").versions:
-            lock = ROOT / "configs" / "servers" / "endstone" / f"requirements-{version}.txt"
+            lock = ROOT / "configs" / "endstone" / f"requirements-{version}.txt"
             text = lock.read_text(encoding="utf-8")
             requirements = re.findall(r"^([A-Za-z0-9_.-]+)==", text, flags=re.MULTILINE)
             assert requirements, version
-            assert "endstone" not in requirements, "the wheel is pinned in configs/servers/endstone/server.toml"
+            assert "endstone" not in requirements, "the wheel is pinned in configs/endstone/server.toml"
             blocks = re.split(r"^(?=[A-Za-z0-9_.-]+==)", text, flags=re.MULTILINE)[1:]
             assert all("--hash=sha256:" in block for block in blocks), version
 

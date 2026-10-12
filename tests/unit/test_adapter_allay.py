@@ -126,7 +126,7 @@ def install(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Install:
     monkeypatch.setattr(allay, "fetch_runtime", lambda cache, key, platform: runtime)
     monkeypatch.setattr(allay, "build_helper", fake_build)
     result = make_adapter().fetch(Cache(tmp_path / "cache"))
-    assert built == [ROOT / "configs" / "servers" / "allay"]
+    assert built == [ROOT / "configs" / "allay"]
     return result
 
 
@@ -353,7 +353,7 @@ class TestCommands:
 
 
 def test_helper_sources_are_committed() -> None:
-    folder = ROOT / "configs" / "servers" / "allay"
+    folder = ROOT / "configs" / "allay"
     assert [p.name for p in allay.helper_files(folder)] == ["plugin.json", "BenchTick.java"]
     manifest = json.loads((folder / "plugin.json").read_text(encoding="utf-8"))
     assert manifest["name"] == "BenchTick" and manifest["entrance"] == "bench.BenchTick"

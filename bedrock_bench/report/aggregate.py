@@ -299,7 +299,7 @@ def _numeric_agg(values: Sequence[Any], censored: Sequence[bool]) -> dict[str, A
 
 
 def default_features(server: str) -> FeatureFile | None:
-    """The ``[features]`` table of ``configs/servers/<server>/server.toml``, or None when it is missing or invalid."""
+    """The ``[features]`` table of ``configs/<server>/server.toml``, or None when it is missing or invalid."""
     try:
         return load_features(server)
     except ConfigError:

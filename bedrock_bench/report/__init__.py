@@ -22,7 +22,7 @@ from typing import Any
 from bedrock_bench.config import load_claims
 from bedrock_bench.model import ClaimSet, ExitCode
 from bedrock_bench.report import claims as claims_module
-from bedrock_bench.report import markdown
+from bedrock_bench.report import export, markdown
 from bedrock_bench.report.aggregate import (
     FeatureLookup,
     ReportError,
@@ -79,13 +79,14 @@ def write(
     publish: bool = False,
     features: FeatureLookup | None = default_features,
 ) -> Report:
-    """Write ``summary.json`` and ``report.md`` into ``matrix_dir``. Run directories are never touched."""
+    """Write ``summary.json``, ``report.md`` and the figure CSVs into ``matrix_dir``. Run directories are never touched."""
     matrix_dir = Path(matrix_dir)
     summary, text, problems = build(matrix_dir, claims=claims, publish=publish, features=features)
     summary_path = matrix_dir / SUMMARY_FILE
     report_path = matrix_dir / REPORT_FILE
     write_summary(summary, summary_path)
     report_path.write_text(text, encoding="utf-8", newline="\n")
+    export.write(matrix_dir)
     return Report(summary, text, summary_path, report_path, problems)
 
 

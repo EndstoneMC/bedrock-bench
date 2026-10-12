@@ -3,11 +3,11 @@
 
 Fetch, launch, the console dialect and the commands come from
 :class:`~bedrock_bench.adapters.pocketmine.PocketMineAdapter`. The phar, the version banner and the helper differ:
-``configs/servers/altay/BenchHelper.php`` lifts the per-IP packet limit through Altay's transport interface instead of
+``configs/altay/BenchHelper.php`` lifts the per-IP packet limit through Altay's transport interface instead of
 RakLib's.
 
 Altay 5.44.7 speaks protocol 2193 (Minecraft 1.26.50), so it gets the main load bot. Its version numbers follow
-PocketMine-MP's. See configs/servers/altay/README.md.
+PocketMine-MP's. See configs/altay/README.md.
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ class AltayAdapter(PocketMineAdapter):
     protocol: ClassVar[int] = 2193
     dialect: ClassVar[Dialect] = ALTAY_DIALECT
     server_file: ClassVar[str] = "Altay.phar"
-    helper_source: ClassVar[str] = "configs/servers/altay/BenchHelper.php"
+    helper_source: ClassVar[str] = "configs/altay/BenchHelper.php"
     packet_limiter: ClassVar[str] = "RakNet"
     packet_limit: ClassVar[str] = "2147483647"
     variants: ClassVar[Mapping[str, str]] = {

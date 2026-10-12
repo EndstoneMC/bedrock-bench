@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Behaviour shared by servers that host Mojang's Bedrock Dedicated Server: vanilla BDS, Endstone and LeviLamina.
 
-- ``server.properties`` is rendered from the ``[config]`` table of ``configs/servers/bds/server.toml``. Every value
+- ``server.properties`` is rendered from the ``[config]`` table of ``configs/bds/server.toml``. Every value
   that differs from what the pinned BDS build ships is recorded as an :class:`~bedrock_bench.model.Override` in its
   category.
 - Console: ``Server started.`` is the ready line, ``time query gametime`` the monotonic tick probe and
@@ -51,7 +51,7 @@ if TYPE_CHECKING:
     from bedrock_bench.cache import Cache
 
 PROPERTIES = "server.properties"
-PROPERTIES_TEMPLATE = "configs/servers/bds/server.toml"
+PROPERTIES_TEMPLATE = "configs/bds/server.toml"
 SERVER_NAME = "bedrock-bench"
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -164,7 +164,7 @@ class Properties:
 
 @dataclass(frozen=True)
 class PropertyPin:
-    """One value every BDS-hosted server gets, from the ``[config]`` table of ``configs/servers/bds/server.toml``."""
+    """One value every BDS-hosted server gets, from the ``[config]`` table of ``configs/bds/server.toml``."""
 
     key: str
     template: str  # may contain {placeholders} filled from the scenario and machine profile
@@ -199,7 +199,7 @@ def load_property_pins(path: Path) -> tuple[PropertyPin, ...]:
 
 
 def property_context(ctx: RunContext, *, csg: bool) -> dict[str, str]:
-    """Placeholder values for the ``[config]`` table of ``configs/servers/bds/server.toml``."""
+    """Placeholder values for the ``[config]`` table of ``configs/bds/server.toml``."""
     server = ctx.scenario.server
     world = ctx.scenario.world
     return {
@@ -327,7 +327,7 @@ def exe_name(platform: str) -> str:
 
 
 def fetch_bds(cache: Cache, version: str, platform: str, *, artifact: Path | None = None) -> Install:
-    """Verify and install one BDS build: the zip pinned in ``configs/servers/bds/server.toml``, or a local zip."""
+    """Verify and install one BDS build: the zip pinned in ``configs/bds/server.toml``, or a local zip."""
     executable = exe_name(platform)
     if artifact is not None:
         archive, ref = fetch.adopt_local(artifact, cache)

@@ -19,7 +19,7 @@ from bedrock_bench.provenance import sha256_file
 
 ROOT = Path(__file__).resolve().parents[2]
 LOGS = ROOT / "tests" / "fixtures" / "logs"
-SERVER_DIR = ROOT / "configs" / "servers" / "altay"
+SERVER_DIR = ROOT / "configs" / "altay"
 
 #: Lines of the pocketmine.yml that Altay 5.44.7 ships, cut down to the keys the harness sets.
 SHIPPED_YML = """# Main configuration file for Altay
@@ -114,7 +114,7 @@ class TestContract:
         assert not AltayAdapter.supports_csg and AltayAdapter.bot_compat_flags == ()
         assert AltayAdapter.tick_thread_rule == "first_created"
         assert set(AltayAdapter.variants) == {"stock"}
-        assert AltayAdapter.features_file == AltayAdapter.config_template == "configs/servers/altay/server.toml"
+        assert AltayAdapter.features_file == AltayAdapter.config_template == "configs/altay/server.toml"
         assert (ROOT / AltayAdapter.helper_source).is_file()
         assert AltayAdapter.helper_source != PocketMineAdapter.helper_source
 

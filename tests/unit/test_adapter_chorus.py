@@ -147,7 +147,7 @@ class TestDialect:
         assert ChorusAdapter.bot_compat_flags == ()
         assert ChorusAdapter.tick_thread_rule == "first_created"
         assert ChorusAdapter.variants == {}
-        assert ChorusAdapter.features_file == "configs/servers/chorus/server.toml"
+        assert ChorusAdapter.features_file == "configs/chorus/server.toml"
 
     def test_pins(self) -> None:
         pin = chorus.SourcePin.load(VERSION)

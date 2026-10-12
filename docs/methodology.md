@@ -188,9 +188,9 @@ that remains is visible.
 - One scenario, one machine profile and one bot flag set per table (R1 to R3), checked by hash.
 - The scenario states gameplay settings once (`[server]`: view and simulation distance, seed, difficulty, game mode,
   player cap, autosave, client-side generation). Each adapter maps them onto its server's own keys, listed in the
-  `[config]` table of `configs/servers/<server>/server.toml` (BDS-hosted servers use the BDS one), and `run.json`
+  `[config]` table of `configs/<server>/server.toml` (BDS-hosted servers use the BDS one), and `run.json`
   records every change. Difficulty is easy on every server, the BDS default, except Chorus, which is always peaceful
-  and has no simulation distance ([its README](../configs/servers/chorus/README.md#caveats)).
+  and has no simulation distance ([its README](../configs/chorus/README.md#caveats)).
 - Equal resources: one fixed heap for every JVM server (`-Xms` equals `-Xmx`, from the machine profile), PocketMine-MP
   and Altay async workers equal to the server CPU count, and BDS `max-threads` left at its default and recorded.
 - Telemetry, crash upload, usage statistics and auto-update are off where a switch exists.

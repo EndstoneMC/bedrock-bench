@@ -21,7 +21,7 @@ _FLAG_TEXT: dict[str, str] = {
     Flag.DIFFERENT_BDS_BUILD: (
         "The matrix has no vanilla run of the BDS build this server hosts ({bds}), so no ratio to vanilla is shown."
     ),
-    Flag.KNOWN_ISSUE: "Known issue `{param}` affects this build{runs}; see configs/servers/{server}/README.md.",
+    Flag.KNOWN_ISSUE: "Known issue `{param}` affects this build{runs}; see configs/{server}/README.md.",
     Flag.UNPUBLISHED_ARTIFACT: "Ran a local artifact instead of a pinned release, so it cannot be published{runs}.",
 }
 

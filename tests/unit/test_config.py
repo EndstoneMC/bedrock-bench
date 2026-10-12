@@ -532,8 +532,8 @@ def server_file(name: str, body: str, head: str = "schema = 1\n") -> str:
 class TestServerFile:
     def test_bare_name(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, write_file) -> None:
         monkeypatch.setenv("BBENCH_ROOT", str(tmp_path))
-        path = write_file("configs/servers/bds/server.toml", server_file("bds", ARTIFACTS + FEATURES + CONFIG))
-        write_file("configs/servers/runtimes.toml", "schema = 1\n" + ARTIFACTS)
+        path = write_file("configs/bds/server.toml", server_file("bds", ARTIFACTS + FEATURES + CONFIG))
+        write_file("configs/runtimes.toml", "schema = 1\n" + ARTIFACTS)
         assert config.resolve("servers", "bds") == path.resolve()
         assert config.available("servers") == ["bds"]
         assert config.load_artifacts("bds").server == "bds"
@@ -575,7 +575,7 @@ class TestServerFile:
 
 class TestArtifacts:
     def test_load(self, write_file) -> None:
-        catalog = config.load_artifacts(write_file("configs/servers/bds/server.toml", server_file("bds", ARTIFACTS)))
+        catalog = config.load_artifacts(write_file("configs/bds/server.toml", server_file("bds", ARTIFACTS)))
         assert catalog.server == "bds" and set(catalog.versions) == {"1.26.52.3", "0.11.14"}
         win = catalog.get("1.26.52.3", "windows")
         assert win.sha256 == SHA and win.size == 123 and win.executables == ("bedrock_server.exe",)
@@ -613,7 +613,7 @@ class TestArtifacts:
 class TestFeatures:
     def test_load_and_row(self, write_file) -> None:
         f = config.load_features(
-            write_file("configs/servers/pocketmine/server.toml", server_file("pocketmine", FEATURES))
+            write_file("configs/pocketmine/server.toml", server_file("pocketmine", FEATURES))
         )
         assert f.server == "pocketmine" and len(f.ranges) == 3
         row = f.row("5.44.3")

@@ -1,14 +1,14 @@
 # SPDX-License-Identifier: Apache-2.0
 """PowerNukkitX, a Nukkit fork with vanilla-like gameplay, run from a release or nightly jar on the pinned JDK.
 
-Fetch: ``powernukkitx.jar`` from ``configs/servers/powernukkitx/server.toml`` and the JDK that version names from
-``configs/servers/runtimes.toml``. No helper plugin: ``time query gametime`` prints the tick counter, and positions
+Fetch: ``powernukkitx.jar`` from ``configs/powernukkitx/server.toml`` and the JDK that version names from
+``configs/runtimes.toml``. No helper plugin: ``time query gametime`` prints the tick counter, and positions
 come from the bots, because PowerNukkitX has no ``querytarget``. Nightly builds are pinned as ``nightly.<commit>``.
 
 Prepare writes ``pnx.yml`` with the benchmark's values (PowerNukkitX completes and rewrites it on start) and
 ``worlds/<level>/config.json`` with the scenario seed, which PowerNukkitX reads only from there. Launch:
 ``java -Xms<heap> -Xmx<heap> -jar powernukkitx.jar``. Like Nukkit, it derives a player's UUID from the XUID, so the
-bots get ``-fake-xuid``. See configs/servers/powernukkitx/README.md.
+bots get ``-fake-xuid``. See configs/powernukkitx/README.md.
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     from bedrock_bench.cache import Cache
 
 JAR = "powernukkitx.jar"
-WORLD_CONFIG_TEMPLATE = "configs/servers/powernukkitx/world-config.json"
+WORLD_CONFIG_TEMPLATE = "configs/powernukkitx/world-config.json"
 DEFAULT_RUNTIME = "jdk-21.0.12.1"
 NIGHTLY = "nightly"
 #: pnx.yml values left at their defaults and recorded as facts, by fact name. Keys a version lacks are skipped.

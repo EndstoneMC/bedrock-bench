@@ -2,19 +2,19 @@
 """LeviLamina, a mod loader for BDS on Windows, with the LeviOptimize mod as an optional variant.
 
 Fetch assembles one install per package set. It starts from the BDS build the release depends on
-(``configs/servers/bds/server.toml``, verified exactly as for vanilla BDS), adds the packages pinned in
-``configs/servers/levilamina/server.toml``, each placed where its own tooth.json puts it, and then runs
+(``configs/bds/server.toml``, verified exactly as for vanilla BDS), adds the packages pinned in
+``configs/levilamina/server.toml``, each placed where its own tooth.json puts it, and then runs
 ``PeEditor.exe -mb`` as ``lip install`` does: PeEditor writes ``bedrock_server_mod.exe``, a copy of the server binary
 that loads PreLoader and through it LeviLamina, and renames the original to ``bedrock_server.exe.bak``. PeEditor runs
 once, while the install is staged, so the install's tree hash covers the executable every run starts. LeviOptimize is
 part of the install only for the LeviOptimize variants.
 
-Prepare writes the pinned PreLoader, LeviLamina and LeviOptimize configs from ``configs/servers/levilamina`` into
+Prepare writes the pinned PreLoader, LeviLamina and LeviOptimize configs from ``configs/levilamina`` into
 every run, with crash report upload and usage statistics switched off. LeviLamina merges an older config over its
 defaults when its config version changes, and LeviOptimize saves its config when the server stops, so a file left
 from another install or run could carry other values.
 
-Launch runs ``bedrock_server_mod.exe``; it is the measured process. See configs/servers/levilamina/README.md.
+Launch runs ``bedrock_server_mod.exe``; it is the measured process. See configs/levilamina/README.md.
 """
 
 from __future__ import annotations
@@ -56,7 +56,7 @@ MOD_EXE = "bedrock_server_mod.exe"
 PEEDITOR = "PeEditor.exe"
 #: ``-m`` writes bedrock_server_mod.exe, ``-b`` keeps the original as bedrock_server.exe.bak (LeviLamina's tooth.json).
 PEEDITOR_ARGS = ("-mb",)
-TEMPLATES_DIR = "configs/servers/levilamina"
+TEMPLATES_DIR = "configs/levilamina"
 UNPACK_DIR = ".unpack"
 
 PRELOADER_CONFIG = "PreLoaderConfig.json"
@@ -68,7 +68,7 @@ LEVIOPTIMIZE_MANIFEST = "plugins/LeviOptimize/manifest.json"
 BASE_PACKAGES = ("levilamina", "preloader", "peeditor", "crashlogger", "runtime-data")
 LEVIOPTIMIZE = "levioptimize"
 LEVIOPTIMIZE_ALL = "levioptimize-all"
-#: The LeviOptimize config each variant runs with (files in configs/servers/levilamina).
+#: The LeviOptimize config each variant runs with (files in configs/levilamina).
 LEVIOPTIMIZE_TEMPLATES: Mapping[str, str] = {
     LEVIOPTIMIZE: "LeviOptimize.default.json",
     LEVIOPTIMIZE_ALL: "LeviOptimize.all.json",
@@ -146,7 +146,7 @@ LEVILAMINA_CHANGES: tuple[JsonChange, ...] = (
 
 @dataclass(frozen=True)
 class Package:
-    """One package pinned in ``configs/servers/levilamina/server.toml``: its asset and where its files go."""
+    """One package pinned in ``configs/levilamina/server.toml``: its asset and where its files go."""
 
     name: str
     release: str
@@ -454,7 +454,7 @@ class LeviLaminaAdapter(BdsFamily):
 
 
 def load_template(name: str) -> Any:
-    """A JSON file from configs/servers/levilamina."""
+    """A JSON file from configs/levilamina."""
     path = config.project_root() / TEMPLATES_DIR / name
     try:
         with open(path, encoding="utf-8") as fh:

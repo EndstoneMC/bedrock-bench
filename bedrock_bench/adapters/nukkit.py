@@ -1,15 +1,15 @@
 # SPDX-License-Identifier: Apache-2.0
 """Nukkit (CloudburstMC), a Bedrock server in Java, run from a pinned snapshot jar on the pinned JDK.
 
-Fetch: the jar from ``configs/servers/nukkit/server.toml`` and the JDK from ``configs/servers/runtimes.toml``. The
+Fetch: the jar from ``configs/nukkit/server.toml`` and the JDK from ``configs/runtimes.toml``. The
 shipped ``nukkit.yml`` (``lang/eng/nukkit.yml`` in the jar, which Nukkit writes on its first start) is extracted from
-the jar. The helper plugin (``plugin.yml`` and the ``*.java`` files in ``configs/servers/nukkit``) is compiled once
+the jar. The helper plugin (``plugin.yml`` and the ``*.java`` files in ``configs/nukkit``) is compiled once
 against the pinned jar with the JDK's ``javac`` and packed into ``plugins/BenchTick.jar``. It adds ``gametime`` (the
 server tick counter, since Nukkit's ``time query`` prints no number), ``positions``, ``pregen`` for templates, and
 lifts the per-IP packet limit of the RakNet listener.
 
 Launch: ``java -Xms<heap> -Xmx<heap> -jar nukkit.jar``. Nukkit derives a player's UUID from the XUID, so the bots get
-``-fake-xuid`` or every bot would replace the previous one. See configs/servers/nukkit/README.md.
+``-fake-xuid`` or every bot would replace the previous one. See configs/nukkit/README.md.
 """
 
 from __future__ import annotations
@@ -57,7 +57,7 @@ if TYPE_CHECKING:
 
 JAR = "nukkit.jar"
 SHIPPED_CONFIG = "lang/eng/nukkit.yml"
-PLUGIN_SOURCE = "configs/servers/nukkit"  # plugin.yml and *.java
+PLUGIN_SOURCE = "configs/nukkit"  # plugin.yml and *.java
 PLUGIN_FILE = "plugins/BenchTick.jar"
 DEFAULT_RUNTIME = "jdk-21.0.12.1"
 NO_WATCHDOG = "no-watchdog"

@@ -3,7 +3,7 @@
 
 ``FakeBench.create(tmp_path)`` lays out a small project mirror and an environment for ``bbench`` subprocesses:
 
-- ``configs/servers/`` and ``configs/scenarios/`` copies, so names resolve the same way as in a checkout;
+- ``configs/`` and ``configs/scenarios/`` copies, so names resolve the same way as in a checkout;
   ``BBENCH_ROOT`` points at the workspace and ``BBENCH_CACHE`` into it;
 - a ``.dist-info`` folder that registers ``fakes.fake_adapter`` under the ``bedrock_bench.adapters`` entry point
   group, with ``tests/`` and that folder on ``PYTHONPATH``;
@@ -268,9 +268,9 @@ class FakeBench:
     def create(cls, root: Path) -> FakeBench:
         root.mkdir(parents=True, exist_ok=True)
         for adapter in FAKE_ADAPTERS:
-            (root / "configs" / "servers" / adapter.name).mkdir(parents=True, exist_ok=True)
+            (root / "configs" / adapter.name).mkdir(parents=True, exist_ok=True)
             shutil.copyfile(
-                SERVERS_DIR / adapter.name / "server.toml", root / "configs" / "servers" / adapter.name / "server.toml"
+                SERVERS_DIR / adapter.name / "server.toml", root / "configs" / adapter.name / "server.toml"
             )
         (root / "configs" / "scenarios").mkdir(parents=True, exist_ok=True)
         for scenario in FAKE_SCENARIOS.glob("*.toml"):

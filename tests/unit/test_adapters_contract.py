@@ -70,10 +70,10 @@ def is_fake(cls: type[ServerAdapter]) -> bool:
 
 
 def pinned_versions(cls: type[ServerAdapter]) -> list[str]:
-    """Versions pinned in ``configs/servers/<name>/server.toml``, which every registered adapter must have."""
+    """Versions pinned in ``configs/<name>/server.toml``, which every registered adapter must have."""
     if is_fake(cls):
         return [FAKE_VERSION]
-    path = ROOT / "configs" / "servers" / cls.name / "server.toml"
+    path = ROOT / "configs" / cls.name / "server.toml"
     if not path.is_file():
         pytest.fail(f"no server file for {cls.name}: add {path.relative_to(ROOT).as_posix()}")
     return sorted(config.load_artifacts(path).versions)
@@ -148,9 +148,9 @@ def test_class_attributes(cls: type[ServerAdapter]) -> None:
 
 @real_adapters
 def test_server_folder(cls: type[ServerAdapter]) -> None:
-    folder = ROOT / "configs" / "servers" / cls.name
+    folder = ROOT / "configs" / cls.name
     missing = [name for name in ("README.md", "server.toml") if not (folder / name).is_file()]
-    assert not missing, f"configs/servers/{cls.name}/ needs {', '.join(missing)}"
+    assert not missing, f"configs/{cls.name}/ needs {', '.join(missing)}"
 
 
 @every_adapter
@@ -387,7 +387,7 @@ def test_features_file_defaults_to_the_adapter_name() -> None:
     class Probe(ServerAdapter):
         name = "probe"
 
-    assert Probe.features_file == "configs/servers/probe/server.toml"
+    assert Probe.features_file == "configs/probe/server.toml"
 
 
 def test_crash_artifacts_are_files_modified_since_the_run_started(tmp_path: Path) -> None:

@@ -1,13 +1,13 @@
 # SPDX-License-Identifier: Apache-2.0
 """Dragonfly, a Bedrock server written in Go (https://github.com/df-mc/dragonfly), run through the dfbench helper.
 
-Dragonfly is a library with an example server and no binary releases. ``configs/servers/dragonfly`` holds dfbench:
+Dragonfly is a library with an example server and no binary releases. ``configs/dragonfly`` holds dfbench:
 that example server plus a console on standard input. Fetch builds it against the Dragonfly module pinned in the
 folder's ``server.toml``, which must be the version its ``go.mod`` requires. Go verifies the module against go.sum;
 fetch also checks the module zip against its pinned sha256, and records the build's defaults (``dfbench -defaults``)
-next to the binary. See configs/servers/dragonfly/README.md.
+next to the binary. See configs/dragonfly/README.md.
 
-- Config: ``config.toml`` gets only the keys of the ``[config]`` table of ``configs/servers/dragonfly/server.toml``.
+- Config: ``config.toml`` gets only the keys of the ``[config]`` table of ``configs/dragonfly/server.toml``.
   Every other key keeps the build's default, and each written value that differs from its default is an override.
 - Console: Go's standard log format with a level; ``gametime`` reads the overworld's tick counter, ``positions``
   lists every player, and ``Player spawned: <name>`` is printed once a player is in the world.
@@ -53,8 +53,8 @@ if TYPE_CHECKING:
 
     from bedrock_bench.cache import Cache
 
-SOURCE_DIR = "configs/servers/dragonfly"  # dfbench, relative to the project root
-SETTINGS_FILE = "configs/servers/dragonfly/server.toml"  # its [config] table
+SOURCE_DIR = "configs/dragonfly"  # dfbench, relative to the project root
+SETTINGS_FILE = "configs/dragonfly/server.toml"  # its [config] table
 CONFIG = "config.toml"  # what dfbench reads in the server directory
 DEFAULTS = "defaults.toml"  # 'dfbench -defaults' of the build, kept in the install
 BUILD_INFO = "build.json"  # 'dfbench -version' of the build and the module it links, kept in the install
@@ -123,7 +123,7 @@ def parse_positions(lines: Sequence[LogLine]) -> list[PlayerPos] | None:
 
 @dataclass(frozen=True)
 class Setting:
-    """One value from the ``[config]`` table of ``configs/servers/dragonfly/server.toml``."""
+    """One value from the ``[config]`` table of ``configs/dragonfly/server.toml``."""
 
     key: str  # dotted path into config.toml, e.g. "Players.MaxCount"
     template: Any  # a TOML value; a string may hold {placeholders}
@@ -271,7 +271,7 @@ def dump_toml(values: Mapping[str, Any]) -> str:
 
 @dataclass(frozen=True)
 class ModulePin:
-    """The Dragonfly module behind one server tag in ``configs/servers/dragonfly/server.toml``."""
+    """The Dragonfly module behind one server tag in ``configs/dragonfly/server.toml``."""
 
     module: str
     version: str  # module version, as go.mod requires it

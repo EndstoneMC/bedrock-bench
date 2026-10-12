@@ -4,12 +4,12 @@
 These servers bring their own world generator, their own config files and a runtime (PHP or a JVM). Their adapters
 are mostly data; this module holds the machinery they share.
 
-- **Artifacts.** The server's own release (a phar or a jar) is pinned in ``configs/servers/<server>/server.toml`` and
-  its runtime in ``configs/servers/runtimes.toml``; both are verified by sha256. An install has two parts:
+- **Artifacts.** The server's own release (a phar or a jar) is pinned in ``configs/<server>/server.toml`` and
+  its runtime in ``configs/runtimes.toml``; both are verified by sha256. An install has two parts:
   ``server/``, copied into every run's fresh server directory, and ``defaults/``, the config files the server would
   write on its first start, extracted from the release itself so they always match the pinned version. Runtimes are
   unpacked once into the cache and used in place, read-only.
-- **Configs.** The ``[config]`` table of ``configs/servers/<server>/server.toml`` lists every value the harness
+- **Configs.** The ``[config]`` table of ``configs/<server>/server.toml`` lists every value the harness
   writes, file by file, in the table of its override category, with the server's default and the reason. Prepare
   starts from the shipped default file when there is one (or an empty file, which the server completes with its
   built-in defaults) and sets those values. A value that differs from the default becomes an
@@ -237,7 +237,7 @@ def same_value(written: str, found: str | None) -> bool:
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# The [config] table of configs/servers/<server>/server.toml
+# The [config] table of configs/<server>/server.toml
 # --------------------------------------------------------------------------------------------------------------------
 
 FORMATS = ("properties", "yaml")
@@ -289,7 +289,7 @@ class ConfigPlan:
 
 
 def load_config_plan(path: Path, *, variants: Iterable[str] = ()) -> ConfigPlan:
-    """Read the ``[config]`` table of ``configs/servers/<server>/server.toml``.
+    """Read the ``[config]`` table of ``configs/<server>/server.toml``.
 
     ``[config.file."<path>"]`` tables name each file and its ``format``; their sub-tables, one per override category,
     hold ``key = { value, reason, default?, type?, variants?, skip_variants? }`` entries.
@@ -506,7 +506,7 @@ def extract_archive(archive: Path, dest: Path, *, executables: Iterable[str] = (
 class Runtime:
     """A verified runtime (a JDK or a PHP build) unpacked in the cache."""
 
-    key: str  # version key in configs/servers/runtimes.toml
+    key: str  # version key in configs/runtimes.toml
     root: Path
     tree_sha256: str
     artifact: ArtifactRef
@@ -529,7 +529,7 @@ def runtime_platform() -> str:
 
 
 def fetch_runtime(cache: Cache, key: str, platform: str) -> Runtime:
-    """Verify and unpack a runtime from ``configs/servers/runtimes.toml`` (``[artifacts.version."<key>".<platform>]``).
+    """Verify and unpack a runtime from ``configs/runtimes.toml`` (``[artifacts.version."<key>".<platform>]``).
 
     Platform tables may name paths inside the archive besides the download keys (``java = "jdk-21/bin/java"``).
     """
@@ -662,13 +662,13 @@ class StandaloneServer(ServerAdapter):
     #: Generator recorded in run.json (one of model.GENERATORS).
     generator: ClassVar[str] = "custom"
     #: File whose ``[config]`` table is the config plan, relative to the project root; defaults to
-    #: ``configs/servers/<name>/server.toml``.
+    #: ``configs/<name>/server.toml``.
     config_template: ClassVar[str]
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
         if "name" in cls.__dict__ and "config_template" not in cls.__dict__:
-            cls.config_template = f"configs/servers/{cls.name}/server.toml"
+            cls.config_template = f"configs/{cls.name}/server.toml"
 
     def config_plan(self) -> ConfigPlan:
         return load_config_plan(config.project_root() / self.config_template, variants=self.variants)
