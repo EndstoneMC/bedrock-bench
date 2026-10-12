@@ -13,7 +13,7 @@ python = "3.13"
 # CPython version pins the wheel. The wheel's dependencies are locked with hashes in requirements-<version>.txt next to
 # this file.
 #
-#   bds             BDS build the release supports; fetched from configs/bds/server.toml
+#   bds             BDS build the release supports; fetched from servers/bds/server.toml
 #   python          CPython used when the arm does not name one
 #   version_marker  what the launcher expects in the server's version.txt (<minor>.<patch> of the BDS build)
 #   known_issues    defects of the release that change measurements; recorded in each run's facts

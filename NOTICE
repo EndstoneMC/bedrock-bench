@@ -25,7 +25,7 @@ contain code from these projects and from their module dependencies; `go version
 compiled into a binary. The patch bots/legacy1001/0001-login-backport.patch is derived from gophertunnel and remains
 under its MIT license, as does the gophertunnel fork that legacy1001 is built against.
 
-The Dragonfly and Chorus helpers (configs/dragonfly/ and configs/chorus/) are built against Dragonfly
+The Dragonfly and Chorus helpers (servers/dragonfly/ and servers/chorus/) are built against Dragonfly
 and Chorus by `bbench fetch` on the user's machine. They are not released as binaries.
 
 gophertunnel - https://github.com/Sandertv/gophertunnel
@@ -109,7 +109,7 @@ psutil - https://github.com/giampaolo/psutil
     A runtime dependency of the Python package, installed from PyPI and not distributed with this repository.
     BSD 3-Clause License, Copyright (c) 2009, Jay Loden, Dave Daeschler, Giampaolo Rodola.
 
-The helper plugins in configs/pocketmine/, configs/altay/, configs/nukkit/,
-configs/nukkitmot/ and configs/allay/ are Apache-2.0 source files. They are compiled or loaded on the
+The helper plugins in servers/pocketmine/, servers/altay/, servers/nukkit/,
+servers/nukkitmot/ and servers/allay/ are Apache-2.0 source files. They are compiled or loaded on the
 user's machine against PocketMine-MP (LGPL-3.0), Altay (LGPL-3.0), Nukkit (GPL-3.0), Nukkit-MOT (LGPL-3.0) and Allay
 (LGPL-3.0), which this repository does not contain.

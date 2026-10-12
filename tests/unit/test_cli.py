@@ -210,11 +210,11 @@ class TestMain:
 
     def test_config_error(self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
         def bad(args: argparse.Namespace) -> int:
-            raise ConfigError("unknown key", file="configs/bds/server.toml", key="benchmark.steady")
+            raise ConfigError("unknown key", file="servers/bds/server.toml", key="benchmark.steady")
 
         monkeypatch.setattr(cli, "resolve_entry", lambda entry: bad)
         assert cli.main(["run", "x"]) == ExitCode.USAGE
-        assert "configs/bds/server.toml: benchmark.steady: unknown key" in capsys.readouterr().err
+        assert "servers/bds/server.toml: benchmark.steady: unknown key" in capsys.readouterr().err
 
     def test_interrupted(self, monkeypatch: pytest.MonkeyPatch) -> None:
         def interrupted(args: argparse.Namespace) -> int:

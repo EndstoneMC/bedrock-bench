@@ -1,7 +1,7 @@
-# Hashed dependencies of endstone==0.11.14. The Endstone wheel itself is pinned in configs/endstone/server.toml.
-# Regenerate (see configs/endstone/README.md):
+# Hashed dependencies of endstone==0.11.14. The Endstone wheel itself is pinned in servers/endstone/server.toml.
+# Regenerate (see servers/endstone/README.md):
 #   echo "endstone==0.11.14" | uv pip compile --universal --generate-hashes --python-version 3.11 \
-#     --no-emit-package endstone --no-header - -o configs/endstone/requirements-0.11.14.txt
+#     --no-emit-package endstone --no-header - -o servers/endstone/requirements-0.11.14.txt
 aiohappyeyeballs==2.7.1 \
     --hash=sha256:065665c041c42a5938ed220bdcd7230f22527fbec085e1853d2402c8a3615d9d \
     --hash=sha256:9243213661e29250eb41368e5daa826fc017156c3b8a11440826b2e3ed376472

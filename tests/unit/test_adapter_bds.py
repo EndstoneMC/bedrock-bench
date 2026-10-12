@@ -131,7 +131,7 @@ class TestContract:
     def test_registered(self) -> None:
         assert adapters.get("bds") is BdsAdapter
         assert BdsAdapter.class_problems() == []
-        assert BdsAdapter.features_file == "configs/bds/server.toml"
+        assert BdsAdapter.features_file == "servers/bds/server.toml"
         assert BdsAdapter.protocol == 2193 and BdsAdapter.supports_csg
         assert BdsAdapter.bot_compat_flags == ()
 
@@ -217,7 +217,7 @@ class TestProperties:
             props.set("e", "x\ny")
 
     def test_template_loads(self) -> None:
-        pins = load_property_pins(ROOT / "configs" / "bds" / "server.toml")
+        pins = load_property_pins(ROOT / "servers" / "bds" / "server.toml")
         keys = {pin.key: pin for pin in pins}
         assert keys["online-mode"].category is OverrideCategory.HARNESS
         assert keys["view-distance"].category is OverrideCategory.PARITY

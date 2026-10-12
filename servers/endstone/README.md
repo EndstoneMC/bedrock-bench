@@ -43,7 +43,7 @@ CheckNetIsolation LoopbackExempt -a -p=S-1-15-2-1958404141-86561845-1752920682-3
 
    ```shell
    echo "endstone==<version>" | uv pip compile --universal --generate-hashes --python-version 3.11 \
-     --no-emit-package endstone --no-header - -o configs/endstone/requirements-<version>.txt
+     --no-emit-package endstone --no-header - -o servers/endstone/requirements-<version>.txt
    ```
 
 3. Add a range for the release to `[features]` in `server.toml`.

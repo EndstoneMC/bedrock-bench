@@ -16,7 +16,7 @@ it to the harness, and where the results land. Run every command from the checko
 - Network access the first time each server is fetched and the bot is built.
 
 Nothing else needs installing. Nukkit, Nukkit-MOT, PowerNukkitX, Allay, PocketMine-MP and Altay run on the JDK and
-PHP builds pinned in [`configs/runtimes.toml`](../configs/runtimes.toml), which fetch downloads.
+PHP builds pinned in [`servers/runtimes.toml`](../servers/runtimes.toml), which fetch downloads.
 Endstone gets its own virtual environment, built with uv. LeviLamina runs on Windows only.
 [README.md#supported-servers](../README.md#supported-servers) lists every server and its pinned version.
 
@@ -78,7 +78,7 @@ Before a measured run:
   a short directory such as `C:\bb`.
 - **Loopback exemption on Windows.** Before every start, Endstone's launcher checks that the Minecraft app may connect
   to loopback and asks for elevation if not, which stalls an unattended run. For a matrix with an Endstone arm, add the
-  exemption once from an elevated prompt, as [its server page](../configs/endstone/README.md#setup) shows.
+  exemption once from an elevated prompt, as [its server page](../servers/endstone/README.md#setup) shows.
 - **Priority on Linux.** The `endstone-0.11.14` matrices run servers at `above_normal`, which on Linux needs root,
   `CAP_SYS_NICE` or a raised `RLIMIT_NICE`. Any Windows user may set it.
 - **One benchmark at a time.** Every run holds the machine lock, `machine.lock` in the cache. Benchmarks that share a
@@ -156,7 +156,7 @@ uv run bbench smoke bds@1.26.52.3
 ```
 
 - `fetch` downloads the pinned BDS archive from Mojang, checks it against the sha256 in
-  [`configs/bds/server.toml`](../configs/bds/server.toml) and unpacks it into the cache.
+  [`servers/bds/server.toml`](../servers/bds/server.toml) and unpacks it into the cache.
   `--accept-eula` (or `BBENCH_ACCEPT_MINECRAFT_EULA=1`) accepts the
   [Minecraft End User License Agreement](https://www.minecraft.net/eula). Nothing from Mojang is stored in this
   repository. `--artifact-dir DIR` takes files with their pinned names from DIR instead of downloading them, for

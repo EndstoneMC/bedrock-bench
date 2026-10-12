@@ -2,9 +2,9 @@
 """Vanilla Bedrock Dedicated Server, run straight from Mojang's zip. The baseline every BDS-hosted server is
 compared with.
 
-Fetch: the pinned zip for this platform from ``configs/bds/server.toml`` (Minecraft EULA), unpacked with
+Fetch: the pinned zip for this platform from ``servers/bds/server.toml`` (Minecraft EULA), unpacked with
 permission bits kept. Launch: ``bedrock_server.exe`` on Windows, ``./bedrock_server`` with ``LD_LIBRARY_PATH=.`` on
-Linux, as Mojang's instructions say. See configs/bds/README.md.
+Linux, as Mojang's instructions say. See servers/bds/README.md.
 """
 
 from __future__ import annotations

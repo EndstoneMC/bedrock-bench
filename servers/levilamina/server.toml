@@ -8,11 +8,11 @@ server = "levilamina"
 version = "26.51.6"
 
 # LeviLamina releases for Windows and the packages each one installs, all GitHub release assets. The BDS build comes
-# from configs/bds/server.toml, so a LeviLamina arm and its vanilla baseline run the same verified BDS zip.
+# from servers/bds/server.toml, so a LeviLamina arm and its vanilla baseline run the same verified BDS zip.
 #
 # A version table names the BDS build the release depends on and its allocator:
 #
-#   bds        the BDS build in LeviLamina's tooth.json dependencies; fetched from configs/bds/server.toml
+#   bds        the BDS build in LeviLamina's tooth.json dependencies; fetched from servers/bds/server.toml
 #   allocator  the allocator LeviLamina installs in the server; it is linked into LeviLamina.dll, so it is declared
 #
 # One sub-table per package (windows-<package>) pins its asset and says where its files go, as the package's own

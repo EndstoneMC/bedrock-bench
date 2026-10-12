@@ -125,7 +125,7 @@ class TestContract:
         assert PocketMineAdapter.protocol == 1001 and not PocketMineAdapter.supports_csg
         assert PocketMineAdapter.bot_compat_flags == ()
         assert PocketMineAdapter.tick_thread_rule == "first_created"
-        assert PocketMineAdapter.features_file == "configs/pocketmine/server.toml"
+        assert PocketMineAdapter.features_file == "servers/pocketmine/server.toml"
 
     def test_pins(self) -> None:
         catalog = config.load_artifacts("pocketmine")

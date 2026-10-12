@@ -10,7 +10,7 @@ version = "b3caad6"
 # Nukkit (CloudburstMC) publishes no releases, so a version is the 7-character commit of a snapshot build from the
 # OpenCollab Maven repository, pinned by its timestamped file name and sha256. Snapshot repositories prune old builds;
 # keep a copy of the jar and pass it with --artifact-dir, where it is checked against the same pin.
-# `runtime` names the JDK in configs/runtimes.toml.
+# `runtime` names the JDK in servers/runtimes.toml.
 [artifacts]
 source = "maven"
 

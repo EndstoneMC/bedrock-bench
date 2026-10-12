@@ -231,10 +231,10 @@ class TestParity:
         assert parity["does_less"] == list(UNIT_WORKLOAD.exercises)
 
     def test_relative_paths_resolve_in_the_checkout(self) -> None:
-        parity = results.parity_record("configs/bds/server.toml", "1.26.52.3", WORKLOAD)
+        parity = results.parity_record("servers/bds/server.toml", "1.26.52.3", WORKLOAD)
         assert parity["file_sha256"] is not None
         assert parity["fidelity"] == "V0"
-        assert (project_root() / "configs" / "bds" / "server.toml").is_file()
+        assert (project_root() / "servers" / "bds" / "server.toml").is_file()
 
 
 class TestInterference:

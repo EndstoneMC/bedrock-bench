@@ -164,7 +164,7 @@ class TestContract:
     def test_registered(self) -> None:
         assert adapters.get("levilamina") is LeviLaminaAdapter
         assert LeviLaminaAdapter.class_problems() == []
-        assert LeviLaminaAdapter.features_file == "configs/levilamina/server.toml"
+        assert LeviLaminaAdapter.features_file == "servers/levilamina/server.toml"
         assert LeviLaminaAdapter.platforms == frozenset({"windows"})
         assert LeviLaminaAdapter.protocol == 2193
         assert LeviLaminaAdapter.tick_thread_rule == "lowest_tid_name:MC_SERVER"

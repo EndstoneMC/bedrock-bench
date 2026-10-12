@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Render a server's config templates and merge them onto the files in its server directory.
 
-``configs/<server>/server.toml`` holds a ``[config]`` table that maps each file in the server directory to the
+``servers/<server>/server.toml`` holds a ``[config]`` table that maps each file in the server directory to the
 template that produces it, both relative paths, the template inside the server's folder::
 
     [config]

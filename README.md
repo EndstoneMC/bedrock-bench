@@ -16,17 +16,17 @@ starts and what to watch for.
 
 | Server | Language | Pinned versions | Config | Notes |
 |---|---|---|---|---|
-| Bedrock Dedicated Server | C++ | `bds@1.26.52.3`<br>`bds@1.26.51.1` | [`configs/bds/`](configs/bds/) | The vanilla reference. The download needs the Minecraft EULA. |
-| [Endstone](https://github.com/EndstoneMC/endstone) | C++ on BDS | `endstone@0.11.13`<br>`endstone@0.11.14` | [`configs/endstone/`](configs/endstone/) | Installed from PyPI with hash-locked dependencies. Runs inside `bds@1.26.52.3`. Variant `glibc-alloc` (Linux only). |
-| [LeviLamina](https://github.com/LiteLDev/LeviLamina) | C++ on BDS | `levilamina@26.51.6` | [`configs/levilamina/`](configs/levilamina/) | Windows only. Runs inside `bds@1.26.51.1`. Two packages need the LeviMC EULA (`--accept-eula`). Variants `levioptimize` and `levioptimize-all`. |
-| [PocketMine-MP](https://github.com/pmmp/PocketMine-MP) | PHP | `pocketmine@5.44.3` | [`configs/pocketmine/`](configs/pocketmine/) | Speaks protocol 1001, so it needs the [protocol 1001 bot](bots/README.md#protocol-1001). Variant `stock`. |
-| [Altay](https://github.com/altayofficial/Altay) | PHP | `altay@5.44.7` | [`configs/altay/`](configs/altay/) | Fork of PocketMine-MP 5 that speaks protocol 2193. Variant `stock`. |
-| [Nukkit](https://github.com/CloudburstMC/Nukkit) | Java | `nukkit@b3caad6` | [`configs/nukkit/`](configs/nukkit/) | Snapshot build, versioned by commit. Variant `no-watchdog`. |
-| [Nukkit-MOT](https://github.com/MemoriesOfTime/Nukkit-MOT) | Java | `nukkitmot@9cb0aba` | [`configs/nukkitmot/`](configs/nukkitmot/) | Jenkins build 1592, versioned by commit. Jenkins keeps few builds, so keep a copy of the jar for `--artifact-dir`. Variant `no-watchdog`. |
-| [PowerNukkitX](https://github.com/PowerNukkitX/PowerNukkitX) | Java | `powernukkitx@3.0.5`<br>`powernukkitx@nightly.86f70bc` | [`configs/powernukkitx/`](configs/powernukkitx/) | The nightly runs on JDK 25. Upstream replaces the nightly jar with every build, so keep a copy for `--artifact-dir`. |
-| [Allay](https://github.com/AllayMC/Allay) | Java | `allay@0.14.0` | [`configs/allay/`](configs/allay/) | Speaks protocol 1001, so it needs the [protocol 1001 bot](bots/README.md#protocol-1001). Flat worlds only. |
-| [Dragonfly](https://github.com/df-mc/dragonfly) | Go | `dragonfly@1793369` | [`configs/dragonfly/`](configs/dragonfly/) | `bbench fetch` builds it from source, so it needs Go 1.26 or newer. The one server CI runs. |
-| [Chorus](https://github.com/bedrock-crustaceans/chorus) | Rust | `chorus@95ca835` | [`configs/chorus/`](configs/chorus/) | `bbench fetch` builds it from source, so it needs Rust 1.95.0. Its player list gives the bots decode errors, so every run at this commit is invalid and it is not in E3. |
+| Bedrock Dedicated Server | C++ | `bds@1.26.52.3`<br>`bds@1.26.51.1` | [`servers/bds/`](servers/bds/) | The vanilla reference. The download needs the Minecraft EULA. |
+| [Endstone](https://github.com/EndstoneMC/endstone) | C++ on BDS | `endstone@0.11.13`<br>`endstone@0.11.14` | [`servers/endstone/`](servers/endstone/) | Installed from PyPI with hash-locked dependencies. Runs inside `bds@1.26.52.3`. Variant `glibc-alloc` (Linux only). |
+| [LeviLamina](https://github.com/LiteLDev/LeviLamina) | C++ on BDS | `levilamina@26.51.6` | [`servers/levilamina/`](servers/levilamina/) | Windows only. Runs inside `bds@1.26.51.1`. Two packages need the LeviMC EULA (`--accept-eula`). Variants `levioptimize` and `levioptimize-all`. |
+| [PocketMine-MP](https://github.com/pmmp/PocketMine-MP) | PHP | `pocketmine@5.44.3` | [`servers/pocketmine/`](servers/pocketmine/) | Speaks protocol 1001, so it needs the [protocol 1001 bot](bots/README.md#protocol-1001). Variant `stock`. |
+| [Altay](https://github.com/altayofficial/Altay) | PHP | `altay@5.44.7` | [`servers/altay/`](servers/altay/) | Fork of PocketMine-MP 5 that speaks protocol 2193. Variant `stock`. |
+| [Nukkit](https://github.com/CloudburstMC/Nukkit) | Java | `nukkit@b3caad6` | [`servers/nukkit/`](servers/nukkit/) | Snapshot build, versioned by commit. Variant `no-watchdog`. |
+| [Nukkit-MOT](https://github.com/MemoriesOfTime/Nukkit-MOT) | Java | `nukkitmot@9cb0aba` | [`servers/nukkitmot/`](servers/nukkitmot/) | Jenkins build 1592, versioned by commit. Jenkins keeps few builds, so keep a copy of the jar for `--artifact-dir`. Variant `no-watchdog`. |
+| [PowerNukkitX](https://github.com/PowerNukkitX/PowerNukkitX) | Java | `powernukkitx@3.0.5`<br>`powernukkitx@nightly.86f70bc` | [`servers/powernukkitx/`](servers/powernukkitx/) | The nightly runs on JDK 25. Upstream replaces the nightly jar with every build, so keep a copy for `--artifact-dir`. |
+| [Allay](https://github.com/AllayMC/Allay) | Java | `allay@0.14.0` | [`servers/allay/`](servers/allay/) | Speaks protocol 1001, so it needs the [protocol 1001 bot](bots/README.md#protocol-1001). Flat worlds only. |
+| [Dragonfly](https://github.com/df-mc/dragonfly) | Go | `dragonfly@1793369` | [`servers/dragonfly/`](servers/dragonfly/) | `bbench fetch` builds it from source, so it needs Go 1.26 or newer. The one server CI runs. |
+| [Chorus](https://github.com/bedrock-crustaceans/chorus) | Rust | `chorus@95ca835` | [`servers/chorus/`](servers/chorus/) | `bbench fetch` builds it from source, so it needs Rust 1.95.0. Its player list gives the bots decode errors, so every run at this commit is invalid and it is not in E3. |
 
 Evaluated, not supported: [MiNET](https://github.com/NiclasOlofsson/MiNET) (needs a NetherNet bot),
 [JSPrismarine](https://github.com/JSPrismarine/JSPrismarine) (protocol 748, client-authoritative movement),
@@ -34,7 +34,7 @@ Evaluated, not supported: [MiNET](https://github.com/NiclasOlofsson/MiNET) (need
 input) and [Sculk](https://github.com/sculkmp/Sculk) (discontinued, a login and chat skeleton with no world).
 
 PocketMine-MP, Altay, Nukkit, Nukkit-MOT, PowerNukkitX and Allay run on the PHP and JDK builds pinned in
-[`configs/runtimes.toml`](configs/runtimes.toml). To add a server, see
+[`servers/runtimes.toml`](servers/runtimes.toml). To add a server, see
 [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md#adding-a-server).
 
 ## Installation

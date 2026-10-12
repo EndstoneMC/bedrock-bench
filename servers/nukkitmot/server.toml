@@ -10,7 +10,7 @@ version = "9cb0aba"
 # Nukkit-MOT publishes rolling builds from the master branch on its Jenkins, so a version is the 7-character commit of
 # one build, pinned by its build number and sha256. Jenkins keeps only the last few builds; keep a copy of the jar and
 # pass it with --artifact-dir, where it is checked against the same pin. Not the -Lite jar, which downloads its
-# libraries at start. `runtime` names the JDK in configs/runtimes.toml.
+# libraries at start. `runtime` names the JDK in servers/runtimes.toml.
 [artifacts]
 source = "web"
 

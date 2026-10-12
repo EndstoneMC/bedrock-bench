@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Runtimes for the servers that bring their own: a JDK for Nukkit and PowerNukkitX, PocketMine's PHP build for
-# PocketMine-MP. Each server version names the runtime it uses (`runtime` in configs/<server>/server.toml).
+# PocketMine-MP. Each server version names the runtime it uses (`runtime` in servers/<server>/server.toml).
 # Runtimes are unpacked once into the cache and used read-only.
 #
 # Besides url, sha256, size and executables, a platform table names paths inside the archive that the adapters use.

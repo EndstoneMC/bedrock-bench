@@ -9,7 +9,7 @@ version = "0.14.0"
 
 # Allay release jars from GitHub, verified against the sha256 GitHub publishes for each release asset. `commit` is the
 # commit the release tag points at; the jar's file name carries its first nine characters. The 0.14 line accepts
-# protocols 818 to 1001; the bots use 1001. `runtime` names the JDK in configs/runtimes.toml.
+# protocols 818 to 1001; the bots use 1001. `runtime` names the JDK in servers/runtimes.toml.
 [artifacts]
 source = "github"
 

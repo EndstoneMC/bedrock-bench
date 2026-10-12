@@ -20,7 +20,7 @@ from bedrock_bench.workload import WORKLOAD
 
 ROOT = Path(__file__).resolve().parents[2]
 LOGS = ROOT / "tests" / "fixtures" / "logs"
-SERVER_DIR = ROOT / "configs" / "altay"
+SERVER_DIR = ROOT / "servers" / "altay"
 
 #: Lines of the pocketmine.yml that Altay 5.44.7 ships, cut down to the keys the harness sets.
 SHIPPED_YML = """# Main configuration file for Altay
@@ -114,7 +114,7 @@ class TestContract:
         assert AltayAdapter.protocol == 2193 and bots.module_for_protocol(AltayAdapter.protocol) == "loadbot"
         assert not AltayAdapter.supports_csg and AltayAdapter.bot_compat_flags == ()
         assert AltayAdapter.tick_thread_rule == "first_created"
-        assert AltayAdapter.features_file == AltayAdapter.config_template == "configs/altay/server.toml"
+        assert AltayAdapter.features_file == AltayAdapter.config_template == "servers/altay/server.toml"
         assert (ROOT / AltayAdapter.helper_source).is_file()
         assert AltayAdapter.helper_source != PocketMineAdapter.helper_source
 

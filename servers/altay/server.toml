@@ -8,7 +8,7 @@ server = "altay"
 version = "5.44.7"
 
 # Altay release phars from GitHub, verified against the sha256 GitHub publishes for each release asset.
-# `runtime` names the PHP build in configs/runtimes.toml; `protocol` and `minecraft` are what the release
+# `runtime` names the PHP build in servers/runtimes.toml; `protocol` and `minecraft` are what the release
 # speaks.
 [artifacts]
 source = "github"

@@ -70,10 +70,10 @@ def is_fake(cls: type[ServerAdapter]) -> bool:
 
 
 def pinned_versions(cls: type[ServerAdapter]) -> list[str]:
-    """Versions pinned in ``configs/<name>/server.toml``, which every registered adapter must have."""
+    """Versions pinned in ``servers/<name>/server.toml``, which every registered adapter must have."""
     if is_fake(cls):
         return [FAKE_VERSION]
-    path = ROOT / "configs" / cls.name / "server.toml"
+    path = ROOT / "servers" / cls.name / "server.toml"
     if not path.is_file():
         pytest.fail(f"no server file for {cls.name}: add {path.relative_to(ROOT).as_posix()}")
     return sorted(config.load_artifacts(path).versions)
@@ -140,7 +140,7 @@ def test_class_attributes(cls: type[ServerAdapter]) -> None:
 
 @real_adapters
 def test_server_folder(cls: type[ServerAdapter]) -> None:
-    folder = ROOT / "configs" / cls.name
+    folder = ROOT / "servers" / cls.name
     missing = [name for name in ("README.md", "server.toml") if not (folder / name).is_file()]
     assert not missing, f"configs/{cls.name}/ needs {', '.join(missing)}"
 

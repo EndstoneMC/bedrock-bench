@@ -279,8 +279,8 @@ class FakeBench:
         (root / "configs").mkdir(exist_ok=True)
         shutil.copyfile(TESTS_DIR.parent / "configs" / "benchmark.toml", root / "configs" / "benchmark.toml")
         for adapter in FAKE_ADAPTERS:
-            (root / "configs" / adapter.name).mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(SERVERS_DIR / adapter.name / "server.toml", root / "configs" / adapter.name / "server.toml")
+            (root / "servers" / adapter.name).mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(SERVERS_DIR / adapter.name / "server.toml", root / "servers" / adapter.name / "server.toml")
         entry_points = register_entry_point(root / "entry-points")
 
         cpus = host_cpus()

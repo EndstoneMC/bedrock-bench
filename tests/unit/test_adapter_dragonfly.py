@@ -326,7 +326,7 @@ class FakeGo:
 
 @pytest.fixture
 def project(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
-    """A project root with configs/dragonfly, whose server.toml pins a fake module zip."""
+    """A project root with servers/dragonfly, whose server.toml pins a fake module zip."""
     root = tmp_path / "project"
     src = root / dragonfly.SOURCE_DIR
     src.mkdir(parents=True)
@@ -460,7 +460,7 @@ class TestPrepare:
         assert adapter.executable(layout).read_bytes() == b"dfbench binary"
 
     def test_benchmark_config_is_what_dfbench_tests_read(self, tmp_path: Path) -> None:
-        """configs/dragonfly/testdata/config.toml is the benchmark config; dfbench's Go tests parse it."""
+        """servers/dragonfly/testdata/config.toml is the benchmark config; dfbench's Go tests parse it."""
         ctx = dataclasses.replace(make_ctx(tmp_path), workload=WORKLOAD)
         layout = make_adapter().prepare(make_install(tmp_path), ctx)
         written = (layout.server_dir / dragonfly.CONFIG).read_bytes()

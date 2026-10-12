@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Download, verify and unpack pinned artifacts.
 
-Every artifact pinned in ``configs/<server>/server.toml`` carries a URL, a size and a sha256. A verified copy
+Every artifact pinned in ``servers/<server>/server.toml`` carries a URL, a size and a sha256. A verified copy
 is kept in the cache under ``dl/<sha256>/<name>``; nothing is used before its hash has been checked. Sources are tried
 in order: the cache, an artifact directory (``--artifact-dir`` or ``$BBENCH_ARTIFACT_DIR``) holding files under their
 pinned names, then the URL.

@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
 """PocketMine-MP, a Bedrock server written in PHP, run from its release phar on PocketMine's own PHP build.
 
-Fetch: ``PocketMine-MP.phar`` from ``configs/pocketmine/server.toml`` and the PHP binaries from
-``configs/runtimes.toml``. The shipped ``pocketmine.yml`` (what PocketMine-MP copies out of the phar on its
+Fetch: ``PocketMine-MP.phar`` from ``servers/pocketmine/server.toml`` and the PHP binaries from
+``servers/runtimes.toml``. The shipped ``pocketmine.yml`` (what PocketMine-MP copies out of the phar on its
 first start) is extracted from the phar, so its defaults are always those of the pinned release.
-``configs/pocketmine/BenchHelper.php`` goes into ``plugins/``: it adds ``gametime`` (the server's tick counter)
+``servers/pocketmine/BenchHelper.php`` goes into ``plugins/``: it adds ``gametime`` (the server's tick counter)
 and ``positions``, and lifts RakLib's per-IP packet limit, which 100 bots on 127.0.0.1 would trip.
 
 Launch: ``php PocketMine-MP.phar --no-wizard --disable-ansi`` in the run's server directory, like the official start
@@ -12,7 +12,7 @@ scripts. On Linux the bundled extension directory is passed with ``-d extension_
 writes it, so opcache loads.
 
 The 5.44 line speaks protocol 1001 (Minecraft 1.26.30), so it gets the ``legacy1001`` bot; reports flag that.
-See configs/pocketmine/README.md.
+See servers/pocketmine/README.md.
 """
 
 from __future__ import annotations
@@ -59,7 +59,7 @@ if TYPE_CHECKING:
 
 PHAR = "PocketMine-MP.phar"
 SHIPPED_CONFIG = "resources/pocketmine.yml"
-HELPER_SOURCE = "configs/pocketmine/BenchHelper.php"
+HELPER_SOURCE = "servers/pocketmine/BenchHelper.php"
 HELPER_FILE = "plugins/BenchHelper.php"
 DEFAULT_RUNTIME = "php-8.2-pm5-524"
 

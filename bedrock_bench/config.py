@@ -5,7 +5,7 @@ Every loader rejects unknown keys, so a typo fails loudly instead of falling bac
 :class:`ConfigError` naming the file and the dotted key; the CLI turns them into exit code 2.
 
 Server files are referenced by path or by bare name. A bare name resolves inside the project checkout, for example
-``bds`` -> ``configs/bds/server.toml``. Machine profiles are always paths.
+``bds`` -> ``servers/bds/server.toml``. Machine profiles are always paths.
 
 A server file holds ``schema = 1``, an optional ``server`` that must match its folder, and three tables:
 ``[artifacts]`` (download pins), ``[features]`` (declared parity) and ``[config]`` (the values written into the
@@ -56,7 +56,7 @@ SCHEMA_DIR = Path(__file__).resolve().parent / "schemas"
 
 #: Where each input kind that resolves by name lives, relative to the project root.
 CONFIG_PATHS = {
-    "servers": "configs/{}/server.toml",
+    "servers": "servers/{}/server.toml",
 }
 _SINGULAR = {
     "servers": "server file",
@@ -65,7 +65,7 @@ _SINGULAR = {
 SERVER_FILE = "server.toml"
 SERVER_TABLES = ("artifacts", "features", "config", "benchmark")
 #: JDK and PHP pins shared by the standalone servers, an ``[artifacts]`` table like a server file's.
-RUNTIMES_FILE = "configs/runtimes.toml"
+RUNTIMES_FILE = "servers/runtimes.toml"
 
 NAME_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 SERVER_RE = re.compile(r"^[a-z][a-z0-9_]*$")
@@ -508,7 +508,7 @@ def _cpu_spec(keywords: tuple[str, ...]) -> Callable[[str], None]:
 
 
 def load_server_table(ref: str | Path, table: str) -> tuple[Path, dict[str, Any]]:
-    """One top-level table of ``configs/<ref>/server.toml``, or of a server file given by path.
+    """One top-level table of ``servers/<ref>/server.toml``, or of a server file given by path.
 
     The rest of the file is checked too: ``schema = 1``, ``server`` (when present) equal to the folder name, and no
     keys besides the server tables. A missing table is an error.
@@ -543,7 +543,7 @@ def load_benchmark(ref: str | Path) -> Benchmark:
 
 
 def benchmark_defaults() -> list[Benchmark]:
-    """The ``[benchmark]`` table of every server folder in configs/, by name."""
+    """The ``[benchmark]`` table of every server folder in servers/, by name."""
     return [load_benchmark(name) for name in available("servers")]
 
 

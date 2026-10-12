@@ -1,15 +1,15 @@
 # SPDX-License-Identifier: Apache-2.0
 """Nukkit-MOT (MemoriesOfTime), a multi-version Nukkit fork in Java, run from a pinned Jenkins build on the pinned JDK.
 
-Fetch: the jar from ``configs/nukkitmot/server.toml`` and the JDK from ``configs/runtimes.toml``. The
+Fetch: the jar from ``servers/nukkitmot/server.toml`` and the JDK from ``servers/runtimes.toml``. The
 jar ships neither ``server.properties`` nor ``nukkit-mot.yml``; both start empty and Nukkit-MOT completes them on
-start. The helper plugin (``plugin.yml`` and the ``*.java`` files in ``configs/nukkitmot``, Nukkit's helper
+start. The helper plugin (``plugin.yml`` and the ``*.java`` files in ``servers/nukkitmot``, Nukkit's helper
 without its RakNet reflection) is compiled once against the pinned jar with the JDK's ``javac`` and packed into
 ``plugins/BenchTick.jar``. It adds ``gametime`` (``time query`` prints the day time, which wraps at 24000),
 and ``positions``.
 
 Launch: ``java -Xms<heap> -Xmx<heap> -jar nukkit-mot.jar``. Offline players get a UUID from their name, so the bots
-need no compat flag. See configs/nukkitmot/README.md.
+need no compat flag. See servers/nukkitmot/README.md.
 """
 
 from __future__ import annotations
@@ -51,7 +51,7 @@ if TYPE_CHECKING:
     from bedrock_bench.cache import Cache
 
 JAR = "nukkit-mot.jar"
-PLUGIN_SOURCE = "configs/nukkitmot"  # plugin.yml and *.java
+PLUGIN_SOURCE = "servers/nukkitmot"  # plugin.yml and *.java
 PLUGIN_FILE = "plugins/BenchTick.jar"
 DEFAULT_RUNTIME = "jdk-21.0.12.1"
 

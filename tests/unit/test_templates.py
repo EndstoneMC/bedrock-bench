@@ -70,8 +70,8 @@ class TestConfigMap:
         ],
     )
     def test_paths_must_stay_inside_the_folder(self, tmp_path: Path, line: str) -> None:
-        (tmp_path / "configs" / "bds").mkdir(parents=True)
-        (tmp_path / "configs" / "bds" / "server.properties").write_text("", encoding="utf-8")
+        (tmp_path / "servers" / "bds").mkdir(parents=True)
+        (tmp_path / "servers" / "bds" / "server.properties").write_text("", encoding="utf-8")
         folder = make_folder(tmp_path, line + "\n", {"server.properties": ""})
         with pytest.raises(ConfigError, match="inside the folder"):
             load_config_map(folder)

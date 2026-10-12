@@ -11,7 +11,7 @@ version = "nightly.86f70bc"
 # A release jar reports its version as <version>-SNAPSHOT with the commit it was built from; `commit` is that commit.
 # A nightly jar reports nightly-SNAPSHOT with its commit, which reads as the version nightly.<commit>. The nightly tag
 # moves to every new build, so its URL serves only the newest jar. Keep a copy under `name` for --artifact-dir.
-# `runtime` names the JDK in configs/runtimes.toml.
+# `runtime` names the JDK in servers/runtimes.toml.
 [artifacts]
 source = "github"
 

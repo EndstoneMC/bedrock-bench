@@ -6,7 +6,7 @@ on:
     branches: [main]
     paths:
       - bots/**
-      - configs/dragonfly/**
+      - servers/dragonfly/**
       - bedrock_bench/schemas/bot-event.schema.json
       - bedrock_bench/results.py
       - bedrock_bench/cli.py
@@ -15,7 +15,7 @@ on:
   pull_request:
     paths:
       - bots/**
-      - configs/dragonfly/**
+      - servers/dragonfly/**
       - bedrock_bench/schemas/bot-event.schema.json
       - bedrock_bench/results.py
       - bedrock_bench/cli.py
@@ -52,11 +52,11 @@ jobs:
           go-version-file: bots/loadbot/go.mod
           cache-dependency-path: |
             bots/*/go.sum
-            configs/dragonfly/go.sum
+            servers/dragonfly/go.sum
       - name: gofmt
         if: runner.os == 'Linux'
         run: |
-          unformatted=$(gofmt -l bots configs/dragonfly)
+          unformatted=$(gofmt -l bots servers/dragonfly)
           if [ -n "$unformatted" ]; then
             echo "::error::gofmt -w these files:"
             echo "$unformatted"
@@ -65,7 +65,7 @@ jobs:
       - name: Verify, tidy check, vet and test each module
         shell: bash
         run: |
-          for dir in bots/core bots/loadbot configs/dragonfly; do
+          for dir in bots/core bots/loadbot servers/dragonfly; do
             echo "::group::$dir"
             (cd "$dir" && go mod verify && go mod tidy -diff && go vet ./... && go test ./...)
             echo "::endgroup::"
@@ -93,7 +93,7 @@ jobs:
           go-version-file: bots/loadbot/go.mod
           cache-dependency-path: |
             bots/*/go.sum
-            configs/dragonfly/go.sum
+            servers/dragonfly/go.sum
       - name: Build linux/amd64 and windows/amd64 binaries
         shell: bash
         run: bash .github/scripts/build-go.sh "$RUNNER_TEMP/dist"

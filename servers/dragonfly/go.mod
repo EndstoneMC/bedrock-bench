@@ -1,4 +1,4 @@
-module github.com/EndstoneMC/bedrock-bench/configs/dragonfly
+module github.com/EndstoneMC/bedrock-bench/servers/dragonfly
 
 go 1.26.0
 
