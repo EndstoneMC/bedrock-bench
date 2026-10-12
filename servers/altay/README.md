@@ -8,7 +8,8 @@ V1, so reports list it under "Reduced fidelity". Its version numbers follow Pock
 apart by the arm tag, `altay@<version>`.
 
 Adapter: [altay.py](../../bedrock_bench/adapters/altay.py), which extends
-[pocketmine.py](../../bedrock_bench/adapters/pocketmine.py). Helper plugin: [BenchHelper.php](BenchHelper.php).
+[pocketmine.py](../../bedrock_bench/adapters/pocketmine.py). Helper plugin: [BenchHelper.php](BenchHelper.php). Config
+templates: [server.properties](server.properties) and [pocketmine.yml](pocketmine.yml).
 
 ## Setup
 
@@ -42,21 +43,20 @@ so its defaults always belong to the pinned release. Every run starts from a fre
 
 ## Configuration changes
 
-The values, the shipped defaults and the reasons are in the `[config]` table of [server.toml](server.toml), and every
-change is recorded in run.json with its category
-([methodology](../../docs/methodology.md#fairness-and-feature-parity)). `server.properties` starts empty and Altay
-adds its own defaults; `pocketmine.yml` starts from the shipped copy. The changes are PocketMine-MP's, plus the
-transport.
+Prepare renders [server.properties](server.properties) and [pocketmine.yml](pocketmine.yml) into the server directory.
+Each key the harness sets has its reason in a comment above it, and run.json records every key's value before and
+after. `server.properties` does not exist before the first start, so it is written as rendered and Altay adds its own
+defaults; `pocketmine.yml` is merged onto the shipped copy. The changes are PocketMine-MP's, plus the transport.
 
-- harness: the machine profile's port, with IPv6 off; offline login; `network.transport` written as `raknet`, the
-  shipped value; crash report upload, the auto-updater and anonymous statistics off. Altay ships all three on.
-- parity: view and simulation distance, seed, level name, difficulty, game mode, max players, autosave interval and
-  player data. `settings.async-workers` is the number of server CPUs, because `auto` counts every CPU of the machine,
-  not the server's CPU set.
-- rescue: `memory.main-hard-limit` is 0 (off) instead of the shipped 1024 MB, at which PocketMine-MP stops itself
-  about 23 s into the 100-bot join.
+- `server.properties`: the run's port, with IPv6 off; offline login; view distance, seed, level name, difficulty, game
+  mode, max players and autosave, the same as on every server.
+- `pocketmine.yml`: simulation distance, autosave interval and player data, the same as on every server;
+  `network.transport` written as `raknet`, the shipped value; crash report upload, the auto-updater and anonymous
+  statistics off, which Altay ships on. `settings.async-workers` is the number of server CPUs, because `auto` counts
+  every CPU of the machine. `memory.main-hard-limit` is 0 (off) instead of the shipped 1024 MB, at which PocketMine-MP
+  stops itself about 23 s into the 100-bot join.
 
-Held in the adapter, all harness:
+Held in the adapter:
 
 - `plugins/BenchHelper.php` is installed. 20 ticks after it loads, once the network interface exists, it raises the
   RakNet transport's per-IP packet limit from 200 packets per transport tick (10 ms) to 2147483647. Every bot connects

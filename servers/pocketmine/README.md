@@ -8,6 +8,7 @@ join, so its runs use the [protocol 1001 bot](../../bots/README.md#protocol-1001
 `bot_protocol_differs`.
 
 Adapter: [pocketmine.py](../../bedrock_bench/adapters/pocketmine.py). Helper plugin: [BenchHelper.php](BenchHelper.php).
+Config templates: [server.properties](server.properties) and [pocketmine.yml](pocketmine.yml).
 
 ## Setup
 
@@ -42,20 +43,19 @@ belong to the pinned release. Every run starts from a fresh copy.
 
 ## Configuration changes
 
-The values, the shipped defaults and the reasons are in the `[config]` table of [server.toml](server.toml), and every
-change is recorded in run.json with its category
-([methodology](../../docs/methodology.md#fairness-and-feature-parity)). `server.properties` starts empty and
-PocketMine-MP adds its own defaults; `pocketmine.yml` starts from the shipped copy.
+Prepare renders [server.properties](server.properties) and [pocketmine.yml](pocketmine.yml) into the server directory.
+Each key the harness sets has its reason in a comment above it, and run.json records every key's value before and
+after. `server.properties` does not exist before the first start, so it is written as rendered and PocketMine-MP adds
+its own defaults; `pocketmine.yml` is merged onto the shipped copy.
 
-- harness: the machine profile's port, with IPv6 off; offline login; crash report upload, the auto-updater and
-  anonymous statistics off.
-- parity: view and simulation distance, seed, level name, difficulty, game mode, max players, autosave interval and
-  player data. `settings.async-workers` is the number of server CPUs, because `auto` counts every CPU of the machine,
-  not the server's CPU set.
-- rescue: `memory.main-hard-limit` is 0 (off) instead of the shipped 1024 MB, at which the server stops itself about
-  23 s into the 100-bot join.
+- `server.properties`: the run's port, with IPv6 off; offline login; view distance, seed, level name, difficulty, game
+  mode, max players and autosave, the same as on every server.
+- `pocketmine.yml`: simulation distance, autosave interval and player data, the same as on every server; crash report
+  upload, the auto-updater and anonymous statistics off. `settings.async-workers` is the number of server CPUs,
+  because `auto` counts every CPU of the machine. `memory.main-hard-limit` is 0 (off) instead of the shipped 1024 MB,
+  at which the server stops itself about 23 s into the 100-bot join.
 
-Held in the adapter, all harness:
+Held in the adapter:
 
 - `plugins/BenchHelper.php` is installed. 20 ticks after it loads, once the network interface exists, it lifts
   RakLib's per-IP packet limit (200 packets per RakLib tick). Every bot connects from 127.0.0.1, and at the default
