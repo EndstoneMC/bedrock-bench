@@ -412,7 +412,6 @@ def _run_json(v: Variant) -> dict[str, Any]:
             "banner_version": "1.0",
             "facts": {"allocator": "default", "jvm_heap_mib": None, "thread_census_idle": {}, "csg_setting": False},
         },
-        "overrides": [],
         "config_files": [],
         "bot": {"module": "loadbot", "protocol": 2193, "sha256": None, "argv": []},
         "workload": WORKLOAD_6.record(),

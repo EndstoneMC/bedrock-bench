@@ -25,10 +25,9 @@ from bedrock_bench.model import (
     ExitCode,
     Gates,
     Install,
+    KeyChange,
     Layout,
     Machine,
-    Override,
-    OverrideCategory,
     Placement,
     WorldInfo,
 )
@@ -184,14 +183,23 @@ class TestRecord:
         doc = record()
         layout = Layout(
             server_dir=tmp_path,
-            overrides=(Override(OverrideCategory.HARNESS, "server.properties", "online-mode", "true", "false", "x"),),
-            config_files=(ConfigFile("server.properties", "a" * 64),),
+            config_files=(
+                ConfigFile("server.properties", "a" * 64, "server.properties", False, (KeyChange("a", "1", "2"),)),
+            ),
             world=WorldInfo(fresh=True, generator="vanilla", path=tmp_path / "worlds" / "bench"),
             extra={"exe_sha256": "b" * 64},
         )
         results.apply_layout(doc, layout)
-        assert doc["overrides"][0]["category"] == "harness"
-        assert doc["config_files"] == [{"path": "server.properties", "written_sha256": "a" * 64, "after_sha256": None}]
+        assert doc["config_files"] == [
+            {
+                "path": "server.properties",
+                "written_sha256": "a" * 64,
+                "template": "server.properties",
+                "created": False,
+                "keys": [{"key": "a", "before": "1", "after": "2"}],
+                "after_sha256": None,
+            }
+        ]
         assert doc["world"] == {"fresh": True, "generator": "vanilla"}
         assert doc["install"]["exe_sha256_before"] == "b" * 64
 

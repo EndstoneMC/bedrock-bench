@@ -387,6 +387,11 @@ class Session:
         _copy_configs(layout, self.run_dir.file(CONFIG_WRITTEN_DIR))
 
         spec = self.adapter.launch(layout)
+        self.record["server"]["launch"] = {
+            "argv": list(spec.argv),
+            "env_set": dict(spec.env_set),
+            "env_remove": list(spec.env_remove),
+        }
         self._launched_at = self.now()
         self.launched = launched = process.launch(spec, self.placement, role="server")
         self.record["placement"]["method"] = launched.method

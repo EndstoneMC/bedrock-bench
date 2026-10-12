@@ -82,7 +82,7 @@ EXIT_LIFETIME = 70
 #: Where a fresh player appears before the harness teleports it.
 WORLD_SPAWN = (0.5, 70.0, 0.5)
 
-#: Server config defaults; an adapter records every value it changes from these as an override.
+#: Server config defaults, for every key the config file does not set.
 CONFIG_FILE = "server.properties"
 CONFIG_DEFAULTS: Mapping[str, str] = {
     "server-name": "Fake Server",

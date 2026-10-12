@@ -6,9 +6,9 @@ They are registered only in tests. ``bench.py`` publishes this module under the 
 point group through a throwaway ``.dist-info`` folder, exactly as a third-party adapter package would register.
 
 Each dialect is compiled from the patterns the family declares in ``fake_server.py``. ``fetch`` copies the fake server
-into the cache like a verified download, ``prepare`` renders ``server.properties`` and records every change from the
-fake server's defaults as a categorised override, and ``$BBENCH_FAKE_BEHAVIOUR`` picks a behaviour script from
-``scripts/``: ``<script>`` for every fake adapter, or ``<adapter>=<script>,...``::
+into the cache like a verified download, ``prepare`` renders ``server.properties`` from the template in this folder,
+and ``$BBENCH_FAKE_BEHAVIOUR`` picks a behaviour script from ``scripts/``: ``<script>`` for every fake adapter, or
+``<adapter>=<script>,...``::
 
     BBENCH_TEST_WORKLOAD=tests/fakes/fake-quick.json BBENCH_FAKE_BEHAVIOUR=crash-after-join \
         bbench run-one --server fake_bds@1.0.0
@@ -23,7 +23,7 @@ import re
 import shutil
 import sys
 import time
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
@@ -32,19 +32,16 @@ from bedrock_bench.config import ConfigError
 from bedrock_bench.model import (
     Arm,
     ArtifactRef,
-    ConfigFile,
     Install,
     LaunchSpec,
     Layout,
     LogLine,
     Machine,
-    Override,
-    OverrideCategory,
     PlayerPos,
     RunContext,
     WorldInfo,
 )
-from fakes.fake_server import CONFIG_DEFAULTS, CONFIG_FILE, FAMILIES, SCRIPT_FILE, Family
+from fakes.fake_server import CONFIG_FILE, FAMILIES, SCRIPT_FILE, Family
 
 if TYPE_CHECKING:
     import psutil
@@ -56,22 +53,6 @@ SERVER_SCRIPT = FAKES_DIR / "fake_server.py"
 BOTS_SCRIPT = FAKES_DIR / "fake_bots.py"
 SCRIPTS_DIR = FAKES_DIR / "scripts"
 SERVERS_DIR = FAKES_DIR / "servers"
-
-#: Category and reason of every config key ``prepare`` may change.
-CONFIG_KEYS: Mapping[str, tuple[OverrideCategory, str]] = {
-    "server-name": (OverrideCategory.HARNESS, "identifies the benchmark server"),
-    "server-port": (OverrideCategory.HARNESS, "port from the machine profile"),
-    "server-portv6": (OverrideCategory.HARNESS, "port from the machine profile + 1"),
-    "online-mode": (OverrideCategory.HARNESS, "offline bots"),
-    "level-name": (OverrideCategory.PARITY, "workload world name"),
-    "level-seed": (OverrideCategory.PARITY, "workload seed"),
-    "view-distance": (OverrideCategory.PARITY, "workload view distance"),
-    "tick-distance": (OverrideCategory.PARITY, "workload simulation distance"),
-    "max-players": (OverrideCategory.PARITY, "workload player limit"),
-    "difficulty": (OverrideCategory.PARITY, "workload difficulty"),
-    "gamemode": (OverrideCategory.PARITY, "workload game mode"),
-    "client-side-chunk-generation-enabled": (OverrideCategory.PARITY, "workload CSG setting"),
-}
 
 
 def interpreter() -> str:
@@ -221,6 +202,12 @@ class FakeAdapter(ServerAdapter):
     def server_family(self) -> Family:
         return FAMILIES[self.family]
 
+    def folder(self) -> Path:
+        return FAKES_DIR
+
+    def template_variables(self, ctx: RunContext) -> dict[str, Any]:
+        return {**super().template_variables(ctx), "supports_csg": self.supports_csg}
+
     # ---- lifecycle -------------------------------------------------------------------------------------------------
 
     def fetch(self, cache: Cache) -> Install:
@@ -248,28 +235,7 @@ class FakeAdapter(ServerAdapter):
         if any(server_dir.iterdir()):
             raise RuntimeError(f"work directory is not empty: {server_dir}")
         workload = ctx.workload
-        values = {
-            "server-name": "bedrock-bench",
-            "server-port": str(ctx.machine.port),
-            "server-portv6": str(ctx.machine.port + 1),
-            "online-mode": "false",
-            "level-name": workload.world.level_name,
-            "level-seed": str(workload.world.seed),
-            "view-distance": str(workload.server.view_distance),
-            "tick-distance": str(workload.server.tick_distance),
-            "max-players": str(workload.server.max_players),
-            "difficulty": workload.server.difficulty,
-            "gamemode": workload.server.gamemode,
-        }
-        if self.supports_csg:
-            values["client-side-chunk-generation-enabled"] = "true" if workload.server.csg else "false"
-        text = "".join(f"{key}={value}\n" for key, value in values.items())
-        (server_dir / CONFIG_FILE).write_text(text, encoding="utf-8", newline="\n")
-        overrides = tuple(
-            Override(CONFIG_KEYS[key][0], CONFIG_FILE, key, CONFIG_DEFAULTS.get(key), value, CONFIG_KEYS[key][1])
-            for key, value in values.items()
-            if value != CONFIG_DEFAULTS.get(key)
-        )
+        written = self.write_config(server_dir, CONFIG_FILE, ctx)
         if self.behaviour is not None:
             shutil.copyfile(install.root / "scripts" / f"{self.behaviour}.json", server_dir / SCRIPT_FILE)
 
@@ -277,13 +243,12 @@ class FakeAdapter(ServerAdapter):
         world = WorldInfo(fresh=True, generator="custom", path=world_dir)
         return Layout(
             server_dir=server_dir,
-            overrides=overrides,
-            config_files=(ConfigFile(CONFIG_FILE, hashlib.sha256(text.encode("utf-8")).hexdigest()),),
+            config_files=(written,),
             world=world,
             extra={
                 "server_script": str(install.root / SERVER_SCRIPT.name),
                 "version": self.arm.version,
-                "csg": values.get("client-side-chunk-generation-enabled") == "true",
+                "csg": self.supports_csg and workload.server.csg,
             },
         )
 

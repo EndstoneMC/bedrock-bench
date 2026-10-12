@@ -57,6 +57,13 @@
       12300
     ],
     "banner_version": "0.11.14",
+    "launch": {
+      "argv": [
+        "<server>/bedrock_server.exe"
+      ],
+      "env_set": {},
+      "env_remove": []
+    },
     "facts": {
       "allocator": "default",
       "jvm_heap_mib": null,
@@ -67,28 +74,29 @@
       "csg_setting": false
     }
   },
-  "overrides": [
-    {
-      "category": "harness",
-      "file": "server.properties",
-      "key": "online-mode",
-      "default": "true",
-      "value": "false",
-      "reason": "offline bots"
-    },
-    {
-      "category": "parity",
-      "file": "server.properties",
-      "key": "view-distance",
-      "default": "32",
-      "value": "10",
-      "reason": "workload view distance"
-    }
-  ],
   "config_files": [
     {
       "path": "server.properties",
       "written_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "template": "server.properties",
+      "created": false,
+      "keys": [
+        {
+          "key": "online-mode",
+          "before": "true",
+          "after": "false"
+        },
+        {
+          "key": "view-distance",
+          "before": "32",
+          "after": "10"
+        },
+        {
+          "key": "emit-server-telemetry",
+          "before": null,
+          "after": "false"
+        }
+      ],
       "after_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
     }
   ],

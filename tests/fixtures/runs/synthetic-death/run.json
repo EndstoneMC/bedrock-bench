@@ -132,7 +132,6 @@
   },
   "nonstandard": [],
   "official": false,
-  "overrides": [],
   "placement": {
     "bot_cpus": [
       4,

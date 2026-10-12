@@ -18,7 +18,7 @@ from typing import Any
 
 import pytest
 
-from bedrock_bench.model import MARKS, ExitCode, OverrideCategory, Status
+from bedrock_bench.model import MARKS, ExitCode, Status
 from fakes.bench import FakeBench, Run
 from fakes.fake_adapter import FAKE_ADAPTERS, FakeAdapter
 from fakes.fake_server import FAMILIES
@@ -126,11 +126,17 @@ def test_run_records_phases_and_outcome(good_run: Run) -> None:
     assert record["interventions"]["in_measured"] == 0
 
 
-def test_overrides_are_categorised(good_run: Run) -> None:
-    overrides = {(o["category"], o["key"]) for o in good_run.run_json["overrides"]}
-    assert ("harness", "online-mode") in overrides
-    assert ("parity", "view-distance") in overrides
-    assert {category for category, _ in overrides} <= set(OverrideCategory)
+def test_config_keys_and_launch_are_recorded(good_run: Run) -> None:
+    (written,) = good_run.run_json["config_files"]
+    assert (written["path"], written["template"], written["created"]) == (
+        "server.properties",
+        "server.properties",
+        True,
+    )
+    assert {"key": "online-mode", "before": None, "after": "false"} in written["keys"]
+    assert written["after_sha256"] is not None
+    launch = good_run.run_json["server"]["launch"]
+    assert "--family" in launch["argv"] and "PYTHONPATH" in launch["env_remove"]
 
 
 def test_steady_tps_is_about_20(good_run: Run) -> None:

@@ -15,7 +15,6 @@ from bedrock_bench.model import (
     PLACEMENT_KINDS,
     PRIORITIES,
     Availability,
-    OverrideCategory,
     Status,
     sha256_json,
 )
@@ -67,7 +66,6 @@ def test_schema_enums_match_model() -> None:
     run = load_schema("run")
     props, defs = run["properties"], run["$defs"]
     assert defs["status"]["enum"] == [s.value for s in Status]
-    assert props["overrides"]["items"]["properties"]["category"]["enum"] == [c.value for c in OverrideCategory]
     assert props["artifacts"]["items"]["properties"]["source"]["enum"] == list(ARTIFACT_SOURCES)
     assert props["placement"]["properties"]["priority"]["enum"] == list(PRIORITIES)
     assert props["placement"]["properties"]["kind"]["enum"] == list(PLACEMENT_KINDS)
@@ -93,7 +91,7 @@ class TestRun:
 
     def test_ok_run_must_be_complete(self, schema_validator, run_example: dict) -> None:
         validator = schema_validator("run")
-        for key in ("files", "health", "placement", "bot", "overrides"):
+        for key in ("files", "health", "placement", "bot", "config_files"):
             broken = copy.deepcopy(run_example)
             del broken[key]
             assert errors(validator, broken), key
@@ -141,8 +139,9 @@ class TestRun:
             (lambda r: r.update(status="crashed"), "status"),
             (lambda r: r.update(exit_code=1), "exit_code"),
             (lambda r: r.update(hostname="bench-01"), "unknown top-level key"),
-            (lambda r: r["overrides"][0].update(category="tuning"), "override category"),
-            (lambda r: r["overrides"][0].update(reason=""), "empty reason"),
+            (lambda r: r["config_files"][0]["keys"][0].pop("before"), "key without before"),
+            (lambda r: r["config_files"][0].update(category="harness"), "config file category"),
+            (lambda r: r["server"].update(launch={"argv": []}), "launch without env"),
             (lambda r: r["install"].update(tree_sha256="xyz"), "sha256"),
             (lambda r: r["placement"].update(kind="container"), "placement kind"),
             (lambda r: r["marks"].update(steady0="late"), "mark type"),

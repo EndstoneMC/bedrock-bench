@@ -100,6 +100,22 @@
         "pid": { "type": ["integer", "null"] },
         "aux_pids": { "type": "array", "items": { "type": "integer" } },
         "banner_version": { "type": ["string", "null"] },
+        "launch": {
+          "description": "the command line and environment changes the server was started with",
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["argv", "env_set", "env_remove"],
+              "properties": {
+                "argv": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+                "env_set": { "type": "object", "additionalProperties": { "type": "string" } },
+                "env_remove": { "type": "array", "items": { "type": "string" } }
+              }
+            },
+            { "type": "null" }
+          ]
+        },
         "facts": {
           "type": "object",
           "description": "observed facts reported by the adapter; open-ended",
@@ -112,33 +128,31 @@
         }
       }
     },
-    "overrides": {
-      "description": "every config change from the server's defaults, with its category and reason (rule R6)",
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["category", "file", "key", "default", "value", "reason"],
-        "properties": {
-          "category": { "enum": ["harness", "parity", "rescue", "nonvanilla"] },
-          "file": { "$ref": "#/$defs/relpath" },
-          "key": { "type": "string", "minLength": 1 },
-          "default": { "type": ["string", "null"] },
-          "value": { "type": "string" },
-          "reason": { "type": "string", "minLength": 1 }
-        }
-      }
-    },
     "config_files": {
-      "description": "sha256 of each config as written and as found after shutdown",
+      "description": "each config file the harness wrote: its template, every key it set with the value before and after, and its sha256 as written and as found after shutdown",
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["path", "written_sha256"],
+        "required": ["path", "written_sha256", "template", "created", "keys"],
         "properties": {
           "path": { "$ref": "#/$defs/relpath" },
           "written_sha256": { "$ref": "#/$defs/sha256" },
+          "template": { "description": "file name in servers/<server>/", "type": ["string", "null"] },
+          "created": { "description": "the file did not exist before", "type": "boolean" },
+          "keys": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["key", "before", "after"],
+              "properties": {
+                "key": { "description": "property name, or dotted path for YAML, TOML and JSON", "type": "string", "minLength": 1 },
+                "before": { "description": "null when the key or the file was absent" },
+                "after": {}
+              }
+            }
+          },
           "after_sha256": { "$ref": "#/$defs/sha256_or_null" }
         }
       }
@@ -351,7 +365,7 @@
       "if": { "required": ["status"], "properties": { "status": { "const": "ok" } } },
       "then": {
         "required": [
-          "official", "nonstandard", "session", "artifacts", "install", "server", "overrides", "config_files",
+          "official", "nonstandard", "session", "artifacts", "install", "server", "config_files",
           "bot", "machine", "placement", "world", "marks", "settle", "interventions", "spread", "health",
           "interference", "files"
         ]

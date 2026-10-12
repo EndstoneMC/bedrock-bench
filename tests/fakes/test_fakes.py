@@ -27,7 +27,7 @@ import pytest
 from bedrock_bench import adapters, bots, config
 from bedrock_bench.adapters.bdsfamily import BdsFamily
 from bedrock_bench.cache import Cache
-from bedrock_bench.model import LaunchSpec, Layout, LogLine, OverrideCategory, Placement, RunContext
+from bedrock_bench.model import LaunchSpec, Layout, LogLine, Placement, RunContext
 from bedrock_bench.workload import WORKLOAD, with_overrides
 from fakes import fake_bots, fake_server
 from fakes.bench import ENV_BOT_CMD, FakeBench, fake_workload, free_port, register_entry_point
@@ -519,15 +519,17 @@ def test_fetch_is_idempotent(tmp_path: Path) -> None:
     assert first.artifacts[0].source == "build"
 
 
-def test_prepare_records_categorised_overrides(tmp_path: Path) -> None:
+def test_prepare_renders_the_config_template(tmp_path: Path) -> None:
     adapter, layout, spec = prepared(FakeBds, tmp_path, behaviour="exit-nonzero")
-    overrides = {o.key: o for o in layout.overrides}
-    assert overrides["online-mode"].category is OverrideCategory.HARNESS
-    assert overrides["view-distance"].category is OverrideCategory.PARITY
-    assert (overrides["view-distance"].default, overrides["view-distance"].value) == ("32", "4")
-    assert "tick-distance" not in overrides, "a value equal to the default is not an override"
+    (written,) = layout.config_files
+    assert (written.path, written.template, written.created) == ("server.properties", "server.properties", True)
+    keys = {k.key: (k.before, k.after) for k in written.keys}
+    assert keys["online-mode"] == (None, "false")
+    assert keys["view-distance"] == (None, "4")
+    assert "client-side-chunk-generation-enabled" in keys
     config_file = layout.server_dir / "server.properties"
-    assert layout.config_files[0].written_sha256 == hashlib.sha256(config_file.read_bytes()).hexdigest()
+    assert written.written_sha256 == hashlib.sha256(config_file.read_bytes()).hexdigest()
+    assert adapter.readback(layout) == []
     assert json.loads((layout.server_dir / "bench-script.json").read_text())["stop_exit_code"] == 1
     assert layout.world.fresh and layout.world.path is not None and not layout.world.path.exists()
     assert spec.cwd == layout.server_dir
