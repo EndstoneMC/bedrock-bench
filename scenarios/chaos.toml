@@ -1,0 +1,47 @@
+# SPDX-License-Identifier: Apache-2.0
+# Seeded stress for BDS-hosted servers (docs/WORKLOADS.md): spread100, then 15 minutes of every action in
+# scenarios/chaos-actions.toml, random tick speed cycling included. A robustness check; never ranked.
+name = "chaos"
+description = "spread100 followed by 15 minutes of seeded chaos with the full action set; never ranked"
+extends = "spread100"
+exercises = [
+    "terrain.vanilla_generator",
+    "chunks.subchunk_requests",
+    "player.server_authoritative_movement",
+    "player.physics",
+    "player.locator_bar",
+    "world.autosave",
+    "world.dimensions",
+    "entity.mob_ai",
+    "entity.item_entities",
+    "block.random_ticks",
+    "commands.vanilla_set",
+]
+
+[bots]
+rejoin_on_drop = true  # kicked and dropped bots come back
+radius_jitter_s = 20.0  # a new chunk radius every 20 s on average, from chaos start
+
+[phases.chaos]
+seed = 20261010
+duration_s = 900.0
+actions = [
+    "churn",
+    "stack",
+    "waypoints",
+    "gamemode",
+    "kill",
+    "summon",
+    "cleanup",
+    "kick",
+    "dimension",
+    "list",
+    "far_tp",
+    "view_disconnect",
+    "tickspeed",
+    "weather",
+    "blocks",
+    "tickingarea",
+]
+tickspeed_cycle = [0, 1, 3, 100, 1000, 1]
+overrun_lag_s = 60.0

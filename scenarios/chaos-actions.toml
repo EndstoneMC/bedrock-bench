@@ -1,0 +1,242 @@
+# SPDX-License-Identifier: Apache-2.0
+# The chaos action catalogue, read by bedrock_bench.chaos (docs/WORKLOADS.md). Not a scenario: chaos scenarios pick
+# actions from it in [phases.chaos] actions.
+#
+# [command.<name>] is a console command a server's chaos dialect may render (ServerAdapter.chaos_dialect). The renderer
+# takes exactly the listed parameters as keyword arguments; "player" is a bot name. The adapter contract test renders
+# the example, and 'bbench smoke' sends every command the adapter renders once, in the order of this file.
+#
+# [action.<name>] is one chaos action. It fires every interval_s seconds times U(0.6, 1.4), the first time at
+# U(3, min(interval_s, 60)). An adapter that cannot render every command in "requires" gets the action counted as
+# unsupported; commands in "optional" are sent where the adapter renders them. "confirm" names the command whose
+# applied line marks when the action took effect. Ranges [low, high] are drawn uniformly; bots_pct is a share of all
+# bots in percent, at least min_bots. hold_s is the time until the action is undone.
+schema = 1
+
+# Far teleports go to grid cells n .. n + far_cells - 1, past the cells of the bots.
+far_cells = 400
+
+# ---- commands ---------------------------------------------------------------------------------------------------
+
+[command.list]
+description = "print the player list"
+params = []
+example = {}
+
+[command.weather]
+description = "set the weather: clear, rain or thunder"
+params = ["kind"]
+example = { kind = "clear" }
+
+[command.randomtickspeed]
+description = "set the random tick speed game rule"
+params = ["value"]
+example = { value = 3 }
+
+[command.playerwaypoints]
+description = "set the player waypoints game rule: off or everyone"
+params = ["mode"]
+example = { mode = "everyone" }
+
+[command.tickingarea_add]
+description = "add a circular ticking area of radius chunks around x, y, z"
+params = ["name", "x", "z", "y", "radius"]
+example = { name = "bbench0", x = 20000, z = -30000, y = 64, radius = 2 }
+
+[command.tickingarea_remove]
+description = "remove a ticking area by name"
+params = ["name"]
+example = { name = "bbench0" }
+
+[command.tp]
+description = "teleport a player within its dimension"
+params = ["player", "x", "y", "z"]
+example = { player = "a07", x = 5760.5, y = 300, z = 1280.5 }
+
+[command.summon]
+description = "summon an entity at an offset from a player"
+params = ["player", "entity", "dx", "dy", "dz"]
+example = { player = "a07", entity = "cow", dx = 2, dy = 1, dz = -3 }
+
+[command.loot]
+description = "drop the items of a loot table above a player"
+params = ["player", "table"]
+example = { player = "a07", table = "entities/cow" }
+
+[command.cleanup]
+description = "remove every entity that is not a player"
+params = []
+example = {}
+
+[command.fill]
+description = "fill a box given by two offsets from a player with a block"
+params = ["player", "dx1", "dy1", "dz1", "dx2", "dy2", "dz2", "block"]
+example = { player = "a07", dx1 = -2, dy1 = -1, dz1 = -2, dx2 = 2, dy2 = -1, dz2 = 2, block = "grass_block" }
+
+[command.setblock]
+description = "set one block at an offset from a player"
+params = ["player", "dx", "dy", "dz", "block"]
+example = { player = "a07", dx = 1, dy = -1, dz = 1, block = "grass_block" }
+
+[command.tp_dimension]
+description = "teleport a player into a dimension: overworld, nether or the_end"
+params = ["player", "dimension", "x", "y", "z"]
+example = { player = "a07", dimension = "nether", x = 160, y = 100, z = 160 }
+
+[command.gamemode]
+description = "set a player's game mode: survival, creative, adventure or spectator"
+params = ["player", "mode"]
+example = { player = "a07", mode = "adventure" }
+
+[command.effect_clear]
+description = "remove every status effect from a player"
+params = ["player"]
+example = { player = "a07" }
+
+[command.kill]
+description = "kill a player"
+params = ["player"]
+example = { player = "a07" }
+
+[command.kick]
+description = "disconnect a player with a reason"
+params = ["player", "reason"]
+example = { player = "a07", reason = "chaos" }
+
+# ---- actions ----------------------------------------------------------------------------------------------------
+
+[action.churn]
+description = "a group of bots disconnects and rejoins"
+interval_s = 20
+requires = []
+bots_pct = [10, 10]
+min_bots = 1
+delay_ms = [1000, 5000]
+
+[action.stack]
+description = "several bots are teleported onto one far spot, then home"
+interval_s = 25
+requires = ["tp"]
+bots_pct = [5, 10]
+min_bots = 2
+hold_s = [15, 30]
+
+[action.waypoints]
+description = "the playerwaypoints game rule is switched off, then back"
+interval_s = 60
+requires = ["playerwaypoints"]
+confirm = "playerwaypoints"
+mode = "off"
+restore = "everyone"
+hold_s = [10, 20]
+
+[action.gamemode]
+description = "a few bots switch game mode, then back to the scenario's mode"
+interval_s = 15
+requires = ["gamemode"]
+bots = [1, 3]
+modes = ["spectator", "spectator", "creative", "adventure"]
+hold_s = [10, 25]
+
+[action.kill]
+description = "bots are killed; they respawn and are placed again"
+interval_s = 30
+requires = ["kill"]
+optional = ["effect_clear"]
+bots_pct = [2, 2]
+min_bots = 1
+
+[action.summon]
+description = "mobs are summoned and loot is dropped near a few bots; some of them rejoin soon after"
+interval_s = 30
+requires = ["summon"]
+optional = ["loot"]
+bots = [1, 3]
+mobs = [20, 50]
+entities = ["zombie", "cow", "chicken", "pig", "skeleton", "sheep"]
+spread = 6
+dy = 1
+loot = [2, 4]
+loot_tables = ["entities/zombie", "entities/cow", "entities/chicken", "entities/skeleton"]
+reconnect_p = 0.5
+reconnect_after_s = [2, 8]
+delay_ms = [1000, 5000]
+
+[action.cleanup]
+description = "every entity that is not a player is removed"
+interval_s = 90
+requires = ["cleanup"]
+
+[action.kick]
+description = "bots are kicked and rejoin"
+interval_s = 40
+requires = ["kick"]
+bots = [1, 2]
+reason = "chaos"
+
+[action.dimension]
+description = "bots move to the Nether or the End, then back home"
+interval_s = 20
+requires = ["tp_dimension"]
+bots = [1, 3]
+nether_p = 0.6
+nether_y = 100
+end_range = 40
+end_y = 80
+hold_s = [15, 30]
+
+[action.list]
+description = "the player list is queried"
+interval_s = 10
+requires = ["list"]
+
+[action.far_tp]
+description = "bots are teleported far away into terrain nobody has loaded"
+interval_s = 15
+requires = ["tp"]
+bots = [3, 5]
+
+[action.view_disconnect]
+description = "a bot is teleported far away and rejoins while its view is still loading"
+interval_s = 30
+requires = ["tp"]
+bots = [1, 1]
+reconnect_after_s = [1, 3]
+delay_ms = [1000, 5000]
+
+[action.tickspeed]
+description = "the random tick speed steps through the scenario's tickspeed_cycle"
+interval_s = 30
+requires = ["randomtickspeed"]
+confirm = "randomtickspeed"
+
+[action.weather]
+description = "the weather steps through a cycle"
+interval_s = 45
+requires = ["weather"]
+cycle = ["thunder", "clear", "rain", "clear"]
+
+[action.blocks]
+description = "blocks are filled and set around a few bots"
+interval_s = 20
+requires = ["fill", "setblock"]
+bots = [1, 2]
+edits_per_bot = 3
+edits = [
+    { command = "fill", dx1 = -5, dy1 = -1, dz1 = -5, dx2 = 5, dy2 = -1, dz2 = 5, block = "grass_block" },
+    { command = "fill", dx1 = -3, dy1 = -1, dz1 = -3, dx2 = 3, dy2 = -1, dz2 = 3, block = "farmland" },
+    { command = "fill", dx1 = -4, dy1 = 4, dz1 = -4, dx2 = 4, dy2 = 5, dz2 = 4, block = "oak_leaves" },
+    { command = "fill", dx1 = -2, dy1 = 0, dz1 = -2, dx2 = 2, dy2 = 0, dz2 = 2, block = "oak_sapling" },
+    { command = "fill", dx1 = -3, dy1 = 15, dz1 = -3, dx2 = 3, dy2 = 18, dz2 = 3, block = "oak_leaves" },
+    { command = "setblock", dx = 1, dy = -1, dz = 1, block = "grass_block" },
+]
+
+[action.tickingarea]
+description = "a far ticking area is added, then removed"
+interval_s = 40
+requires = ["tickingarea_add", "tickingarea_remove"]
+distance = [20000, 60000]
+y = 64
+radius = 2
+hold_s = [20, 40]
+name_prefix = "bbench"
