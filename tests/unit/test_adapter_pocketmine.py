@@ -199,7 +199,7 @@ class TestFetchAndPrepare:
     def test_install_layout(self, install: Install) -> None:
         server = install.root / "server"
         assert (server / "PocketMine-MP.phar").is_file()
-        helper = (ROOT / pocketmine.HELPER_SOURCE).read_bytes()
+        helper = (config.server_dir("pocketmine") / pocketmine.HELPER_SOURCE).read_bytes()
         assert (server / "plugins" / "BenchHelper.php").read_bytes() == helper
         assert (install.root / "defaults" / "pocketmine.yml").read_text(encoding="utf-8") == SHIPPED_YML
         assert [a.name for a in install.artifacts] == ["PocketMine-MP.phar", "php.zip"]

@@ -19,7 +19,6 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from bedrock_bench import config
 from bedrock_bench.adapters.base import Dialect, quote_player
 from bedrock_bench.adapters.nukkit import build_plugin, plugin_files
 from bedrock_bench.adapters.powernukkitx import PNX_LEVELS, PNX_PREFIX
@@ -51,7 +50,6 @@ if TYPE_CHECKING:
     from bedrock_bench.cache import Cache
 
 JAR = "nukkit-mot.jar"
-PLUGIN_SOURCE = "servers/nukkitmot"  # plugin.yml and *.java
 PLUGIN_FILE = "plugins/BenchTick.jar"
 
 #: Lines as PowerNukkitX prints them: ``18:41:10 [main] [INFO] text``, and log4j's own ISO-stamped start-up warning.
@@ -79,7 +77,7 @@ class NukkitMotAdapter(JavaServer):
         jar, jar_ref, entry = fetch_release(cache, self.name, self.arm.version, artifact=self.arm.artifact)
         meta = dict(entry.meta) if entry is not None else {}
         runtime = fetch_runtime(cache, self.pinned_runtime(entry), runtime_platform())
-        source = config.project_root() / PLUGIN_SOURCE
+        source = self.folder()
 
         def build(tmp: Path) -> None:
             (tmp / SERVER_PART / "plugins").mkdir()

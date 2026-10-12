@@ -328,7 +328,7 @@ class FakeGo:
 def project(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     """A project root with servers/dragonfly, whose server.toml pins a fake module zip."""
     root = tmp_path / "project"
-    src = root / dragonfly.SOURCE_DIR
+    src = root / config.SERVERS_DIR / "dragonfly"
     src.mkdir(parents=True)
     zip_path = tmp_path / "module.zip"
     zip_path.write_bytes(b"module zip")
@@ -465,7 +465,7 @@ class TestPrepare:
         ctx = dataclasses.replace(make_ctx(tmp_path), workload=WORKLOAD)
         layout = make_adapter().prepare(make_install(tmp_path), ctx)
         written = (layout.server_dir / dragonfly.CONFIG).read_bytes()
-        assert written == (ROOT / dragonfly.SOURCE_DIR / "testdata" / "config.toml").read_bytes()
+        assert written == (config.server_dir("dragonfly") / "testdata" / "config.toml").read_bytes()
 
     def test_readback_finds_changes(self, tmp_path: Path) -> None:
         adapter = make_adapter()
@@ -513,7 +513,7 @@ class TestDataFiles:
     def test_artifacts_pin_matches_go_mod_and_go_sum(self) -> None:
         pin = dragonfly.ModulePin.load(VERSION)
         assert pin.version.endswith("-" + "1793369709ce")
-        dragonfly.check_source(ROOT / dragonfly.SOURCE_DIR, pin)
+        dragonfly.check_source(config.server_dir("dragonfly"), pin)
 
     def test_required_version(self) -> None:
         go_mod = f"module x\n\nrequire {MODULE} v1.2.3\n"

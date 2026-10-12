@@ -25,7 +25,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from bedrock_bench import config, fetch
+from bedrock_bench import fetch
 from bedrock_bench.adapters.base import Dialect
 from bedrock_bench.adapters.standalone import (
     COMMAND_LINE,
@@ -59,7 +59,7 @@ if TYPE_CHECKING:
 
 PHAR = "PocketMine-MP.phar"
 SHIPPED_CONFIG = "resources/pocketmine.yml"
-HELPER_SOURCE = "servers/pocketmine/BenchHelper.php"
+HELPER_SOURCE = "BenchHelper.php"
 HELPER_FILE = "plugins/BenchHelper.php"
 
 #: ``[13:58:00.123] [Server thread/INFO]: text``. Replies to console commands are printed as ``Command output | text``.
@@ -95,8 +95,6 @@ class PocketMineAdapter(StandaloneServer):
     tick_thread_rule: ClassVar[str] = "first_created"
     crash_paths: ClassVar[tuple[str, ...]] = ("crashdumps",)
     server_file: ClassVar[str] = PHAR
-    #: The helper plugin, relative to the project root.
-    helper_source: ClassVar[str] = HELPER_SOURCE
     #: The network layer whose per-IP packet limit the helper lifts, and the limit it sets.
     packet_limiter: ClassVar[str] = "RakLib"
     packet_limit: ClassVar[str] = "unlimited"
@@ -107,7 +105,7 @@ class PocketMineAdapter(StandaloneServer):
         phar, phar_ref, entry = fetch_release(cache, self.name, self.arm.version, artifact=self.arm.artifact)
         meta = dict(entry.meta) if entry is not None else {}
         runtime = fetch_runtime(cache, self.pinned_runtime(entry), runtime_platform())
-        helper = config.project_root() / self.helper_source
+        helper = self.folder() / HELPER_SOURCE
 
         def build(tmp: Path) -> None:
             (tmp / DEFAULTS_PART / "pocketmine.yml").write_bytes(read_phar_member(phar, SHIPPED_CONFIG))

@@ -53,7 +53,6 @@ if TYPE_CHECKING:
 
     from bedrock_bench.cache import Cache
 
-SOURCE_DIR = "servers/dragonfly"  # dfbench, relative to the project root
 SETTINGS_FILE = "servers/dragonfly/server.toml"  # its [config] table
 CONFIG = "config.toml"  # what dfbench reads in the server directory
 DEFAULTS = "defaults.toml"  # 'dfbench -defaults' of the build, kept in the install
@@ -311,13 +310,14 @@ def check_source(src: Path, pin: ModulePin) -> None:
     required = required_version(go_mod, pin.module)
     if required != pin.version:
         raise ConfigError(
-            f"{SOURCE_DIR}/go.mod requires {pin.module} {required}, but {SETTINGS_FILE} pins "
-            f"{pin.version}; run 'go get {pin.module}@{pin.version}' there, or pin the version go.mod requires"
+            f"go.mod requires {pin.module} {required}, but server.toml pins "
+            f"{pin.version}; run 'go get {pin.module}@{pin.version}' there, or pin the version go.mod requires",
+            file=src,
         )
     if re.search(r"^\s*replace\b", go_mod, re.MULTILINE):
-        raise ConfigError(f"{SOURCE_DIR}/go.mod must not replace modules: a benchmark builds published code only")
+        raise ConfigError("go.mod must not replace modules: a benchmark builds published code only", file=src)
     if f"{pin.module} {pin.version} {pin.go_sum}" not in go_sum:
-        raise ConfigError(f"{SOURCE_DIR}/go.sum does not record {pin.go_sum} for {pin.module} {pin.version}")
+        raise ConfigError(f"go.sum does not record {pin.go_sum} for {pin.module} {pin.version}", file=src)
 
 
 def source_sha256(src: Path) -> str:
@@ -474,7 +474,7 @@ class DragonflyAdapter(ServerAdapter):
         if self.arm.artifact is not None:
             return self._adopt(cache, target)
         pin = ModulePin.load(self.arm.version)
-        src = config.project_root() / SOURCE_DIR
+        src = self.folder()
         check_source(src, pin)
         go = shutil.which("go")
         if go is None:

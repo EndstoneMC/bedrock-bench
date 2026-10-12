@@ -333,7 +333,7 @@ class TestPrepare:
 
 class TestSource:
     def test_the_checked_in_source_matches_the_pin(self) -> None:
-        src = ROOT / chorus.SOURCE_DIR
+        src = config.server_dir("chorus")
         chorus.check_source(src, chorus.SourcePin.load(VERSION))
         assert chorus.locked_commit((src / "Cargo.lock").read_text(encoding="utf-8"), "chorus") == COMMIT
 
@@ -350,7 +350,7 @@ class TestSource:
     )
     def test_source_problems(self, tmp_path: Path, edit: Any, message: str) -> None:
         src = tmp_path / "chorus"
-        shutil.copytree(ROOT / chorus.SOURCE_DIR, src, ignore=shutil.ignore_patterns("target"))
+        shutil.copytree(config.server_dir("chorus"), src, ignore=shutil.ignore_patterns("target"))
         manifest, lock = edit((src / "Cargo.toml").read_text(), (src / "Cargo.lock").read_text())
         (src / "Cargo.toml").write_text(manifest, newline="\n")
         (src / "Cargo.lock").write_text(lock, newline="\n")

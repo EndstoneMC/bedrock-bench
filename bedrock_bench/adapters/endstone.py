@@ -52,7 +52,7 @@ if TYPE_CHECKING:
 
     from bedrock_bench.cache import Cache
 
-REQUIREMENTS = "servers/endstone/requirements-{version}.txt"
+REQUIREMENTS = "requirements-{version}.txt"
 BSTATS_TEMPLATE = "servers/endstone/bstats.toml"
 BSTATS_FILE = "plugins/bstats/config.toml"
 VERSION_MARKER_FILE = "version.txt"
@@ -154,7 +154,7 @@ class EndstoneAdapter(BdsFamily):
         return str(version)
 
     def _requirements_lock(self) -> Path | None:
-        path = config.project_root() / REQUIREMENTS.format(version=self.arm.version)
+        path = self.folder() / REQUIREMENTS.format(version=self.arm.version)
         if path.is_file():
             return path
         if self.arm.artifact is not None:

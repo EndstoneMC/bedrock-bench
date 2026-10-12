@@ -34,7 +34,6 @@ class AltayAdapter(PocketMineAdapter):
     name: ClassVar[str] = "altay"
     dialect: ClassVar[Dialect] = ALTAY_DIALECT
     server_file: ClassVar[str] = "Altay.phar"
-    helper_source: ClassVar[str] = "servers/altay/BenchHelper.php"
     packet_limiter: ClassVar[str] = "RakNet"
     packet_limit: ClassVar[str] = "2147483647"
 

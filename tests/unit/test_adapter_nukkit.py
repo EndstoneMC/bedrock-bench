@@ -282,7 +282,7 @@ def test_build_plugin_needs_sources(tmp_path: Path) -> None:
 
 
 def test_helper_sources_are_committed() -> None:
-    plugin = ROOT / nukkit.PLUGIN_SOURCE
+    plugin = config.server_dir("nukkit")
     assert [p.name for p in nukkit.plugin_files(plugin)] == ["plugin.yml", "BenchTick.java"]
     manifest = (plugin / "plugin.yml").read_text(encoding="utf-8")
     for command in ("gametime", "positions"):

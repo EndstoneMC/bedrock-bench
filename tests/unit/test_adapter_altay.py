@@ -114,8 +114,8 @@ class TestContract:
         assert not AltayAdapter.supports_csg and AltayAdapter.bot_compat_flags == ()
         assert AltayAdapter.tick_thread_rule == "first_created"
         assert AltayAdapter.config_template == "servers/altay/server.toml"
-        assert (ROOT / AltayAdapter.helper_source).is_file()
-        assert AltayAdapter.helper_source != PocketMineAdapter.helper_source
+        own, base = (config.server_dir(name) / pocketmine.HELPER_SOURCE for name in ("altay", "pocketmine"))
+        assert own.read_bytes() != base.read_bytes(), "Altay's transport needs its own helper"
 
     def test_pins(self) -> None:
         version = config.load_artifacts("altay").versions["5.44.7"]

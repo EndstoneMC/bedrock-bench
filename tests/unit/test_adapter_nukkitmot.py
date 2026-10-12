@@ -268,7 +268,7 @@ class TestCommands:
 
 
 def test_helper_sources_are_committed() -> None:
-    plugin = ROOT / nukkitmot.PLUGIN_SOURCE
+    plugin = config.server_dir("nukkitmot")
     assert [p.name for p in plugin_files(plugin)] == ["plugin.yml", "BenchTick.java"]
     manifest = (plugin / "plugin.yml").read_text(encoding="utf-8")
     for command in ("gametime", "positions"):

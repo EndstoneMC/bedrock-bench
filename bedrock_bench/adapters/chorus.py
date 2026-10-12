@@ -53,7 +53,6 @@ if TYPE_CHECKING:
 
     from bedrock_bench.cache import Cache
 
-SOURCE_DIR = "servers/chorus"  # chorusbench, relative to the project root
 SETTINGS_FILE = "servers/chorus/server.toml"  # its [config] table
 CONFIG = "chorus.toml"  # what Chorus reads in the server directory
 DEFAULTS = "defaults.toml"  # 'chorusbench -defaults' of the build, kept in the install
@@ -261,17 +260,18 @@ def check_source(src: Path, pin: SourcePin) -> None:
     revs = set(re.findall(rf'git\s*=\s*"{re.escape(pin.repository)}"\s*,\s*rev\s*=\s*"([^"]*)"', manifest))
     if revs != {pin.commit}:
         found = ", ".join(sorted(revs)) or "no rev"
-        raise ConfigError(f"{SOURCE_DIR}/Cargo.toml names Chorus {found}, but {SETTINGS_FILE} pins {pin.commit}")
+        raise ConfigError(f"Cargo.toml names Chorus {found}, but server.toml pins {pin.commit}", file=src)
     if re.search(r"^\s*\[patch", manifest, re.MULTILINE):
-        raise ConfigError(f"{SOURCE_DIR}/Cargo.toml must not patch dependencies: benchmarks build published code only")
+        raise ConfigError("Cargo.toml must not patch dependencies: benchmarks build published code only", file=src)
     if lock_sha256(lock) != pin.cargo_lock:
         raise ConfigError(
-            f"{SOURCE_DIR}/Cargo.lock has sha256 {lock_sha256(lock)}, but {SETTINGS_FILE} pins {pin.cargo_lock}; "
-            "review the lock change, then pin its hash"
+            f"Cargo.lock has sha256 {lock_sha256(lock)}, but server.toml pins {pin.cargo_lock}; "
+            "review the lock change, then pin its hash",
+            file=src,
         )
     locked = locked_commit(lock.decode("utf-8", errors="replace"), "chorus")
     if locked != pin.commit:
-        raise ConfigError(f"{SOURCE_DIR}/Cargo.lock locks Chorus {locked}, not {pin.commit}")
+        raise ConfigError(f"Cargo.lock locks Chorus {locked}, not {pin.commit}", file=src)
 
 
 def source_sha256(src: Path) -> str:
@@ -390,7 +390,7 @@ class ChorusAdapter(ServerAdapter):
         if self.arm.artifact is not None:
             return self._adopt(cache)
         pin = SourcePin.load(self.arm.version)
-        src = config.project_root() / SOURCE_DIR
+        src = self.folder()
         check_source(src, pin)
         cargo, rustc = shutil.which("cargo"), shutil.which("rustc")
         if cargo is None or rustc is None:

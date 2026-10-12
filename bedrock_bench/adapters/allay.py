@@ -63,7 +63,6 @@ if TYPE_CHECKING:
     from bedrock_bench.cache import Cache
 
 JAR = "allay.jar"
-HELPER_SOURCE = "servers/allay"  # plugin.json and *.java
 HELPER_DESCRIPTOR = "plugin.json"
 PLUGIN_FILE = "plugins/BenchTick.jar"
 WORLD_SETTINGS = "worlds/world-settings.yml"
@@ -124,7 +123,7 @@ class AllayAdapter(JavaServer):
         jar, jar_ref, entry = fetch_release(cache, self.name, self.arm.version, artifact=self.arm.artifact)
         meta = dict(entry.meta) if entry is not None else {}
         runtime = fetch_runtime(cache, self.pinned_runtime(entry), runtime_platform())
-        source = config.project_root() / HELPER_SOURCE
+        source = self.folder()
 
         def build(tmp: Path) -> None:
             server = tmp / SERVER_PART

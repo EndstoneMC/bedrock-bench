@@ -20,7 +20,6 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from bedrock_bench import config
 from bedrock_bench.adapters.base import Dialect, quote_player
 from bedrock_bench.adapters.standalone import (
     DEFAULTS_PART,
@@ -56,7 +55,6 @@ if TYPE_CHECKING:
 
 JAR = "nukkit.jar"
 SHIPPED_CONFIG = "lang/eng/nukkit.yml"
-PLUGIN_SOURCE = "servers/nukkit"  # plugin.yml and *.java
 PLUGIN_FILE = "plugins/BenchTick.jar"
 
 #: ``13:58:00 [INFO ] text`` (the level padded to five characters); log4j's own start-up warning is
@@ -95,7 +93,7 @@ class NukkitAdapter(JavaServer):
         jar, jar_ref, entry = fetch_release(cache, self.name, self.arm.version, artifact=self.arm.artifact)
         meta = dict(entry.meta) if entry is not None else {}
         runtime = fetch_runtime(cache, self.pinned_runtime(entry), runtime_platform())
-        source = config.project_root() / PLUGIN_SOURCE
+        source = self.folder()
 
         def build(tmp: Path) -> None:
             (tmp / DEFAULTS_PART / "nukkit.yml").write_bytes(zip_member(jar, SHIPPED_CONFIG))
