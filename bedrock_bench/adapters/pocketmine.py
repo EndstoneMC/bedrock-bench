@@ -5,7 +5,7 @@ Fetch: ``PocketMine-MP.phar`` from ``servers/pocketmine/server.toml`` and the PH
 ``servers/runtimes.toml``. The shipped ``pocketmine.yml`` (what PocketMine-MP copies out of the phar on its
 first start) is extracted from the phar, so its defaults are always those of the pinned release.
 ``servers/pocketmine/BenchHelper.php`` goes into ``plugins/``: it adds ``gametime`` (the server's tick counter)
-and ``positions``, and lifts RakLib's per-IP packet limit, which 100 bots on 127.0.0.1 would trip.
+and ``positions``, and lifts RakLib's per-IP packet limit, which the bots, all on 127.0.0.1, would trip.
 
 Launch: ``php PocketMine-MP.phar --no-wizard --disable-ansi`` in the run's server directory, like the official start
 scripts. On Linux the bundled extension directory is passed with ``-d extension_dir``, as PocketMine-MP's installer

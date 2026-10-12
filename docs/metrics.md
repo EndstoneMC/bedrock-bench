@@ -111,8 +111,8 @@ A run is `invalid` if any invalid-level gate fails, else `server_failed` if an o
 |---|---|---|
 | `harness_ok` | invalid | no harness exception (recorded by the runner); run.json final; raw series present for every phase reached |
 | `probe_monotonic` | invalid | the adapter declares a monotonic counter, probe_tick_decreases = 0 and probe_idle_ticks > 0 |
-| `probe_coverage` | invalid | probe_max_gap_s <= workload probe.max_gap_s (15 s) in every measured window |
-| `probe_lagging` | invalid | probe_latency_ms_steady p99 <= workload probe.lagging_p99_ms (1000 ms) |
+| `probe_coverage` | invalid | probe_max_gap_s <= the config's probe.max_gap_s in every measured window |
+| `probe_lagging` | invalid | probe_latency_ms_steady p99 <= the config's probe.lagging_p99_ms |
 | `foreign_load` | invalid | foreign_cores, foreign_cores_peak_10s and foreign_server_set_cores within the machine profile gates in every measured window |
 | `placement_match` | invalid | run.json placement.verified is not false (server threads matched the CPU plan at ready, steady0 and steady1) |
 | `decode_errors` | invalid | decode_errors = 0 |

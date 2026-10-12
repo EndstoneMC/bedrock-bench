@@ -40,8 +40,8 @@ GATES: tuple[GateDef, ...] = (
         Gate.PROBE_MONOTONIC,
         "the adapter declares a monotonic counter, probe_tick_decreases = 0 and probe_idle_ticks > 0",
     ),
-    GateDef(Gate.PROBE_COVERAGE, "probe_max_gap_s <= workload probe.max_gap_s (15 s) in every measured window"),
-    GateDef(Gate.PROBE_LAGGING, "probe_latency_ms_steady p99 <= workload probe.lagging_p99_ms (1000 ms)"),
+    GateDef(Gate.PROBE_COVERAGE, "probe_max_gap_s <= the config's probe.max_gap_s in every measured window"),
+    GateDef(Gate.PROBE_LAGGING, "probe_latency_ms_steady p99 <= the config's probe.lagging_p99_ms"),
     GateDef(
         Gate.FOREIGN_LOAD,
         "foreign_cores, foreign_cores_peak_10s and foreign_server_set_cores within the machine "
