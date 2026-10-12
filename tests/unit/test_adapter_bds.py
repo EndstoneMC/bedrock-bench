@@ -28,6 +28,7 @@ from bedrock_bench.model import (
     RunContext,
     ThreadInfo,
 )
+from bedrock_bench.workload import WORKLOAD, with_overrides
 
 ROOT = Path(__file__).resolve().parents[2]
 LOGS = ROOT / "tests" / "fixtures" / "logs"
@@ -66,14 +67,14 @@ def bds_zip(path: Path, properties: str = SHIPPED_PROPERTIES) -> Path:
 
 
 def make_ctx(tmp_path: Path, *, csg: bool = True, machine: Machine | None = None, **world: Any) -> RunContext:
-    scenario = config.parse_scenario({"server": {"csg": csg}, "world": world}, name="test")
+    workload = with_overrides(WORKLOAD, {"server": {"csg": csg}, "world": world})
     machine = machine or config.default_machine()
     return RunContext(
         run_id="20260101T120000Z-test-r1-abcd",
         run_dir=tmp_path / "run",
         work_dir=tmp_path / "work",
         arm=Arm(id="bds-test", server="bds", version="1.26.52.3"),
-        scenario=scenario,
+        workload=workload,
         machine=machine,
         placement=Placement((0, 1), (2, 3), (2, 3), "normal", "physical"),
     )
@@ -164,6 +165,7 @@ class TestCommands:
         assert adapter.cmd_tp("a07", 1280.0, 300, 1920.5) == "tp a07 1280 300 1920.5"
         assert adapter.cmd_positions() == "querytarget @a"
         assert BDS_DIALECT.tick_cmd == "time query gametime" and BDS_DIALECT.stop_cmd == "stop"
+
 
 class TestPositions:
     def test_vanilla_continuation_lines(self) -> None:

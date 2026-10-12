@@ -2,7 +2,7 @@
   "schema": "bedrock-bench/run/1",
   "schema_minor": 0,
   "analysis_version": 1,
-  "run_id": "20261012T135800Z-endstone@0.11.14-spread100-r1-3fa2",
+  "run_id": "20261012T135800Z-endstone@0.11.14-r1-3fa2",
   "status": "ok",
   "status_reasons": [],
   "flags": [],
@@ -65,7 +65,7 @@
         "MC_SERVER": 1,
         "Async Thread #": 7
       },
-      "csg_setting": true
+      "csg_setting": false
     }
   },
   "overrides": [
@@ -83,7 +83,7 @@
       "key": "view-distance",
       "default": "32",
       "value": "10",
-      "reason": "scenario view distance"
+      "reason": "workload view distance"
     }
   ],
   "config_files": [
@@ -125,24 +125,13 @@
       "100",
       "-prefix",
       "a",
-      "-csg"
+      "-csg=false"
     ]
   },
-  "scenario": {
-    "name": "spread100",
-    "sha256": "8285b6a8a9c75058967ade6969c8be2dd4113577b9f421262b16bbff9cd919ec",
-    "resolved": {
-      "name": "spread100",
-      "exercises": [
-        "terrain.vanilla_generator",
-        "chunks.client_side_generation",
-        "chunks.subchunk_requests",
-        "player.server_authoritative_movement",
-        "player.physics",
-        "player.locator_bar",
-        "world.autosave"
-      ],
-      "requires": [],
+  "workload": {
+    "name": "benchmark",
+    "sha256": "2e938143fc978fd56b6608394ce25b39517254bb47dd6280428838c5fcf9c513",
+    "params": {
       "bots": {
         "n": 100,
         "prefix": "a",
@@ -155,7 +144,7 @@
         "identity_seed": "bedrock-bench",
         "progress_interval_s": 5.0,
         "stat_interval_s": 10.0,
-        "pkt_interval_s": 60.0,
+        "pkt_interval_s": 30.0,
         "probe_bots": 0,
         "decode_errors": "count"
       },
@@ -168,13 +157,10 @@
       },
       "world": {
         "seed": 20261010,
-        "level_name": "bench",
-        "source": "fresh",
-        "template_radius": 12,
-        "min_coverage": 0.99
+        "level_name": "bench"
       },
       "server": {
-        "csg": true,
+        "csg": false,
         "view_distance": 10,
         "tick_distance": 4,
         "difficulty": "easy",
@@ -262,6 +248,14 @@
             "crash_log_lines": 200
           }
         }
+      ],
+      "exercises": [
+        "terrain.vanilla_generator",
+        "chunks.subchunk_requests",
+        "player.server_authoritative_movement",
+        "player.physics",
+        "player.locator_bar",
+        "world.autosave"
       ]
     }
   },

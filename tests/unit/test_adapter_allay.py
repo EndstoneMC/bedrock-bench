@@ -17,6 +17,7 @@ from bedrock_bench.adapters.standalone import Runtime, yaml_scalars
 from bedrock_bench.cache import Cache
 from bedrock_bench.model import ArtifactRef, Install, LogLine, OverrideCategory, Placement, RunContext, ThreadInfo
 from bedrock_bench.provenance import sha256_file
+from bedrock_bench.workload import WORKLOAD, with_overrides
 
 ROOT = Path(__file__).resolve().parents[2]
 LOGS = ROOT / "tests" / "fixtures" / "logs"
@@ -95,7 +96,7 @@ def make_ctx(tmp_path: Path, adapter: AllayAdapter, difficulty: str = "easy", **
         run_dir=tmp_path / "run",
         work_dir=tmp_path / "work",
         arm=adapter.arm,
-        scenario=config.parse_scenario({"server": server, "world": world}, name="test"),
+        workload=with_overrides(WORKLOAD, {"server": server, "world": world}),
         machine=adapter.machine,
         placement=Placement((0, 1, 2, 3), (4, 5), (4, 5), "normal", "physical"),
     )
@@ -318,6 +319,7 @@ class TestCommands:
         prefix = "[19:01:02 INFO] [Console Thread] [AllayServer] "
         reply = [line(prefix + "positions: 1"), line(prefix + "position: a00 1280.50 300.00 1280.50 0")]
         assert [(p.name, p.x, p.y, p.dim) for p in adapter.parse_positions(reply) or []] == [("a00", 1280.5, 300, 0)]
+
 
 # --------------------------------------------------------------------------------------------------------------------
 # Helper plugin and world settings

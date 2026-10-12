@@ -8,8 +8,8 @@ world's tick counter) and ``positions``, and starts Allay's console on piped std
 the JDK reports a console.
 
 Prepare writes ``server-settings.yml``, which Allay completes and rewrites on start, and ``worlds/world-settings.yml``
-with one flat overworld named after the level. Allay generates only flat and void worlds, so runs of scenarios that
-exercise terrain are flagged ``terrain_mismatch``.
+with one flat overworld named after the level. Allay generates only flat and void worlds, so its runs are flagged
+``terrain_mismatch``.
 
 Launch: ``java -Xms<heap> -Xmx<heap> ... -Dsentry.dsn= -jar allay.jar``. The world ticks on its own thread,
 ``World Thread #<level>``, found with ``jcmd``. The 0.14 line speaks protocol 1001 (Minecraft 1.26.30), so it gets the
@@ -73,7 +73,7 @@ DEFAULT_WORLD = "world"
 DEFAULT_RUNTIME = "jdk-21.0.12.1"
 WORLD_THREAD = "World Thread #"
 SENTRY_FLAG = "-Dsentry.dsn="
-#: Allay's spelling of the scenario's difficulty in the ``[config]`` table (``EASY``).
+#: Allay's spelling of the workload's difficulty in the ``[config]`` table (``EASY``).
 DIFFICULTY_UPPER = "{difficulty_upper}"
 
 #: ``"World Thread #bench" #55 [52604] prio=5 os_prio=0 ... tid=0x... nid=52604 runnable``; older JDKs print
@@ -113,7 +113,7 @@ class AllayAdapter(JavaServer):
     dialect: ClassVar[Dialect] = ALLAY_DIALECT
     server_file: ClassVar[str] = JAR
     generator: ClassVar[str] = "flat"
-    #: Used only when jcmd fails; the scenarios' level is ``bench``.
+    #: Used only when jcmd fails; the workload's level is ``bench``.
     tick_thread_rule: ClassVar[str] = f"name:{WORLD_THREAD}bench"
     thread_groups: ClassVar[Mapping[str, str]] = {
         **JavaServer.thread_groups,
@@ -154,11 +154,11 @@ class AllayAdapter(JavaServer):
     # ---- prepare and launch ---------------------------------------------------------------------------------------
 
     def prepare(self, install: Install, ctx: RunContext) -> Layout:
-        self._difficulty = ctx.scenario.server.difficulty.upper()
+        self._difficulty = ctx.workload.server.difficulty.upper()
         return super().prepare(install, ctx)
 
     def config_plan(self) -> ConfigPlan:
-        """The ``[config]`` plan with ``{difficulty_upper}`` filled in from the scenario being prepared."""
+        """The ``[config]`` plan with ``{difficulty_upper}`` filled in from the workload."""
         plan, upper = super().config_plan(), self._difficulty
         if upper is None:
             return plan
@@ -168,7 +168,7 @@ class AllayAdapter(JavaServer):
     def prepare_extra(
         self, server_dir: Path, install: Install, ctx: RunContext, world: WorldInfo
     ) -> tuple[Sequence[Override], Sequence[ConfigFile], Mapping[str, Any]]:
-        level = ctx.scenario.world.level_name
+        level = ctx.workload.world.level_name
         template = (config.project_root() / WORLD_SETTINGS_TEMPLATE).read_text(encoding="utf-8")
         path = server_dir / WORLD_SETTINGS
         path.parent.mkdir(parents=True, exist_ok=True)

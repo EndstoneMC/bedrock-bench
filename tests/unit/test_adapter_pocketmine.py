@@ -16,6 +16,7 @@ from bedrock_bench.adapters.standalone import Runtime, yaml_scalars
 from bedrock_bench.cache import Cache
 from bedrock_bench.model import ArtifactRef, Install, LogLine, OverrideCategory, Placement, RunContext
 from bedrock_bench.provenance import sha256_file
+from bedrock_bench.workload import WORKLOAD, with_overrides
 
 ROOT = Path(__file__).resolve().parents[2]
 LOGS = ROOT / "tests" / "fixtures" / "logs"
@@ -66,13 +67,13 @@ def make_phar(path: Path, files: dict[str, bytes], *, compress: bool = True) -> 
 
 
 def make_ctx(tmp_path: Path, adapter: PocketMineAdapter, **world: Any) -> RunContext:
-    scenario = config.parse_scenario({"server": {"csg": False}, "world": world}, name="test")
+    workload = with_overrides(WORKLOAD, {"world": world})
     return RunContext(
         run_id="20260101T120000Z-pocketmine-test-r1-abcd",
         run_dir=tmp_path / "run",
         work_dir=tmp_path / "work",
         arm=adapter.arm,
-        scenario=scenario,
+        workload=workload,
         machine=adapter.machine,
         placement=Placement((0, 1, 2, 3), (4, 5), (4, 5), "normal", "physical"),
     )
@@ -282,4 +283,3 @@ class TestCommands:
         assert adapter.cmd_tp("a07", 1280.5, 300, 1280) == "tp a07 1280.5 300 1280"
         assert adapter.cmd_positions() == "positions"
         assert PMMP_DIALECT.tick_cmd == "gametime"
-

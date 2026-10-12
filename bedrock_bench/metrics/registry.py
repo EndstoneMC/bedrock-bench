@@ -332,7 +332,7 @@ _metric(
     "ticks",
     "tps",
     ["probe"],
-    "g_b - g_a over idle (over the whole run when the scenario has no idle phase)",
+    "g_b - g_a over idle (over the whole run when the workload has no idle phase)",
     window="idle",
     doc="probe_monotonic gate: must be positive, so the counter advances with nobody online.",
 )
@@ -691,7 +691,7 @@ _metric(
     "frac",
     "load",
     ["bots", "run"],
-    "median U_b / disc(r), r the scenario view distance, disc(r) the chunk columns with dx^2 + dz^2 <= r^2 "
+    "median U_b / disc(r), r the workload view distance, disc(r) the chunk columns with dx^2 + dz^2 <= r^2 "
     "(disc(10) = 317)",
     window="load",
 )
@@ -710,7 +710,7 @@ _metric(
     ["bots", "run"],
     "median U_b < 0.5 disc(r)",
     window="load",
-    doc="csg_matches gate: must equal the scenario's CSG setting on servers that support client-side generation.",
+    doc="csg_matches gate: must equal the workload's CSG setting on servers that support client-side generation.",
 )
 _metric(
     "settle_s",
@@ -939,7 +939,7 @@ file byte for byte from a run's raw files; any change to a formula bumps the ana
   run's origin pair), so nothing depends on the time of day.
 - **Windows.** `idle` = [idle0, idle1], `join` = [bots_start, alljoined], `settle` = [alljoined, settled],
   `load` = [bots_start, settled], `steady` = [steady0, steady1]. A window whose end mark is missing was not reached;
-  its metrics are `unavailable`. A window the scenario does not have is `not_applicable`.
+  its metrics are `unavailable`. A window the workload does not have is `not_applicable`.
 - **Probe notation.** Replies `(s_i, t_i, g_i)` = send time, receive time, tick counter. In a window `[t0, t1]`,
   `a = min{{i: t_i >= t0}}` and `b = max{{i: t_i <= t1}}`. A series sample, the rate between two consecutive
   replies, belongs to a window when both replies do.
@@ -949,7 +949,7 @@ file byte for byte from a run's raw files; any change to a formula bumps the ana
   Every statistic reports its `n`. p5 is left out when n < 20.
 - **Units.** Each id carries its unit (`_s`, `_ms`, `_mib`, `_cores`, `_ms_per_s`, `_frac`, `_per_bot_s`, ...).
   MiB = 2^20 bytes; reports show GiB = MiB / 1024. Counts and booleans carry no suffix.
-- **Availability.** `measured`, `not_applicable` (the server or scenario has no such quantity) or `unavailable`
+- **Availability.** `measured`, `not_applicable` (the server or workload has no such quantity) or `unavailable`
   (should exist but could not be computed; `reason` says why). A censored value is a lower bound (`censored: true`,
   shown as `>value`).
 - **Direction.** `higher` or `lower` is better; `-` marks work counters and diagnostics, which are never ranked.

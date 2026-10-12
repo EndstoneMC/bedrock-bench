@@ -55,11 +55,11 @@ from bedrock_bench.model import (
     MachineSample,
     Placement,
     RunData,
-    Scenario,
     Status,
     ThreadSeries,
     to_json,
 )
+from bedrock_bench.workload import Workload
 
 log = logging.getLogger(__name__)
 
@@ -87,10 +87,10 @@ _TMP_SUFFIX = ".tmp"
 # --------------------------------------------------------------------------------------------------------------------
 
 
-def make_run_id(arm_id: str, scenario: str, repeat: int, epoch_ms: int, suffix: str | None = None) -> str:
-    """``<UTCyyyymmddThhmmssZ>-<arm>-<scenario>-r<k>-<4hex>``."""
+def make_run_id(arm_id: str, repeat: int, epoch_ms: int, suffix: str | None = None) -> str:
+    """``<UTCyyyymmddThhmmssZ>-<arm>-r<k>-<4hex>``."""
     suffix = suffix if suffix is not None else secrets.token_hex(2)
-    return f"{utc_compact(epoch_ms)}-{arm_id}-{scenario}-r{repeat}-{suffix}"
+    return f"{utc_compact(epoch_ms)}-{arm_id}-r{repeat}-{suffix}"
 
 
 class RunDir:
@@ -101,11 +101,11 @@ class RunDir:
         self.run_id = self.path.name
 
     @classmethod
-    def create(cls, matrix_dir: Path, arm_id: str, scenario: str, repeat: int) -> RunDir:
+    def create(cls, matrix_dir: Path, arm_id: str, repeat: int) -> RunDir:
         """A new, empty directory with a unique run id. An existing directory is never reused."""
         for _ in range(64):
             epoch_ms = time.time_ns() // 1_000_000
-            path = Path(matrix_dir) / make_run_id(arm_id, scenario, repeat, epoch_ms)
+            path = Path(matrix_dir) / make_run_id(arm_id, repeat, epoch_ms)
             try:
                 path.mkdir(parents=True, exist_ok=False)
             except FileExistsError:
@@ -290,15 +290,15 @@ def machine_record(
     return {key: merged[key] for key in _MACHINE_KEYS if key in merged}
 
 
-def parity_record(features_file: str | Path, version: str, scenario: Scenario) -> dict[str, Any]:
-    """The ``parity`` block: the declared feature row for this version, covering every feature the scenario exercises.
+def parity_record(features_file: str | Path, version: str, workload: Workload) -> dict[str, Any]:
+    """The ``parity`` block: the declared feature row for this version, covering every feature the workload exercises.
 
     An exercised feature the file does not declare, or a missing feature file, reads as ``unknown``.
     """
     path = Path(features_file)
     if not path.is_absolute():
         path = project_root() / path
-    unknown = {key: FeatureClass.UNKNOWN.value for key in scenario.exercises}
+    unknown = {key: FeatureClass.UNKNOWN.value for key in workload.exercises}
     try:
         features = load_features(path)
     except ConfigError as exc:
@@ -308,7 +308,7 @@ def parity_record(features_file: str | Path, version: str, scenario: Scenario) -
     row = dict(unknown)
     if rng is not None:
         row.update({key: cell.cls.value for key, cell in rng.cells.items()})
-    does_less = [key for key in scenario.exercises if row.get(key) != FeatureClass.VANILLA.value]
+    does_less = [key for key in workload.exercises if row.get(key) != FeatureClass.VANILLA.value]
     return {
         "file_sha256": features.sha256,
         "range": rng.prefix if rng is not None else None,
@@ -332,7 +332,7 @@ def new_record(
     *,
     run_id: str,
     arm: Any,
-    scenario: Scenario,
+    workload: Workload,
     matrix: Mapping[str, Any],
     harness: Mapping[str, Any],
     machine: Mapping[str, Any],
@@ -367,7 +367,7 @@ def new_record(
         "config_files": [],
         "parity": dict(parity),
         "bot": dict(bot),
-        "scenario": {"name": scenario.name, "sha256": scenario.sha256, "resolved": dict(scenario.resolved)},
+        "workload": workload.record(),
         "machine": dict(machine),
         "placement": placement_record(placement),
         "time": {

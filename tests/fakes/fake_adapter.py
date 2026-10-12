@@ -9,7 +9,7 @@ Each dialect is compiled from the patterns the family declares in ``fake_server.
 into the cache like a verified download, ``prepare`` renders ``server.properties`` and records every change from the
 fake server's defaults as a categorised override, and the behaviour scripts in ``scripts/`` are the variants::
 
-    bbench run-one --server fake_bds@1.0.0 --variant crash-after-join --scenario tests/fakes/scenarios/fake-quick.toml
+    BBENCH_TEST_WORKLOAD=tests/fakes/fake-quick.json bbench run-one --server fake_bds@1.0.0 --variant crash-after-join
 """
 
 from __future__ import annotations
@@ -57,15 +57,16 @@ CONFIG_KEYS: Mapping[str, tuple[OverrideCategory, str]] = {
     "server-port": (OverrideCategory.HARNESS, "port from the machine profile"),
     "server-portv6": (OverrideCategory.HARNESS, "port from the machine profile + 1"),
     "online-mode": (OverrideCategory.HARNESS, "offline bots"),
-    "level-name": (OverrideCategory.PARITY, "scenario world name"),
-    "level-seed": (OverrideCategory.PARITY, "scenario seed"),
-    "view-distance": (OverrideCategory.PARITY, "scenario view distance"),
-    "tick-distance": (OverrideCategory.PARITY, "scenario simulation distance"),
-    "max-players": (OverrideCategory.PARITY, "scenario player limit"),
-    "difficulty": (OverrideCategory.PARITY, "scenario difficulty"),
-    "gamemode": (OverrideCategory.PARITY, "scenario game mode"),
-    "client-side-chunk-generation-enabled": (OverrideCategory.PARITY, "scenario CSG setting"),
+    "level-name": (OverrideCategory.PARITY, "workload world name"),
+    "level-seed": (OverrideCategory.PARITY, "workload seed"),
+    "view-distance": (OverrideCategory.PARITY, "workload view distance"),
+    "tick-distance": (OverrideCategory.PARITY, "workload simulation distance"),
+    "max-players": (OverrideCategory.PARITY, "workload player limit"),
+    "difficulty": (OverrideCategory.PARITY, "workload difficulty"),
+    "gamemode": (OverrideCategory.PARITY, "workload game mode"),
+    "client-side-chunk-generation-enabled": (OverrideCategory.PARITY, "workload CSG setting"),
 }
+
 
 def interpreter() -> str:
     """The Python that runs the fake processes: the base interpreter rather than a virtual environment's launcher.
@@ -223,22 +224,22 @@ class FakeAdapter(ServerAdapter):
         server_dir.mkdir(parents=True, exist_ok=True)
         if any(server_dir.iterdir()):
             raise RuntimeError(f"work directory is not empty: {server_dir}")
-        scenario = ctx.scenario
+        workload = ctx.workload
         values = {
             "server-name": "bedrock-bench",
             "server-port": str(ctx.machine.port),
             "server-portv6": str(ctx.machine.port + 1),
             "online-mode": "false",
-            "level-name": scenario.world.level_name,
-            "level-seed": str(scenario.world.seed),
-            "view-distance": str(scenario.server.view_distance),
-            "tick-distance": str(scenario.server.tick_distance),
-            "max-players": str(scenario.server.max_players),
-            "difficulty": scenario.server.difficulty,
-            "gamemode": scenario.server.gamemode,
+            "level-name": workload.world.level_name,
+            "level-seed": str(workload.world.seed),
+            "view-distance": str(workload.server.view_distance),
+            "tick-distance": str(workload.server.tick_distance),
+            "max-players": str(workload.server.max_players),
+            "difficulty": workload.server.difficulty,
+            "gamemode": workload.server.gamemode,
         }
         if self.supports_csg:
-            values["client-side-chunk-generation-enabled"] = "true" if scenario.server.csg else "false"
+            values["client-side-chunk-generation-enabled"] = "true" if workload.server.csg else "false"
         text = "".join(f"{key}={value}\n" for key, value in values.items())
         (server_dir / CONFIG_FILE).write_text(text, encoding="utf-8", newline="\n")
         overrides = tuple(
@@ -249,7 +250,7 @@ class FakeAdapter(ServerAdapter):
         if self.arm.variant is not None:
             shutil.copyfile(install.root / "scripts" / f"{self.arm.variant}.json", server_dir / SCRIPT_FILE)
 
-        world_dir = server_dir / "worlds" / scenario.world.level_name
+        world_dir = server_dir / "worlds" / workload.world.level_name
         world = WorldInfo(fresh=True, generator="custom", path=world_dir)
         return Layout(
             server_dir=server_dir,

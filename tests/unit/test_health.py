@@ -8,9 +8,10 @@ from typing import Any
 
 import pytest
 
-from bedrock_bench.metrics import compute, health, scenario_of
+from bedrock_bench.metrics import compute, health
 from bedrock_bench.metrics.health import GATES, ServerTraits, evaluate, failed_gates, gates_of
 from bedrock_bench.model import Gate, LogLine, RunData, Status
+from bedrock_bench.workload import from_record
 from fixtures.runs import synthetic
 
 
@@ -32,7 +33,7 @@ def check(
     values = copy.deepcopy(metrics if metrics is not None else doc["metrics"])
     for metric_id, value in set_values.items():
         values[metric_id] = {**values[metric_id], "value": value, "availability": "measured"}
-    return evaluate(meta, values, scenario_of(meta), traits or ServerTraits())
+    return evaluate(meta, values, from_record(meta), traits or ServerTraits())
 
 
 def test_the_steady_fixture_passes_every_gate(steady: tuple[RunData, dict[str, Any]]) -> None:

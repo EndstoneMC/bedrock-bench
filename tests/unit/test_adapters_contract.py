@@ -2,7 +2,7 @@
 """The server adapter contract, checked for every registered adapter and every fake adapter.
 
 Per adapter: the class attributes, the dialect against fixture log lines, well-formed commands, bot flags inside the
-allowlist, and a feature file that covers every key the scenarios exercise. The last section covers the shared code in
+allowlist, and a feature file that covers every key the workload exercises. The last section covers the shared code in
 ``adapters/base.py`` and the registry.
 
 Fixture lines come from ``tests/fixtures/logs/<name>*`` (any text file) for real adapters and from
@@ -35,8 +35,9 @@ from bedrock_bench.adapters.base import (
 )
 from bedrock_bench.config import ConfigError, project_root
 from bedrock_bench.model import Layout, Machine, ThreadInfo, WorldInfo
+from bedrock_bench.workload import SMOKE, WORKLOAD, Workload
 from fakes import fake_server
-from fakes.bench import FAKE_SCENARIOS, register_entry_point
+from fakes.bench import fake_workload, register_entry_point
 from fakes.fake_adapter import FAKE_ADAPTERS, FakeAdapter, FakeBds
 
 ROOT = project_root()
@@ -96,17 +97,9 @@ def fixture_lines(cls: type[ServerAdapter]) -> list[str]:
     return [line for path in sorted(files) for line in path.read_text(encoding="utf-8").splitlines()]
 
 
-def scenarios_for(cls: type[ServerAdapter]) -> list[Any]:
-    """The checked-in scenarios (and the fake-quick scenario for fakes). Scenario validity is test_config's job."""
-    found = []
-    for name in config.available("scenarios"):
-        try:
-            found.append(config.load_scenario(name))
-        except ConfigError:
-            continue
-    if is_fake(cls):
-        found += [config.load_scenario(path) for path in sorted(FAKE_SCENARIOS.glob("*.toml"))]
-    return found
+def workloads_for(cls: type[ServerAdapter]) -> list[Workload]:
+    """The built-in workloads, and the fakes' own for fake adapters."""
+    return [WORKLOAD, SMOKE, fake_workload()] if is_fake(cls) else [WORKLOAD, SMOKE]
 
 
 def rendered_commands(adapter: ServerAdapter) -> dict[str, Any]:
@@ -259,7 +252,7 @@ def test_feature_file_covers_exercised_keys(cls: type[ServerAdapter]) -> None:
     assert path.is_file(), f"missing feature file {cls.features_file}"
     features = config.load_features(path)
     assert features.server == cls.name
-    exercised = {key for scenario in scenarios_for(cls) for key in scenario.exercises}
+    exercised = {key for workload in workloads_for(cls) for key in workload.exercises}
     versions = pinned_versions(cls)
     rows = [(v, features.row(v)) for v in versions] if versions else [(r.prefix, r) for r in features.ranges]
     for version, row in rows:

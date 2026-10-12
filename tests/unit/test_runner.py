@@ -21,11 +21,11 @@ import pytest
 
 from bedrock_bench import runner
 from bedrock_bench.adapters.base import host_os
-from bedrock_bench.config import ConfigError, load_machine, load_scenario, parse_matrix, parse_scenario
+from bedrock_bench.config import ConfigError, load_machine, parse_matrix
 from bedrock_bench.grid import cell
 from bedrock_bench.model import Arm, LogLine, Matrix
 from bedrock_bench.phases import ENV_BOT_CMD, Placer, bot_command
-from fakes.bench import FAKE_SCENARIOS
+from bedrock_bench.workload import SMOKE, WORKLOAD
 from fakes.fake_adapter import FakeBds
 from fixtures.runs import synthetic
 
@@ -89,18 +89,17 @@ class TestPlanOrder:
 
 class TestMatrixDirectory:
     MACHINE = load_machine(None)
-    SCENARIO = parse_scenario({"server": {"csg": False}}, name="s1")
 
     def recorded(self, **machine: Any) -> dict[str, Any]:
         return {
             "machine": {"profile_sha256": self.MACHINE.profile_sha256, "fingerprint_id": "f1", **machine},
-            "scenario": {"name": "s1", "sha256": self.SCENARIO.sha256},
+            "workload": WORKLOAD.record(),
         }
 
     def problems(self, record: dict[str, Any]) -> list[str]:
-        return runner.mixing_problems([record], self.MACHINE, "f1", {"s1": self.SCENARIO})
+        return runner.mixing_problems([record], self.MACHINE, "f1", WORKLOAD)
 
-    def test_same_profile_machine_and_scenario(self) -> None:
+    def test_same_profile_machine_and_workload(self) -> None:
         assert self.problems(self.recorded()) == []
 
     def test_another_profile(self) -> None:
@@ -109,9 +108,9 @@ class TestMatrixDirectory:
     def test_another_machine(self) -> None:
         assert "another machine" in self.problems(self.recorded(fingerprint_id="f2"))[0]
 
-    def test_another_scenario_version(self) -> None:
-        record = {**self.recorded(), "scenario": {"name": "s1", "sha256": "0" * 64}}
-        assert "earlier version of scenario s1" in self.problems(record)[0]
+    def test_another_workload(self) -> None:
+        record = {**self.recorded(), "workload": {**WORKLOAD.record(), "sha256": "0" * 64}}
+        assert "another workload" in self.problems(record)[0]
 
     def test_existing_records(self, tmp_path: Path) -> None:
         (tmp_path / "r1").mkdir()
@@ -134,7 +133,6 @@ def namespace(**values: Any) -> argparse.Namespace:
         "server": None,
         "matrix": None,
         "arm": None,
-        "scenario": "smoke",
         "machine": None,
         "variant": None,
         "repeat": 1,
@@ -150,7 +148,8 @@ class TestRequest:
         request = runner._request(namespace(server="bds@1.26.52.3", variant="x"))
         assert request.arm.id == "bds@1.26.52.3+x"
         assert request.matrix is None and request.order is None
-        assert request.matrix_dir == runner.DEFAULT_OUT / "smoke"
+        assert request.matrix_dir == runner.DEFAULT_OUT / "benchmark"
+        assert request.workload == WORKLOAD
 
     def test_matrix_arm(
         self, write_file: Callable[[str, str], Path], monkeypatch: pytest.MonkeyPatch, tmp_path: Path
@@ -171,11 +170,9 @@ class TestRequest:
             "configs/matrices/m.toml", '[matrix]\nscenarios = ["spread100"]\n[[arm]]\nserver = "bds@1.0"\n'
         )
         with pytest.raises(ConfigError, match="no arm"):
-            runner._request(namespace(matrix=str(path), arm="bds@2.0", scenario="spread100"))
-        with pytest.raises(ConfigError, match="does not run scenario smoke"):
-            runner._request(namespace(matrix=str(path), arm="bds@1.0"))
+            runner._request(namespace(matrix=str(path), arm="bds@2.0"))
         with pytest.raises(ConfigError, match="go with --server"):
-            runner._request(namespace(matrix=str(path), arm="bds@1.0", scenario="spread100", variant="x"))
+            runner._request(namespace(matrix=str(path), arm="bds@1.0", variant="x"))
 
 
 class TestPreflight:
@@ -209,12 +206,11 @@ class TestPreflight:
 
 
 class TestBotCommand:
-    def test_override_keeps_the_scenario_flags(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_override_keeps_the_workload_flags(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv(ENV_BOT_CMD, json.dumps(["python", "fake_bots.py"]))
         machine = load_machine(None)
         adapter = FakeBds(Arm("fake_bds@1.0.0", "fake_bds", "1.0.0"), machine)
-        scenario = load_scenario(FAKE_SCENARIOS / "fake-quick.toml")
-        command = bot_command(adapter, scenario, machine)
+        command = bot_command(adapter, SMOKE, machine)
         assert command.override
         assert command.argv[:2] == ("python", "fake_bots.py")
         assert command.argv[2:4] == ("-addr", f"127.0.0.1:{machine.port}")
@@ -228,7 +224,7 @@ class TestBotCommand:
         machine = load_machine(None)
         adapter = FakeBds(Arm("fake_bds@1.0.0", "fake_bds", "1.0.0"), machine)
         with pytest.raises(ConfigError, match=ENV_BOT_CMD):
-            bot_command(adapter, load_scenario("smoke"), machine)
+            bot_command(adapter, SMOKE, machine)
 
 
 class Recorder:
@@ -243,7 +239,7 @@ class TestPlacer:
     def placer(self) -> tuple[Placer, Recorder]:
         adapter = FakeBds(Arm("fake_bds@1.0.0", "fake_bds", "1.0.0"), load_machine(None))
         console = Recorder()
-        return Placer(adapter, load_scenario("smoke"), console), console  # type: ignore[arg-type]
+        return Placer(adapter, SMOKE, console), console  # type: ignore[arg-type]
 
     @staticmethod
     def in_world(name: str) -> LogLine:
@@ -335,6 +331,7 @@ class TestSmokeProblems:
             fh.write(f"{command['send_ns'] + 1000}\t0\t{line}\n")
         problems = runner.smoke_problems(path, self.adapter())
         assert problems == [f"command {command['text']!r} was answered with: Syntax error: Unexpected token"]
+
 
 def test_backend_names_the_platform() -> None:
     assert runner.backend() == f"native-{host_os()}"

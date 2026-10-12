@@ -39,7 +39,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from bedrock_bench.grid import DEFAULT_GRID, cell
-from bedrock_bench.model import Grid, PhaseSpec
+from bedrock_bench.workload import Grid, PhaseSpec
 
 #: Tolerance for comparing times that come from the same clock, against float rounding.
 _EPS = 1e-9
@@ -47,7 +47,7 @@ _EPS = 1e-9
 
 @dataclass(frozen=True)
 class SettleRules:
-    """The settle phase's options (``[phases.settle]`` of a scenario), with their defaults."""
+    """The settle phase's options, with their defaults."""
 
     min_s: float = 300.0
     cap_s: float = 900.0
@@ -156,7 +156,7 @@ class _Bot:
 
 
 class Settle:
-    """The settle state machine for one run. ``start`` is the ``alljoined`` time; ``n`` the scenario's bot count."""
+    """The settle state machine for one run. ``start`` is the ``alljoined`` time; ``n`` the workload's bot count."""
 
     def __init__(self, rules: SettleRules, *, n: int, start: float, grid: Grid = DEFAULT_GRID) -> None:
         if n < 1:

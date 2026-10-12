@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """The phases of one run: boot, idle, join, settle, spread, steady and teardown (docs/methodology.md#run-phases).
 
-:class:`Session` drives one prepared server through the scenario's phases. It knows the server only through its
+:class:`Session` drives one prepared server through the workload's phases. It knows the server only through its
 adapter: the launch command, the console dialect, the placement and position commands and the tick-thread rule.
 Every phase records its marks (seconds since the run's time origin) and rewrites ``run.partial.json``.
 
@@ -21,7 +21,7 @@ teardown    any failure or the end                           bots quit, server s
 ==========  =======================  ======================  ==========================================================
 
 Placement: when a bot reports ``spawned`` and the server prints its ``player_in_world`` line, whichever comes second,
-the harness sends the adapter's effects and teleports the bot to its grid cell at the scenario's height.
+the harness sends the adapter's effects and teleports the bot to its grid cell at the workload's height.
 
 A failure never raises out of :meth:`Session.run`. A server that exits early or bots that cannot join end the phases
 and go straight to teardown; the run's status comes from the recorded facts afterwards. A harness exception is
@@ -52,7 +52,7 @@ from bedrock_bench.console import Console
 from bedrock_bench.grid import cell, verify_spread
 from bedrock_bench.metrics import WINDOW_MARKS
 from bedrock_bench.metrics.cpu import normalize_name
-from bedrock_bench.model import Flag, Layout, LogLine, Machine, Placement, PlayerPos, Scenario
+from bedrock_bench.model import Flag, Layout, LogLine, Machine, Placement, PlayerPos
 from bedrock_bench.provenance import sha256_file
 from bedrock_bench.results import (
     BOTS_FILE,
@@ -71,6 +71,7 @@ from bedrock_bench.results import (
 from bedrock_bench.sampling import MachineSampler, ProcessSampler, ThreadSampler, TickProbe, TickSampler
 from bedrock_bench.sampling import series as series_files
 from bedrock_bench.settle import Nudge, Reteleport, Settle, SettleRules
+from bedrock_bench.workload import Workload
 
 if TYPE_CHECKING:
     import psutil
@@ -88,7 +89,7 @@ HEADLINE_BOT = "loadbot"
 POLL_S = 0.2
 #: Grace time for the console to report the end of output once the server has exited.
 EXIT_GRACE_S = 5.0
-#: Bot interrupt timeout after the scenario's quit timeout.
+#: Bot interrupt timeout after the workload's quit timeout.
 BOT_SIGNAL_TIMEOUT_S = 10.0
 #: Longest wait for queued console commands to be written before a measured window starts.
 DRAIN_TIMEOUT_S = 30.0
@@ -118,16 +119,16 @@ class BotCommand:
     override: bool = False  # True when $BBENCH_BOT_CMD replaced the bot binary
 
 
-def bot_command(adapter: ServerAdapter, scenario: Scenario, machine: Machine) -> BotCommand:
-    """The bot for the adapter's protocol with the scenario's flags (rule R2).
+def bot_command(adapter: ServerAdapter, workload: Workload, machine: Machine) -> BotCommand:
+    """The bot for the adapter's protocol with the workload's flags (rule R2).
 
     Raises :class:`bedrock_bench.bots.BotError` when the bot has not been built or fetched.
     """
     module = bots.module_for_protocol(adapter.protocol)
     args = bots.bot_args(
-        scenario.bots,
+        workload.bots,
         addr=f"127.0.0.1:{machine.port}",
-        csg=scenario.server.csg,
+        csg=workload.server.csg,
         compat_flags=adapter.bot_compat_flags,
     )
     override = os.environ.get(ENV_BOT_CMD)
@@ -175,9 +176,9 @@ class Placer:
     one triggers the placement. A new dial or rejoin of the bot forgets stale signals of its previous session.
     """
 
-    def __init__(self, adapter: ServerAdapter, scenario: Scenario, console: Console) -> None:
+    def __init__(self, adapter: ServerAdapter, workload: Workload, console: Console) -> None:
         self.adapter = adapter
-        self.grid = scenario.grid
+        self.grid = workload.grid
         self.console = console
         self.enabled = True
         self._lock = threading.Lock()
@@ -261,7 +262,7 @@ class Session:
         self,
         *,
         adapter: ServerAdapter,
-        scenario: Scenario,
+        workload: Workload,
         placement: Placement,
         layout: Layout,
         run_dir: RunDir,
@@ -271,7 +272,7 @@ class Session:
         progress: Callable[[str], None] | None = None,
     ) -> None:
         self.adapter = adapter
-        self.scenario = scenario
+        self.workload = workload
         self.placement = placement
         self.layout = layout
         self.run_dir = run_dir
@@ -444,7 +445,7 @@ class Session:
     # ---- boot -------------------------------------------------------------------------------------------------------
 
     def _boot(self) -> None:
-        spec = self.scenario.phase("boot")
+        spec = self.workload.phase("boot")
         assert self.console is not None and spec is not None and self._launched_at is not None
         deadline = self._launched_at + (spec.cap_s or float("inf"))
         console = self.console
@@ -465,7 +466,7 @@ class Session:
         assert self.server is not None
         self.record["server"]["facts"] = dict(self.adapter.facts(self.layout, self.server))
 
-        probe_params = self.scenario.probe
+        probe_params = self.workload.probe
         self.probe = TickProbe(
             self.adapter.dialect.tick_cmd,
             self.adapter.dialect.parse_tick,
@@ -508,7 +509,7 @@ class Session:
     # ---- idle -------------------------------------------------------------------------------------------------------
 
     def _idle(self) -> None:
-        spec = self.scenario.phase("idle")
+        spec = self.workload.phase("idle")
         if spec is not None:
             ready = self.marks["ready"]
             assert ready is not None
@@ -529,14 +530,14 @@ class Session:
     # ---- join -------------------------------------------------------------------------------------------------------
 
     def _join(self) -> None:
-        spec = self.scenario.phase("join")
+        spec = self.workload.phase("join")
         assert spec is not None and self.console is not None
         start = self.marks["idle1"] if self.marks["idle1"] is not None else self.marks["ready"]
         assert start is not None
         self.sleep_until(start + spec["pre_bots_s"])
         self._start_tick_sampler()
 
-        self.placer = Placer(self.adapter, self.scenario, self.console)
+        self.placer = Placer(self.adapter, self.workload, self.console)
         self._bot_log = JsonLines(self.run_dir.file(BOTS_FILE))
         self.fleet = fleet = bots.BotFleet(
             self.bot.argv,
@@ -592,11 +593,11 @@ class Session:
     # ---- settle -----------------------------------------------------------------------------------------------------
 
     def _settle_phase(self) -> None:
-        spec = self.scenario.phase("settle")
+        spec = self.workload.phase("settle")
         alljoined = self.marks["alljoined"]
         assert spec is not None and alljoined is not None and self.fleet is not None and self.placer is not None
         rules = SettleRules.from_phase(spec)
-        settle = self._settle = Settle(rules, n=self.scenario.bots.n, start=alljoined, grid=self.scenario.grid)
+        settle = self._settle = Settle(rules, n=self.workload.bots.n, start=alljoined, grid=self.workload.grid)
         history = self.fleet.events()  # replay everything since bots_start
         for event in history:
             self._feed_settle(event)
@@ -661,7 +662,7 @@ class Session:
     # ---- spread -----------------------------------------------------------------------------------------------------
 
     def _spread(self) -> None:
-        spec = self.scenario.phase("spread")
+        spec = self.workload.phase("spread")
         assert spec is not None and self.console is not None
         timeout = float(spec["query_timeout_s"])
         for command in self.adapter.cmd_effects("@a"):
@@ -678,9 +679,9 @@ class Session:
             log.warning("player positions unknown (%s)", source)
             self.record["spread"] = empty_spread(source)
         else:
-            spread = verify_spread(positions, self.scenario.bots.n, self.scenario.grid)
+            spread = verify_spread(positions, self.workload.bots.n, self.workload.grid)
             self.record["spread"] = spread.to_json(source)
-            if spread.offset_warning(self.scenario.grid):
+            if spread.offset_warning(self.workload.grid):
                 log.warning("a bot is %.0f blocks from its cell", spread.worst_offset_blocks or 0.0)
         self.save()
 
@@ -718,7 +719,7 @@ class Session:
     # ---- steady -----------------------------------------------------------------------------------------------------
 
     def _steady(self) -> None:
-        spec = self.scenario.phase("steady")
+        spec = self.workload.phase("steady")
         if spec is None:
             return
         settled = self.marks["settled"]
@@ -744,7 +745,7 @@ class Session:
     # ---- teardown ---------------------------------------------------------------------------------------------------
 
     def _teardown(self) -> None:
-        spec = self.scenario.phase("teardown")
+        spec = self.workload.phase("teardown")
         options: Mapping[str, Any] = spec.options if spec is not None else {}
         self.mark("stop")
         if self.placer is not None:
@@ -813,7 +814,7 @@ class Session:
         record["interference"]["windows"] = interference_record(self.run_dir, self.origin, windows)
         if self.bot.provenance.get("module") != HEADLINE_BOT:
             self.result.flags.add(Flag.BOT_PROTOCOL_DIFFERS.value)
-        terrain = [key for key in self.scenario.exercises if key.startswith("terrain.")]
+        terrain = [key for key in self.workload.exercises if key.startswith("terrain.")]
         if terrain and (record.get("world") or {}).get("generator") == "flat":
             self.result.flags.add(Flag.TERRAIN_MISMATCH.value)
 
@@ -837,7 +838,7 @@ class Session:
     def _collect_crash(self) -> list[str]:
         crash_dir = self.run_dir.file(CRASH_DIR)
         crash_dir.mkdir(exist_ok=True)
-        spec = self.scenario.phase("teardown")
+        spec = self.workload.phase("teardown")
         lines = int(spec["crash_log_lines"]) if spec is not None else 200
         if self.console is not None:
             tail = "".join(line.raw + "\n" for line in self.console.tail(lines))

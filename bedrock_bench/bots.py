@@ -7,7 +7,7 @@ starts it, stamps every event with the harness monotonic clock on receipt (``rx_
 on stdin first, so the bot can write its per-bot summaries, then an interrupt, then a kill.
 
 Rule R2 (one bot source, identical flags for every arm) is enforced by :func:`bot_args`: the arguments are derived
-from the scenario alone, and only allowlisted compatibility flags may be added per adapter.
+from the workload alone, and only allowlisted compatibility flags may be added per adapter.
 """
 
 from __future__ import annotations
@@ -37,7 +37,8 @@ from bedrock_bench import __version__
 from bedrock_bench.adapters.base import ALLOWED_COMPAT
 from bedrock_bench.clock import mono_ns
 from bedrock_bench.config import ConfigError, project_root
-from bedrock_bench.model import BotParams, ExitCode
+from bedrock_bench.model import ExitCode
+from bedrock_bench.workload import BotParams
 
 log = logging.getLogger(__name__)
 
@@ -278,9 +279,9 @@ def bot_args(
     csg: bool,
     compat_flags: Iterable[str] = (),
 ) -> list[str]:
-    """Bot arguments for a scenario.
+    """Bot arguments for a workload.
 
-    Every arm of a matrix gets the same list (rule R2). ``csg`` follows the scenario's ``server.csg``; ``compat_flags``
+    Every server gets the same list (rule R2). ``csg`` follows the workload's ``server.csg``; ``compat_flags``
     come from the adapter and must be in ``ALLOWED_COMPAT``. Booleans are spelled out so the recorded argv states
     every setting.
     """

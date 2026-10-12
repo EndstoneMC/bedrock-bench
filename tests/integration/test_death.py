@@ -61,9 +61,9 @@ def test_nonzero_exit_after_stop(bench: FakeBench) -> None:
 
 
 def test_hang_on_stop_is_killed(bench: FakeBench) -> None:
-    scenario = bench.scenario("fake-quick-short-stop", phases={"teardown": {"stop_timeout_s": 2.0}})
+    workload = bench.workload("short-stop", phases={"teardown": {"stop_timeout_s": 2.0}})
     started = time.monotonic()
-    run = bench.run_one(variant="hang-on-stop", scenario=scenario)
+    run = bench.run_one(variant="hang-on-stop", workload=workload)
     assert time.monotonic() - started < 120, "the harness kills a server that ignores stop"
     record = assert_server_failed(run, "server_alive")
     assert record["health"]["server_exit"] != 0

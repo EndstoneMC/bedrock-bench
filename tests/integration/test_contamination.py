@@ -20,7 +20,7 @@ pytestmark = pytest.mark.integration
 def test_cpu_burner_on_server_cpus_invalidates_the_run(tmp_path: Path) -> None:
     bench = FakeBench.create(tmp_path)
     machine = bench.machine("strict", strict_gates=True)
-    args = ("--server", "fake_bds@1.0.0", "--scenario", bench.scenario(), "--machine", machine, "--out", bench.out)
+    args = ("--server", "fake_bds@1.0.0", "--machine", machine, "--out", bench.out)
     run = bench.start("run-one", *args)
     try:
         joined = bench.wait_for_mark("alljoined", run)

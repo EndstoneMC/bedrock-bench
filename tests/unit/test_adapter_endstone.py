@@ -27,6 +27,7 @@ from bedrock_bench.adapters.endstone import (
 from bedrock_bench.cache import Cache
 from bedrock_bench.config import ConfigError
 from bedrock_bench.model import FEATURE_KEYS, Arm, Install, OverrideCategory, Placement, RunContext
+from bedrock_bench.workload import WORKLOAD, with_overrides
 
 ROOT = Path(__file__).resolve().parents[2]
 LOGS = ROOT / "tests" / "fixtures" / "logs"
@@ -56,7 +57,7 @@ def make_ctx(tmp_path: Path) -> RunContext:
         run_dir=tmp_path / "run",
         work_dir=tmp_path / "work",
         arm=arm(),
-        scenario=config.parse_scenario({"server": {"csg": True}}, name="test"),
+        workload=with_overrides(WORKLOAD, {"server": {"csg": True}}),
         machine=config.default_machine(),
         placement=Placement((0, 1), (2, 3), (2, 3), "normal", "physical"),
     )
@@ -301,6 +302,7 @@ class TestPrepareAndLaunch:
         assert spec.env_set["PYTHONSAFEPATH"] == "1"
         assert {"PYTHONPATH", "PYTHONHOME", "VIRTUAL_ENV"} <= set(spec.env_remove)
         assert ("LD_PRELOAD" in spec.env_remove) == (system == "linux")
+
 
 class FakeProcess:
     def __init__(self, exe: str, children: list[FakeProcess] | None = None, running: bool = True) -> None:

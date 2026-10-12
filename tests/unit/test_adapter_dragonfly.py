@@ -18,6 +18,7 @@ from bedrock_bench.adapters.dragonfly import DRAGONFLY_DIALECT, DragonflyAdapter
 from bedrock_bench.cache import Cache
 from bedrock_bench.config import ConfigError
 from bedrock_bench.model import Arm, Install, LogLine, Machine, OverrideCategory, Placement, RunContext
+from bedrock_bench.workload import WORKLOAD, with_overrides
 
 ROOT = Path(__file__).resolve().parents[2]
 LOGS = ROOT / "tests" / "fixtures" / "logs"
@@ -92,13 +93,13 @@ def make_adapter(machine: Machine | None = None, artifact: Path | None = None) -
 
 
 def make_ctx(tmp_path: Path, **world: Any) -> RunContext:
-    scenario = config.parse_scenario({"server": {"csg": False}, "world": world}, name="test")
+    workload = with_overrides(WORKLOAD, {"world": world})
     return RunContext(
         run_id="20260101T120000Z-dragonfly-test-r1-abcd",
         run_dir=tmp_path / "run",
         work_dir=tmp_path / "work",
         arm=Arm(id=f"dragonfly@{VERSION}", server="dragonfly", version=VERSION),
-        scenario=scenario,
+        workload=workload,
         machine=config.default_machine(),
         placement=Placement((0, 1), (2, 3), (2, 3), "normal", "physical"),
     )
@@ -186,6 +187,7 @@ class TestCommands:
         assert adapter.cmd_tp("a07", 5760.5, 300, 1280) == "tp a07 5760.5 300 1280"
         assert DRAGONFLY_DIALECT.tick_cmd == "gametime"
         assert DRAGONFLY_DIALECT.stop_cmd == "stop"
+
 
 # --------------------------------------------------------------------------------------------------------------------
 # config.toml
@@ -457,9 +459,9 @@ class TestPrepare:
         assert adapter.readback(layout) == []
         assert adapter.executable(layout).read_bytes() == b"dfbench binary"
 
-    def test_spread100_config_is_what_dfbench_tests_read(self, tmp_path: Path) -> None:
-        """configs/dragonfly/testdata/config.toml is the spread100 config; dfbench's Go tests parse it."""
-        ctx = dataclasses.replace(make_ctx(tmp_path), scenario=config.load_scenario("spread100"))
+    def test_benchmark_config_is_what_dfbench_tests_read(self, tmp_path: Path) -> None:
+        """configs/dragonfly/testdata/config.toml is the benchmark config; dfbench's Go tests parse it."""
+        ctx = dataclasses.replace(make_ctx(tmp_path), workload=WORKLOAD)
         layout = make_adapter().prepare(make_install(tmp_path), ctx)
         written = (layout.server_dir / dragonfly.CONFIG).read_bytes()
         assert written == (ROOT / dragonfly.SOURCE_DIR / "testdata" / "config.toml").read_bytes()
@@ -533,8 +535,7 @@ class TestDataFiles:
         features = config.load_features("dragonfly")
         row = features.row(VERSION)
         assert row is not None
-        exercised = {key for name in config.available("scenarios") for key in config.load_scenario(name).exercises}
-        for key in exercised:
+        for key in WORKLOAD.exercises:
             cell = row.cells[key]
             assert cell.cls.value != "unknown", key
             assert cell.evidence or cell.observed_by, key

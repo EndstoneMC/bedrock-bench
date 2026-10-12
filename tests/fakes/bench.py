@@ -3,8 +3,9 @@
 
 ``FakeBench.create(tmp_path)`` lays out a small project mirror and an environment for ``bbench`` subprocesses:
 
-- ``configs/`` and ``configs/scenarios/`` copies, so names resolve the same way as in a checkout;
-  ``BBENCH_ROOT`` points at the workspace and ``BBENCH_CACHE`` into it;
+- ``configs/`` copies, so names resolve the same way as in a checkout; ``BBENCH_ROOT`` points at the workspace and
+  ``BBENCH_CACHE`` into it;
+- ``BBENCH_TEST_WORKLOAD``, which shrinks the workload to ``fake-quick.json``: four bots, every phase in seconds;
 - a ``.dist-info`` folder that registers ``fakes.fake_adapter`` under the ``bedrock_bench.adapters`` entry point
   group, with ``tests/`` and that folder on ``PYTHONPATH``;
 - ``BBENCH_BOT_CMD``, the JSON argv that replaces the loadbot binary with ``fake_bots.py``;
@@ -36,13 +37,14 @@ from typing import Any
 
 import psutil
 
+from bedrock_bench.workload import ENV_TEST_WORKLOAD, WORKLOAD, Workload, with_overrides
 from fakes.fake_adapter import BOTS_SCRIPT, FAKE_ADAPTERS, SERVERS_DIR, interpreter
 
 #: Environment variable the bot fleet reads instead of the loadbot binary path: a JSON array, the argv prefix.
 ENV_BOT_CMD = "BBENCH_BOT_CMD"
 
 TESTS_DIR = Path(__file__).resolve().parent.parent
-FAKE_SCENARIOS = Path(__file__).resolve().parent / "scenarios"
+FAKE_WORKLOAD = Path(__file__).resolve().parent / "fake-quick.json"
 DIST_INFO = "bedrock_bench_fakes-0.0.0.dist-info"
 DEFAULT_VERSION = "1.0.0"
 
@@ -67,6 +69,18 @@ STRICT_GATES = {
 # --------------------------------------------------------------------------------------------------------------------
 # Helpers
 # --------------------------------------------------------------------------------------------------------------------
+
+
+def fake_workload() -> Workload:
+    """The workload of runs against the fakes, as ``bbench`` builds it from ``$BBENCH_TEST_WORKLOAD``."""
+    return with_overrides(WORKLOAD, json.loads(FAKE_WORKLOAD.read_text(encoding="utf-8")))
+
+
+def _merge(base: Mapping[str, Any], override: Mapping[str, Any]) -> dict[str, Any]:
+    merged = dict(base)
+    for key, value in override.items():
+        merged[key] = _merge(merged[key], value) if isinstance(value, Mapping) and key in merged else value
+    return merged
 
 
 def register_entry_point(folder: Path) -> Path:
@@ -125,7 +139,7 @@ def cpu_list(cpus: Sequence[int]) -> str:
 
 
 def toml_dumps(data: Mapping[str, Any], prefix: str = "") -> str:
-    """Enough TOML for scenarios, machine profiles and matrices: scalars, arrays, tables and arrays of tables."""
+    """Enough TOML for machine profiles and matrices: scalars, arrays, tables and arrays of tables."""
     lines: list[str] = []
     tables: list[str] = []
     for key, value in data.items():
@@ -269,12 +283,7 @@ class FakeBench:
         root.mkdir(parents=True, exist_ok=True)
         for adapter in FAKE_ADAPTERS:
             (root / "configs" / adapter.name).mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(
-                SERVERS_DIR / adapter.name / "server.toml", root / "configs" / adapter.name / "server.toml"
-            )
-        (root / "configs" / "scenarios").mkdir(parents=True, exist_ok=True)
-        for scenario in FAKE_SCENARIOS.glob("*.toml"):
-            shutil.copyfile(scenario, root / "configs" / "scenarios" / scenario.name)
+            shutil.copyfile(SERVERS_DIR / adapter.name / "server.toml", root / "configs" / adapter.name / "server.toml")
         entry_points = register_entry_point(root / "entry-points")
 
         cpus = host_cpus()
@@ -293,6 +302,7 @@ class FakeBench:
                 "BBENCH_ROOT": str(root),
                 "BBENCH_CACHE": str(root / "cache"),
                 ENV_BOT_CMD: json.dumps([interpreter(), "-I", "-u", str(BOTS_SCRIPT)]),
+                ENV_TEST_WORKLOAD: str(FAKE_WORKLOAD),
             }
         )
         bench = cls(root=root, port=free_port(), server_cpus=server_cpus, bot_cpus=bot_cpus, env=env)
@@ -305,12 +315,11 @@ class FakeBench:
 
     # ---- inputs ----------------------------------------------------------------------------------------------------
 
-    def scenario(self, name: str = "fake-quick", **tables: Mapping[str, Any]) -> Path:
-        """``configs/scenarios/<name>.toml``; with ``tables`` a new scenario that extends ``fake-quick`` with them."""
-        path = self.root / "configs" / "scenarios" / f"{name}.toml"
-        if tables:
-            path.write_text(toml_dumps({"extends": "fake-quick", **tables}), encoding="utf-8", newline="\n")
-        assert path.is_file(), f"no scenario {name}"
+    def workload(self, name: str, **tables: Mapping[str, Any]) -> Path:
+        """``fake-quick.json`` with ``tables`` merged in, for ``run_one(workload=...)``."""
+        data = _merge(json.loads(FAKE_WORKLOAD.read_text(encoding="utf-8")), tables)
+        path = self.root / f"workload-{name}.json"
+        path.write_text(json.dumps(data, indent=2), encoding="utf-8", newline="\n")
         return path
 
     def machine(
@@ -374,12 +383,14 @@ class FakeBench:
     def command(self, *args: str | Path) -> list[str]:
         return [sys.executable, "-m", "bedrock_bench", *map(str, args)]
 
-    def bbench(self, *args: str | Path, timeout: float = 300.0) -> subprocess.CompletedProcess[str]:
+    def bbench(
+        self, *args: str | Path, timeout: float = 300.0, env: Mapping[str, str] | None = None
+    ) -> subprocess.CompletedProcess[str]:
         try:
             return subprocess.run(
                 self.command(*args),
                 cwd=self.root,
-                env=self.env,
+                env={**self.env, **(env or {})},
                 capture_output=True,
                 text=True,
                 encoding="utf-8",
@@ -404,7 +415,7 @@ class FakeBench:
         server: str = "fake_bds",
         *,
         variant: str | None = None,
-        scenario: str | Path = "fake-quick",
+        workload: Path | None = None,
         machine: str = "fake",
         timeout: float = 300.0,
     ) -> Run:
@@ -414,8 +425,6 @@ class FakeBench:
             "run-one",
             "--server",
             server_tag(server),
-            "--scenario",
-            scenario if isinstance(scenario, Path) else self.scenario(scenario),
             "--machine",
             self.machine_path(machine),
             "--out",
@@ -423,7 +432,8 @@ class FakeBench:
         ]
         if variant is not None:
             args += ["--variant", variant]
-        process = self.bbench(*args, timeout=timeout)
+        env = {ENV_TEST_WORKLOAD: str(workload)} if workload is not None else None
+        process = self.bbench(*args, timeout=timeout, env=env)
         created = sorted(set(self.run_dirs()) - before)
         assert len(created) <= 1, f"run-one created {len(created)} run directories: {created}"
         return Run(process, created[0] if created else None)

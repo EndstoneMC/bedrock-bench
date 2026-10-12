@@ -17,7 +17,7 @@ import pytest
 
 from bedrock_bench import RUN_SCHEMA, results
 from bedrock_bench.clock import Origin
-from bedrock_bench.config import load_scenario, parse_scenario, project_root
+from bedrock_bench.config import project_root
 from bedrock_bench.model import (
     Arm,
     ArtifactRef,
@@ -33,12 +33,11 @@ from bedrock_bench.model import (
     WorldInfo,
 )
 from bedrock_bench.sampling.series import MACHINE_COLUMNS, JsonlWriter, SeriesWriter
+from bedrock_bench.workload import WORKLOAD, with_overrides
 from fixtures.runs import synthetic
 
 RUN_ID_PATTERN = re.compile(r"^[0-9]{8}T[0-9]{6}Z-[a-z][a-z0-9_]*@[0-9A-Za-z._+-]+-r[0-9]+-[0-9a-f]{4}$")
-SCENARIO = parse_scenario(
-    {"server": {"csg": False}, "exercises": ["player.physics", "terrain.vanilla_generator"]}, name="unit"
-)
+UNIT_WORKLOAD = with_overrides(WORKLOAD, {"exercises": ["player.physics", "terrain.vanilla_generator"]})
 ARM = Arm(id="bds@1.26.52.3", server="bds", version="1.26.52.3")
 PLACEMENT = Placement(server_cpus=(0, 1), bot_cpus=(2, 3), harness_cpus=(2, 3), priority="normal", kind="physical")
 MACHINE = Machine(
@@ -59,9 +58,9 @@ INSTALL = Install(
 
 def record(**changes: Any) -> dict[str, Any]:
     base = results.new_record(
-        run_id=results.make_run_id(ARM.id, SCENARIO.name, 1, 1_791_813_480_000, "abcd"),
+        run_id=results.make_run_id(ARM.id, 1, 1_791_813_480_000, "abcd"),
         arm=ARM,
-        scenario=SCENARIO,
+        workload=UNIT_WORKLOAD,
         matrix={"name": None, "repeat": 1, "order_index": None, "order": None},
         harness={"version": "0.1.0", "git": None, "dirty": None, "python": "3.13", "backend": "native-linux"},
         machine=results.machine_record(
@@ -92,19 +91,19 @@ def copy_fixture(name: str, target: Path) -> Path:
 
 class TestRunDir:
     def test_run_id_format(self) -> None:
-        run_id = results.make_run_id("endstone@0.11.14+glibc-alloc", "spread100", 2, 1_791_813_480_000, "3fa2")
-        assert run_id == "20261012T135800Z-endstone@0.11.14+glibc-alloc-spread100-r2-3fa2"
+        run_id = results.make_run_id("endstone@0.11.14+glibc-alloc", 2, 1_791_813_480_000, "3fa2")
+        assert run_id == "20261012T135800Z-endstone@0.11.14+glibc-alloc-r2-3fa2"
         assert RUN_ID_PATTERN.match(run_id)
-        assert RUN_ID_PATTERN.match(results.make_run_id("bds@1.26.52.3", "smoke", 1, 0))
+        assert RUN_ID_PATTERN.match(results.make_run_id("bds@1.26.52.3", 1, 0))
 
     def test_create_never_reuses_a_directory(self, tmp_path: Path) -> None:
-        dirs = {results.RunDir.create(tmp_path, ARM.id, "smoke", 1).path for _ in range(20)}
+        dirs = {results.RunDir.create(tmp_path, ARM.id, 1).path for _ in range(20)}
         assert len(dirs) == 20
         assert all((d / "series").is_dir() for d in dirs)
         assert all(RUN_ID_PATTERN.match(d.name) for d in dirs)
 
     def test_partial_then_final(self, tmp_path: Path) -> None:
-        run_dir = results.RunDir.create(tmp_path, ARM.id, "smoke", 1)
+        run_dir = results.RunDir.create(tmp_path, ARM.id, 1)
         run_dir.write_partial({"partial": True})
         assert run_dir.read_record() == {"partial": True}
         run_dir.write_run({"final": 1})
@@ -118,7 +117,7 @@ class TestRunDir:
             results.RunDir.open(tmp_path)
 
     def test_raw_files_and_hashes_leave_out_the_records(self, tmp_path: Path) -> None:
-        run_dir = results.RunDir.create(tmp_path, ARM.id, "smoke", 1)
+        run_dir = results.RunDir.create(tmp_path, ARM.id, 1)
         for rel in ("run.json", "run.partial.json", "metrics.json", "server.log.gz", "series/probe.csv", "crash/x"):
             path = run_dir.path / rel
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -206,7 +205,7 @@ class TestParity:
             '"player.physics" = { class = "absent", observed_by = "airborne_frac_steady" }\n'
             '"block.redstone" = { class = "vanilla", evidence = "https://example.org" }\n',
         )
-        parity = results.parity_record(path, "1.2.3", SCENARIO)
+        parity = results.parity_record(path, "1.2.3", UNIT_WORKLOAD)
         assert parity["range"] == "1.2" and parity["fidelity"] == "V1"
         assert parity["row"] == {
             "block.redstone": "vanilla",
@@ -222,17 +221,17 @@ class TestParity:
             'schema = 1\nserver = "x"\n[features.range."2"]\nfidelity = "V0"\n'
             '"player.physics" = { class = "vanilla", evidence = "https://example.org" }\n',
         )
-        parity = results.parity_record(path, "1.0", SCENARIO)
+        parity = results.parity_record(path, "1.0", UNIT_WORKLOAD)
         assert parity["range"] is None and parity["fidelity"] is None
         assert set(parity["row"].values()) == {"unknown"}
 
     def test_missing_file(self, tmp_path: Path) -> None:
-        parity = results.parity_record(tmp_path / "servers" / "none" / "server.toml", "1.0", SCENARIO)
+        parity = results.parity_record(tmp_path / "servers" / "none" / "server.toml", "1.0", UNIT_WORKLOAD)
         assert parity["file_sha256"] is None
-        assert parity["does_less"] == list(SCENARIO.exercises)
+        assert parity["does_less"] == list(UNIT_WORKLOAD.exercises)
 
     def test_relative_paths_resolve_in_the_checkout(self) -> None:
-        parity = results.parity_record("configs/bds/server.toml", "1.26.52.3", load_scenario("spread100"))
+        parity = results.parity_record("configs/bds/server.toml", "1.26.52.3", WORKLOAD)
         assert parity["file_sha256"] is not None
         assert parity["fidelity"] == "V0"
         assert (project_root() / "configs" / "bds" / "server.toml").is_file()
@@ -240,7 +239,7 @@ class TestParity:
 
 class TestInterference:
     def test_windows(self, tmp_path: Path) -> None:
-        run_dir = results.RunDir.create(tmp_path, ARM.id, "smoke", 1)
+        run_dir = results.RunDir.create(tmp_path, ARM.id, 1)
         origin = Origin(10**9, 0)
         with SeriesWriter(run_dir.series("machine.csv.gz"), (*MACHINE_COLUMNS, "cpu0")) as writer:
             for second in range(30):
@@ -263,7 +262,7 @@ class TestInterference:
         assert windows["busy"]["top"] == [{"name": "x", "cores": 2.0}]
 
     def test_no_machine_series(self, tmp_path: Path) -> None:
-        run_dir = results.RunDir.create(tmp_path, ARM.id, "smoke", 1)
+        run_dir = results.RunDir.create(tmp_path, ARM.id, 1)
         assert results.interference_record(run_dir, Origin(0, 0), {"steady": (0.0, 1.0)}) == {}
 
 

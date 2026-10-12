@@ -27,8 +27,9 @@ import pytest
 from bedrock_bench import adapters, bots, config
 from bedrock_bench.cache import Cache
 from bedrock_bench.model import LaunchSpec, Layout, LogLine, OverrideCategory, Placement, RunContext
+from bedrock_bench.workload import WORKLOAD, with_overrides
 from fakes import fake_bots, fake_server
-from fakes.bench import ENV_BOT_CMD, FAKE_SCENARIOS, FakeBench, free_port, register_entry_point
+from fakes.bench import ENV_BOT_CMD, FakeBench, fake_workload, free_port, register_entry_point
 from fakes.fake_adapter import (
     BOTS_SCRIPT,
     FAKE_ADAPTERS,
@@ -63,7 +64,7 @@ def make_context(adapter: FakeAdapter, tmp_path: Path) -> RunContext:
         run_dir=tmp_path / "run",
         work_dir=tmp_path / "work",
         arm=adapter.arm,
-        scenario=config.load_scenario(FAKE_SCENARIOS / "fake-quick.toml"),
+        workload=fake_workload(),
         machine=adapter.machine,
         placement=Placement((0,), (1,), (1,), "normal", "physical"),
     )
@@ -597,8 +598,7 @@ def test_real_adapter_reads_the_fake_family(family: str) -> None:
 
 
 def test_fake_bots_accept_the_harness_bot_arguments() -> None:
-    scenario = config.load_scenario(FAKE_SCENARIOS / "fake-quick.toml")
-    args = bots.bot_args(scenario.bots, addr="127.0.0.1:19672", csg=True, compat_flags=["-fake-xuid"])
+    args = bots.bot_args(fake_workload().bots, addr="127.0.0.1:19672", csg=True, compat_flags=["-fake-xuid"])
     result = run_bots(*args, "-version")
     assert result.returncode == 0, result.stderr
 
@@ -606,9 +606,10 @@ def test_fake_bots_accept_the_harness_bot_arguments() -> None:
 def test_bench_workspace_resolves_inputs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     bench = FakeBench.create(tmp_path / "bench")
     monkeypatch.setenv("BBENCH_ROOT", bench.env["BBENCH_ROOT"])
-    assert config.load_scenario("fake-quick").bots.n == 4
-    extended = bench.scenario("short-stop", phases={"teardown": {"stop_timeout_s": 2.0}})
-    assert config.load_scenario(extended).phase("teardown").options["stop_timeout_s"] == 2.0
+    assert fake_workload().bots.n == 4
+    extended = json.loads(bench.workload("short-stop", phases={"teardown": {"stop_timeout_s": 2.0}}).read_text())
+    assert with_overrides(WORKLOAD, extended).phase("teardown")["stop_timeout_s"] == 2.0
+    assert with_overrides(WORKLOAD, extended).phase("teardown")["bot_quit_timeout_s"] == 3.0
     machine = config.load_machine(bench.machine_path())
     assert machine.port == bench.port
     assert set(config.parse_cpu_list(machine.server_cpus)).isdisjoint(config.parse_cpu_list(machine.bot_cpus))

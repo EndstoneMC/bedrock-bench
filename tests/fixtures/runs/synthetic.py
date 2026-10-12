@@ -30,7 +30,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from bedrock_bench.config import parse_scenario
 from bedrock_bench.model import (
     CpuSample,
     LogLine,
@@ -41,6 +40,7 @@ from bedrock_bench.model import (
     ThreadSample,
     ThreadSeries,
 )
+from bedrock_bench.workload import WORKLOAD, with_overrides
 
 HERE = Path(__file__).resolve().parent
 NAMES = ("synthetic-steady", "synthetic-dip", "synthetic-death", "synthetic-midnight")
@@ -68,15 +68,13 @@ MARKS = {
     "stop": 207.0,
 }
 
-SCENARIO = parse_scenario(
+WORKLOAD_6 = with_overrides(
+    WORKLOAD,
     {
-        "description": "Synthetic fixture: 6 bots, 60 s settle floor, 30 s packet-mix interval.",
-        "server": {"csg": False},
-        "bots": {"n": N_BOTS, "pkt_interval_s": 30.0},
+        "bots": {"n": N_BOTS},
         "phases": {"settle": {"min_s": 60.0}},
         "exercises": ["terrain.vanilla_generator", "player.physics"],
     },
-    name="synthetic",
 )
 
 
@@ -397,7 +395,7 @@ def _run_json(v: Variant) -> dict[str, Any]:
         "schema": "bedrock-bench/run/1",
         "schema_minor": 0,
         "analysis_version": 1,
-        "run_id": f"20261012T135800Z-synthetic@1.0-{SCENARIO.name}-r1-{hex4}",
+        "run_id": f"20261012T135800Z-synthetic@1.0-r1-{hex4}",
         "status": "ok" if ok else "server_failed",
         "status_reasons": [] if ok else ["server_alive: the server exited before teardown"],
         "flags": [],
@@ -419,7 +417,7 @@ def _run_json(v: Variant) -> dict[str, Any]:
         "config_files": [],
         "parity": {"file_sha256": None, "range": None, "row": {}, "fidelity": None, "does_less": []},
         "bot": {"module": "loadbot", "protocol": 2193, "sha256": None, "argv": []},
-        "scenario": {"name": SCENARIO.name, "sha256": SCENARIO.sha256, "resolved": SCENARIO.resolved},
+        "workload": WORKLOAD_6.record(),
         "machine": {
             "fingerprint_id": "synthetic",
             "label": "synthetic",

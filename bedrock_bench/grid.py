@@ -16,7 +16,8 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
 
-from bedrock_bench.model import Grid, PlayerPos
+from bedrock_bench.model import PlayerPos
+from bedrock_bench.workload import Grid
 
 DEFAULT_GRID = Grid()
 
@@ -58,7 +59,7 @@ class Spread:
         return self.cells_occupied == joined and self.max_per_cell == 1
 
     def offset_warning(self, grid: Grid = DEFAULT_GRID) -> bool:
-        """True when a bot ended up further from its cell than the scenario's warning threshold."""
+        """True when a bot ended up further from its cell than the workload's warning threshold."""
         return self.worst_offset_blocks is not None and self.worst_offset_blocks > grid.warn_offset_blocks
 
     def to_json(self, source: str | None) -> dict[str, Any]:

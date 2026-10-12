@@ -24,7 +24,7 @@ pytestmark = pytest.mark.integration
 MATRIX = "order"
 FULL, REDUCED = "fake_bds@1.0.0", "fake_dragonfly@1.0.0"
 ARMS = [FULL, REDUCED]
-RUN_ID = re.compile(r"^\d{8}T\d{6}Z-fake_(bds|dragonfly)@1\.0\.0-fake-quick-r[12]-[0-9a-f]{4}$")
+RUN_ID = re.compile(r"^\d{8}T\d{6}Z-fake_(bds|dragonfly)@1\.0\.0-r[12]-[0-9a-f]{4}$")
 
 
 @pytest.fixture(scope="module")

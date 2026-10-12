@@ -18,7 +18,7 @@ import pytest
 from bedrock_bench import bots
 from bedrock_bench.bots import BotBinary, BotError, BotExit, BotFleet, Target, ToolchainError
 from bedrock_bench.config import ConfigError, load_schema
-from bedrock_bench.model import BotParams
+from bedrock_bench.workload import BotParams
 
 GOLDEN = Path("bots") / "core" / "testdata" / "golden.jsonl"
 
@@ -95,7 +95,7 @@ def test_provenance_matches_the_run_schema() -> None:
 # --------------------------------------------------------------------------------------------------------------------
 
 
-def test_bot_args_are_derived_from_the_scenario_only() -> None:
+def test_bot_args_are_derived_from_the_workload_only() -> None:
     params = BotParams(n=100, prefix="a", spawn_timeout_s=180.0)
     a = bots.bot_args(params, addr="127.0.0.1:19672", csg=True)
     b = bots.bot_args(params, addr="127.0.0.1:19672", csg=True)
@@ -318,8 +318,6 @@ FAKE_BOT = textwrap.dedent(
             emit("bot_summary", bot="a00", uniq=1, in_view=1, chunks=1, corrections=0, first_seen_ms=[5])
             emit("done")
             sys.exit(0)
-        if line.startswith("{"):
-            emit("left", bot="a00", reason=json.loads(line)["op"])
     time.sleep(60)
     """
 )
@@ -344,14 +342,10 @@ def test_fleet_reads_events_and_stops_with_quit(fake_bot: Path, tmp_path: Path) 
         import psutil
 
         assert psutil.Process(fleet.pid).cpu_affinity() == [0]
-        mark = len(fleet)
-        assert fleet.control("reconnect", i=0, delay_ms=0)
-        left = fleet.wait_for(lambda ev: ev["ev"] == "left", timeout_s=20, since=mark)
-        assert left is not None and left["reason"] == "reconnect"
     assert fleet.returncode == BotExit.OK
     assert fleet.finished
     kinds = [ev["ev"] for ev in fleet.events()]
-    assert kinds == ["hello", "dial", "alljoined", "left", "bot_summary", "done"]
+    assert kinds == ["hello", "dial", "alljoined", "bot_summary", "done"]
     assert [ev["ev"] for ev in received] == kinds
     stamps = [ev["rx_ns"] for ev in fleet.events()]
     assert stamps == sorted(stamps) and all(isinstance(s, int) for s in stamps)

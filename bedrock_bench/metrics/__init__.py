@@ -26,23 +26,17 @@ from bedrock_bench.metrics.stats import Censored, censored_median, distribution,
 from bedrock_bench.model import (
     WINDOWS,
     Availability,
-    BotParams,
     CpuSample,
     ExitCode,
-    Grid,
     MachineSample,
-    PhaseSpec,
-    ProbeParams,
     ProbeSample,
     ProcSample,
     RunData,
-    Scenario,
-    ServerParams,
     Status,
     ThreadSample,
     ThreadSeries,
-    WorldParams,
 )
+from bedrock_bench.workload import from_record
 
 #: Decimals kept for every float in metrics.json.
 FLOAT_DIGITS = 4
@@ -56,7 +50,7 @@ WINDOW_MARKS: Mapping[str, tuple[str, str]] = {
     "steady": ("steady0", "steady1"),
 }
 
-#: The scenario phase each window belongs to, to tell "not in this scenario" from "not reached".
+#: The workload phase each window belongs to, to tell "not in this workload" from "not reached".
 _WINDOW_PHASE = {
     "idle": "idle",
     "join": "join",
@@ -92,41 +86,6 @@ def window(run: RunData | Mapping[str, Any], name: str) -> tuple[float, float] |
     return float(t0), float(t1)
 
 
-def scenario_of(run: Mapping[str, Any]) -> Scenario:
-    """The scenario a run used, rebuilt from run.json ``scenario.resolved`` (defaults when it is missing)."""
-
-    def build(cls: type, data: Mapping[str, Any] | None, **required: Any) -> Any:
-        names = {f.name for f in dataclasses.fields(cls)}
-        values = {**required, **{k: v for k, v in (data or {}).items() if k in names}}
-        return cls(**{k: tuple(v) if isinstance(v, list) else v for k, v in values.items()})
-
-    info = run.get("scenario") or {}
-    resolved = info.get("resolved") or {}
-    phases = tuple(
-        PhaseSpec(
-            name=p["name"],
-            delay_s=p.get("delay_s", 0.0),
-            duration_s=p.get("duration_s"),
-            cap_s=p.get("cap_s"),
-            options=dict(p.get("options") or {}),
-        )
-        for p in resolved.get("phases") or ()
-    )
-    return Scenario(
-        name=info.get("name", "unknown"),
-        sha256=info.get("sha256", ""),
-        bots=build(BotParams, resolved.get("bots")),
-        grid=build(Grid, resolved.get("grid")),
-        world=build(WorldParams, resolved.get("world")),
-        server=build(ServerParams, resolved.get("server"), csg=False),
-        phases=phases,
-        probe=build(ProbeParams, resolved.get("probe")),
-        exercises=tuple(resolved.get("exercises") or ()),
-        requires=tuple(resolved.get("requires") or ()),
-        resolved=resolved,
-    )
-
-
 # --------------------------------------------------------------------------------------------------------------------
 # One run on its own timebase
 # --------------------------------------------------------------------------------------------------------------------
@@ -139,7 +98,7 @@ class _Run:
         self.data = data
         self.meta = data.run
         self.traits = traits
-        self.scenario = scenario_of(self.meta)
+        self.workload = from_record(self.meta)
         self.marks: Mapping[str, Any] = self.meta.get("marks") or {}
         time_info = self.meta.get("time") or {}
         o = self.origin_ns = int(time_info.get("origin_mono_ns", 0))
@@ -163,14 +122,14 @@ class _Run:
         return window(self.meta, name)
 
     def has_phase(self, name: str) -> bool:
-        if self.scenario.phases:
-            return self.scenario.has_phase(name)
+        if self.workload.phases:
+            return self.workload.has_phase(name)
         return self.marks.get(WINDOW_MARKS[name][0]) is not None
 
     def why_not(self, name: str) -> tuple[Availability, str]:
         phase = _WINDOW_PHASE[name]
         if not self.has_phase(phase):
-            return Availability.NOT_APPLICABLE, f"the scenario has no {phase} phase"
+            return Availability.NOT_APPLICABLE, f"the workload has no {phase} phase"
         return Availability.UNAVAILABLE, f"the {name} window was not reached"
 
     def process_n(self, t0: float, t1: float) -> int:
@@ -515,7 +474,7 @@ def _load_section(out: _Out, r: _Run) -> None:
         n=n,
     )
     out.value("resend_ratio", load.resend_ratio(bots, settled), "no stat event with chunks before settled")
-    radius = r.scenario.server.view_distance
+    radius = r.workload.server.view_distance
     med = median(u)
     out.value("view_fill_frac", None if med is None else med / load.disc(radius), no_progress, n=n)
     out.value("csg_effective", load.csg_effective(view.u, radius), no_progress, n=n)
@@ -528,7 +487,7 @@ def _work_section(out: _Out, r: _Run) -> None:
     online = workload.online(r.bots, *bounds)
     players = _median_int(online)
     out.value("players_steady", players, "no stat events in steady", n=len(online))
-    n = players or out.get("joined") or r.scenario.bots.n
+    n = players or out.get("joined") or r.workload.bots.n
     rates = workload.counters(r.bots, *bounds, n)
     for name in ("corrections", "rx_pkts", "tx_pkts"):
         out.value(f"{name}_per_bot_s", rates[name], "fewer than two stat events in steady")
@@ -538,7 +497,7 @@ def _work_section(out: _Out, r: _Run) -> None:
     ys = workload.heights(r.bots, *bounds)
     out.value(
         "airborne_frac_steady",
-        workload.airborne_frac(ys, r.scenario.grid.y),
+        workload.airborne_frac(ys, r.workload.grid.y),
         "no placed bots in a progress snapshot of steady",
         n=len(ys),
     )
@@ -666,7 +625,7 @@ def compute(run: RunData, adapter: Any = None) -> dict[str, Any]:
         metrics[metric.id] = {"unit": metric.unit, "window": metric.window, **_round(entry)}
     tables = {t.id: {"columns": list(t.columns), "rows": _round(out.tables.get(t.id, []))} for t in registry.TABLES}
 
-    status, reasons, flags = health.evaluate(run, metrics, r.scenario, traits)
+    status, reasons, flags = health.evaluate(run, metrics, r.workload, traits)
     return {
         "schema": METRICS_SCHEMA,
         "schema_minor": SCHEMA_MINOR,
@@ -711,4 +670,4 @@ def analyze_cli(args: argparse.Namespace) -> int:
     return ExitCode.for_statuses(statuses)
 
 
-__all__ = ["FLOAT_DIGITS", "WINDOW_MARKS", "analyze_cli", "compute", "dumps", "scenario_of", "window", "write"]
+__all__ = ["FLOAT_DIGITS", "WINDOW_MARKS", "analyze_cli", "compute", "dumps", "window", "write"]

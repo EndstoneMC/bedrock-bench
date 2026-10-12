@@ -9,7 +9,6 @@ on:
       - bedrock_bench/**
       - bots/**
       - configs/dragonfly/**
-      - configs/scenarios/smoke.toml
       - pyproject.toml
       - uv.lock
       - .github/ci-machine.toml
@@ -19,7 +18,6 @@ on:
       - bedrock_bench/**
       - bots/**
       - configs/dragonfly/**
-      - configs/scenarios/smoke.toml
       - pyproject.toml
       - uv.lock
       - .github/ci-machine.toml

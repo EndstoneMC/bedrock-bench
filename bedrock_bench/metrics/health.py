@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Validity gates and run status (docs/methodology.md#statistics-and-run-status).
 
-``evaluate`` reads the computed metrics, run.json and the scenario; it never re-reads raw series. A gate on a window
+``evaluate`` reads the computed metrics, run.json and the workload; it never re-reads raw series. A gate on a window
 the run never reached is skipped, so a server that dies during join is a ``server_failed`` result, not an invalid run.
 
 Some facts only exist while the run is live: a harness exception, a parity key that read back differently after
@@ -17,7 +17,8 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
-from bedrock_bench.model import Flag, Gate, Gates, RunData, Scenario, Status
+from bedrock_bench.model import Flag, Gate, Gates, RunData, Status
+from bedrock_bench.workload import Workload
 
 #: Gates whose failures only the live runner can see; their recorded reasons survive a recompute.
 RECORDED_GATES = (Gate.HARNESS_OK, Gate.CONFIG_READBACK, Gate.SERVER_ALIVE)
@@ -39,8 +40,8 @@ GATES: tuple[GateDef, ...] = (
         Gate.PROBE_MONOTONIC,
         "the adapter declares a monotonic counter, probe_tick_decreases = 0 and probe_idle_ticks > 0",
     ),
-    GateDef(Gate.PROBE_COVERAGE, "probe_max_gap_s <= scenario probe.max_gap_s (15 s) in every measured window"),
-    GateDef(Gate.PROBE_LAGGING, "probe_latency_ms_steady p99 <= scenario probe.lagging_p99_ms (1000 ms)"),
+    GateDef(Gate.PROBE_COVERAGE, "probe_max_gap_s <= workload probe.max_gap_s (15 s) in every measured window"),
+    GateDef(Gate.PROBE_LAGGING, "probe_latency_ms_steady p99 <= workload probe.lagging_p99_ms (1000 ms)"),
     GateDef(
         Gate.FOREIGN_LOAD,
         "foreign_cores, foreign_cores_peak_10s and foreign_server_set_cores within the machine "
@@ -54,7 +55,7 @@ GATES: tuple[GateDef, ...] = (
     GateDef(Gate.BOT_SATURATED, "bot_cpu_frac <= machine profile bot_cpu_frac_max (0.85) in every measured window"),
     GateDef(Gate.SPREAD, "after settle: positions known, spread cells_occupied = joined and max_per_cell = 1"),
     GateDef(
-        Gate.CSG_MATCHES, "csg_effective = the scenario's CSG setting, on servers that support client-side generation"
+        Gate.CSG_MATCHES, "csg_effective = the workload's CSG setting, on servers that support client-side generation"
     ),
     GateDef(Gate.VERSION_MATCH, "the banner version equals the arm version"),
     GateDef(Gate.WORLD_FRESH, "world dir absent before launch"),
@@ -63,7 +64,7 @@ GATES: tuple[GateDef, ...] = (
     ),
     GateDef(Gate.INTERVENTIONS_IN_MEASURED, "interventions_in_measured = 0"),
     GateDef(Gate.SERVER_ALIVE, "the server ran until teardown and exited with 0 on stop, without being killed"),
-    GateDef(Gate.JOINED_ALL, "joined = the scenario's bot count (reported as joined/n)"),
+    GateDef(Gate.JOINED_ALL, "joined = the workload's bot count (reported as joined/n)"),
     GateDef(Gate.DROPPED, "dropped = 0; a nonzero count adds the dropped flag"),
 )
 
@@ -149,7 +150,7 @@ class _Gates:
 def evaluate(
     run: RunData | Mapping[str, Any],
     metrics: Mapping[str, Mapping[str, Any]],
-    scenario: Scenario,
+    workload: Workload,
     adapter: Any = None,
     *,
     gates: Gates | None = None,
@@ -198,7 +199,7 @@ def evaluate(
     decreases = _value(metrics, "probe_tick_decreases")
     if decreases:
         out.fail(Gate.PROBE_MONOTONIC, f"the tick counter went down {decreases} times")
-    if reached("idle") or (not scenario.has_phase("idle") and reached("load")):
+    if reached("idle") or (not workload.has_phase("idle") and reached("load")):
         idle_ticks = _value(metrics, "probe_idle_ticks")
         if idle_ticks is None:
             out.fail(Gate.PROBE_MONOTONIC, "no probe replies to check the counter with")
@@ -210,12 +211,12 @@ def evaluate(
         gap = _value(metrics, f"probe_max_gap_s_{window}")
         if gap is None:
             out.fail(Gate.PROBE_COVERAGE, f"no probe replies in {window}")
-        elif gap > scenario.probe.max_gap_s:
+        elif gap > workload.probe.max_gap_s:
             out.fail(Gate.PROBE_COVERAGE, f"{_num(gap)} s without a probe reply in {window}")
     if reached("steady"):
         latency = _value(metrics, "probe_latency_ms_steady")
         p99 = latency.get("p99") if isinstance(latency, Mapping) else None
-        if p99 is not None and p99 > scenario.probe.lagging_p99_ms:
+        if p99 is not None and p99 > workload.probe.lagging_p99_ms:
             out.fail(Gate.PROBE_LAGGING, f"probe latency p99 {_num(p99)} ms in steady")
 
     # interference
@@ -257,11 +258,11 @@ def evaluate(
             if spread.get("max_per_cell") != 1:
                 out.fail(Gate.SPREAD, f"up to {spread.get('max_per_cell')} bots in one cell")
     csg = _value(metrics, "csg_effective")
-    if traits.supports_csg and csg is not None and csg != scenario.server.csg:
+    if traits.supports_csg and csg is not None and csg != workload.server.csg:
         out.fail(
             Gate.CSG_MATCHES,
-            f"client-side generation {'in effect' if csg else 'not in effect'} but the scenario sets "
-            f"csg = {str(scenario.server.csg).lower()}",
+            f"client-side generation {'in effect' if csg else 'not in effect'} but the workload sets "
+            f"csg = {str(workload.server.csg).lower()}",
         )
 
     # identity of what ran
@@ -284,7 +285,7 @@ def evaluate(
     if exit_code not in (None, 0):
         out.fail(Gate.SERVER_ALIVE, f"exit code {exit_code}")
     if marks.get("bots_start") is not None:
-        n = scenario.bots.n
+        n = workload.bots.n
         if (joined or 0) < n:
             out.fail(Gate.JOINED_ALL, f"joined {joined or 0}/{n}")
 

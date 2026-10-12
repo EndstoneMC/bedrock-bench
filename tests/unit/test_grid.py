@@ -6,7 +6,8 @@ from __future__ import annotations
 import pytest
 
 from bedrock_bench.grid import Spread, cell, nearest_cell, verify_spread
-from bedrock_bench.model import Grid, PlayerPos
+from bedrock_bench.model import PlayerPos
+from bedrock_bench.workload import Grid
 
 
 class TestCell:

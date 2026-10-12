@@ -335,9 +335,9 @@ def _read_pin(
 
 
 def config_context(ctx: RunContext) -> dict[str, str]:
-    """Placeholder values for config templates, from the scenario, the machine profile and the placement."""
-    server = ctx.scenario.server
-    world = ctx.scenario.world
+    """Placeholder values for config templates, from the workload, the machine profile and the placement."""
+    server = ctx.workload.server
+    world = ctx.workload.world
     if server.difficulty not in DIFFICULTY_IDS or server.gamemode not in GAMEMODE_IDS:
         raise ConfigError(f"unsupported difficulty {server.difficulty!r} or game mode {server.gamemode!r}")
     return {
@@ -741,7 +741,7 @@ class StandaloneServer(ServerAdapter):
 
     def prepare_world(self, server_dir: Path, ctx: RunContext) -> WorldInfo:
         """``worlds/<level>``, which must not exist yet."""
-        level_dir = server_dir / "worlds" / ctx.scenario.world.level_name
+        level_dir = server_dir / "worlds" / ctx.workload.world.level_name
         if level_dir.exists():
             raise RuntimeError(f"the fresh server copy already has a world at {level_dir}")
         return WorldInfo(fresh=True, generator=self.generator, path=self.world_data(level_dir))

@@ -18,7 +18,10 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from enum import IntEnum, StrEnum
 from pathlib import Path, PurePath
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from bedrock_bench.workload import Workload
 
 # --------------------------------------------------------------------------------------------------------------------
 # Enums
@@ -86,7 +89,7 @@ class Availability(StrEnum):
     """Whether a metric value exists for a run."""
 
     MEASURED = "measured"
-    NOT_APPLICABLE = "not_applicable"  # the server or scenario has no such quantity (tick thread of a Go server)
+    NOT_APPLICABLE = "not_applicable"  # the server or workload has no such quantity (tick thread of a Go server)
     UNAVAILABLE = "unavailable"  # should exist but could not be computed; ``reason`` says why
 
 
@@ -97,7 +100,7 @@ class FeatureClass(StrEnum):
     PARTIAL = "partial"
     ALTERED = "altered"  # deliberate deviation to save work
     ABSENT = "absent"
-    UNKNOWN = "unknown"  # not allowed in a published table for a key the scenario exercises
+    UNKNOWN = "unknown"  # not allowed in a published table for a key the workload exercises
 
 
 class Fidelity(StrEnum):
@@ -158,9 +161,6 @@ class Flag(StrEnum):
 # Vocabularies
 # --------------------------------------------------------------------------------------------------------------------
 
-#: Phases in execution order. ``boot``, ``join``, ``settle``, ``spread`` and ``teardown`` always run.
-PHASES = ("boot", "idle", "join", "settle", "spread", "steady", "teardown")
-
 #: Phase marks recorded in run.json, in seconds since the run's time origin.
 MARKS = (
     "ready",
@@ -183,10 +183,7 @@ LOG_LEVELS = ("debug", "info", "warn", "error", "fatal")
 PRIORITIES = ("normal", "above_normal")
 PLATFORMS = ("windows", "linux")
 PLACEMENT_KINDS = ("physical", "vcpu")
-WORLD_SOURCES = ("fresh", "template")
 GENERATORS = ("vanilla", "custom", "flat")
-DIFFICULTIES = ("peaceful", "easy", "normal", "hard")
-GAMEMODES = ("survival", "creative", "adventure")
 ARTIFACT_SOURCES = ("mojang", "pypi", "github", "maven", "web", "build", "local")
 
 #: Feature keys of the parity matrix (docs/methodology.md#fairness-and-feature-parity); add new keys in both places.
@@ -280,117 +277,6 @@ class Matrix:
 
     def scenarios_for(self, arm: Arm) -> tuple[str, ...]:
         return arm.scenarios or self.scenarios
-
-
-# --------------------------------------------------------------------------------------------------------------------
-# Scenario
-# --------------------------------------------------------------------------------------------------------------------
-
-
-@dataclass(frozen=True)
-class BotParams:
-    """Load bot settings. Every arm of a matrix gets the same values (rule R2)."""
-
-    n: int = 100
-    prefix: str = "a"
-    stagger_ms: int = 300
-    radius: int = 16  # RequestChunkRadius sent after spawn; servers clamp it to their view distance
-    loadscreen: bool = True
-    walk: str = "circle"  # circle | none
-    spawn_timeout_s: float = 180.0
-    join_retries: int = 0
-    identity_seed: str = "bedrock-bench"
-    progress_interval_s: float = 5.0
-    stat_interval_s: float = 10.0
-    pkt_interval_s: float = 60.0
-    probe_bots: int = 0
-    decode_errors: str = "count"  # count | fail
-
-
-@dataclass(frozen=True)
-class Grid:
-    """Spread grid: ``cell(i) = (origin + (i % columns) * spacing, origin + (i // columns) * spacing)``."""
-
-    columns: int = 11
-    spacing: int = 640
-    origin: int = 1280
-    y: float = 300.0  # teleport height
-    warn_offset_blocks: float = 200.0
-
-
-@dataclass(frozen=True)
-class WorldParams:
-    seed: int = 20261010
-    level_name: str = "bench"
-    source: str = "fresh"  # fresh | template
-    template_radius: int = 12  # view distance of the pre-generation tour (template scenarios)
-    min_coverage: float = 0.99  # per-cell coverage a template must reach
-
-
-@dataclass(frozen=True)
-class ServerParams:
-    """Gameplay settings every adapter maps onto its own config (docs/methodology.md#fairness-and-feature-parity)."""
-
-    csg: bool  # client-side chunk generation on servers that support it; bots get -csg when True
-    view_distance: int = 10
-    tick_distance: int = 4
-    difficulty: str = "easy"
-    gamemode: str = "survival"
-    max_players: int = 200
-    autosave_ticks: int = 6000
-    save_player_data: bool = True
-
-
-@dataclass(frozen=True)
-class ProbeParams:
-    interval_s: float = 5.0
-    max_gap_s: float = 15.0  # probe_coverage gate
-    lagging_p99_ms: float = 1000.0  # probe_lagging gate
-
-
-@dataclass(frozen=True)
-class PhaseSpec:
-    """One phase. ``delay_s`` is measured from the previous phase's end mark; ``options`` are fully resolved."""
-
-    name: str
-    delay_s: float = 0.0
-    duration_s: float | None = None  # fixed-length phases (idle, steady)
-    cap_s: float | None = None  # hard cap for condition-ended phases (boot, join, settle)
-    options: Mapping[str, Any] = field(default_factory=dict)
-
-    def __getitem__(self, key: str) -> Any:
-        return self.options[key]
-
-
-@dataclass(frozen=True)
-class Scenario:
-    """``configs/scenarios/<name>.toml`` after defaults and ``extends`` are resolved.
-
-    ``sha256`` is the hash of ``resolved`` in canonical JSON, so two files with the same effective content hash
-    the same.
-    """
-
-    name: str
-    sha256: str
-    bots: BotParams
-    grid: Grid
-    world: WorldParams
-    server: ServerParams
-    phases: tuple[PhaseSpec, ...]
-    probe: ProbeParams
-    exercises: tuple[str, ...] = ()  # feature keys whose parity rows the report must show
-    requires: tuple[str, ...] = ()  # feature keys that must match for efficiency metrics to be comparable
-    description: str = ""
-    resolved: Mapping[str, Any] = field(default_factory=dict)
-
-    def phase(self, name: str) -> PhaseSpec | None:
-        for spec in self.phases:
-            if spec.name == name:
-                return spec
-        return None
-
-    def has_phase(self, name: str) -> bool:
-        return self.phase(name) is not None
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -591,7 +477,7 @@ class RunContext:
     run_dir: Path  # results directory; nothing of the server lives here
     work_dir: Path  # short, empty directory for the fresh server copy (Cache.work_dir)
     arm: Arm
-    scenario: Scenario
+    workload: Workload
     machine: Machine
     placement: Placement
     repeat: int = 1

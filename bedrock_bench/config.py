@@ -1,12 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Load and validate the TOML inputs: scenarios, matrices, server files and machine profiles.
+"""Load and validate the TOML inputs: matrices, server files and machine profiles.
 
 Every loader rejects unknown keys, so a typo fails loudly instead of falling back to a default. Failures raise
 :class:`ConfigError` naming the file and the dotted key; the CLI turns them into exit code 2.
 
-Scenarios, matrices and server files are referenced by path or by bare name. A bare name resolves inside the project
-checkout, for example ``spread100`` -> ``configs/scenarios/spread100.toml`` and ``bds`` ->
-``configs/bds/server.toml``. Machine profiles are always paths.
+Matrices and server files are referenced by path or by bare name. A bare name resolves inside the project checkout,
+for example ``bds`` -> ``configs/bds/server.toml``. Machine profiles are always paths.
 
 A server file holds ``schema = 1``, an optional ``server`` that must match its folder, and three tables:
 ``[artifacts]`` (download pins), ``[features]`` (declared parity) and ``[config]`` (the values written into the
@@ -25,39 +24,28 @@ import tomllib
 import types
 import typing
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any
 
 from bedrock_bench.model import (
     ARTIFACT_SOURCES,
-    DIFFICULTIES,
     FEATURE_KEYS,
-    GAMEMODES,
-    PHASES,
     PRIORITIES,
-    WORLD_SOURCES,
     Arm,
     ArtifactCatalog,
     ArtifactSpec,
     ArtifactVersion,
     Benchmark,
-    BotParams,
     FeatureCell,
     FeatureClass,
     FeatureFile,
     FeatureRange,
     Fidelity,
     Gates,
-    Grid,
     Machine,
     Matrix,
     OverrideCategory,
-    PhaseSpec,
-    ProbeParams,
-    Scenario,
-    ServerParams,
-    WorldParams,
     sha256_json,
     to_json,
 )
@@ -69,12 +57,10 @@ SCHEMA_DIR = Path(__file__).resolve().parent / "schemas"
 
 #: Where each input kind that resolves by name lives, relative to the project root.
 CONFIG_PATHS = {
-    "scenarios": "configs/scenarios/{}.toml",
     "matrices": "configs/matrices/{}.toml",
     "servers": "configs/{}/server.toml",
 }
 _SINGULAR = {
-    "scenarios": "scenario",
     "matrices": "matrix",
     "servers": "server file",
 }
@@ -94,9 +80,6 @@ HEAP_RE = re.compile(r"^[1-9][0-9]*[MG]$")
 PYTHON_RE = re.compile(r"^3\.[0-9]+$")
 
 _MISSING: Any = object()
-
-# Matrix arm keys that would change the workload of one arm only (rule R1).
-_SCENARIO_KEYS = frozenset({"phases", "bots", "grid", "world", "probe", "exercises", "requires", "extends", *PHASES})
 
 
 class ConfigError(ValueError):
@@ -449,255 +432,6 @@ def _read_dataclass(table: _Table, cls: type, rules: Mapping[str, Mapping[str, A
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# Scenarios
-# --------------------------------------------------------------------------------------------------------------------
-
-_BOT_RULES: dict[str, dict[str, Any]] = {
-    "n": {"minimum": 1},
-    "prefix": {"pattern": r"^[A-Za-z0-9_]{1,12}$"},
-    "stagger_ms": {"minimum": 0},
-    "radius": {"minimum": 1, "maximum": 96},
-    "walk": {"choices": ("circle", "none")},
-    "spawn_timeout_s": {"above": 0},
-    "join_retries": {"minimum": 0},
-    "identity_seed": {"pattern": r"^.+$"},
-    "progress_interval_s": {"above": 0},
-    "stat_interval_s": {"above": 0},
-    "pkt_interval_s": {"above": 0},
-    "probe_bots": {"minimum": 0},
-    "decode_errors": {"choices": ("count", "fail")},
-}
-_GRID_RULES: dict[str, dict[str, Any]] = {
-    "columns": {"minimum": 1},
-    "spacing": {"minimum": 16},
-    "warn_offset_blocks": {"minimum": 0},
-}
-_WORLD_RULES: dict[str, dict[str, Any]] = {
-    "level_name": {"pattern": r"^[A-Za-z0-9_-]{1,64}$"},
-    "source": {"choices": WORLD_SOURCES},
-    "template_radius": {"minimum": 1, "maximum": 96},
-    "min_coverage": {"minimum": 0, "maximum": 1},
-}
-_SERVER_RULES: dict[str, dict[str, Any]] = {
-    "view_distance": {"minimum": 1, "maximum": 96},
-    "tick_distance": {"minimum": 1, "maximum": 96},
-    "difficulty": {"choices": DIFFICULTIES},
-    "gamemode": {"choices": GAMEMODES},
-    "max_players": {"minimum": 1},
-    "autosave_ticks": {"minimum": 0},
-}
-_PROBE_RULES: dict[str, dict[str, Any]] = {
-    "interval_s": {"above": 0},
-    "max_gap_s": {"above": 0},
-    "lagging_p99_ms": {"above": 0},
-}
-
-
-@dataclass(frozen=True)
-class _Opt:
-    kind: Any
-    default: Any = _MISSING
-    rules: Mapping[str, Any] = field(default_factory=dict)
-
-
-@dataclass(frozen=True)
-class _PhaseDef:
-    """Settable keys of one phase. A timing key with a None default does not exist for that phase."""
-
-    delay_s: float | None = None
-    duration_s: float | None = None
-    cap_s: float | None = None
-    options: Mapping[str, _Opt] = field(default_factory=dict)
-    optional: bool = False  # can be switched off with ``enabled = false``
-
-
-_NON_NEGATIVE = {"minimum": 0}
-_POSITIVE = {"above": 0}
-
-#: Phase keys and their defaults (docs/methodology.md#run-phases).
-PHASE_DEFS: Mapping[str, _PhaseDef] = {
-    "boot": _PhaseDef(cap_s=600.0),
-    "idle": _PhaseDef(delay_s=10.0, duration_s=20.0, optional=True),
-    "join": _PhaseDef(cap_s=300.0, options={"pre_bots_s": _Opt(float, 0.0, _NON_NEGATIVE)}),
-    "settle": _PhaseDef(
-        cap_s=900.0,
-        options={
-            "min_s": _Opt(float, 300.0, _NON_NEGATIVE),
-            "rate_per_bot": _Opt(float, 0.1, _NON_NEGATIVE),
-            "rate_window_s": _Opt(float, 60.0, _POSITIVE),
-            "eval_interval_s": _Opt(float, 5.0, _POSITIVE),
-            "max_data_age_s": _Opt(float, 5.0, _POSITIVE),
-            "min_view_frac": _Opt(float, 0.0, {"minimum": 0, "maximum": 1}),
-            "view_complete_frac": _Opt(float, 0.95, {"minimum": 0, "maximum": 1}),
-            "view_median_frac": _Opt(float, 0.5, {"minimum": 0, "maximum": 1}),
-            "retp_after_s": _Opt(float, 20.0, _POSITIVE),
-            "retp_max": _Opt(int, 3, _NON_NEGATIVE),
-            "nudge_after_s": _Opt(float, 60.0, _NON_NEGATIVE),
-            "nudge_min_y": _Opt(float, 290.0),
-            "nudge_max_uniq": _Opt(int, 30, _NON_NEGATIVE),
-            "nudge_max": _Opt(int, 2, _NON_NEGATIVE),
-            "nudge_step": _Opt(float, 16.0, _NON_NEGATIVE),
-        },
-    ),
-    "spread": _PhaseDef(options={"query_timeout_s": _Opt(float, 10.0, _POSITIVE)}),
-    "steady": _PhaseDef(delay_s=15.0, duration_s=90.0, optional=True),
-    "teardown": _PhaseDef(
-        options={
-            "bot_quit_timeout_s": _Opt(float, 10.0, _POSITIVE),
-            "stop_timeout_s": _Opt(float, 180.0, _POSITIVE),
-            "crash_log_lines": _Opt(int, 200, _NON_NEGATIVE),
-        }
-    ),
-}
-
-
-def load_scenario(ref: str | Path) -> Scenario:
-    """Load ``configs/scenarios/<ref>.toml`` (or a path), resolving ``extends`` and defaults."""
-    path = resolve("scenarios", ref)
-    data = _load_scenario_tree(path, ())
-    return parse_scenario(data, name=path.stem, file=path)
-
-
-def _load_scenario_tree(path: Path, chain: tuple[Path, ...]) -> dict[str, Any]:
-    data = load_toml(path)
-    parent = data.pop("extends", None)
-    if parent is None:
-        return data
-    if not isinstance(parent, str) or not NAME_RE.match(parent):
-        raise ConfigError("must be the name of a scenario in the same directory", file=path, key="extends")
-    parent_path = path.parent / f"{parent}.toml"
-    if parent_path.resolve() in {p.resolve() for p in (*chain, path)}:
-        raise ConfigError(f"circular extends via {parent!r}", file=path, key="extends")
-    if not parent_path.is_file():
-        raise ConfigError(f"no scenario {parent!r} next to this file", file=path, key="extends")
-    base = _load_scenario_tree(parent_path, (*chain, path))
-    for key in ("name", "description"):
-        base.pop(key, None)
-    return _deep_merge(base, data)
-
-
-def _deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
-    """Tables merge key by key; every other value (arrays included) replaces the base value."""
-    merged = dict(base)
-    for key, value in override.items():
-        if isinstance(value, dict) and isinstance(merged.get(key), dict):
-            merged[key] = _deep_merge(merged[key], value)
-        else:
-            merged[key] = value
-    return merged
-
-
-def parse_scenario(data: Mapping[str, Any], *, name: str, file: Path | None = None) -> Scenario:
-    """Build a :class:`Scenario` from already-loaded TOML data (``extends`` must be resolved by the caller)."""
-    if not NAME_RE.match(name):
-        raise ConfigError(f"bad scenario name {name!r}", file=file)
-    top = _Table(dict(data), file=file)
-    declared = top.get("name", str, name)
-    if declared != name:
-        raise top.error("name", f"must match the file name {name!r}")
-    description = top.get("description", str, "")
-    if "extends" in data:
-        raise top.error("extends", "must be resolved before parse_scenario (use load_scenario)")
-    feature_rules = {"check": _feature_keys}
-    exercises = top.get("exercises", tuple[str, ...], (), **feature_rules)
-    requires = top.get("requires", tuple[str, ...], (), **feature_rules)
-
-    bots = BotParams(**_read_dataclass(top.table("bots"), BotParams, _BOT_RULES))
-    grid = Grid(**_read_dataclass(top.table("grid"), Grid, _GRID_RULES))
-    world = WorldParams(**_read_dataclass(top.table("world"), WorldParams, _WORLD_RULES))
-    server = ServerParams(**_read_dataclass(top.table("server", required=True), ServerParams, _SERVER_RULES))
-    probe = ProbeParams(**_read_dataclass(top.table("probe"), ProbeParams, _PROBE_RULES))
-    phases = _read_phases(top.table("phases"))
-    top.finish(_explain_scenario_key)
-
-    def invalid(key: str, message: str) -> ConfigError:
-        return ConfigError(message, file=file, key=key)
-
-    if bots.n > server.max_players:
-        raise invalid("bots.n", f"is larger than server.max_players ({server.max_players})")
-    if bots.probe_bots > bots.n:
-        raise invalid("bots.probe_bots", f"is larger than bots.n ({bots.n})")
-    if grid.spacing <= 2 * 16 * server.view_distance:
-        raise invalid("grid.spacing", "must exceed two view distances in blocks, or neighbouring bots share chunks")
-    settle = next(p for p in phases if p.name == "settle")
-    if settle.cap_s is not None and settle.options["min_s"] > settle.cap_s:
-        raise invalid("phases.settle.min_s", "is larger than phases.settle.cap_s")
-
-    resolved = {
-        "name": name,
-        "exercises": list(exercises),
-        "requires": list(requires),
-        "bots": to_json(bots),
-        "grid": to_json(grid),
-        "world": to_json(world),
-        "server": to_json(server),
-        "probe": to_json(probe),
-        "phases": [to_json(p) for p in phases],
-    }
-    return Scenario(
-        name=name,
-        sha256=sha256_json(resolved),
-        bots=bots,
-        grid=grid,
-        world=world,
-        server=server,
-        phases=phases,
-        probe=probe,
-        exercises=exercises,
-        requires=requires,
-        description=description,
-        resolved=resolved,
-    )
-
-
-def _feature_keys(keys: tuple[str, ...]) -> None:
-    unknown = [k for k in keys if k not in FEATURE_KEYS]
-    if unknown:
-        raise ValueError(f"unknown feature key {unknown[0]!r} (see docs/methodology.md#fairness-and-feature-parity)")
-    if len(set(keys)) != len(keys):
-        raise ValueError("duplicate feature key")
-
-
-def _explain_scenario_key(key: str) -> str | None:
-    if key in PHASES:
-        return f"phase settings go under [phases.{key}]"
-    return None
-
-
-def _read_phases(table: _Table) -> tuple[PhaseSpec, ...]:
-    phases = []
-    for name in PHASES:
-        spec = _read_phase(name, PHASE_DEFS[name], table)
-        if spec is not None:
-            phases.append(spec)
-    table.finish(lambda key: f"unknown phase (phases are: {', '.join(PHASES)})")
-    return tuple(phases)
-
-
-def _read_phase(name: str, definition: _PhaseDef, phases: _Table) -> PhaseSpec | None:
-    sub = phases.table(name)
-    enabled = sub.get("enabled", bool, True) if definition.optional else True
-    timing: dict[str, Any] = {}
-    for key in ("delay_s", "duration_s", "cap_s"):
-        default = getattr(definition, key)
-        if default is not None:
-            timing[key] = sub.get(key, float, default, minimum=0)
-    options = {key: sub.get(key, opt.kind, opt.default, **opt.rules) for key, opt in definition.options.items()}
-    sub.finish(lambda key: _explain_phase_key(name, definition, key))
-    if not enabled:
-        return None
-    return PhaseSpec(name=name, options=options, **timing)
-
-
-def _explain_phase_key(name: str, definition: _PhaseDef, key: str) -> str | None:
-    if key == "enabled" and not definition.optional:
-        return f"the {name} phase always runs"
-    if key in ("delay_s", "duration_s", "cap_s"):
-        return f"the {name} phase has no {key}"
-    return None
-
-
-# --------------------------------------------------------------------------------------------------------------------
 # Matrices
 # --------------------------------------------------------------------------------------------------------------------
 
@@ -779,8 +513,6 @@ def _read_arm(table: _Table, base_dir: Path, matrix_scenarios: tuple[str, ...]) 
 def _explain_arm_key(key: str) -> str | None:
     if key in ("id", "version"):
         return 'write the arm as server = "<server>@<version>"; its id is that tag plus "+<variant>"'
-    if key in _SCENARIO_KEYS:
-        return "per-arm scenario and phase overrides are not allowed (rule R1); use a separate scenario file"
     return None
 
 
@@ -814,7 +546,7 @@ def parse_machine(data: Mapping[str, Any], *, file: Path | None = None, label: s
     port = runtime.get("port", int, 19672, minimum=1024, maximum=65534)
     jvm_heap = runtime.get("jvm_heap", str, "8G", pattern=HEAP_RE.pattern)
     runtime.finish()
-    gate_rules = {f.name: _NON_NEGATIVE for f in dataclasses.fields(Gates)}
+    gate_rules = {f.name: {"minimum": 0} for f in dataclasses.fields(Gates)}
     gates = Gates(**_read_dataclass(top.table("gates"), Gates, gate_rules))
     top.finish()
 

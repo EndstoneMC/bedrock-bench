@@ -11,208 +11,9 @@ from bedrock_bench import config
 from bedrock_bench.config import ConfigError
 from bedrock_bench.model import FeatureClass, Fidelity, Gates, Machine, OverrideCategory
 
-MINIMAL_SCENARIO = {"server": {"csg": False}}
-
-
-def scenario(data: dict | None = None, name: str = "test") -> config.Scenario:
-    return config.parse_scenario(data if data is not None else MINIMAL_SCENARIO, name=name)
-
 
 def toml(text: str) -> str:
     return textwrap.dedent(text).lstrip()
-
-
-# --------------------------------------------------------------------------------------------------------------------
-# Scenarios
-# --------------------------------------------------------------------------------------------------------------------
-
-
-class TestScenarioDefaults:
-    def test_common_parameters(self) -> None:
-        s = scenario()
-        assert s.bots.n == 100 and s.bots.stagger_ms == 300 and s.bots.spawn_timeout_s == 180
-        assert (s.grid.columns, s.grid.spacing, s.grid.origin, s.grid.y) == (11, 640, 1280, 300)
-        assert s.world.seed == 20261010 and s.world.level_name == "bench" and s.world.source == "fresh"
-        assert s.server.view_distance == 10 and s.server.tick_distance == 4
-        assert s.server.difficulty == "easy" and s.server.max_players == 200 and s.server.autosave_ticks == 6000
-        assert s.probe.interval_s == 5.0
-
-    def test_default_phases_and_timings(self) -> None:
-        s = scenario()
-        assert [p.name for p in s.phases] == ["boot", "idle", "join", "settle", "spread", "steady", "teardown"]
-        assert s.phase("boot").cap_s == 600
-        assert (s.phase("idle").delay_s, s.phase("idle").duration_s) == (10, 20)
-        assert s.phase("join").cap_s == 300 and s.phase("join")["pre_bots_s"] == 0
-        settle = s.phase("settle")
-        assert settle.cap_s == 900 and settle["min_s"] == 300 and settle["rate_per_bot"] == 0.1
-        assert settle["rate_window_s"] == 60 and settle["retp_max"] == 3 and settle["nudge_max"] == 2
-        assert (s.phase("steady").delay_s, s.phase("steady").duration_s) == (15, 90)
-        assert s.phase("teardown")["stop_timeout_s"] == 180
-
-    def test_csg_is_required(self) -> None:
-        with pytest.raises(ConfigError, match=r"server: is required"):
-            scenario({})
-        with pytest.raises(ConfigError, match=r"server\.csg: is required"):
-            scenario({"server": {}})
-
-    def test_resolved_and_hash(self) -> None:
-        s = scenario({"server": {"csg": True}, "exercises": ["player.physics"]})
-        assert s.resolved["server"]["csg"] is True
-        assert s.resolved["exercises"] == ["player.physics"]
-        assert s.resolved["phases"][0]["name"] == "boot"
-        assert s.sha256 == config.sha256_json(s.resolved)
-        assert len(s.sha256) == 64
-
-    def test_hash_ignores_description_and_explicit_defaults(self) -> None:
-        plain = scenario()
-        explicit = scenario(
-            {"description": "docs only", "server": {"csg": False, "view_distance": 10}, "bots": {"n": 100}}
-        )
-        assert plain.sha256 == explicit.sha256
-        assert scenario({"server": {"csg": True}}).sha256 != plain.sha256
-
-    def test_hash_depends_on_name(self) -> None:
-        assert scenario(name="a").sha256 != scenario(name="b").sha256
-
-
-class TestScenarioValidation:
-    @pytest.mark.parametrize(
-        ("data", "message"),
-        [
-            ({"server": {"csg": False}, "bogus": 1}, r"bogus: unknown key"),
-            ({"server": {"csg": False}, "bots": {"count": 3}}, r"bots\.count: unknown key"),
-            ({"server": {"csg": "yes"}}, r"server\.csg: expected true or false, got a string"),
-            ({"server": {"csg": False}, "bots": {"n": "100"}}, r"bots\.n: expected an integer"),
-            ({"server": {"csg": False}, "bots": {"n": True}}, r"bots\.n: expected an integer, got a boolean"),
-            ({"server": {"csg": False}, "bots": {"n": 0}}, r"bots\.n: must be >= 1"),
-            ({"server": {"csg": False}, "bots": {"walk": "zigzag"}}, r"bots\.walk: must be one of circle, none"),
-            ({"server": {"csg": False}, "server_": 1}, r"unknown key"),
-            ({"server": {"csg": False, "difficulty": "nightmare"}}, r"server\.difficulty"),
-            ({"server": {"csg": False}, "probe": {"interval_s": 0}}, r"probe\.interval_s: must be > 0"),
-            ({"server": {"csg": False}, "exercises": ["player.flying"]}, r"unknown feature key 'player\.flying'"),
-            ({"server": {"csg": False}, "requires": ["player.physics", "player.physics"]}, r"duplicate"),
-            ({"server": {"csg": False}, "steady": {"duration_s": 60}}, r"phase settings go under \[phases\.steady\]"),
-            ({"server": {"csg": False}, "phases": {"warmup": {}}}, r"phases\.warmup: unknown phase"),
-            ({"server": {"csg": False}, "phases": {"steady": {"cap_s": 5}}}, r"the steady phase has no cap_s"),
-            ({"server": {"csg": False}, "phases": {"join": {"enabled": False}}}, r"the join phase always runs"),
-            ({"server": {"csg": False}, "phases": {"settle": {"min": 10}}}, r"phases\.settle\.min: unknown key"),
-            ({"server": {"csg": False}, "name": "other"}, r"name: must match the file name"),
-        ],
-    )
-    def test_rejects(self, data: dict, message: str) -> None:
-        with pytest.raises(ConfigError, match=message):
-            scenario(data)
-
-    def test_more_bots_than_slots(self) -> None:
-        with pytest.raises(ConfigError, match=r"bots\.n: is larger than server\.max_players"):
-            scenario({"server": {"csg": False, "max_players": 10}, "bots": {"n": 20}})
-
-    def test_views_must_not_overlap(self) -> None:
-        with pytest.raises(ConfigError, match=r"grid\.spacing"):
-            scenario({"server": {"csg": False, "view_distance": 20}})
-        scenario({"server": {"csg": False, "view_distance": 19}})
-
-    def test_settle_floor_above_cap(self) -> None:
-        with pytest.raises(ConfigError, match=r"min_s"):
-            scenario({"server": {"csg": False}, "phases": {"settle": {"min_s": 1000}}})
-
-    def test_bad_name(self) -> None:
-        with pytest.raises(ConfigError, match="bad scenario name"):
-            scenario(name="Spread 100")
-
-
-class TestScenarioPhases:
-    def test_disable_optional_phases(self) -> None:
-        s = scenario({"server": {"csg": False}, "phases": {"steady": {"enabled": False}, "idle": {"enabled": False}}})
-        assert not s.has_phase("steady") and not s.has_phase("idle")
-
-    def test_overrides(self) -> None:
-        s = scenario(
-            {
-                "server": {"csg": False, "view_distance": 4},
-                "bots": {"n": 4},
-                "phases": {"settle": {"min_s": 30, "cap_s": 60}, "steady": {"duration_s": 20}},
-            }
-        )
-        assert s.phase("settle").cap_s == 60 and s.phase("settle")["min_s"] == 30
-        assert s.phase("steady").duration_s == 20 and s.bots.n == 4
-
-
-class TestScenarioFiles:
-    def test_load_by_path_and_extends(self, write_file) -> None:
-        base = write_file(
-            "configs/scenarios/base.toml",
-            toml(
-                """
-                name = "base"
-                description = "base scenario"
-                exercises = ["player.physics"]
-
-                [server]
-                csg = true
-                view_distance = 10
-
-                [phases.steady]
-                duration_s = 90
-                """
-            ),
-        )
-        child = write_file(
-            "configs/scenarios/child.toml",
-            toml(
-                """
-                extends = "base"
-
-                [server]
-                csg = false
-
-                [phases.steady]
-                delay_s = 5
-                """
-            ),
-        )
-        parent = config.load_scenario(base)
-        s = config.load_scenario(child)
-        assert s.name == "child" and s.description == ""
-        assert s.server.csg is False and s.server.view_distance == 10
-        assert s.exercises == ("player.physics",)
-        assert (s.phase("steady").delay_s, s.phase("steady").duration_s) == (5, 90)
-        assert parent.server.csg is True
-
-    def test_extends_composition_does_not_change_hash(self, write_file) -> None:
-        write_file("configs/scenarios/base.toml", "[server]\ncsg = true\n[bots]\nn = 50\n")
-        composed = write_file("configs/scenarios/same.toml", 'extends = "base"\n# comment\n')
-        flat = write_file("other/same.toml", "[bots]\nn = 50\n\n[server]\ncsg = true\n")
-        assert config.load_scenario(composed).sha256 == config.load_scenario(flat).sha256
-
-    def test_extends_cycle(self, write_file) -> None:
-        write_file("configs/scenarios/a.toml", 'extends = "b"\n[server]\ncsg = true\n')
-        b = write_file("configs/scenarios/b.toml", 'extends = "a"\n')
-        with pytest.raises(ConfigError, match="circular extends"):
-            config.load_scenario(b)
-
-    def test_extends_missing(self, write_file) -> None:
-        path = write_file("configs/scenarios/a.toml", 'extends = "nope"\n')
-        with pytest.raises(ConfigError, match="no scenario 'nope'"):
-            config.load_scenario(path)
-
-    def test_invalid_toml(self, write_file) -> None:
-        path = write_file("configs/scenarios/broken.toml", "[server\ncsg = true\n")
-        with pytest.raises(ConfigError, match="invalid TOML") as info:
-            config.load_scenario(path)
-        assert "broken.toml" in str(info.value)
-
-    def test_error_names_file_and_key(self, write_file) -> None:
-        path = write_file("configs/scenarios/typo.toml", "[server]\ncsg = true\n[bots]\nprefx = 'a'\n")
-        with pytest.raises(ConfigError) as info:
-            config.load_scenario(path)
-        err = info.value
-        assert err.key == "bots.prefx" and Path(err.file) == path
-        assert str(err).endswith(
-            "typo.toml: bots.prefx: unknown key (allowed here: "
-            + ", ".join(sorted(f for f in config.BotParams.__dataclass_fields__))
-            + ")"
-        )
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -278,15 +79,6 @@ class TestMatrix:
         )
         assert m.repeats == 1 and m.order == "rotate" and m.priority_override is None
         assert m.arms[0].id == "endstone@0.11.14+glibc-alloc"
-
-    @pytest.mark.parametrize("key", ["phases", "steady", "settle", "bots", "world"])
-    def test_rule_r1_per_arm_overrides(self, key: str) -> None:
-        data = {
-            "matrix": {"name": "x", "scenarios": ["s"]},
-            "arm": [{"server": "bds@1.26.52.3", key: {"duration_s": 1}}],
-        }
-        with pytest.raises(ConfigError, match=r"rule R1"):
-            config.parse_matrix(data)
 
     @pytest.mark.parametrize(
         ("arm", "message"),
@@ -709,12 +501,11 @@ class TestFeatures:
 class TestResolve:
     def test_bare_name_resolves_in_project(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("BBENCH_ROOT", str(tmp_path))
-        (tmp_path / "configs" / "scenarios").mkdir(parents=True)
-        (tmp_path / "configs" / "scenarios" / "smoke.toml").write_text("[server]\ncsg = false\n")
+        (tmp_path / "configs" / "bds").mkdir(parents=True)
+        (tmp_path / "configs" / "bds" / "server.toml").write_text("schema = 1\n")
         assert config.project_root() == tmp_path.resolve()
-        assert config.resolve("scenarios", "smoke") == tmp_path.resolve() / "configs" / "scenarios" / "smoke.toml"
-        assert config.available("scenarios") == ["smoke"]
-        assert config.load_scenario("smoke").name == "smoke"
+        assert config.resolve("servers", "bds") == tmp_path.resolve() / "configs" / "bds" / "server.toml"
+        assert config.available("servers") == ["bds"]
 
     def test_dotted_name_is_a_name(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("BBENCH_ROOT", str(tmp_path))
@@ -724,12 +515,12 @@ class TestResolve:
 
     def test_missing_lists_available(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("BBENCH_ROOT", str(tmp_path))
-        (tmp_path / "configs" / "scenarios").mkdir(parents=True)
-        (tmp_path / "configs" / "scenarios" / "smoke.toml").write_text("")
-        with pytest.raises(ConfigError, match=r"no such scenario \(available: smoke\)"):
-            config.resolve("scenarios", "spread100")
+        (tmp_path / "configs" / "bds").mkdir(parents=True)
+        (tmp_path / "configs" / "bds" / "server.toml").write_text("")
+        with pytest.raises(ConfigError, match=r"no such server file \(available: bds\)"):
+            config.resolve("servers", "nukkit")
 
-    @pytest.mark.parametrize("kind", ["worlds", "machines", "claims", "artifacts", "features"])
+    @pytest.mark.parametrize("kind", ["scenarios", "worlds", "machines", "claims", "artifacts", "features"])
     def test_unknown_kind(self, kind: str) -> None:
         with pytest.raises(ValueError):
             config.resolve(kind, "x")

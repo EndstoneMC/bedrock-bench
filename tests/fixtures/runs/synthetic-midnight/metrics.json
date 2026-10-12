@@ -935,7 +935,7 @@
       "window": "load"
     }
   },
-  "run_id": "20261012T135800Z-synthetic@1.0-synthetic-r1-2b19",
+  "run_id": "20261012T135800Z-synthetic@1.0-r1-2b19",
   "schema": "bedrock-bench/metrics/1",
   "schema_minor": 0,
   "status": "ok",

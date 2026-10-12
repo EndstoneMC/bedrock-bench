@@ -136,8 +136,8 @@ def load_settings(path: Path) -> tuple[Setting, ...]:
 
 
 def settings_context(ctx: RunContext) -> dict[str, str]:
-    """Placeholder values for the settings, from the scenario, the machine profile and the placement."""
-    server, world = ctx.scenario.server, ctx.scenario.world
+    """Placeholder values for the settings, from the workload, the machine profile and the placement."""
+    server, world = ctx.workload.server, ctx.workload.world
     return {
         "port": str(ctx.machine.port),
         "max_players": str(server.max_players),

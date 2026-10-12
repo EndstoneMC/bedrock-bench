@@ -8,10 +8,9 @@ from typing import Any
 
 import pytest
 
-from bedrock_bench.config import parse_scenario
 from bedrock_bench.grid import cell
-from bedrock_bench.model import PhaseSpec
 from bedrock_bench.settle import BotView, Nudge, Reteleport, Settle, SettleRules
+from bedrock_bench.workload import WORKLOAD, PhaseSpec
 
 START = 100.0  # alljoined, seconds since the run origin
 N = 4
@@ -44,8 +43,8 @@ def placed(s: Settle, t: float, n: int = N, *, teleported: bool = True) -> None:
 
 
 class TestRules:
-    def test_defaults_match_the_scenario_defaults(self) -> None:
-        spec = parse_scenario({"server": {"csg": False}}, name="t").phase("settle")
+    def test_defaults_match_the_workload(self) -> None:
+        spec = WORKLOAD.phase("settle")
         assert spec is not None
         assert SettleRules.from_phase(spec) == SettleRules()
 

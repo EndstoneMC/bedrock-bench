@@ -184,10 +184,44 @@
     ],
     "verified": true
   },
-  "run_id": "20261012T135800Z-synthetic@1.0-synthetic-r1-2b19",
-  "scenario": {
-    "name": "synthetic",
-    "resolved": {
+  "run_id": "20261012T135800Z-synthetic@1.0-r1-2b19",
+  "schema": "bedrock-bench/run/1",
+  "schema_minor": 0,
+  "server": {
+    "aux_pids": [],
+    "banner_version": "1.0",
+    "facts": {
+      "allocator": "default",
+      "csg_setting": false,
+      "jvm_heap_mib": null,
+      "thread_census_idle": {}
+    },
+    "pid": 4242
+  },
+  "settle": {
+    "capped": false,
+    "settle_s": 62.5,
+    "views_incomplete": false
+  },
+  "spread": {
+    "cells_occupied": 6,
+    "max_per_cell": 1,
+    "players": 6,
+    "source": "querytarget",
+    "worst_offset_blocks": 0.5
+  },
+  "status": "ok",
+  "status_reasons": [],
+  "time": {
+    "drift_ms": 0.0,
+    "end_epoch_ms": 1791849748000,
+    "end_mono_ns": 5208000000000,
+    "origin_epoch_ms": 1791849540000,
+    "origin_mono_ns": 5000000000000
+  },
+  "workload": {
+    "name": "benchmark",
+    "params": {
       "bots": {
         "decode_errors": "count",
         "identity_seed": "bedrock-bench",
@@ -215,7 +249,6 @@
         "warn_offset_blocks": 200.0,
         "y": 300.0
       },
-      "name": "synthetic",
       "phases": [
         {
           "cap_s": 600.0,
@@ -296,7 +329,6 @@
         "lagging_p99_ms": 1000.0,
         "max_gap_s": 15.0
       },
-      "requires": [],
       "server": {
         "autosave_ticks": 6000,
         "csg": false,
@@ -309,47 +341,10 @@
       },
       "world": {
         "level_name": "bench",
-        "min_coverage": 0.99,
-        "seed": 20261010,
-        "source": "fresh",
-        "template_radius": 12
+        "seed": 20261010
       }
     },
-    "sha256": "7e399432fabec4182e2eb35864155ef8b46b03c2a98c87fb8bd5cdf7ba020912"
-  },
-  "schema": "bedrock-bench/run/1",
-  "schema_minor": 0,
-  "server": {
-    "aux_pids": [],
-    "banner_version": "1.0",
-    "facts": {
-      "allocator": "default",
-      "csg_setting": false,
-      "jvm_heap_mib": null,
-      "thread_census_idle": {}
-    },
-    "pid": 4242
-  },
-  "settle": {
-    "capped": false,
-    "settle_s": 62.5,
-    "views_incomplete": false
-  },
-  "spread": {
-    "cells_occupied": 6,
-    "max_per_cell": 1,
-    "players": 6,
-    "source": "querytarget",
-    "worst_offset_blocks": 0.5
-  },
-  "status": "ok",
-  "status_reasons": [],
-  "time": {
-    "drift_ms": 0.0,
-    "end_epoch_ms": 1791849748000,
-    "end_mono_ns": 5208000000000,
-    "origin_epoch_ms": 1791849540000,
-    "origin_mono_ns": 5000000000000
+    "sha256": "7a7b2a0fc6e3c6d22be4d5b64df509f8609fbe625d57eef17c4c2ce8cce3729b"
   },
   "world": {
     "fresh": true,

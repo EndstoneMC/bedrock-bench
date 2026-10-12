@@ -19,6 +19,7 @@ from bedrock_bench.adapters.chorus import CHORUS_DIALECT, ChorusAdapter
 from bedrock_bench.cache import Cache
 from bedrock_bench.config import ConfigError
 from bedrock_bench.model import Install, LogLine, OverrideCategory, Placement, RunContext
+from bedrock_bench.workload import WORKLOAD, with_overrides
 
 ROOT = Path(__file__).resolve().parents[2]
 LOGS = ROOT / "tests" / "fixtures" / "logs"
@@ -116,7 +117,7 @@ def make_ctx(tmp_path: Path, **world: Any) -> RunContext:
         run_dir=tmp_path / "run",
         work_dir=tmp_path / "work",
         arm=config.arm_from_ref(f"chorus@{VERSION}"),
-        scenario=config.parse_scenario({"server": {"csg": False}, "world": world}, name="test"),
+        workload=with_overrides(WORKLOAD, {"world": world}),
         machine=config.default_machine(),
         placement=Placement((0, 1, 2, 3), (4, 5), (4, 5), "normal", "physical"),
     )
@@ -206,6 +207,7 @@ class TestCommands:
         assert adapter.cmd_tp("a b", 1, 2, 3) == 'tpp "a b" 1 2 3'
         assert CHORUS_DIALECT.tick_cmd == "gametime" and CHORUS_DIALECT.stop_cmd == "stop"
 
+
 # --------------------------------------------------------------------------------------------------------------------
 # chorus.toml
 # --------------------------------------------------------------------------------------------------------------------
@@ -289,8 +291,8 @@ class TestPrepare:
         assert "network.transport" not in by_key and "level.chunk_saving" not in by_key  # equal to the defaults
         assert not any(o.category.footnoted for o in layout.overrides)
 
-    def test_spread100(self, tmp_path: Path) -> None:
-        ctx = dataclasses.replace(make_ctx(tmp_path), scenario=config.load_scenario("spread100"))
+    def test_benchmark_workload(self, tmp_path: Path) -> None:
+        ctx = dataclasses.replace(make_ctx(tmp_path), workload=WORKLOAD)
         layout = make_adapter().prepare(make_install(tmp_path), ctx)
         written = (layout.server_dir / chorus.CONFIG).read_text(encoding="utf-8")
         assert written.startswith('[network]\nip = "127.0.0.1"\nport = 19672\ntransport = "RakNet"\n\n[server]\n')

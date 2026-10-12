@@ -113,7 +113,6 @@ def _configure_run_one(p: argparse.ArgumentParser) -> None:
     p.add_argument("--server", metavar="S@V", help="server@version to run (or use --matrix and --arm)")
     p.add_argument("--matrix", metavar="MATRIX", help="matrix that defines the arm: a name or a path")
     p.add_argument("--arm", metavar="ID", help="arm id inside --matrix")
-    p.add_argument("--scenario", required=True, metavar="S", help="a name in configs/scenarios/ or a path")
     _add_machine(p)
     p.add_argument("--variant", metavar="V")
     p.add_argument("--repeat", type=int, default=1, metavar="K", help="repeat index (default: 1)")

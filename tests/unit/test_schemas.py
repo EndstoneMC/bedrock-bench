@@ -40,7 +40,7 @@ def errors(validator: Any, instance: Any) -> list[str]:
 
 def partial_run(run: dict[str, Any]) -> dict[str, Any]:
     """run.partial.json as the runner writes it right after the server is ready."""
-    keep = ("schema", "analysis_version", "run_id", "matrix", "harness", "arm", "scenario", "time")
+    keep = ("schema", "analysis_version", "run_id", "matrix", "harness", "arm", "workload", "time")
     partial = {key: copy.deepcopy(run[key]) for key in keep}
     partial.update(partial=True, status=None, marks={"ready": run["marks"]["ready"]})
     return partial
@@ -91,9 +91,9 @@ class TestRun:
         assert errors(validator, run_example) == []
         assert errors(validator, partial_run(run_example)) == []
 
-    def test_example_scenario_hash_is_consistent(self, run_example: dict) -> None:
-        scenario = run_example["scenario"]
-        assert sha256_json(scenario["resolved"]) == scenario["sha256"]
+    def test_example_workload_hash_is_consistent(self, run_example: dict) -> None:
+        workload = run_example["workload"]
+        assert sha256_json(workload["params"]) == workload["sha256"]
 
     def test_ok_run_must_be_complete(self, schema_validator, run_example: dict) -> None:
         validator = schema_validator("run")
@@ -103,7 +103,7 @@ class TestRun:
             assert errors(validator, broken), key
 
     def test_failed_run_may_be_sparse(self, schema_validator, run_example: dict) -> None:
-        keep = ("schema", "analysis_version", "run_id", "harness", "arm", "scenario", "time")
+        keep = ("schema", "analysis_version", "run_id", "harness", "arm", "workload", "time")
         sparse = {k: run_example[k] for k in keep}
         sparse.update(status="invalid", status_reasons=["harness_ok"], flags=[], exit_code=5)
         assert errors(schema_validator("run"), sparse) == []

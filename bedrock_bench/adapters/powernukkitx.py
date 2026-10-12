@@ -6,7 +6,7 @@ Fetch: ``powernukkitx.jar`` from ``configs/powernukkitx/server.toml`` and the JD
 come from the bots, because PowerNukkitX has no ``querytarget``. Nightly builds are pinned as ``nightly.<commit>``.
 
 Prepare writes ``pnx.yml`` with the benchmark's values (PowerNukkitX completes and rewrites it on start) and
-``worlds/<level>/config.json`` with the scenario seed, which PowerNukkitX reads only from there. Launch:
+``worlds/<level>/config.json`` with the workload seed, which PowerNukkitX reads only from there. Launch:
 ``java -Xms<heap> -Xmx<heap> -jar powernukkitx.jar``. Like Nukkit, it derives a player's UUID from the XUID, so the
 bots get ``-fake-xuid``. See configs/powernukkitx/README.md.
 """
@@ -132,8 +132,8 @@ class PowerNukkitXAdapter(JavaServer):
     def prepare_extra(
         self, server_dir: Path, install: Install, ctx: RunContext, world: WorldInfo
     ) -> tuple[Sequence[Override], Sequence[ConfigFile], Mapping[str, Any]]:
-        relative = f"worlds/{ctx.scenario.world.level_name}/config.json"
-        seed = ctx.scenario.world.seed
+        relative = f"worlds/{ctx.workload.world.level_name}/config.json"
+        seed = ctx.workload.world.seed
         data = json.loads((config.project_root() / WORLD_CONFIG_TEMPLATE).read_text(encoding="utf-8"))
         for generator in data["generators"].values():
             generator["seed"] = seed

@@ -49,6 +49,7 @@ from bedrock_bench.model import (
     RunContext,
 )
 from bedrock_bench.provenance import sha256_file
+from bedrock_bench.workload import WORKLOAD, with_overrides
 
 ROOT = Path(__file__).resolve().parents[2]
 LOGS = ROOT / "tests" / "fixtures" / "logs"
@@ -75,7 +76,7 @@ def make_ctx(tmp_path: Path, run_arm: Arm, *, csg: bool = False) -> RunContext:
         run_dir=tmp_path / "run",
         work_dir=tmp_path / "work",
         arm=run_arm,
-        scenario=config.parse_scenario({"server": {"csg": csg}}, name="test"),
+        workload=with_overrides(WORKLOAD, {"server": {"csg": csg}}),
         machine=config.default_machine(),
         placement=Placement((0, 1), (2, 3), (2, 3), "normal", "physical"),
     )
@@ -261,11 +262,10 @@ class TestPins:
         assert all(cell.cls is FeatureClass.VANILLA for cell in row.cells.values())
         assert features.row("26.52.0") is None, "an unpinned release has no parity row"
 
-    def test_spread_scenarios_are_fully_declared(self) -> None:
+    def test_the_workload_is_fully_declared(self) -> None:
         row = config.load_features("levilamina").row(VERSION)
         assert row is not None
-        for name in ("spread100", "spread100-csg"):
-            assert set(config.load_scenario(name).exercises) <= set(row.cells), name
+        assert set(WORKLOAD.exercises) <= set(row.cells)
 
     def test_templates(self) -> None:
         levilamina = load_template("LeviLamina.Config.json")

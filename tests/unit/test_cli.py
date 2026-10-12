@@ -110,17 +110,16 @@ class TestArguments:
         assert "order must be" in capsys.readouterr().err
 
     def test_run_one_by_server(self) -> None:
-        args = parse("run-one", "--server", "bds@1.26.52.3", "--scenario", "smoke", "--repeat", "2", "--variant", "x")
-        assert (args.server, args.scenario, args.repeat, args.variant) == ("bds@1.26.52.3", "smoke", 2, "x")
+        args = parse("run-one", "--server", "bds@1.26.52.3", "--repeat", "2", "--variant", "x")
+        assert (args.server, args.repeat, args.variant) == ("bds@1.26.52.3", 2, "x")
         assert args.matrix is None and args.arm is None and args.order_index is None
 
     @pytest.mark.parametrize(
         "argv",
         [
-            ["run-one", "--scenario", "smoke"],
-            ["run-one", "--scenario", "smoke", "--matrix", "m"],
-            ["run-one", "--scenario", "smoke", "--server", "bds@1", "--matrix", "m", "--arm", "a"],
-            ["run-one", "--server", "bds@1"],
+            ["run-one"],
+            ["run-one", "--matrix", "m"],
+            ["run-one", "--server", "bds@1", "--matrix", "m", "--arm", "a"],
         ],
     )
     def test_run_one_needs_one_arm_source(self, argv: list[str]) -> None:

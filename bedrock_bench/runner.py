@@ -10,15 +10,15 @@ is taken, the bot or the install is missing, or the machine is not idle. Once th
 is recorded, and the exit code is derived from the recorded status: 0 ok, 4 server failed, 5 invalid, 130
 interrupted. A server death can therefore never exit 0.
 
-``run`` executes a matrix. It plans the order (``rotate``: block ``k`` runs each scenario's arms rotated by ``k``;
+``run`` executes a matrix. It plans the order (``rotate``: block ``k`` runs the arms rotated by ``k``;
 ``sequential``; or ``seeded:N``), refuses to add runs to a matrix directory that holds runs from another machine
-profile, machine or scenario version, takes the machine lock for the whole matrix, fetches every arm, then starts one
+profile, machine or workload, takes the machine lock for the whole matrix, fetches every arm, then starts one
 ``bbench run-one`` subprocess per run with a cooldown between runs. The child inherits the lock through
 :meth:`bedrock_bench.lock.MachineLock.child_env` and the effective run order through ``$BBENCH_MATRIX_ORDER``. An
 ``invalid`` run is rerun up to ``rerun_invalid`` times; ``server_failed`` is a result and never rerun. The matrix
 exits with the worst final status and writes the report.
 
-``smoke`` is ``run-one`` with ``configs/scenarios/smoke.toml`` plus adapter checks: every harness command accepted
+``smoke`` is ``run-one`` with the short smoke workload plus adapter checks: every harness command accepted
 without an error line, and movement corrections seen where the feature file declares movement validation.
 """
 
@@ -53,15 +53,14 @@ from bedrock_bench.model import (
     Matrix,
     Placement,
     RunContext,
-    Scenario,
     Status,
 )
 from bedrock_bench.phases import COMMAND_REPLY_S, Session, bot_command
+from bedrock_bench.workload import SMOKE, WORKLOAD, Workload, for_run, is_builtin
 
 log = logging.getLogger(__name__)
 
 DEFAULT_OUT = Path("runs")
-SMOKE_SCENARIO = "smoke"
 
 #: Set by ``bbench run`` for its ``run-one`` children: the effective run order, which may differ from the matrix file.
 ENV_MATRIX_ORDER = "BBENCH_MATRIX_ORDER"
@@ -84,7 +83,7 @@ class RunRequest:
     """Everything ``run-one`` needs, resolved from the command line or a matrix."""
 
     arm: Arm
-    scenario: Scenario
+    workload: Workload
     machine: Machine
     matrix: Matrix | None = None
     order: str | None = None
@@ -94,8 +93,8 @@ class RunRequest:
 
     @property
     def matrix_dir(self) -> Path:
-        """``<out>/<matrix>``; a run outside a matrix groups under its scenario name."""
-        return self.out / (self.matrix.name if self.matrix is not None else self.scenario.name)
+        """``<out>/<matrix>``; a run outside a matrix groups under its workload name."""
+        return self.out / (self.matrix.name if self.matrix is not None else self.workload.name)
 
 
 @dataclass(frozen=True)
@@ -122,9 +121,6 @@ def _request(args: argparse.Namespace) -> RunRequest:
             arm = matrix.arm(args.arm)
         except KeyError as exc:
             raise ConfigError(str(exc.args[0])) from None
-    scenario = config.load_scenario(args.scenario)
-    if matrix is not None and scenario.name not in matrix.scenarios_for(arm):
-        raise ConfigError(f"arm {arm.id} of matrix {matrix.name} does not run scenario {scenario.name}")
     if args.repeat < 1:
         raise ConfigError("--repeat must be at least 1")
     machine = config.load_machine(args.machine)
@@ -134,7 +130,7 @@ def _request(args: argparse.Namespace) -> RunRequest:
         order = config.validate_order(os.environ.get(ENV_MATRIX_ORDER) or matrix.order)
     return RunRequest(
         arm=arm,
-        scenario=scenario,
+        workload=for_run(WORKLOAD),
         machine=machine,
         matrix=matrix,
         order=order,
@@ -146,16 +142,16 @@ def _request(args: argparse.Namespace) -> RunRequest:
 
 def execute(request: RunRequest) -> RunResult:
     """Run one arm once. Returns exit code 3 without a run directory when an environment check refuses."""
-    arm, scenario, machine = request.arm, request.scenario, request.machine
+    arm, workload, machine = request.arm, request.workload, request.machine
     adapter = adapters.create(arm, machine)
     check_platform(adapter)
     try:
-        bot = bot_command(adapter, scenario, machine)
+        bot = bot_command(adapter, workload, machine)
     except bots.BotError as exc:
         _say(f"bbench run-one: {exc}")
         return RunResult(ExitCode.ENV_GATE)
 
-    lock = MachineLock(label=f"{arm.id} {scenario.name}")
+    lock = MachineLock(label=f"{arm.id} {workload.name}")
     if not lock.acquire(timeout=0):
         info = holder(lock.path)
         _say(f"bbench run-one: the machine lock is held by {info.describe() if info else 'another process'}")
@@ -200,9 +196,9 @@ def _measure(
     idle_foreign: float,
     bot: Any,
 ) -> RunResult:
-    arm, scenario, machine = request.arm, request.scenario, request.machine
-    run_dir = results.RunDir.create(request.matrix_dir, arm.id, scenario.name, request.repeat)
-    _say(f"run {run_dir.run_id}: {arm.id} on {scenario.name}")
+    arm, workload, machine = request.arm, request.workload, request.machine
+    run_dir = results.RunDir.create(request.matrix_dir, arm.id, request.repeat)
+    _say(f"run {run_dir.run_id}: {arm.id}")
     harness = provenance.harness_info(backend())
     nonstandard = []
     flags = set()
@@ -211,13 +207,15 @@ def _measure(
         flags.add(Flag.UNPUBLISHED_ARTIFACT.value)
     if bot.override:
         nonstandard.append("bot_override")
+    if not is_builtin(workload):
+        nonstandard.append("test_workload")
     if harness["dirty"]:
         nonstandard.append("dirty_harness")
     origin = Origin.capture()
     record = results.new_record(
         run_id=run_dir.run_id,
         arm=arm,
-        scenario=scenario,
+        workload=workload,
         matrix={
             "name": request.matrix.name if request.matrix is not None else None,
             "repeat": request.repeat,
@@ -228,7 +226,7 @@ def _measure(
         machine=results.machine_record(machine, provenance.machine_fingerprint(), host.machine_facts(topology), tsc_hz),
         placement=placement,
         install=install,
-        parity=results.parity_record(adapter.features_file, arm.version, scenario),
+        parity=results.parity_record(adapter.features_file, arm.version, workload),
         bot=bot.provenance,
         origin=origin,
         idle_foreign_cores=idle_foreign,
@@ -246,7 +244,7 @@ def _measure(
             run_dir=run_dir.path,
             work_dir=work_dir,
             arm=arm,
-            scenario=scenario,
+            workload=workload,
             machine=machine,
             placement=placement,
             repeat=request.repeat,
@@ -262,7 +260,7 @@ def _measure(
             run_dir.write_partial(record)
             session = Session(
                 adapter=adapter,
-                scenario=scenario,
+                workload=workload,
                 placement=placement,
                 layout=layout,
                 run_dir=run_dir,
@@ -407,9 +405,9 @@ def existing_records(matrix_dir: Path) -> list[dict[str, Any]]:
 
 
 def mixing_problems(
-    records: Sequence[dict[str, Any]], machine: Machine, fingerprint_id: str, scenarios: dict[str, Scenario]
+    records: Sequence[dict[str, Any]], machine: Machine, fingerprint_id: str, workload: Workload
 ) -> list[str]:
-    """Reasons a matrix directory must not receive new runs: rule R3 (one placement per table) and R1 (one scenario)."""
+    """Reasons a matrix directory must not receive new runs: rule R3 (one placement per table) and R1 (one workload)."""
     problems: list[str] = []
 
     def add(text: str) -> None:
@@ -424,10 +422,9 @@ def mixing_problems(
         fingerprint = recorded_machine.get("fingerprint_id")
         if fingerprint and fingerprint != fingerprint_id:
             add("it holds runs made on another machine")
-        recorded_scenario = record.get("scenario") or {}
-        name = recorded_scenario.get("name")
-        if name in scenarios and recorded_scenario.get("sha256") != scenarios[name].sha256:
-            add(f"it holds runs of an earlier version of scenario {name}")
+        recorded = (record.get("workload") or {}).get("sha256")
+        if recorded and recorded != workload.sha256:
+            add("it holds runs of another workload")
     return problems
 
 
@@ -447,7 +444,6 @@ def run_matrix(args: argparse.Namespace) -> int:
     plan = plan_order(matrix, repeats=repeats, order=order, only=args.only or ())
     if not plan:
         raise ConfigError(f"matrix {matrix.name} plans no runs")
-    scenarios = {name: config.load_scenario(name) for name in matrix.scenarios}
     for arm in {run.arm.id: run.arm for run in plan}.values():
         adapter = adapters.create(arm, machine)
         check_platform(adapter)
@@ -455,7 +451,7 @@ def run_matrix(args: argparse.Namespace) -> int:
     matrix_dir = out / matrix.name
 
     problems = mixing_problems(
-        existing_records(matrix_dir), machine, provenance.machine_fingerprint()["fingerprint_id"], scenarios
+        existing_records(matrix_dir), machine, provenance.machine_fingerprint()["fingerprint_id"], for_run(WORKLOAD)
     )
     if problems:
         for problem in problems:
@@ -505,9 +501,7 @@ def _prepare_matrix(matrix: Matrix, plan: Sequence[PlannedRun], machine: Machine
     for arm in {run.arm.id: run.arm for run in plan}.values():
         adapter = adapters.create(arm, machine)
         try:
-            for name in {run.scenario for run in plan if run.arm.id == arm.id}:
-                scenario = config.load_scenario(name)
-                bot_command(adapter, scenario, machine)
+            bot_command(adapter, WORKLOAD, machine)
             _say(f"fetching {arm.id}")
             adapter.fetch(cache)
         except (FetchError, bots.BotError) as exc:
@@ -525,8 +519,6 @@ def _child_command(args: argparse.Namespace, matrix: Matrix, run: PlannedRun, ou
         str(matrix.path.resolve()),
         "--arm",
         run.arm.id,
-        "--scenario",
-        run.scenario,
         "--repeat",
         str(run.repeat),
         "--order-index",
@@ -630,7 +622,7 @@ def smoke(args: argparse.Namespace) -> int:
     adapter = adapters.create(arm, machine)
     request = RunRequest(
         arm=arm,
-        scenario=config.load_scenario(SMOKE_SCENARIO),
+        workload=for_run(SMOKE),
         machine=machine,
         out=args.out or DEFAULT_OUT,
     )

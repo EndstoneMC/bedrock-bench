@@ -167,7 +167,7 @@ class PropertyPin:
     """One value every BDS-hosted server gets, from the ``[config]`` table of ``configs/bds/server.toml``."""
 
     key: str
-    template: str  # may contain {placeholders} filled from the scenario and machine profile
+    template: str  # may contain {placeholders} filled from the workload and machine profile
     category: OverrideCategory
     reason: str
 
@@ -200,8 +200,8 @@ def load_property_pins(path: Path) -> tuple[PropertyPin, ...]:
 
 def property_context(ctx: RunContext, *, csg: bool) -> dict[str, str]:
     """Placeholder values for the ``[config]`` table of ``configs/bds/server.toml``."""
-    server = ctx.scenario.server
-    world = ctx.scenario.world
+    server = ctx.workload.server
+    world = ctx.workload.world
     return {
         "server_name": SERVER_NAME,
         "port": str(ctx.machine.port),
@@ -357,6 +357,7 @@ def fetch_bds(cache: Cache, version: str, platform: str, *, artifact: Path | Non
 # Adapter base
 # --------------------------------------------------------------------------------------------------------------------
 
+
 class BdsFamily(ServerAdapter):
     """Shared behaviour of BDS-hosted servers. Not registered itself: it has no ``name``."""
 
@@ -418,7 +419,7 @@ class BdsFamily(ServerAdapter):
         return (), (), {}
 
     def _prepare_world(self, server_dir: Path, ctx: RunContext) -> WorldInfo:
-        level_dir = server_dir / "worlds" / ctx.scenario.world.level_name
+        level_dir = server_dir / "worlds" / ctx.workload.world.level_name
         if level_dir.exists():
             raise RuntimeError(f"the fresh server copy already has a world at {level_dir}")
         return WorldInfo(fresh=True, generator="vanilla", path=level_dir)
@@ -427,7 +428,7 @@ class BdsFamily(ServerAdapter):
         path = server_dir / PROPERTIES
         props = Properties.load(path) if path.is_file() else Properties()
         pins = load_property_pins(config.project_root() / self.properties_template)
-        context = property_context(ctx, csg=ctx.scenario.server.csg and self.supports_csg)
+        context = property_context(ctx, csg=ctx.workload.server.csg and self.supports_csg)
         overrides: list[Override] = []
         written: dict[str, str] = {}
         for pin in pins:

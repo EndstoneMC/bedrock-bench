@@ -12,7 +12,7 @@ file byte for byte from a run's raw files; any change to a formula bumps the ana
   run's origin pair), so nothing depends on the time of day.
 - **Windows.** `idle` = [idle0, idle1], `join` = [bots_start, alljoined], `settle` = [alljoined, settled],
   `load` = [bots_start, settled], `steady` = [steady0, steady1]. A window whose end mark is missing was not reached;
-  its metrics are `unavailable`. A window the scenario does not have is `not_applicable`.
+  its metrics are `unavailable`. A window the workload does not have is `not_applicable`.
 - **Probe notation.** Replies `(s_i, t_i, g_i)` = send time, receive time, tick counter. In a window `[t0, t1]`,
   `a = min{i: t_i >= t0}` and `b = max{i: t_i <= t1}`. A series sample, the rate between two consecutive
   replies, belongs to a window when both replies do.
@@ -22,7 +22,7 @@ file byte for byte from a run's raw files; any change to a formula bumps the ana
   Every statistic reports its `n`. p5 is left out when n < 20.
 - **Units.** Each id carries its unit (`_s`, `_ms`, `_mib`, `_cores`, `_ms_per_s`, `_frac`, `_per_bot_s`, ...).
   MiB = 2^20 bytes; reports show GiB = MiB / 1024. Counts and booleans carry no suffix.
-- **Availability.** `measured`, `not_applicable` (the server or scenario has no such quantity) or `unavailable`
+- **Availability.** `measured`, `not_applicable` (the server or workload has no such quantity) or `unavailable`
   (should exist but could not be computed; `reason` says why). A censored value is a lower bound (`censored: true`,
   shown as `>value`).
 - **Direction.** `higher` or `lower` is better; `-` marks work counters and diagnostics, which are never ranked.
@@ -59,7 +59,7 @@ TPS comes only from a counter that advances once per executed tick, read through
 | `probe_latency_ms_<W>` | load, steady | milliseconds | p50, p99, max, n | lower | probe | t_i - s_i (receive - send) of the replies received in W. probe_lagging gate: p99 above 1000 ms in steady. |
 | `probe_max_gap_s_<W>` | load, steady | seconds | scalar | - | probe | longest stretch of W without a reply, counting from t0 and up to t1. probe_coverage gate: above 15 s. |
 | `probe_tick_decreases` | run | count | scalar | - | probe | consecutive replies whose counter went down. probe_monotonic gate: must be 0. |
-| `probe_idle_ticks` | idle | ticks | scalar | - | probe | g_b - g_a over idle (over the whole run when the scenario has no idle phase). probe_monotonic gate: must be positive, so the counter advances with nobody online. |
+| `probe_idle_ticks` | idle | ticks | scalar | - | probe | g_b - g_a over idle (over the whole run when the workload has no idle phase). probe_monotonic gate: must be positive, so the counter advances with nobody online. |
 
 ## Tick thread CPU
 
@@ -131,9 +131,9 @@ U_b is a bot's in-view unique chunk count at settled: chunks within view radius 
 | `chunks_per_s_load` | load | chunk columns per second | scalar | - | bots | sum of U_b / (settled - bots_start) |
 | `chunks_per_cpu_s_load` | load | chunk columns per server CPU second | scalar | higher | bots, process | sum of U_b / server process CPU seconds over load. Efficiency: shown only next to parity. |
 | `resend_ratio` | load | ratio | scalar | - | bots | LevelChunk packets / unique chunks, from the last stat event at or before settled |
-| `view_fill_frac` | load | fraction (0 to 1) | scalar | - | bots, run | median U_b / disc(r), r the scenario view distance, disc(r) the chunk columns with dx^2 + dz^2 <= r^2 (disc(10) = 317) |
+| `view_fill_frac` | load | fraction (0 to 1) | scalar | - | bots, run | median U_b / disc(r), r the workload view distance, disc(r) the chunk columns with dx^2 + dz^2 <= r^2 (disc(10) = 317) |
 | `view_radius_chunks` | join | chunk columns | scalar | - | bots | median chunk radius the server granted at spawn |
-| `csg_effective` | load | true or false | scalar | - | bots, run | median U_b < 0.5 disc(r). csg_matches gate: must equal the scenario's CSG setting on servers that support client-side generation. |
+| `csg_effective` | load | true or false | scalar | - | bots, run | median U_b < 0.5 disc(r). csg_matches gate: must equal the workload's CSG setting on servers that support client-side generation. |
 | `settle_s` | settle | seconds | scalar | - | run | settled - alljoined, as recorded by the settle rule. Not a load-speed metric: settle is floor-bound by its minimum duration. |
 
 ## Work counters
@@ -201,18 +201,18 @@ A run is `invalid` if any invalid-level gate fails, else `server_failed` if an o
 |---|---|---|
 | `harness_ok` | invalid | no harness exception (recorded by the runner); run.json final; raw series present for every phase reached |
 | `probe_monotonic` | invalid | the adapter declares a monotonic counter, probe_tick_decreases = 0 and probe_idle_ticks > 0 |
-| `probe_coverage` | invalid | probe_max_gap_s <= scenario probe.max_gap_s (15 s) in every measured window |
-| `probe_lagging` | invalid | probe_latency_ms_steady p99 <= scenario probe.lagging_p99_ms (1000 ms) |
+| `probe_coverage` | invalid | probe_max_gap_s <= workload probe.max_gap_s (15 s) in every measured window |
+| `probe_lagging` | invalid | probe_latency_ms_steady p99 <= workload probe.lagging_p99_ms (1000 ms) |
 | `foreign_load` | invalid | foreign_cores, foreign_cores_peak_10s and foreign_server_set_cores within the machine profile gates in every measured window |
 | `placement_match` | invalid | run.json placement.verified is not false (server threads matched the CPU plan at ready, steady0 and steady1) |
 | `decode_errors` | invalid | decode_errors = 0 |
 | `bot_saturated` | invalid | bot_cpu_frac <= machine profile bot_cpu_frac_max (0.85) in every measured window |
 | `spread` | invalid | after settle: positions known, spread cells_occupied = joined and max_per_cell = 1 |
-| `csg_matches` | invalid | csg_effective = the scenario's CSG setting, on servers that support client-side generation |
+| `csg_matches` | invalid | csg_effective = the workload's CSG setting, on servers that support client-side generation |
 | `version_match` | invalid | the banner version equals the arm version |
 | `world_fresh` | invalid | world dir absent before launch |
 | `config_readback` | invalid | parity keys read back after the run equal what was written (recorded by the runner) |
 | `interventions_in_measured` | invalid | interventions_in_measured = 0 |
 | `server_alive` | server_failed | the server ran until teardown and exited with 0 on stop, without being killed |
-| `joined_all` | server_failed | joined = the scenario's bot count (reported as joined/n) |
+| `joined_all` | server_failed | joined = the workload's bot count (reported as joined/n) |
 | `dropped` | warning | dropped = 0; a nonzero count adds the dropped flag |
