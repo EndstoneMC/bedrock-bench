@@ -25,7 +25,10 @@ classifiers = [
     "Topic :: Games/Entertainment",
     "Topic :: System :: Benchmark",
 ]
-dependencies = ["psutil>=5.9"]
+dependencies = [
+    "jinja2>=3.1.6",
+    "psutil>=5.9",
+]
 
 [project.scripts]
 bbench = "bedrock_bench.cli:main"
