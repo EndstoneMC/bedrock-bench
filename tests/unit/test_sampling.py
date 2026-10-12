@@ -17,6 +17,7 @@ import psutil
 import pytest
 
 from bedrock_bench import platform
+from bedrock_bench.clock import mono_ns
 from bedrock_bench.model import LaunchSpec, ProbeSample
 from bedrock_bench.platform import ProcessGone, ThreadStat
 from bedrock_bench.process import launch
@@ -211,7 +212,7 @@ def test_probe_thread_sends_on_schedule_and_stops_when_the_console_closes(tmp_pa
 
     def send(text: str, on_sent) -> None:
         calls.append(text)
-        on_sent(time.monotonic_ns())
+        on_sent(mono_ns())
         sent.set()
         if len(calls) == 3:
             raise BrokenPipeError("console closed")

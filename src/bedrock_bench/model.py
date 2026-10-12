@@ -2,7 +2,7 @@
 """Shared types: the contract between the harness packages.
 
 Everything here is plain data. Changes are additive only: a new field gets a default, nothing is renamed or removed
-(SPEC.md section 17). Times named ``*_ns`` are harness monotonic nanoseconds (``time.monotonic_ns``); ``*_ms`` and
+(SPEC.md section 17). Times named ``*_ns`` are harness monotonic nanoseconds (``clock.mono_ns``); ``*_ms`` and
 ``epoch_ms`` are wall-clock UTC milliseconds since the Unix epoch. Paths inside these types are local and are scrubbed
 before anything is written to a result file.
 """

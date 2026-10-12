@@ -12,7 +12,7 @@ import pytest
 
 from bedrock_bench.adapters.bdsfamily import BDS_DIALECT, parse_querytarget
 from bedrock_bench.adapters.endstone import ENDSTONE_DIALECT
-from bedrock_bench.clock import Stamp
+from bedrock_bench.clock import Stamp, mono_ns
 from bedrock_bench.console import Console, clean, parse_line, read_journal, read_log
 
 LOGS = Path(__file__).resolve().parents[1] / "fixtures" / "logs"
@@ -50,7 +50,7 @@ class RecordingStdin:
             self.gate.wait(5)
         if self.broken:
             raise BrokenPipeError("pipe closed")
-        self.writes.append((time.monotonic_ns(), data))
+        self.writes.append((mono_ns(), data))
         return len(data)
 
     def flush(self) -> None:

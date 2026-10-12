@@ -20,7 +20,7 @@ NS_PER_MS = 1_000_000
 
 def mono_ns() -> int:
     """Harness monotonic time in nanoseconds."""
-    return time.monotonic_ns()
+    return time.perf_counter_ns()
 
 
 @dataclass(frozen=True, order=True)
@@ -33,9 +33,9 @@ class Stamp:
     @classmethod
     def now(cls) -> Stamp:
         """Read both clocks; the monotonic value is the midpoint of two reads around the wall-clock read."""
-        before = time.monotonic_ns()
+        before = mono_ns()
         wall_ns = time.time_ns()
-        after = time.monotonic_ns()
+        after = mono_ns()
         return cls((before + after) // 2, wall_ns // NS_PER_MS)
 
 
