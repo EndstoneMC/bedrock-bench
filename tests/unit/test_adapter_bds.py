@@ -211,7 +211,7 @@ class TestProperties:
             props.set("e", "x\ny")
 
     def test_template_keys_each_have_a_reason(self) -> None:
-        text = (ROOT / "servers" / "bds" / "server.properties").read_text(encoding="utf-8")
+        text = (config.server_dir("bds") / "server.properties").read_text(encoding="utf-8")
         lines = text.splitlines()
         for index, entry in enumerate(lines):
             if entry and not entry.startswith("#"):

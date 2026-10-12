@@ -175,8 +175,8 @@ def test_server_folder_has_an_adapter(name: str) -> None:
 
 @pytest.mark.parametrize("cls", [cls for cls in REGISTERED if issubclass(cls, BdsFamily)], ids=adapter_id)
 def test_bds_hosted_servers_use_the_vanilla_server_properties(cls: type[ServerAdapter]) -> None:
-    vanilla = (ROOT / "servers" / "bds" / "server.properties").read_bytes()
-    assert (ROOT / "servers" / cls.name / "server.properties").read_bytes() == vanilla
+    vanilla = (config.server_dir("bds") / "server.properties").read_bytes()
+    assert (config.server_dir(cls.name) / "server.properties").read_bytes() == vanilla
 
 
 @every_adapter

@@ -121,7 +121,7 @@ def install(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Install:
     monkeypatch.setattr(nukkitmot, "fetch_runtime", lambda cache, key, platform: runtime)
     monkeypatch.setattr(nukkitmot, "build_plugin", fake_build)
     result = make_adapter().fetch(Cache(tmp_path / "cache"))
-    assert built == [ROOT / "servers" / "nukkitmot"]
+    assert built == [config.server_dir("nukkitmot")]
     return result
 
 

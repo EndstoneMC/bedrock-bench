@@ -149,7 +149,7 @@ class TestPins:
 
     def test_requirement_locks_are_hashed(self) -> None:
         for version in config.load_artifacts("endstone").versions:
-            lock = ROOT / "servers" / "endstone" / f"requirements-{version}.txt"
+            lock = config.server_dir("endstone") / f"requirements-{version}.txt"
             text = lock.read_text(encoding="utf-8")
             requirements = re.findall(r"^([A-Za-z0-9_.-]+)==", text, flags=re.MULTILINE)
             assert requirements, version

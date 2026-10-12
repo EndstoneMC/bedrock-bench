@@ -20,7 +20,7 @@ from bedrock_bench.workload import WORKLOAD
 
 ROOT = Path(__file__).resolve().parents[2]
 LOGS = ROOT / "tests" / "fixtures" / "logs"
-SERVER_DIR = ROOT / "servers" / "altay"
+SERVER_DIR = config.server_dir("altay")
 
 #: Lines of the pocketmine.yml that Altay 5.44.7 ships, cut down to the keys the harness sets.
 SHIPPED_YML = """# Main configuration file for Altay
