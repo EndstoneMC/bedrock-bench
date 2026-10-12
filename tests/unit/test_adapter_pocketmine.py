@@ -11,10 +11,10 @@ import pytest
 
 from bedrock_bench import adapters, config, fetch
 from bedrock_bench.adapters import pocketmine
-from bedrock_bench.adapters.pocketmine import PMMP_DIALECT, PocketMineAdapter, read_phar_member
+from bedrock_bench.adapters.pocketmine import PMMP_DIALECT, PocketMineAdapter, read_phar_member, written_values
 from bedrock_bench.adapters.standalone import Runtime, yaml_scalars
 from bedrock_bench.cache import Cache
-from bedrock_bench.model import ArtifactRef, Install, LogLine, OverrideCategory, Placement, RunContext
+from bedrock_bench.model import ArtifactRef, Install, LogLine, Placement, RunContext
 from bedrock_bench.provenance import sha256_file
 from workloads import WORKLOAD, with_overrides
 
@@ -205,7 +205,7 @@ class TestFetchAndPrepare:
         assert [a.name for a in install.artifacts] == ["PocketMine-MP.phar", "php.zip"]
         assert install.extra["protocol"] == 1001 and install.extra["runtime"] == "php-test"
 
-    def test_prepare_writes_configs_and_overrides(self, install: Install, tmp_path: Path) -> None:
+    def test_prepare_renders_the_templates(self, install: Install, tmp_path: Path) -> None:
         adapter = make_adapter()
         layout = adapter.prepare(install, make_ctx(tmp_path, adapter))
         server = layout.server_dir
@@ -220,17 +220,17 @@ class TestFetchAndPrepare:
         assert yml["auto-report.enabled"] == "false" and yml["auto-updater.enabled"] == "false"
         assert yml["settings.force-language"] == "false", "shipped values stay"
 
-        by_key = {(o.file, o.key): o for o in layout.overrides}
-        rescue = by_key[("pocketmine.yml", "memory.main-hard-limit")]
-        assert (rescue.category, rescue.default, rescue.value) == (OverrideCategory.RESCUE, "1024", "0")
-        assert by_key[("pocketmine.yml", "settings.async-workers")].default == "auto"
-        assert by_key[("server.properties", "view-distance")].default == "16"
-        assert ("pocketmine.yml", "anonymous-statistics.enabled") not in by_key, "equal to the shipped value"
-        assert ("pocketmine.yml", "ticks-per.autosave") not in by_key
-        assert by_key[("<command line>", "--no-wizard")].category is OverrideCategory.HARNESS
-        assert by_key[("plugins/BenchHelper.php", "RakLib per-IP packet limit")].value == "unlimited"
+        files = {c.path: c for c in layout.config_files}
+        assert list(files) == ["server.properties", "pocketmine.yml"]
+        assert [c.template for c in files.values()] == ["server.properties", "pocketmine.yml"]
+        assert files["server.properties"].created and not files["pocketmine.yml"].created
+        changes = {c.key: (c.before, c.after) for c in files["pocketmine.yml"].keys}
+        assert changes["memory.main-hard-limit"] == ("1024", "0")
+        assert changes["settings.async-workers"] == ("auto", "4")
+        assert changes["anonymous-statistics.enabled"] == ("false", "false")
+        assert {c.before for c in files["server.properties"].keys} == {None}
+        assert written_values(layout, "pocketmine.yml")["ticks-per.autosave"] == "6000"
 
-        assert [c.path for c in layout.config_files] == ["server.properties", "pocketmine.yml"]
         assert layout.world.fresh and layout.world.generator == "custom"
         assert layout.world.path == server / "worlds" / "bench" and not layout.world.path.exists()
         assert layout.extra["exe_sha256"] == install.extra["server_sha256"]
@@ -268,8 +268,6 @@ class TestFetchAndPrepare:
             tmp_path / "php" / "bin" / "php7" / "lib" / "php" / "extensions" / "no-debug-zts-20220829"
         )
         assert spec.argv[3] == "PocketMine-MP.phar"
-        override = next(o for o in layout.overrides if o.key == "-d extension_dir")
-        assert override.value.startswith("<runtime>/") and str(tmp_path) not in override.value
 
 
 class TestCommands:

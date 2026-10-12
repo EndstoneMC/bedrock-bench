@@ -7,6 +7,9 @@ first start) is extracted from the phar, so its defaults are always those of the
 ``servers/pocketmine/BenchHelper.php`` goes into ``plugins/``: it adds ``gametime`` (the server's tick counter)
 and ``positions``, and lifts RakLib's per-IP packet limit, which the bots, all on 127.0.0.1, would trip.
 
+Prepare: ``server.properties`` and ``pocketmine.yml`` are rendered from the templates of the same name in
+``servers/pocketmine/``; ``pocketmine.yml`` is merged onto the shipped copy.
+
 Launch: ``php PocketMine-MP.phar --no-wizard --disable-ansi`` in the run's server directory, like the official start
 scripts. On Linux the bundled extension directory is passed with ``-d extension_dir``, as PocketMine-MP's installer
 writes it, so opcache loads.
@@ -21,16 +24,14 @@ import re
 import shutil
 import struct
 import zlib
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from bedrock_bench import fetch
 from bedrock_bench.adapters.base import Dialect
 from bedrock_bench.adapters.standalone import (
-    COMMAND_LINE,
     DEFAULTS_PART,
-    ENVIRONMENT,
     SERVER_PART,
     StandaloneServer,
     fetch_release,
@@ -38,18 +39,7 @@ from bedrock_bench.adapters.standalone import (
     parse_helper_positions,
     runtime_platform,
 )
-from bedrock_bench.model import (
-    ConfigFile,
-    Install,
-    LaunchSpec,
-    Layout,
-    LogLine,
-    Override,
-    OverrideCategory,
-    PlayerPos,
-    RunContext,
-    WorldInfo,
-)
+from bedrock_bench.model import Install, LaunchSpec, Layout, LogLine, PlayerPos
 from bedrock_bench.provenance import sha256_file
 
 if TYPE_CHECKING:
@@ -95,9 +85,7 @@ class PocketMineAdapter(StandaloneServer):
     tick_thread_rule: ClassVar[str] = "first_created"
     crash_paths: ClassVar[tuple[str, ...]] = ("crashdumps",)
     server_file: ClassVar[str] = PHAR
-    #: The network layer whose per-IP packet limit the helper lifts, and the limit it sets.
-    packet_limiter: ClassVar[str] = "RakLib"
-    packet_limit: ClassVar[str] = "unlimited"
+    config_templates: ClassVar[tuple[str, ...]] = ("server.properties", "pocketmine.yml")
 
     # ---- fetch ----------------------------------------------------------------------------------------------------
 
@@ -122,45 +110,7 @@ class PocketMineAdapter(StandaloneServer):
             extra={"protocol": meta.get("protocol"), "minecraft": meta.get("minecraft")},
         )
 
-    # ---- prepare and launch ---------------------------------------------------------------------------------------
-
-    def prepare_extra(
-        self, server_dir: Path, install: Install, ctx: RunContext, world: WorldInfo
-    ) -> tuple[Sequence[Override], Sequence[ConfigFile], Mapping[str, Any]]:
-        harness = OverrideCategory.HARNESS
-        limiter = self.packet_limiter
-        overrides = [
-            Override(harness, HELPER_FILE, "plugin", None, "installed", "prints the tick counter and player positions"),
-            Override(
-                harness,
-                HELPER_FILE,
-                f"{limiter} per-IP packet limit",
-                f"200 packets per {limiter} tick",
-                self.packet_limit,
-                f"every bot connects from 127.0.0.1; at the default limit {limiter} blocks the address for 300 s",
-            ),
-        ]
-        return overrides, [], {}
-
-    def launch_overrides(self, install: Install) -> Sequence[Override]:
-        harness = OverrideCategory.HARNESS
-        overrides = [
-            Override(harness, COMMAND_LINE, "--no-wizard", None, "set", "skips the interactive setup wizard"),
-            Override(harness, COMMAND_LINE, "--disable-ansi", None, "set", "plain console output, no title updates"),
-            Override(harness, ENVIRONMENT, "PHPRC", None, "(unset)", "PHP reads the php.ini of its own build"),
-        ]
-        if "extension_dir" in install.extra.get("runtime_paths", {}):
-            overrides.append(
-                Override(
-                    harness,
-                    COMMAND_LINE,
-                    "-d extension_dir",
-                    "PHP's build-time path",
-                    f"<runtime>/{install.extra['runtime_paths']['extension_dir']}",
-                    "the bundled extensions (opcache) load, as PocketMine-MP's installer configures it",
-                )
-            )
-        return overrides
+    # ---- launch ---------------------------------------------------------------------------------------------------
 
     def launch(self, layout: Layout) -> LaunchSpec:
         args = (self.server_file, "--no-wizard", "--disable-ansi")
@@ -185,7 +135,7 @@ class PocketMineAdapter(StandaloneServer):
     # ---- facts ----------------------------------------------------------------------------------------------------
 
     def facts(self, layout: Layout, proc: psutil.Process) -> dict[str, Any]:
-        written = layout.extra.get("written", {}).get("pocketmine.yml", {})
+        written = written_values(layout, "pocketmine.yml")
         return {
             "allocator": "default",
             "csg_setting": False,
@@ -195,6 +145,11 @@ class PocketMineAdapter(StandaloneServer):
             "crash_upload": "off",
             "auto_updater": "off",
         }
+
+
+def written_values(layout: Layout, path: str) -> dict[str, Any]:
+    """The values prepare rendered into ``path``, by key."""
+    return {change.key: change.after for file in layout.config_files if file.path == path for change in file.keys}
 
 
 # --------------------------------------------------------------------------------------------------------------------

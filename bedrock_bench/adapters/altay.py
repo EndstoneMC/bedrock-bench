@@ -4,7 +4,7 @@
 Fetch, launch, the console dialect and the commands come from
 :class:`~bedrock_bench.adapters.pocketmine.PocketMineAdapter`. The phar, the version banner and the helper differ:
 ``servers/altay/BenchHelper.php`` lifts the per-IP packet limit through Altay's transport interface instead of
-RakLib's.
+RakLib's. The config templates in ``servers/altay/`` add ``network.transport`` to PocketMine-MP's.
 
 Altay 5.44.7 speaks protocol 2193 (Minecraft 1.26.50), so it gets the main load bot. Its version numbers follow
 PocketMine-MP's. See servers/altay/README.md.
@@ -17,7 +17,7 @@ import re
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from bedrock_bench.adapters.base import Dialect
-from bedrock_bench.adapters.pocketmine import PMMP_DIALECT, PocketMineAdapter
+from bedrock_bench.adapters.pocketmine import PMMP_DIALECT, PocketMineAdapter, written_values
 from bedrock_bench.model import Layout
 
 if TYPE_CHECKING:
@@ -34,11 +34,9 @@ class AltayAdapter(PocketMineAdapter):
     name: ClassVar[str] = "altay"
     dialect: ClassVar[Dialect] = ALTAY_DIALECT
     server_file: ClassVar[str] = "Altay.phar"
-    packet_limiter: ClassVar[str] = "RakNet"
-    packet_limit: ClassVar[str] = "2147483647"
 
     def facts(self, layout: Layout, proc: psutil.Process) -> dict[str, Any]:
-        written = layout.extra.get("written", {}).get("pocketmine.yml", {})
+        written = written_values(layout, "pocketmine.yml")
         facts = super().facts(layout, proc)
         facts.update({"transport": written.get("network.transport"), "usage_statistics": "off"})
         return facts

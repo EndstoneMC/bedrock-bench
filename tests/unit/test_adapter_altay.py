@@ -8,13 +8,13 @@ from pathlib import Path
 
 import pytest
 
-from bedrock_bench import adapters, bots, config
+from bedrock_bench import adapters, bots, config, templates
 from bedrock_bench.adapters import pocketmine
 from bedrock_bench.adapters.altay import ALTAY_DIALECT, AltayAdapter
-from bedrock_bench.adapters.pocketmine import PMMP_DIALECT, PocketMineAdapter
+from bedrock_bench.adapters.pocketmine import PMMP_DIALECT, PocketMineAdapter, written_values
 from bedrock_bench.adapters.standalone import Runtime, yaml_scalars
 from bedrock_bench.cache import Cache
-from bedrock_bench.model import ArtifactRef, Install, LogLine, OverrideCategory, Placement, RunContext
+from bedrock_bench.model import ArtifactRef, Install, LogLine, Placement, RunContext
 from bedrock_bench.provenance import sha256_file
 from workloads import WORKLOAD
 
@@ -113,9 +113,17 @@ class TestContract:
         assert AltayAdapter.class_problems() == []
         assert not AltayAdapter.supports_csg and AltayAdapter.bot_compat_flags == ()
         assert AltayAdapter.tick_thread_rule == "first_created"
-        assert AltayAdapter.config_template == "servers/altay/server.toml"
         own, base = (config.server_dir(name) / pocketmine.HELPER_SOURCE for name in ("altay", "pocketmine"))
         assert own.read_bytes() != base.read_bytes(), "Altay's transport needs its own helper"
+
+    def test_templates_are_pocketmines_plus_the_transport(self, tmp_path: Path) -> None:
+        adapter = make_adapter()
+        variables = adapter.template_variables(make_ctx(tmp_path, adapter))
+        for name, extra in (("server.properties", {}), ("pocketmine.yml", {"network.transport": "raknet"})):
+            fmt = templates.file_format(name)
+            own = templates.values(fmt, templates.render(SERVER_DIR, name, variables))
+            base = templates.values(fmt, templates.render(config.server_dir("pocketmine"), name, variables))
+            assert own == base | extra, name
 
     def test_pins(self) -> None:
         version = config.load_artifacts("altay").versions["5.44.7"]
@@ -183,7 +191,7 @@ class TestFetchAndPrepare:
         assert [a.name for a in install.artifacts] == ["Altay.phar", "php.zip"]
         assert install.extra["protocol"] == 2193 and install.extra["minecraft"] == "1.26.50"
 
-    def test_prepare_writes_configs_and_overrides(self, install: Install, tmp_path: Path) -> None:
+    def test_prepare_renders_the_templates(self, install: Install, tmp_path: Path) -> None:
         adapter = make_adapter()
         layout = adapter.prepare(install, make_ctx(tmp_path, adapter))
         yml = yaml_scalars((layout.server_dir / "pocketmine.yml").read_text(encoding="utf-8"))
@@ -191,16 +199,13 @@ class TestFetchAndPrepare:
         assert yml["anonymous-statistics.enabled"] == "false" and yml["memory.main-hard-limit"] == "0"
         assert yml["auto-report.host"] == "crash.getaltay.org", "shipped values stay"
 
-        by_key = {(o.file, o.key): o for o in layout.overrides}
-        assert ("pocketmine.yml", "network.transport") not in by_key, "equal to the shipped value"
-        stats = by_key[("pocketmine.yml", "anonymous-statistics.enabled")]
-        assert (stats.category, stats.default, stats.value) == (OverrideCategory.HARNESS, "true", "false")
-        rescue = by_key[("pocketmine.yml", "memory.main-hard-limit")]
-        assert (rescue.category, rescue.default, rescue.value) == (OverrideCategory.RESCUE, "1024", "0")
-        limit = by_key[("plugins/BenchHelper.php", "RakNet per-IP packet limit")]
-        assert (limit.default, limit.value) == ("200 packets per RakNet tick", "2147483647")
-        assert by_key[("server.properties", "xbox-auth")].value == "off"
-        assert layout.extra["written"]["pocketmine.yml"]["network.transport"] == "raknet"
+        files = {c.path: c for c in layout.config_files}
+        assert [c.template for c in files.values()] == ["server.properties", "pocketmine.yml"]
+        changes = {c.key: (c.before, c.after) for c in files["pocketmine.yml"].keys}
+        assert changes["network.transport"] == ("raknet", "raknet")
+        assert changes["anonymous-statistics.enabled"] == ("true", "false")
+        assert changes["memory.main-hard-limit"] == ("1024", "0")
+        assert written_values(layout, "server.properties")["xbox-auth"] == "off"
 
         assert adapter.executable(layout) == layout.server_dir / "Altay.phar"
         spec = adapter.launch(layout)
