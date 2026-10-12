@@ -15,7 +15,7 @@
       "availability": "measured"
     },
     "tps_load_low5": {
-      "value": 17.5,
+      "value": 16.0,
       "unit": "tps",
       "window": "load",
       "n": 70,
@@ -42,7 +42,7 @@
       "censored": true
     },
     "tick_cpu_ms_per_tick_steady": {
-      "value": 40.9,
+      "value": 45.2,
       "unit": "ms",
       "window": "steady",
       "n": 900,

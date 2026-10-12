@@ -42,12 +42,12 @@ def _record(arm: str, repeat: int, metrics: dict[str, Any], *, scenario: str, ma
 def summary(
     *,
     label: str = "reference",
-    bds_tps: tuple[float, ...] = (9.4, 9.5, 9.3),
+    bds_tps: tuple[float, ...] = (12.0, 12.2, 11.8),
     matrix: str = "endstone-0.11.14",
     scenario: str = "spread100",
 ) -> dict[str, Any]:
     runs = []
-    for k, (e14_tps, tick, bds) in enumerate(zip((20.0, 19.9, 19.95), (41.1, 40.5, 40.9), bds_tps, strict=True)):
+    for k, (e14_tps, tick, bds) in enumerate(zip((19.6, 19.5, 19.7), (45.6, 44.8, 45.2), bds_tps, strict=True)):
         runs.append(
             _record(
                 E14,
@@ -55,7 +55,7 @@ def summary(
                 {
                     "tps_window_steady": e14_tps,
                     "tick_cpu_ms_per_tick_steady": tick,
-                    "view_t90_own_s": {"availability": "measured", "value": {"median": 80.0 + k, "p90": 120.0}},
+                    "view_t90_own_s": {"availability": "measured", "value": {"median": 110.0 + k, "p90": 160.0}},
                     "recovery_s": 30.0 + k,
                     "private_mib_steady": {"availability": "unavailable", "reason": "sampler died"},
                 },
@@ -68,7 +68,7 @@ def summary(
             _record(
                 BDS,
                 k + 1,
-                {"tps_window_steady": bds, "tick_cpu_ms_per_tick_steady": 105.0, "recovery_s": (400.0 + k, True)},
+                {"tps_window_steady": bds, "tick_cpu_ms_per_tick_steady": 82.0, "recovery_s": (400.0 + k, True)},
                 scenario=scenario,
                 matrix=matrix,
                 label=label,
@@ -90,7 +90,7 @@ class TestParseExpression:
     @pytest.mark.parametrize(
         "expr",
         [
-            "median('a', 'tps_window_steady') >= 19.8",
+            "median('a', 'tps_window_steady') >= 19.4",
             "ratio('a', 'b', 'tps_window_steady') >= 1.5",
             "abs(median('a', 'm') / 40 - 1) <= 0.15",
             "0.85 <= low('a', 'm') < high('a', 'm') != 3",
@@ -142,20 +142,20 @@ class TestParseExpression:
 
 class TestEvaluateClaim:
     def test_pass_and_fail_record_values(self) -> None:
-        result = evaluate_claim(claim(f"median('{E14}', 'tps_window_steady') >= 19.8"), summary())
+        result = evaluate_claim(claim(f"median('{E14}', 'tps_window_steady') >= 19.4"), summary())
         assert result["verdict"] == "pass" and result["reason"] == "" and result["scenario"] == "spread100"
-        assert result["values"] == {f"median('{E14}', 'tps_window_steady')": 19.95}
-        assert evaluate_claim(claim(f"high('{BDS}', 'tps_window_steady') >= 19.8"), summary())["verdict"] == "fail"
+        assert result["values"] == {f"median('{E14}', 'tps_window_steady')": 19.6}
+        assert evaluate_claim(claim(f"high('{BDS}', 'tps_window_steady') >= 19.4"), summary())["verdict"] == "fail"
 
     def test_relational_functions(self) -> None:
         s = summary()
         for expr in (
-            f"ratio('{E14}', '{BDS}', 'tps_window_steady') > 2.1",
+            f"ratio('{E14}', '{BDS}', 'tps_window_steady') > 1.6",
             f"above('{E14}', '{BDS}', 'tps_window_steady')",
             f"below('{E14}', '{BDS}', 'tick_cpu_ms_per_tick_steady')",
             f"not above('{BDS}', '{E14}', 'tps_window_steady')",
-            f"low('{E14}', 'tps_window_steady') == 19.9 and n_ok('{E14}') == 3",
-            f"median('{E14}', 'view_t90_own_s.median') == 81",
+            f"low('{E14}', 'tps_window_steady') == 19.5 and n_ok('{E14}') == 3",
+            f"median('{E14}', 'view_t90_own_s.median') == 111",
             f"below('{E14}', '{BDS}', 'recovery_s')",
         ):
             assert evaluate_claim(claim(expr), s)["verdict"] == "pass", expr
@@ -169,7 +169,7 @@ class TestEvaluateClaim:
         assert fast["values"][f"median('{BDS}', 'tps_window_steady')"] == 19.9
 
     def test_machine_scope(self) -> None:
-        expr = f"median('{E14}', 'tps_window_steady') >= 19.8"
+        expr = f"median('{E14}', 'tps_window_steady') >= 19.4"
         assert evaluate_claim(claim(expr, machine="reference"), summary())["verdict"] == "pass"
         other = evaluate_claim(claim(expr, machine="reference"), summary(label="laptop"))
         assert other["verdict"] == "inconclusive" and "'laptop'" in other["reason"]
@@ -218,8 +218,8 @@ class TestEvaluate:
 
     def test_counts(self) -> None:
         claims = self.claim_set(
-            claim(f"median('{E14}', 'tps_window_steady') >= 19.8"),
-            Claim(id="d", text="t", expr=f"median('{BDS}', 'tps_window_steady') >= 19.8"),
+            claim(f"median('{E14}', 'tps_window_steady') >= 19.4"),
+            Claim(id="d", text="t", expr=f"median('{BDS}', 'tps_window_steady') >= 19.4"),
         )
         result = evaluate(claims, summary())
         assert result["counts"] == {"pass": 1, "fail": 1, "inconclusive": 0, "error": 0}

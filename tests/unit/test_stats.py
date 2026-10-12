@@ -93,8 +93,8 @@ class TestCensoredMedian:
 
 class TestSeparation:
     def test_complete_separation_only(self) -> None:
-        assert separated([19.9, 19.95, 20.0], [12.0, 14.0, 19.0], higher_is_better=True)
-        assert not separated([19.9, 19.95, 20.0], [12.0, 14.0, 19.95], higher_is_better=True)
+        assert separated([19.5, 19.6, 19.7], [12.0, 14.0, 19.0], higher_is_better=True)
+        assert not separated([19.5, 19.6, 19.7], [12.0, 14.0, 19.6], higher_is_better=True)
 
     def test_lower_is_better(self) -> None:
         assert separated([40.0, 41.0, 42.0], [50.0, 55.0, 60.0], higher_is_better=False)

@@ -15,6 +15,7 @@ import pytest
 
 from bedrock_bench import cli
 from bedrock_bench.config import project_root
+from bedrock_bench.metrics import registry
 from bedrock_bench.report import REPORT_FILE, SUMMARY_FILE, build, write
 from bedrock_bench.report.markdown import (
     CHAOS_ROWS,
@@ -117,14 +118,14 @@ def headline(tps: float, tick: float, cores: float, private: float, t90: float, 
 def endstone_matrix(matrix_dir: Path) -> list[tuple[dict[str, Any], dict[str, Any]]]:
     """BDS 1.26.52.3 and two Endstone builds hosting it, three repeats each, spread100-csg."""
     docs = []
-    for k, (bds, e13, e14) in enumerate(((9.4, 11.0, 20.0), (9.5, 9.0, 19.9), (9.3, 10.2, 19.95)), start=1):
+    for k, (bds, e13, e14) in enumerate(((12.0, 13.4, 19.6), (12.2, 11.4, 19.5), (11.8, 12.6, 19.7)), start=1):
         recovery = metric(400.0 + k, "s", "load", censored=True)
         docs.append(
             write_run(
                 matrix_dir,
                 "bds@1.26.52.3",
                 k,
-                headline(bds, 105.0 + k, 1.07, 4198.4, 192.0, recovery_s=recovery),
+                headline(bds, 82.0 + k, 1.5, 4096.0, 200.0, recovery_s=recovery),
             )
         )
         docs.append(
@@ -132,7 +133,7 @@ def endstone_matrix(matrix_dir: Path) -> list[tuple[dict[str, Any], dict[str, An
                 matrix_dir,
                 "endstone@0.11.13",
                 k,
-                headline(e13, 89.0 + k, 1.81, 5017.6, 189.0),
+                headline(e13, 70.0 + k, 2.0, 4505.6, 210.0),
                 bds="1.26.52.3",
                 fidelity="V1",
                 flags=["known_issue:devtools_spin"],
@@ -143,7 +144,7 @@ def endstone_matrix(matrix_dir: Path) -> list[tuple[dict[str, Any], dict[str, An
                 matrix_dir,
                 "endstone@0.11.14",
                 k,
-                headline(e14, 42.0 + k * 0.5, 1.04, 5017.6, 81.0, recovery_s=metric(30.0 + k, "s", "load")),
+                headline(e14, 44.0 + k * 0.5, 1.4, 4505.6, 120.0, recovery_s=metric(30.0 + k, "s", "load")),
                 bds="1.26.52.3",
                 fidelity="V1",
             )
@@ -178,7 +179,7 @@ def cross_server_scenario(matrix_dir: Path) -> list[tuple[dict[str, Any], dict[s
                 matrix_dir,
                 "pocketmine@5.44.3",
                 k,
-                {} if failed else headline(4.6, 0.0, 1.07, 6348.8, 400.0, tick_cpu_ms_per_tick_steady=no_tick),
+                {} if failed else headline(5.0, 0.0, 1.3, 5120.0, 400.0, tick_cpu_ms_per_tick_steady=no_tick),
                 scenario="spread100-pregen",
                 status="server_failed" if failed else "ok",
                 reasons=["server_alive: exited with code 255"] if failed else (),
@@ -256,24 +257,24 @@ class TestRender:
 
     def test_cost_values(self, markdown: str) -> None:
         assert table_row(markdown, "Steady TPS")[1:4] == [
-            "9.40 [9.30, 9.50]",
-            "10.20 [9.00, 11.00]",
-            "19.95 [19.90, 20.00]",
+            "12.00 [11.80, 12.20]",
+            "12.60 [11.40, 13.40]",
+            "19.60 [19.50, 19.70]",
         ]
         assert table_row(markdown, "Private memory, steady")[1:4] == [
-            "4.10 GiB [4.10, 4.10]",
-            "4.90 GiB [4.90, 4.90]",
-            "4.90 GiB [4.90, 4.90]",
+            "4.00 GiB [4.00, 4.00]",
+            "4.40 GiB [4.40, 4.40]",
+            "4.40 GiB [4.40, 4.40]",
         ]
-        assert table_row(markdown, "View load t90 of own view")[1] == "192 s [192, 192]"
+        assert table_row(markdown, "View load t90 of own view")[1] == "200 s [200, 200]"
         assert re.match(r"^>402 s \[>401, >403\]$", table_row(markdown, "TPS recovery after the join")[1])
 
     def test_difference_rule(self, markdown: str) -> None:
         differences = markdown.split("#### Differences from the hosted vanilla build")[1].split("\n## ")[0]
         header = table_row(differences, " | `endstone@0.11.13` vs")
         assert header[1:] == ["`endstone@0.11.13` vs `bds@1.26.52.3`", "`endstone@0.11.14` vs `bds@1.26.52.3`"]
-        assert table_row(differences, "Steady TPS")[1:] == ["~, 1.09x [0.95, 1.18]", "better, 2.12x [2.09, 2.15]"]
-        assert table_row(differences, "Tick-thread CPU per tick")[2] == "better, 0.40x [0.39, 0.41]"
+        assert table_row(differences, "Steady TPS")[1:] == ["~, 1.05x [0.93, 1.14]", "better, 1.63x [1.60, 1.67]"]
+        assert table_row(differences, "Tick-thread CPU per tick")[2] == "better, 0.54x [0.52, 0.55]"
         assert table_row(differences, "TPS recovery after the join")[1:] == ["-", "better"]
 
     def test_failed_runs_and_not_applicable(self, markdown: str) -> None:
@@ -328,14 +329,14 @@ class TestFormatting:
     @pytest.mark.parametrize(
         ("value", "unit", "text"),
         [
-            (19.951, "tps", "19.95"),
-            (5017.6, "gib", "4.90"),
+            (17.951, "tps", "17.95"),
+            (4505.6, "gib", "4.40"),
             (0.953, "pct", "95"),
-            (40.94, "ms", "40.9"),
-            (105.7, "ms", "106"),
+            (47.26, "ms", "47.3"),
+            (123.4, "ms", "123"),
             (0.5204, "ms", "0.520"),
             (0.0, "rate", "0"),
-            (1.044, "cores", "1.04"),
+            (1.456, "cores", "1.46"),
             (12.4, "count", "12"),
         ],
     )
@@ -343,8 +344,8 @@ class TestFormatting:
         assert format_number(value, unit) == text
 
     def test_stats(self) -> None:
-        assert format_stat({"median": 81.0, "min": 78.0, "max": 85.0, "n": 3}, "s") == "81.0 s [78.0, 85.0]"
-        assert format_stat({"median": 81.0, "min": 81.0, "max": 81.0, "n": 1}, "s") == "81.0 s"
+        assert format_stat({"median": 64.0, "min": 61.0, "max": 68.0, "n": 3}, "s") == "64.0 s [61.0, 68.0]"
+        assert format_stat({"median": 64.0, "min": 64.0, "max": 64.0, "n": 1}, "s") == "64.0 s"
         censored = {"median": 410.0, "min": 30.0, "max": 420.0, "n": 3, "lower_bounds": ["median", "max"]}
         assert format_stat(censored, "s") == ">410 s [30.0, >420]"
         assert format_stat({"values": [True, False], "value": None}, "bool") == "mixed (1 of 2 yes)"
@@ -355,7 +356,6 @@ class TestFormatting:
         assert {"tps_window_steady", "tick_cpu_ms_per_tick_steady", "corrections_per_bot_s"} <= set(ids)
 
     def test_layout_matches_the_metric_registry(self) -> None:
-        registry = pytest.importorskip("bedrock_bench.metrics.registry")
         assert sorted(set(layout_metric_ids()) - set(registry.ids())) == []
         for row in (*COST_ROWS, *WORK_ROWS, *EFFICIENCY_ROWS, *CHAOS_ROWS):
             # A row may decline to rank a metric (chaos), never rank it the other way round.
@@ -408,8 +408,8 @@ class TestCli:
         assert "not publishable: spread100-pregen / pocketmine@5.44.3" in capsys.readouterr().err
 
     def test_mixed_machine_profiles(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-        write_run(tmp_path, "bds@1.26.52.3", 1, headline(9.4, 105, 1.0, 4000, 190))
-        write_run(tmp_path, "bds@1.26.52.3", 2, headline(9.4, 105, 1.0, 4000, 190), profile="1" * 64)
+        write_run(tmp_path, "bds@1.26.52.3", 1, headline(12.0, 82, 1.0, 4000, 200))
+        write_run(tmp_path, "bds@1.26.52.3", 2, headline(12.0, 82, 1.0, 4000, 200), profile="1" * 64)
         assert cli.main(["report", str(tmp_path)]) == 2
         assert "different machine profiles" in capsys.readouterr().err
         assert not (tmp_path / SUMMARY_FILE).exists()

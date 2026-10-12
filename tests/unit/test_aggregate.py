@@ -112,8 +112,8 @@ class TestSeparation:
         assert separation_p(1, 19) == pytest.approx(1 / 20)
 
     def test_three_against_three(self) -> None:
-        a = [(20.0, False), (19.9, False), (19.95, False)]
-        b = [(9.4, False), (9.5, False), (9.3, False)]
+        a = [(19.6, False), (19.5, False), (19.7, False)]
+        b = [(12.0, False), (12.2, False), (11.8, False)]
         assert separated(a, b, higher_is_better=True)
         assert not separated(b, a, higher_is_better=True)
         assert separated(b, a, higher_is_better=False)
@@ -157,8 +157,8 @@ class TestCompare:
 
 class TestAggregateMetric:
     def test_scalar(self) -> None:
-        agg = aggregate_metric([{"value": v, "unit": "tps", "availability": "measured"} for v in (19.9, 20.0, 19.95)])
-        assert (agg["n"], agg["median"], agg["min"], agg["max"], agg["unit"]) == (3, 19.95, 19.9, 20.0, "tps")
+        agg = aggregate_metric([{"value": v, "unit": "tps", "availability": "measured"} for v in (19.5, 19.7, 19.6)])
+        assert (agg["n"], agg["median"], agg["min"], agg["max"], agg["unit"]) == (3, 19.6, 19.5, 19.7, "tps")
         assert agg["availability"] == "measured" and "censored" not in agg
 
     def test_partly_unavailable(self) -> None:
@@ -252,7 +252,7 @@ class TestLoadRuns:
 
 def _matrix() -> list:
     runs = []
-    for repeat, (bds, e13, e14) in enumerate(((9.4, 11.0, 20.0), (9.5, 9.0, 19.9), (9.3, 10.2, 19.95)), start=1):
+    for repeat, (bds, e13, e14) in enumerate(((12.0, 13.4, 19.6), (12.2, 11.4, 19.5), (11.8, 12.6, 19.7)), start=1):
         runs.append(record("bds@1.26.52.3", "bds", "1.26.52.3", bds, repeat=repeat))
         runs.append(record("endstone@0.11.13", "endstone", "0.11.13", e13, repeat=repeat, bds="1.26.52.3"))
         runs.append(record("endstone@0.11.14", "endstone", "0.11.14", e14, repeat=repeat, bds="1.26.52.3"))
@@ -272,8 +272,8 @@ class TestSummarize:
         assert list(by_arm) == ["bds@1.26.52.3", "endstone@0.11.13", "endstone@0.11.14"]
         e14 = by_arm["endstone@0.11.14"]
         assert (e14["n_total"], e14["n_ok"], e14["n_server_failed"]) == (4, 3, 1)
-        assert e14["metrics"]["tps_window_steady"]["values"] == [20.0, 19.9, 19.95]  # failed run left out
-        assert e14["metrics"]["tps_window_steady"]["median"] == 19.95
+        assert e14["metrics"]["tps_window_steady"]["values"] == [19.6, 19.5, 19.7]  # failed run left out
+        assert e14["metrics"]["tps_window_steady"]["median"] == 19.6
         assert statuses(summary).count("server_failed") == 1
 
     def test_same_build_baseline(self) -> None:
