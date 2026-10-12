@@ -1,0 +1,10 @@
+{
+    "modules": {
+        "crashLogger": {
+            "uploadToSentry": false
+        }
+    },
+    "targeted": {
+        "enableStatistics": false
+    }
+}

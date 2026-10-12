@@ -1,7 +1,4 @@
-# Copied into plugins/bstats/config.toml of every Endstone run: usage statistics stay off while measuring.
-# The server UUID is a fixed placeholder; with enabled = false nothing is sent.
+# No usage statistics upload during measurement.
 enabled = false
+# Endstone rewrites a file without a UUID with statistics on; a fixed placeholder, never sent.
 server-uuid = "00000000-0000-0000-0000-000000000000"
-log-errors = false
-log-sent-data = false
-log-response-status-text = false
