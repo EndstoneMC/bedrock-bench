@@ -91,7 +91,7 @@ CheckNetIsolation LoopbackExempt -a -p=S-1-15-2-1958404141-86561845-1752920682-3
 
 - On Linux, 0.11.14 preloads the mimalloc it bundles and 0.11.13 uses glibc's allocator. `facts.allocator` is
   `mimalloc` when the server maps it and `default` otherwise. The allocator is a disclosed confounder
-  ([fairness](../../docs/methodology.md#fairness-and-feature-parity)).
+  ([fairness](../../docs/methodology.md#server-configuration)).
 - At every start the launcher appends a rate limit for NetworkStackLatency (packet 115: a bucket of 20, drained at 5
   per second) to `packetlimitconfig.json`. Vanilla BDS has no limit for that packet. The bot only answers the server's
   latency requests unless `bots.probe_bots` is raised, so keep it at 0 when comparing with vanilla BDS.

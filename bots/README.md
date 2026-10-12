@@ -4,12 +4,12 @@ The load bot joins simulated players to a Minecraft Bedrock server and reports w
 every bot of a run. It writes events to stdout as JSON lines and takes commands on stdin. The harness
 (`bedrock_bench/bots.py`) starts it, records the events in `bots.jsonl.gz` and stops it.
 
-Every arm of a matrix uses the same bot source and the same flags (rule R2 in
+Every server gets the same bot source and the same flags (rule R2 in
 [docs/methodology.md](../docs/methodology.md#rules)). The only flag an adapter may add is `-fake-xuid`.
 
 | Module | Purpose |
 |---|---|
-| `core/` | Everything that does not depend on the protocol: flags, events, chunk accounting, the walk, identities, sub-chunk request ranges, the stdin protocol and the fleet that runs the bots. It does not import gophertunnel. |
+| `core/` | Everything that does not depend on the protocol: flags, events, chunk accounting, the walk, identities, sub-chunk request ranges, the stdin commands and the fleet that runs the bots. It does not import gophertunnel. |
 | `loadbot/` | Protocol 2193 (Bedrock 1.26.5x), built on upstream [gophertunnel](https://github.com/Sandertv/gophertunnel) v1.62.0. Translates packets into `core.Session` calls. |
 | `legacy1001/` | Protocol 1001, for PocketMine-MP and Allay ([Protocol 1001](#protocol-1001)). Same core, gophertunnel v1.57.1 plus one [patch](#patches). |
 
@@ -20,10 +20,10 @@ and then reports packets through the other `Session` methods until the session e
 ## Building
 
 ```sh
-bbench bots build                          # loadbot, for this host
-bbench bots build --module legacy1001      # the protocol 1001 bot
-bbench bots build --target linux/amd64     # cross-compile
-bbench bots fetch                          # loadbot from the release, checked against its SHA256SUMS
+uv run bbench bots build                          # loadbot, for this host
+uv run bbench bots build --module legacy1001      # the protocol 1001 bot
+uv run bbench bots build --target linux/amd64     # cross-compile
+uv run bbench bots fetch                          # loadbot from the release, checked against its SHA256SUMS
 ```
 
 `legacy1001` builds only once the gophertunnel fork tag under [Patches](#patches) is published. Until then CI and the
@@ -70,7 +70,8 @@ loadbot -addr 127.0.0.1:19672 -n 4 -prefix a
 ```
 
 Type `quit` (or press Ctrl+C) to stop; the bot then prints its summaries and exits. Ending stdin also stops it. In a
-run, the harness builds the flags from the scenario (`configs/scenarios/`) and records the full argv in `run.json`.
+run, the harness builds the flags from the `[bots]` table of the config, `-n` from the config's bot count and `-csg`
+from its `[server]` table (see [`configs/spread.toml`](../configs/spread.toml)). `run.json` records the full argv.
 
 | Flag | Default | Meaning |
 |---|---|---|
@@ -78,7 +79,7 @@ run, the harness builds the flags from the scenario (`configs/scenarios/`) and r
 | `-n` | 1 | Number of bots. |
 | `-prefix` | `b` | Name prefix; bots are named prefix + index with at least two digits (`a00`, `a07`, `a123`). |
 | `-stagger` | 300ms | Spacing between join starts. 100 bots take about 30 s to start. |
-| `-csg` | false | Claim client-side chunk generation support and memory tier 4 in the login. |
+| `-csg` | false | Claim client-side chunk generation support and memory tier 4 in the login. Every config leaves it off. |
 | `-radius` | 16 | Chunk radius. The spawn sequence always requests 16; another value is requested right after spawn. Servers clamp it to their view distance. |
 | `-loadscreen` | true | Send loading screen start and end after spawn and after every dimension change. Without the end message BDS keeps the player on its loading screen and ignores its movement: the bot never falls, gets no corrections and receives no new chunks. |
 | `-walk` | `circle` | `circle`: walk 0.2158 blocks per tick and turn 0.01 rad per tick (a circle about 43 blocks across every 628 ticks), at constant height. `none`: stand still. Input is sent at 20 Hz either way. |
@@ -86,7 +87,7 @@ run, the harness builds the flags from the scenario (`configs/scenarios/`) and r
 | `-join-retries` | 0 | Extra attempts for a failed first join, 3 s apart. |
 | `-fake-xuid` | false | Send XUID 2535400000000000 + index, for servers that derive the player UUID from the XUID. |
 | `-identity-seed` | `bedrock-bench` | Name space of the bot UUIDs ([What a bot does](#what-a-bot-does)). |
-| `-control` | false | Accept the JSON commands on stdin ([Commands on stdin](#commands-on-stdin)). |
+| `-control` | false | Accept the JSON commands below on stdin, for manual tests. The harness never sets it. |
 | `-progress-interval` | 5s | Interval of `progress` events. |
 | `-stat-interval` | 10s | Interval of `stat` events (and `rtt` events when probing). |
 | `-pkt-interval` | 60s | Interval of `pkt` events. |
@@ -94,6 +95,20 @@ run, the harness builds the flags from the scenario (`configs/scenarios/`) and r
 | `-decode-errors` | `count` | `count`: report and continue. `fail`: stop and exit 3 at the first. |
 | `-selftest-output` | | Print one event of every kind with made-up values and exit. Used to check the schema. |
 | `-version` | | Print build information as JSON and exit. |
+
+### Commands on stdin
+
+`quit` is always accepted. With `-control`, each line may also be one JSON command. A bot is addressed by name
+(`"bot"`) or index (`"i"`).
+
+| Command | Effect |
+|---|---|
+| `{"op":"reconnect","bot":"a07"}` | Close the session (`left`) and rejoin after `delay_ms` (default 3000). Also brings back a bot that was disconnected. |
+| `{"op":"disconnect","i":7}` | Close the session (`left`) and stay offline until a `reconnect`. |
+| `{"op":"radius","radius":8}` | Request a chunk radius, for one bot when addressed, otherwise for every online bot. |
+| `{"op":"stop"}` | Same as `quit`. |
+
+Malformed or unknown lines are ignored with a note on stderr.
 
 ### Exit codes
 
@@ -104,7 +119,7 @@ run, the harness builds the flags from the scenario (`configs/scenarios/`) and r
 | 2 | Every first join failed. The bot stops by itself right after `alljoined`. |
 | 3 | A decode error with `-decode-errors fail`. |
 
-## What a bot does
+### What a bot does
 
 - **Login.** Offline mode, self-signed, over RakNet. The UUID is UUIDv5(name space, bot name), where the name space
   is `-identity-seed` itself when it is a UUID and UUIDv5(the RFC 9562 URL name space, seed) otherwise. In Python:
@@ -119,6 +134,12 @@ run, the harness builds the flags from the scenario (`configs/scenarios/`) and r
   teleport is acknowledged in the next input; a correction replaces the bot's position.
 - **Upkeep.** The bot answers latency requests from the server, asks to respawn after a death (up to four times,
   10 s apart), and acknowledges dimension changes one second after they arrive.
+
+## Events
+
+One JSON object per line on stdout, validated by `bedrock_bench/schemas/bot-event.schema.json`. Every event has `v`
+(1), `ev`, `t` (UTC epoch milliseconds) and `mono_ms` (bot monotonic milliseconds since start); the harness adds
+`rx_ns` when it stores the line. Human-readable diagnostics go to stderr.
 
 ### Accounting
 
@@ -137,12 +158,6 @@ run, the harness builds the flags from the scenario (`configs/scenarios/`) and r
 Per-bot numbers (`progress`, `bot_summary`, `first_chunk`) describe one session and start from zero after a
 rejoin. Fleet counters in `stat` add up over all sessions.
 
-## Events
-
-One JSON object per line on stdout, validated by `bedrock_bench/schemas/bot-event.schema.json`. Every event has `v`
-(1), `ev`, `t` (UTC epoch milliseconds) and `mono_ms` (bot monotonic milliseconds since start); the harness adds
-`rx_ns` when it stores the line. Human-readable diagnostics go to stderr.
-
 | Event | Fields | When |
 |---|---|---|
 | `hello` | `build`, `flags`, `intervals_ms` | First line. `build` is the `-version` output; `flags` holds every flag's effective value. |
@@ -157,8 +172,8 @@ One JSON object per line on stdout, validated by `bedrock_bench/schemas/bot-even
 | `rtt` | `n`, `p50_ms`, `p99_ms`, `max_ms`, `lost` | Latency probes since the previous `rtt`, nearest-rank percentiles. Only with `-probe-bots`. |
 | `died`, `respawned` | `bot`, `session` | Death and respawn. |
 | `dim` | `bot`, `dim`, `session` | Dimension change. |
-| `left` | `bot`, `session` | A `reconnect` or `disconnect` command closed the session. |
-| `rejoin` | `bot`, `session` | A rejoin attempt starts (sessions after the first). |
+| `left` | `bot`, `session` | A `reconnect` or `disconnect` command closed the session. Only with `-control`. |
+| `rejoin` | `bot`, `session` | A rejoin attempt starts (sessions after the first). Only with `-control`. |
 | `dropped` | `bot`, `session`, `err` | The connection failed. |
 | `kicked` | `bot`, `session`, `reason` | The server disconnected the bot; `reason` is the server's message. |
 | `decode_error` | `bot`, `pkt_id`, `err`, `total` | `pkt_id` is null when the packet is unknown. The first 10 are reported, then at most one per second; `total` and `stat.decode_errors` count all of them. |
@@ -172,33 +187,19 @@ kicks included), `kicked`, `left`, `rejoins`, `rejoin_failed`, `deaths`, `rx_pkt
 `uniq` (summed over sessions), `in_view` (now, summed over online bots) and `decode_errors`. All but `online` and
 `in_view` are cumulative.
 
-### Commands on stdin
-
-`quit` is always accepted. With `-control`, each line may also be one JSON command. A bot is addressed by name
-(`"bot"`) or index (`"i"`).
-
-| Command | Effect |
-|---|---|
-| `{"op":"reconnect","bot":"a07"}` | Close the session (`left`) and rejoin after `delay_ms` (default 3000). Also brings back a bot that was disconnected. |
-| `{"op":"disconnect","i":7}` | Close the session (`left`) and stay offline until a `reconnect`. |
-| `{"op":"radius","radius":8}` | Request a chunk radius, for one bot when addressed, otherwise for every online bot. |
-| `{"op":"stop"}` | Same as `quit`. |
-
-Malformed or unknown lines are ignored with a note on stderr.
-
 Shutdown (`quit`, `stop`, end of stdin, SIGINT, SIGTERM, Ctrl+Break, or a failed write to stdout) writes a last
 `progress`, `stat`, `pkt` (and `rtt`), closes every session within 10 s, then writes `bot_summary` for each bot and
 `done`.
 
 ## Protocol 1001
 
-`legacy1001` is the bot for servers that speak protocol 1001. In the matrices that is `pocketmine@5.44.3` and
-`allay@0.14.0`; every other server gets `loadbot`. Runs with it are flagged `bot_protocol_differs` (rule R2).
+`legacy1001` is the bot for servers that speak protocol 1001: `pocketmine@5.44.3` and `allay@0.14.0`. Every other
+server gets `loadbot`. Runs with it are flagged `bot_protocol_differs` (rule R2).
 
 It is `loadbot` built against gophertunnel v1.57.1, the last release for protocol 1001. PocketMine-MP 5.44.3 rejects
 that release's offline login, so the module carries the login back-port listed under [Patches](#patches). Upstream
 has no release that speaks protocol 1001 with the newer login, so there is nothing to wait for upstream. Flags,
-events, the stdin protocol and all bot behaviour come from `core`. The non-test files mirror `loadbot`'s one for one;
+events, the stdin commands and all bot behaviour come from `core`. The non-test files mirror `loadbot`'s one for one;
 the package comment in `legacy1001/main.go` lists where the older gophertunnel API makes them differ. A behaviour
 change to `loadbot` must be made here too.
 
@@ -210,13 +211,13 @@ GOWORK=off go test ./...
 
 `GOWORK=off` is required. `go.work` covers `core` and `loadbot` only, because a workspace resolves one gophertunnel
 version for all its modules. The module downloads gophertunnel from the fork tag described under
-[Patches](#patches), so that tag must be published before it builds, and until then the PocketMine-MP and Allay arms
-cannot run.
+[Patches](#patches), so that tag must be published before it builds. Until then PocketMine-MP and Allay cannot run,
+and a `bbench run` without tags skips them.
 
 `TestLoginRequestFormat` checks the login a server receives against the format PocketMine-MP expects, and fails
 against unpatched v1.57.1. `TestLoopbackSession` runs a whole session against an in-process protocol 1001 server.
-Neither needs PocketMine-MP; the real-server check is `bbench smoke pocketmine@5.44.3` (4 bots) with no decode
-errors.
+Neither needs PocketMine-MP; the real-server check is `uv run bbench smoke configs/smoke.toml pocketmine@5.44.3`
+(4 bots) with no decode errors.
 
 ## Patches
 
@@ -257,7 +258,7 @@ A carried patch lives in three places that must agree:
 
 The module's `go.sum` pins the hash of the tag's tree, so Go refuses a tag with any other content: the download
 fails with a checksum mismatch. CI does not rebuild the tag from upstream and the patch files; whoever publishes a
-tag applies the patches to a clean upstream checkout, as below. Patches keep gophertunnel's MIT license and
+tag applies the patches to a clean upstream checkout, as below. Patches keep gophertunnel's MIT licence and
 copyright.
 
 Publishing the `legacy1001` tag:

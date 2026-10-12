@@ -83,7 +83,7 @@ Otherwise LeviLamina and PreLoader run with the configuration they generate.
   baseline the report flags it `different_bds_build`.
 - mimalloc is linked into `LeviLamina.dll` and cannot be switched off. It does not show up as a separate module, so
   `facts.allocator` takes it from `allocator` in `[artifacts]`. The allocator is a disclosed confounder
-  ([fairness](../../docs/methodology.md#fairness-and-feature-parity)).
+  ([fairness](../../docs/methodology.md#server-configuration)).
 - `targeted.vulnerabilityFixes.*` stay on: oversized sub-chunk requests are dropped, item data is checked more strictly
   and connection attempts per IP are limited (`limitIPFrequency`). Unlike the per-IP packet limits of PocketMine-MP,
   Nukkit and PowerNukkitX, this limit is not raised. The bots stay within it, and a dropped bot is flagged `dropped`.

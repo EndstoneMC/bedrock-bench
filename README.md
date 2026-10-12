@@ -1,32 +1,31 @@
 # bedrock-bench
 
 bedrock-bench is a load benchmark for Minecraft Bedrock servers. It installs a server from a pinned, hash-checked
-download, connects headless bots, spreads them across a fresh world so that no two share a chunk, and measures how the
-server copes: tick rate, tick-thread CPU per tick, process CPU and memory, how far TPS falls while views load and how
-long each player waits for its view. Every server goes through the same phases, bot, samplers and metric code, and a
-small adapter per server holds the rest. Each result comes with the server's declared feature parity with vanilla and
-every config change from its defaults, with a reason. There is no composite score. bedrock-bench is maintained by the
-Endstone project, one of the servers it measures; every input and rule is in this repository so anyone can check them.
+download, connects headless bots spread out across a fresh world, and measures how the server copes: tick rate,
+tick-thread CPU per tick, process CPU and memory, how far TPS falls while the players' views load, and how long each
+player waits for its view. Every server gets the same workload, bots, phases and metric code. A small adapter per
+server starts it, reads its tick counter and stops it. There is no composite score.
 
 ## Supported servers
 
-Each server has one folder under [`configs/`](configs/). Its `server.toml` holds the pinned downloads
-with their sha256, the declared feature parity and every config change the harness makes. Its README says how a run
-starts and what to watch for.
+Each server has one folder under [`servers/`](servers/). Its `server.toml` pins the downloads with their sha256 and
+names the version `bbench run` uses by default. Next to it are the config templates the harness renders, named like
+the real files, any helper the server needs, and a README on how a run starts and what to watch for. Default versions
+are in bold.
 
-| Server | Language | Pinned versions | Config | Notes |
+| Server | Language | Pinned versions | Folder | Notes |
 |---|---|---|---|---|
-| Bedrock Dedicated Server | C++ | `bds@1.26.52.3`<br>`bds@1.26.51.1` | [`servers/bds/`](servers/bds/) | The vanilla reference. The download needs the Minecraft EULA. |
-| [Endstone](https://github.com/EndstoneMC/endstone) | C++ on BDS | `endstone@0.11.13`<br>`endstone@0.11.14` | [`servers/endstone/`](servers/endstone/) | Installed from PyPI with hash-locked dependencies. Runs inside `bds@1.26.52.3`. Variant `glibc-alloc` (Linux only). |
-| [LeviLamina](https://github.com/LiteLDev/LeviLamina) | C++ on BDS | `levilamina@26.51.6` | [`servers/levilamina/`](servers/levilamina/) | Windows only. Runs inside `bds@1.26.51.1`. Two packages need the LeviMC EULA (`--accept-eula`). Variants `levioptimize` and `levioptimize-all`. |
-| [PocketMine-MP](https://github.com/pmmp/PocketMine-MP) | PHP | `pocketmine@5.44.3` | [`servers/pocketmine/`](servers/pocketmine/) | Speaks protocol 1001, so it needs the [protocol 1001 bot](bots/README.md#protocol-1001). Variant `stock`. |
-| [Altay](https://github.com/altayofficial/Altay) | PHP | `altay@5.44.7` | [`servers/altay/`](servers/altay/) | Fork of PocketMine-MP 5 that speaks protocol 2193. Variant `stock`. |
-| [Nukkit](https://github.com/CloudburstMC/Nukkit) | Java | `nukkit@b3caad6` | [`servers/nukkit/`](servers/nukkit/) | Snapshot build, versioned by commit. Variant `no-watchdog`. |
-| [Nukkit-MOT](https://github.com/MemoriesOfTime/Nukkit-MOT) | Java | `nukkitmot@9cb0aba` | [`servers/nukkitmot/`](servers/nukkitmot/) | Jenkins build 1592, versioned by commit. Jenkins keeps few builds, so keep a copy of the jar for `--artifact-dir`. Variant `no-watchdog`. |
-| [PowerNukkitX](https://github.com/PowerNukkitX/PowerNukkitX) | Java | `powernukkitx@3.0.5`<br>`powernukkitx@nightly.86f70bc` | [`servers/powernukkitx/`](servers/powernukkitx/) | The nightly runs on JDK 25. Upstream replaces the nightly jar with every build, so keep a copy for `--artifact-dir`. |
-| [Allay](https://github.com/AllayMC/Allay) | Java | `allay@0.14.0` | [`servers/allay/`](servers/allay/) | Speaks protocol 1001, so it needs the [protocol 1001 bot](bots/README.md#protocol-1001). Flat worlds only. |
-| [Dragonfly](https://github.com/df-mc/dragonfly) | Go | `dragonfly@1793369` | [`servers/dragonfly/`](servers/dragonfly/) | `bbench fetch` builds it from source, so it needs Go 1.26 or newer. The one server CI runs. |
-| [Chorus](https://github.com/bedrock-crustaceans/chorus) | Rust | `chorus@95ca835` | [`servers/chorus/`](servers/chorus/) | `bbench fetch` builds it from source, so it needs Rust 1.95.0. Its player list gives the bots decode errors, so every run at this commit is invalid and it is not in E3. |
+| Bedrock Dedicated Server | C++ | **`bds@1.26.52.3`**<br>`bds@1.26.51.1` | [`servers/bds/`](servers/bds/) | The vanilla reference. The download needs the Minecraft EULA. |
+| [Endstone](https://github.com/EndstoneMC/endstone) | C++ on BDS | **`endstone@0.11.14`** | [`servers/endstone/`](servers/endstone/) | Runs inside `bds@1.26.52.3` on Python 3.13. Installed from PyPI with hash-locked dependencies. |
+| [LeviLamina](https://github.com/LiteLDev/LeviLamina) | C++ on BDS | **`levilamina@26.51.6`** | [`servers/levilamina/`](servers/levilamina/) | Windows only. Runs inside `bds@1.26.51.1`. Two of its packages need the LeviMC EULA. |
+| [PocketMine-MP](https://github.com/pmmp/PocketMine-MP) | PHP | **`pocketmine@5.44.3`** | [`servers/pocketmine/`](servers/pocketmine/) | Speaks protocol 1001, so it needs the [protocol 1001 bot](bots/README.md#protocol-1001). |
+| [Altay](https://github.com/altayofficial/Altay) | PHP | **`altay@5.44.7`** | [`servers/altay/`](servers/altay/) | Fork of PocketMine-MP 5 that speaks protocol 2193. |
+| [Nukkit](https://github.com/CloudburstMC/Nukkit) | Java | **`nukkit@b3caad6`** | [`servers/nukkit/`](servers/nukkit/) | Snapshot build, versioned by commit. Old snapshots get pruned, so keep a copy of the jar for `--artifact-dir`. |
+| [Nukkit-MOT](https://github.com/MemoriesOfTime/Nukkit-MOT) | Java | **`nukkitmot@9cb0aba`** | [`servers/nukkitmot/`](servers/nukkitmot/) | Jenkins build 1592, versioned by commit. Jenkins keeps few builds, so keep a copy of the jar for `--artifact-dir`. |
+| [PowerNukkitX](https://github.com/PowerNukkitX/PowerNukkitX) | Java | `powernukkitx@3.0.5`<br>**`powernukkitx@nightly.86f70bc`** | [`servers/powernukkitx/`](servers/powernukkitx/) | The nightly runs on JDK 25. Upstream replaces the nightly jar with every build, so keep a copy for `--artifact-dir`. |
+| [Allay](https://github.com/AllayMC/Allay) | Java | **`allay@0.14.0`** | [`servers/allay/`](servers/allay/) | Speaks protocol 1001, so it needs the [protocol 1001 bot](bots/README.md#protocol-1001). |
+| [Dragonfly](https://github.com/df-mc/dragonfly) | Go | **`dragonfly@1793369`** | [`servers/dragonfly/`](servers/dragonfly/) | Built from source, so it needs Go 1.26 or newer. |
+| [Chorus](https://github.com/bedrock-crustaceans/chorus) | Rust | **`chorus@95ca835`** | [`servers/chorus/`](servers/chorus/) | Built from source with Rust 1.95.0. Off by default: its player list gives the bots decode errors. |
 
 Evaluated, not supported: [MiNET](https://github.com/NiclasOlofsson/MiNET) (needs a NetherNet bot),
 [JSPrismarine](https://github.com/JSPrismarine/JSPrismarine) (protocol 748, client-authoritative movement),
@@ -39,13 +38,12 @@ PocketMine-MP, Altay, Nukkit, Nukkit-MOT, PowerNukkitX and Allay run on the PHP 
 
 ## Installation
 
-bedrock-bench runs servers on Windows 10/11 x64 and Linux x86_64. macOS can analyze and report but not run servers.
-Measured runs need bare metal; runs on a virtual machine or WSL2 are recorded as `vcpu` and are not comparable.
+bedrock-bench runs servers on Windows 10/11 x64 and Linux x86_64. Measure on bare metal: a run on a virtual machine
+or WSL2 is recorded as `vcpu` and is not comparable with bare-metal runs.
 
-- Python 3.11 or newer and [uv](https://docs.astral.sh/uv/). The only runtime dependency is psutil.
-- Go 1.25 or newer to build the load bots, and 1.26 or newer for Dragonfly. On a released version, `bbench bots fetch`
-  downloads the load bot instead and checks it against the release's `SHA256SUMS`.
-- Rust 1.95.0 through [rustup](https://rustup.rs/) and a C compiler, only to fetch Chorus.
+- Python 3.11 or newer and [uv](https://docs.astral.sh/uv/).
+- Go 1.25 or newer to build the load bot, and 1.26 or newer for Dragonfly.
+- Rust 1.95.0 through [rustup](https://rustup.rs/) and a C compiler, only for Chorus.
 - At least 4 logical CPUs for the bots on top of the CPUs the server gets.
 
 ```shell
@@ -62,94 +60,82 @@ A first run checks the machine, builds the bot, downloads one BDS build and runs
 15 minutes.
 
 ```shell
-uv run bbench doctor                              # CPU topology, power plan, idle load, toolchains, machine lock
-uv run bbench bots build --module loadbot         # the load bot, from source
-uv run bbench fetch bds@1.26.52.3 --accept-eula   # pinned download, checked against its sha256
-uv run bbench smoke bds@1.26.52.3                 # 4 bots, short phases, strict checks
+uv run bbench doctor                                   # CPU layout, power plan, idle load, toolchains
+uv run bbench bots build                               # the load bot, from source
+uv run bbench fetch bds@1.26.52.3 --accept-eula        # pinned download, checked against its sha256
+uv run bbench smoke configs/smoke.toml bds@1.26.52.3   # 4 bots, short phases, strict checks
 ```
 
-`--accept-eula` (or `BBENCH_ACCEPT_MINECRAFT_EULA=1`) accepts the
-[Minecraft End User License Agreement](https://www.minecraft.net/eula) for the BDS download. Nothing from Mojang is
-stored in this repository. The smoke run is written to `runs/smoke/`, and
-[docs/get_started.md](docs/get_started.md#reading-the-output) explains what is in it.
+`--accept-eula` accepts the [Minecraft End User License Agreement](https://www.minecraft.net/eula) for BDS, and the
+LeviMC EULA when it fetches LeviLamina. Nothing from Mojang is stored in this repository. The smoke run is written to
+`runs/<session-id>/`, and [docs/get_started.md](docs/get_started.md#reading-the-output) explains what is in it.
 
-## Experiments
+## Experimental setup
 
-An experiment is a matrix file in [`configs/`](configs/): the server builds (arms), the scenarios they
-run, three repeats of each in rotated order and a 60 s cooldown between runs. Within a matrix, every arm gets the same
-scenario files, bot flags and CPU placement.
+Every server runs the same workload, set by [`configs/spread-100.toml`](configs/spread-100.toml) and the base it
+inherits from, [`configs/spread.toml`](configs/spread.toml).
 
-| | Question | Matrix | Servers | Scenario | Runs | Time |
-|---|---|---|---|---|---|---|
-| E1 | Endstone against the BDS build it hosts, client-side generation off | [`endstone-0.11.14.toml`](configs/spread-100.toml) | `bds@1.26.52.3`, `endstone@0.11.13`, `endstone@0.11.14` | [`spread100`](configs/spread-100.toml) | 3 × 3 | 1.5–3 h |
-| E2 | E1 with client-side generation on, the setting of the blog's figures | [`endstone-0.11.14-csg.toml`](configs/spread-100.toml) | as E1 | [`spread100-csg`](configs/spread-100.toml) | 3 × 3 | 1.5–3 h |
-| E3 | Every server on the same workload | [`cross-server.toml`](configs/spread-100.toml) | every server but Chorus, 14 arms | [`spread100`](configs/spread-100.toml) | 14 × 3 | 8–15 h |
-| E4 | LeviLamina and LeviOptimize against the BDS build they host | [`levilamina-26.51.toml`](configs/spread-100.toml) | `bds@1.26.51.1`, `levilamina@26.51.6` and its 2 variants | [`spread100`](configs/spread-100.toml) | 4 × 3 | 2–4 h |
+| Setting | Value |
+|---|---|
+| Players | 100 bots, starting to join 300 ms apart |
+| Spread | One bot per cell of a grid 11 cells wide with 640 blocks between cells, so no two views overlap. Each bot walks a circle about 22 blocks in radius. |
+| View distance | 10 chunks |
+| Simulation distance | 4 chunks |
+| Client-side generation | Off: the server generates and sends every chunk |
+| World | New for every run, seed 20261010, survival, easy |
+| Phases | Boot, 30 s idle without bots, join, settle while views load (5 to 15 min), 90 s steady window, stop |
+| Repeats | 3 per server, in an order rotated each repeat, 60 s pause between runs, an invalid run rerun once |
+| CPUs | The server gets one set of CPUs and the bots and harness another, split the same way for every server |
 
-Runs are cells (arm and scenario) times repeats. Times follow from the phase lengths in the scenario files: a spread100
-run takes 10 to 20 minutes, most of it waiting for the views to settle. The cooldowns are included; downloads and
-installs are not.
+Each run records the machine, the OS and every version it used in its `run.json`. A report refuses to mix machines,
+machine profiles or configs.
+
+## Running the benchmark
 
 ```shell
-uv run bbench fetch endstone-0.11.14 --accept-eula   # every pin the matrix needs
-uv run bbench run endstone-0.11.14 --dry-run         # print the run order
-uv run bbench run endstone-0.11.14 --machine local/my-machine.toml
-uv run bbench report runs/endstone-0.11.14           # summary.json, report.md and the CSV files
-uv run scripts/plot_results.py runs/endstone-0.11.14  # figures into results/
+uv run bbench fetch --accept-eula            # every server's default version
+uv run bbench run configs/spread-100.toml    # every default version, 3 rotated repeats
 ```
 
-`bbench run` writes the report when it finishes, and `bbench report` rebuilds it from the run directories. Without
-`--machine`, built-in defaults apply and the CPU sets are chosen automatically
-([docs/get_started.md](docs/get_started.md#machine-profile)).
+`bbench run` takes the config first. With no server tags it runs every server's default version as one session and
+writes it to `runs/<session-id>/`: one directory per run, `report.md`, `summary.json` and the CSV files.
+`uv run bbench report runs/<session-id>` renders the report again. A run takes 10 to 20 minutes, most of it waiting
+for views to load, so a full session on Windows (8 servers, 24 runs) takes about 4 to 8 hours.
 
-An experiment runs on one machine and one OS; it is not repeated per platform. The repeats (3, rotated) all run on
-that machine. A report never mixes machines, and `bbench run` refuses to add runs from another machine or machine
-profile to an existing results directory. Keep machine profiles in `local/`, which git ignores: any
-other untracked or changed file in the checkout marks every run `dirty_harness`, and `--publish` refuses those runs.
+With no tags, `bbench fetch` and `bbench run` skip these servers and say why: Chorus until its player list decodes,
+PocketMine-MP and Allay until the protocol 1001 bot can be built, and LeviLamina on Linux. The report lists them.
 
-- E3: reports group arms by declared fidelity and never rank across groups.
-- E3: the PocketMine-MP and Allay arms need the protocol 1001 bot, which builds only once its gophertunnel fork tag is
-  published ([bots/README.md](bots/README.md#patches)). Until then E3 cannot run in full: `bbench run cross-server`
-  stops at the first of those arms. [docs/get_started.md](docs/get_started.md#running-an-experiment) shows how to run
-  the other arms.
-- E3 and E4 need Windows, because LeviLamina runs on Windows only.
+To run a subset, name the servers:
 
-Read [docs/methodology.md](docs/methodology.md#reading-a-report) before comparing servers.
-[docs/metrics.md](docs/metrics.md) gives every metric's unit, window and formula.
+```shell
+uv run bbench run configs/spread-100.toml bds@1.26.52.3 endstone@0.11.14
+```
 
-## Why trust the numbers
+LeviLamina runs inside BDS 1.26.51.1, an older build than the default `bds@1.26.52.3`, so its row in a default
+session notes that the session has no vanilla run of that build. Name `bds@1.26.51.1` and `levilamina@26.51.6`
+together to compare the two.
 
-- **One source for TPS.** TPS comes only from a counter that advances once per executed tick, read from the server
-  console every 5 s: `time query gametime` on BDS-hosted servers and PowerNukkitX, a helper's `gametime` command
-  elsewhere ([rule R8](docs/methodology.md#rules), `Dialect.tick_cmd` in `bedrock_bench/adapters/base.py`).
-- **Pinned, hashed inputs.** `bbench fetch` checks every download against the sha256 in its `server.toml`. Each
-  `run.json` records the install tree hash, the server executable's hash before and after the run, each config file
-  as written and after shutdown, the bot binary, the scenario hash and a machine fingerprint
-  (`bedrock_bench/schemas/run.schema.json`).
-- **Every config change has a reason.** `server.toml` files each change under a category (`harness`, `parity`,
-  `rescue` or `nonvanilla`) with a reason, `run.json` records it, and the report footnotes every `rescue` and
-  `nonvanilla` change ([rule R6](docs/methodology.md#rules), `bedrock_bench/report/footnotes.py`). Cost tables sit
-  next to work counters and feature parity (rule R10, `bedrock_bench/report/markdown.py`).
-- **A busy machine voids the run.** The harness takes a machine lock, refuses to start on a machine that is not idle,
-  and marks a run `invalid` when foreign load reaches a measured window ([rule R4](docs/methodology.md#rules);
-  `tests/integration/test_contamination.py` burns a server CPU mid-run to check it). Crashes and join failures are
-  results, shown as `k/n ok`, and are never dropped (rule R9, `tests/integration/test_death.py`).
-- **No composite score; "better" needs complete separation.** A report calls one arm better only when every run of it
-  beats every run of the other, at p ≤ 0.05 (`separated` in `bedrock_bench/report/aggregate.py`).
-  `bbench report --publish` refuses fewer than 3 ok runs per cell, local artifacts, unofficial runs, unknown parity and
-  client-side generation in a cross-server table (`publish_problems`,
-  [publication rules](docs/methodology.md#publishing)).
-- **CI re-checks the harness.** Synthetic fixture runs (`tests/fixtures/runs/`) must recompute to byte-identical
-  `metrics.json` (`tests/integration/test_recompute_golden.py`), the bots built on Linux and on Windows must be
-  identical (`.github/workflows/bots.yml`), and a real Dragonfly server passes a 4-bot smoke on every harness change
-  (`.github/workflows/e2e-dragonfly.yml`).
+On a machine that cannot drive 100 bots, use [`configs/spread-50.toml`](configs/spread-50.toml) or
+[`configs/spread-25.toml`](configs/spread-25.toml), the same setup with fewer bots. Results are comparable only within
+one config, and the report names its config and bot count at the top.
 
-The full method, its design decisions and its threats to validity are in [docs/methodology.md](docs/methodology.md).
+Draw the figures from a session's CSV files into [`results/`](results/):
+
+```shell
+uv run scripts/plot_results.py runs/<session-id>
+```
+
+## Methodology
+
+Every server goes through the same phases with the same bots, samplers and metric code. TPS comes only from a counter
+that advances once per executed tick, read from the server console every 5 s, and crashes and failed runs are
+reported, never dropped. [docs/methodology.md](docs/methodology.md) gives the rules and their limits, including a
+[conflict-of-interest note](docs/methodology.md#conflict-of-interest): EndstoneMC maintains this benchmark and also
+develops Endstone. [docs/metrics.md](docs/metrics.md) defines every metric.
 
 ## The story
 
 The [blog](docs/blog/README.md) tells the story of the Endstone 0.11.14 performance work this benchmark grew out of.
-Its figures come from single runs of earlier scripts with client-side generation on, the setting of E2.
 
 ## Citation
 
