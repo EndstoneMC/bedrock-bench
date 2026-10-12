@@ -119,7 +119,8 @@ server = "<id>"                        # optional, must match the folder name
 source = "github"                      # mojang, pypi, github, maven, web, build or local
 
 [artifacts.version."1.4.2"]
-runtime = "jdk-21.0.12.1"              # plain keys are read by the adapter: runtime, commit, protocol, ...
+protocol = 2193                        # network protocol of this version; picks the bot build
+runtime = "jdk-21.0.12.1"              # standalone servers: a version in servers/runtimes.toml
 
 [artifacts.version."1.4.2".any]        # or .windows and .linux
 url = "https://github.com/example/server/releases/download/1.4.2/server.jar"
@@ -164,8 +165,7 @@ Put a short comment above each table saying where its values come from.
 
 Class attributes are the contract. `ServerAdapter.class_problems()` checks them when the registry loads the module.
 
-- `name` (the folder name), `platforms`, `protocol` (picks the bot build), `bot_compat_flags` (only `-fake-xuid` is
-  allowed) and `supports_csg`.
+- `name` (the folder name), `platforms`, `bot_compat_flags` (only `-fake-xuid` is allowed) and `supports_csg`.
 - `dialect`. `prefix` is stripped from every line before any other pattern runs. Name its groups `level` and
   `logger`. `level_map` maps raw levels onto `debug`, `info`, `warn`, `error` and `fatal`, and `benign` lists
   error-level lines that are not errors. `version` must match the arm version. `player_in_world` gates the effects and
