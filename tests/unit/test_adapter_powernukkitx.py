@@ -10,7 +10,7 @@ import pytest
 from bedrock_bench import adapters, config, pregen
 from bedrock_bench.adapters import powernukkitx
 from bedrock_bench.adapters.base import UnsupportedAction
-from bedrock_bench.adapters.powernukkitx import PNX_DIALECT, PowerNukkitXAdapter
+from bedrock_bench.adapters.powernukkitx import PNX_DIALECT, PowerNukkitXAdapter, is_nightly
 from bedrock_bench.adapters.standalone import Runtime, yaml_scalars
 from bedrock_bench.cache import Cache
 from bedrock_bench.config import ConfigError
@@ -19,6 +19,7 @@ from bedrock_bench.provenance import sha256_file
 
 ROOT = Path(__file__).resolve().parents[2]
 LOGS = ROOT / "tests" / "fixtures" / "logs"
+NIGHTLY = "nightly.86f70bc"
 
 #: pnx.yml as PowerNukkitX rewrites it on start: every key, comments, unquoted strings (shortened, synthetic).
 REWRITTEN_PNX_YML = """# Basic settings for your PowerNukkitX server
@@ -55,8 +56,8 @@ config:
 """
 
 
-def make_adapter() -> PowerNukkitXAdapter:
-    return PowerNukkitXAdapter(config.arm_from_ref("powernukkitx@3.0.5"), config.default_machine())
+def make_adapter(version: str = "3.0.5") -> PowerNukkitXAdapter:
+    return PowerNukkitXAdapter(config.arm_from_ref(f"powernukkitx@{version}"), config.default_machine())
 
 
 def make_ctx(tmp_path: Path, adapter: PowerNukkitXAdapter, template: Path | None = None, **world: object) -> RunContext:
@@ -110,6 +111,25 @@ class TestContract:
         assert catalog.versions["3.0.5"].meta["commit"].startswith("9813b75")
         assert config.load_features("powernukkitx").row("3.0.5") is not None
 
+    def test_nightly_pin(self) -> None:
+        catalog = config.load_artifacts("powernukkitx")
+        entry = catalog.versions[NIGHTLY]
+        assert entry.meta["commit"].startswith("86f70bc") and entry.meta["runtime"] == "jdk-25.0.4.1"
+        spec = catalog.get(NIGHTLY, "linux")
+        assert spec.url.endswith("/nightly/powernukkitx.jar")
+        assert spec.name != catalog.get("3.0.5", "linux").name, "both jars must fit in one --artifact-dir"
+        runtimes = config.load_artifacts(config.project_root() / config.RUNTIMES_FILE)
+        for platform in ("windows", "linux"):
+            jdk = runtimes.get(entry.meta["runtime"], platform)
+            assert {"home", "java", "javac", "jcmd"} <= set(jdk.extra), platform
+
+    def test_nightly_feature_range(self) -> None:
+        features = config.load_features("powernukkitx")
+        assert features.row(NIGHTLY).prefix == "nightly"
+        assert features.row("nightly.0123abc").prefix == "nightly", "a later nightly keeps the range"
+        assert features.row("3.0.5").prefix == "3.0"
+        assert is_nightly(NIGHTLY) and not is_nightly("3.0.5") and not is_nightly("nightlyx.1")
+
     def test_dialect_samples(self) -> None:
         with open(LOGS / "powernukkitx.toml", "rb") as fh:
             samples = tomllib.load(fh)["sample"]
@@ -138,10 +158,22 @@ class TestContract:
         [
             ("This server is running PowerNukkitX version 3.0.5-SNAPSHOT (git-9813b75) (API 3.0.5)", "3.0.5"),
             ("This server is running PowerNukkitX version 3.0.6 (git-abcdef0) (API 3.0.6)", "3.0.6"),
+            ("This server is running PowerNukkitX version nightly-SNAPSHOT (git-86f70bc) (API 3.0.5)", NIGHTLY),
+            (
+                "This server is running PowerNukkitX version nightly-SNAPSHOT (git-0123abc) (API 3.0.6)",
+                "nightly.0123abc",
+            ),
         ],
     )
     def test_banner_version(self, banner: str, version: str) -> None:
         assert PNX_DIALECT.parse_version(banner) == version
+
+    def test_version_command_reply_is_not_the_banner(self) -> None:
+        reply = (
+            "This server is running PowerNukkitX nightly-SNAPSHOT (git-86f70bc) implementing API version 3.0.5 "
+            "for Minecraft: BE 1.26.50 (protocol version 2193)"
+        )
+        assert PNX_DIALECT.parse_version(reply) is None
 
     def test_session_log(self) -> None:
         lines = [line(raw) for raw in (LOGS / "powernukkitx-session.log").read_text(encoding="utf-8").splitlines()]
@@ -150,6 +182,19 @@ class TestContract:
         applied = [make_adapter().applied("randomtickspeed", e) for e in lines]
         assert [a for a in applied if a] == [{"randomtickspeed": 3}]
         assert {e.logger for e in lines if e.logger} >= {"main", "Netty Server IO #1"}
+
+    def test_nightly_session_log(self) -> None:
+        raw = (LOGS / "powernukkitx-nightly-session.log").read_text(encoding="utf-8").splitlines()
+        lines = [line(r) for r in raw]
+        assert [v for v in (PNX_DIALECT.parse_version(e.text) for e in lines) if v] == [NIGHTLY]
+        assert sum(PNX_DIALECT.is_ready(e.text) for e in lines) == 1
+        assert [t for t in (PNX_DIALECT.parse_tick(e.text) for e in lines) if t is not None] == [20, 610, 1070, 1830]
+        assert [p for p in (PNX_DIALECT.player_entered(e.text) for e in lines) if p] == ["a00", "a01", "a03", "a02"]
+        applied = [make_adapter(NIGHTLY).applied("randomtickspeed", e) for e in lines]
+        assert [a for a in applied if a] == [{"randomtickspeed": 3}]
+        warnings = [e for e in lines if e.raw.startswith("WARNING: ")]
+        assert warnings and all(e.level is None and e.text == e.raw for e in warnings)
+        assert {e.level for e in lines} == {None, "info", "warn"}
 
 
 class TestPrepare:
@@ -218,6 +263,25 @@ class TestPrepare:
         with pytest.raises(ConfigError, match="prepare-world"):
             adapter.prepare(install, make_ctx(tmp_path, adapter, source="template"))
 
+    def test_nightly_fetch_uses_the_pinned_jdk(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        jar = tmp_path / "powernukkitx.jar"
+        jar.write_bytes(b"PK nightly jar")
+        ref = ArtifactRef("powernukkitx.jar", None, sha256_file(jar), jar.stat().st_size, "local")
+        entry = config.load_artifacts("powernukkitx").versions[NIGHTLY]
+        asked: list[str] = []
+
+        def runtime(cache: Cache, key: str, platform: str) -> Runtime:
+            asked.append(key)
+            return Runtime(key, tmp_path / "jdk", "0" * 64, ArtifactRef("jdk.zip", None, "1" * 64, 1, "github"), {})
+
+        monkeypatch.setattr(
+            powernukkitx, "fetch_release", lambda cache, server, version, artifact=None: (jar, ref, entry)
+        )
+        monkeypatch.setattr(powernukkitx, "fetch_runtime", runtime)
+        install = make_adapter(NIGHTLY).fetch(Cache(tmp_path / "cache"))
+        assert asked == ["jdk-25.0.4.1"]
+        assert install.extra["runtime"] == "jdk-25.0.4.1" and install.extra["commit"].startswith("86f70bc")
+
     def test_launch(self, install: Install, tmp_path: Path) -> None:
         adapter = make_adapter()
         layout = adapter.prepare(install, make_ctx(tmp_path, adapter))
@@ -254,13 +318,42 @@ class TestCommands:
                 dialect.render(action)
             assert dialect.unsupported[action]
 
-    def test_every_catalogue_command_is_rendered_or_unsupported(self) -> None:
+    def test_nightly_chaos_dialect(self) -> None:
+        release, nightly = make_adapter().chaos_dialect(), make_adapter(NIGHTLY).chaos_dialect()
+        assert not nightly.supports("tp_dimension") and "execute in nether" in nightly.unsupported["tp_dimension"]
+        assert "integer" in nightly.unsupported["playerwaypoints"]
+        assert nightly.actions == release.actions - {"tp_dimension"}
+        assert nightly.render("kick", player="a03") == ["kick a03 chaos"]
+        assert nightly.render("summon", player="a01", entity="cow", dx=2, dy=1, dz=-3) == [
+            "execute at a01 run summon cow ~2 ~1 ~-3"
+        ]
+
+    @pytest.mark.parametrize("version", ["3.0.5", NIGHTLY])
+    def test_every_catalogue_command_is_rendered_or_unsupported(self, version: str) -> None:
         catalogue = ROOT / "configs" / "scenarios" / "chaos-actions.toml"
         if not catalogue.is_file():
             pytest.skip("no chaos catalogue")
         commands = tomllib.loads(catalogue.read_text(encoding="utf-8")).get("command", {})
-        dialect = make_adapter().chaos_dialect()
+        dialect = make_adapter(version).chaos_dialect()
         for name, entry in commands.items():
             assert dialect.supports(name) or name in dialect.unsupported, name
             if dialect.supports(name):
                 assert dialect.render(name, **entry.get("example", {}))
+
+
+class TestFacts:
+    def test_recorded_settings_come_from_the_rewritten_config(self, install: Install, tmp_path: Path) -> None:
+        adapter = make_adapter()
+        layout = adapter.prepare(install, make_ctx(tmp_path, adapter))
+        rewritten = REWRITTEN_PNX_YML.replace(
+            "  transport: raknet\n", "  transport: raknet\n  upstream-bandwidth: 1000\n"
+        ).replace("  tickRadius: 4\n", "  tickRadius: 4\n  generationQueueSize: -1\n")
+        (layout.server_dir / "pnx.yml").write_text(rewritten, encoding="utf-8")
+        facts = adapter.facts(layout, None)  # type: ignore[arg-type]
+        assert facts["upstream_bandwidth_mbps"] == "1000" and facts["generation_queue_size"] == "-1"
+        assert "leveldb_backend" not in facts, "a key the version lacks is not recorded"
+        assert facts["usage_statistics"] == "off"
+
+    def test_thread_groups(self) -> None:
+        groups = PowerNukkitXAdapter.thread_groups
+        assert {"gc", "jit", "netty", "level workers", "chunk publisher"} <= set(groups)

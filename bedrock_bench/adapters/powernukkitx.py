@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
-"""PowerNukkitX, a Nukkit fork with vanilla-like gameplay, run from its release jar on the pinned JDK.
+"""PowerNukkitX, a Nukkit fork with vanilla-like gameplay, run from a release or nightly jar on the pinned JDK.
 
-Fetch: ``powernukkitx.jar`` from ``configs/servers/powernukkitx/server.toml`` and the JDK from
+Fetch: ``powernukkitx.jar`` from ``configs/servers/powernukkitx/server.toml`` and the JDK that version names from
 ``configs/servers/runtimes.toml``. No helper plugin: ``time query gametime`` prints the tick counter, and positions
-come from the bots, because PowerNukkitX has no ``querytarget``.
+come from the bots, because PowerNukkitX has no ``querytarget``. Nightly builds are pinned as ``nightly.<commit>``.
 
 Prepare writes ``pnx.yml`` with the benchmark's values (PowerNukkitX completes and rewrites it on start) and
 ``worlds/<level>/config.json`` with the scenario seed, which PowerNukkitX reads only from there. Launch:
@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, Any, ClassVar
 from bedrock_bench import config
 from bedrock_bench.adapters.base import ChaosDialect, Dialect
 from bedrock_bench.adapters.bdsfamily import BdsFamily
-from bedrock_bench.adapters.standalone import JavaServer, fetch_release, fetch_runtime, runtime_platform
+from bedrock_bench.adapters.standalone import JavaServer, fetch_release, fetch_runtime, runtime_platform, yaml_scalars
 from bedrock_bench.model import (
     ConfigFile,
     Install,
@@ -43,6 +43,14 @@ if TYPE_CHECKING:
 JAR = "powernukkitx.jar"
 WORLD_CONFIG_TEMPLATE = "configs/servers/powernukkitx/world-config.json"
 DEFAULT_RUNTIME = "jdk-21.0.12.1"
+NIGHTLY = "nightly"
+#: pnx.yml values left at their defaults and recorded as facts, by fact name. Keys a version lacks are skipped.
+RECORDED_SETTINGS: Mapping[str, str] = {
+    "upstream_bandwidth_mbps": "network-settings.upstream-bandwidth",
+    "generation_queue_size": "chunk-settings.generationQueueSize",
+    "leveldb_backend": "level-settings.leveldb-backend",
+    "raknet_global_packet_limit_per_10ms": "network-settings.raknet.globalPacketLimit",
+}
 
 #: ``13:58:00 [main] [INFO] text`` with the thread name; log4j's own start-up warning is
 #: ``2026-10-10T22:29:18.175Z main WARN text``.
@@ -57,13 +65,36 @@ PNX_LEVELS: Mapping[str, str] = {
     "ERROR": "error",
     "FATAL": "fatal",
 }
-#: Release jars report themselves as ``<version>-SNAPSHOT (git-<commit>)``; the commit is pinned in artifacts.
-PNX_DIALECT = Dialect(
+_RELEASE = re.compile(r"\d+(?:\.\d+)+")
+
+
+def is_nightly(version: str) -> bool:
+    """Whether an arm version names a nightly build (``nightly.<commit>``)."""
+    return version.split(".", 1)[0] == NIGHTLY
+
+
+class PnxDialect(Dialect):
+    """Release jars report ``3.0.5-SNAPSHOT (git-9813b75)``, read as ``3.0.5``. Nightly jars report
+    ``nightly-SNAPSHOT (git-86f70bc)``, read as ``nightly.86f70bc``, so one ``nightly`` feature range covers them all.
+    """
+
+    def parse_version(self, text: str) -> str | None:
+        match = self.version.search(text)
+        if match is None:
+            return None
+        version = match["version"]
+        return version if _RELEASE.fullmatch(version) else f"{version}.{match['commit']}"
+
+
+PNX_DIALECT = PnxDialect(
     ready=re.compile(r"^Done \(\d+(?:\.\d+)?s\)!"),
     prefix=PNX_PREFIX,
     level_map=PNX_LEVELS,
     benign=(),
-    version=re.compile(r"This server is running PowerNukkitX version (?P<version>\d+(?:\.\d+)+)(?:-SNAPSHOT)?\b"),
+    version=re.compile(
+        r"This server is running PowerNukkitX version (?P<version>\S+?)(?:-SNAPSHOT)?"
+        r" \(git-(?P<commit>[0-9a-f]{7,40})\)"
+    ),
     player_in_world=re.compile(r"^(?P<player>\S+) joined the game$"),
     tick_cmd="time query gametime",
     tick_re=re.compile(r"^Gametime is (?P<tick>\d+)"),
@@ -77,6 +108,11 @@ class PowerNukkitXAdapter(JavaServer):
     bot_compat_flags: ClassVar[tuple[str, ...]] = ("-fake-xuid",)
     dialect: ClassVar[Dialect] = PNX_DIALECT
     server_file: ClassVar[str] = JAR
+    thread_groups: ClassVar[Mapping[str, str]] = {
+        **JavaServer.thread_groups,
+        "level workers": r"^Level Worker$",
+        "chunk publisher": r"^Chunk Publisher$",
+    }
 
     # ---- fetch ----------------------------------------------------------------------------------------------------
 
@@ -149,6 +185,12 @@ class PowerNukkitXAdapter(JavaServer):
             "playerwaypoints": "no playerwaypoints game rule",
             "cleanup": "kill @e[type=!player] also kills players on PowerNukkitX",
         }
+        if is_nightly(self.arm.version):
+            unsupported["playerwaypoints"] = "an integer game rule that nothing reads; off and everyone are rejected"
+            unsupported["tp_dimension"] = (
+                "every dimension level carries the world's name, so execute in nether finds no level, "
+                "and tp keeps a player in its own level"
+            )
         renderers = {action: r for action, r in vanilla.renderers.items() if action not in unsupported}
         return ChaosDialect(renderers=renderers, unsupported=unsupported)
 
@@ -163,4 +205,9 @@ class PowerNukkitXAdapter(JavaServer):
                 "level_worker_threads": "-1 (one per available processor)",
             }
         )
+        try:
+            settings = yaml_scalars((layout.server_dir / "pnx.yml").read_text(encoding="utf-8"))
+        except OSError:
+            settings = {}
+        facts.update({fact: settings[key] for fact, key in RECORDED_SETTINGS.items() if key in settings})
         return facts

@@ -3,7 +3,8 @@
 [PowerNukkitX](https://github.com/PowerNukkitX/PowerNukkitX) is a Nukkit fork written in Java, licensed under
 LGPL-3.0, that reimplements much more of vanilla gameplay: mobs with AI, redstone, fluids, dimensions. It shares no code
 with Mojang's server. Its `[features]` rows in [server.toml](server.toml) are fidelity V1, with the systems it has marked
-`partial`, so reports list it under "Reduced fidelity".
+`partial`, so reports list it under "Reduced fidelity". Two versions are pinned: the 3.0.5 release, and
+`nightly.86f70bc`, the CI build of the `beta` branch at commit 86f70bc.
 
 Adapter: [powernukkitx.py](../../../bedrock_bench/adapters/powernukkitx.py). There is no helper plugin.
 
@@ -11,17 +12,24 @@ Adapter: [powernukkitx.py](../../../bedrock_bench/adapters/powernukkitx.py). The
 
 ```shell
 bbench fetch powernukkitx@3.0.5
+bbench fetch powernukkitx@nightly.86f70bc
 ```
 
-Fetch downloads the release jar from GitHub and the Temurin JDK, and checks each against the sha256 pinned in
-[server.toml](server.toml) and [runtimes.toml](../runtimes.toml). Neither is Mojang software, so no licence flag is
-needed. The install is `server/powernukkitx.jar`. The release jar reports itself as `3.0.5-SNAPSHOT (git-9813b75)`:
-`commit` in server.toml is the commit it was built from, and the version check reads `3.0.5` from that banner.
+Fetch downloads the jar from GitHub and the Temurin JDK the version names (21 for 3.0.5, 25 for the nightly), and
+checks each against the sha256 pinned in [server.toml](server.toml) and [runtimes.toml](../runtimes.toml). Neither is
+Mojang software, so no licence flag is needed. The install is `server/powernukkitx.jar`. The release jar reports itself
+as `3.0.5-SNAPSHOT (git-9813b75)`: `commit` in server.toml is the commit it was built from, and the version check reads
+`3.0.5` from that banner. The nightly jar reports `nightly-SNAPSHOT (git-86f70bc)`, which reads as `nightly.86f70bc`.
 
-The cross-server matrix also runs `spread100-pregen`, so build the template first:
+The nightly jar is the asset of the `nightly` pre-release, which upstream replaces with every new build. Once it has
+moved, fetch fails on the sha256. Keep a copy named `powernukkitx-nightly-86f70bc.jar` and pass its folder with
+`--artifact-dir`.
+
+The cross-server matrix also runs `spread100-pregen`, so build the templates first, one per version:
 
 ```shell
 bbench prepare-world powernukkitx@3.0.5 --scenario spread100-pregen
+bbench prepare-world powernukkitx@nightly.86f70bc --scenario spread100-pregen
 ```
 
 PowerNukkitX generates chunks only for areas a player has loaded, so it cannot pre-generate from a plugin. The template
@@ -53,7 +61,8 @@ coverage.
 
 The values, PowerNukkitX's built-in defaults and the reasons are in the `[config]` table of
 [server.toml](server.toml), and every change is recorded in run.json with its category
-([methodology](../../../docs/methodology.md#fairness-and-feature-parity)). `pnx.yml` starts empty.
+([methodology](../../../docs/methodology.md#fairness-and-feature-parity)). `pnx.yml` starts empty. Both versions have
+the same keys and defaults.
 
 - harness: the machine profile's port; offline login; usage metrics off; the per-IP RakNet packet limit raised,
   because every bot connects from 127.0.0.1 and the default limit is sized for one player per address. The RakNet
@@ -69,7 +78,9 @@ Held in the adapter:
 
 Left at their defaults and recorded in run.json facts: the inbound limits per session (1500 packets per second, 500 per
 tick), which apply per player rather than per address; and `levelWorkerThreads: -1`, one worker per available
-processor, which with the server pinned is the server's CPU set.
+processor, which with the server pinned is the server's CPU set. The nightly also records `upstream-bandwidth`
+(1000 Mbps, the budget of its chunk publisher), `generationQueueSize` (-1, no limit), `leveldb-backend` (java) and
+`raknet.globalPacketLimit` (100000 per 10 ms for the whole server).
 
 ## Variants
 
@@ -79,7 +90,7 @@ None.
 
 - It generates its own terrain from the seed, which never matches BDS terrain. It sends whole chunk columns in
   `LevelChunk` packets, with no sub-chunk requests, and never lets clients generate terrain, so every bot receives the
-  full view disc.
+  full view disc. The nightly sends sub-chunks only to clients whose login claims client-side generation support.
 - It checks movement (`checkMovement`), but sends no movement corrections and no locator-bar packets, and bots
   teleported to the spread height keep hovering there. The `[features]` rows say so, and `corrections_per_bot_s`,
   `locator_pkts_per_bot_s` and `airborne_frac_steady` check it in every run.
@@ -90,6 +101,11 @@ None.
   `kill`, `kick`, `gamemode`, `summon`, `list`, the `randomtickspeed` game rule, weather, `fill`, `setblock` and ticking
   areas. Unsupported: `loot` (no command), the `playerwaypoints` game rule (it does not exist), and cleanup, because
   `kill @e[type=!player]` also kills players on PowerNukkitX.
+- Chaos on the nightly: dimension changes are unsupported too. All three dimension levels carry the world's name
+  (`world list` prints `bench, bench, bench`), so `execute in nether` finds no level, and `tp` keeps a player in its
+  own level. `playerwaypoints` exists there as an integer game rule that nothing reads, and `off` is rejected.
+- The nightly runs on JDK 25 and 3.0.5 on JDK 21, so a comparison of the two includes the JDK change. On JDK 25 the
+  JVM prints a few `WARNING:` lines at start without a time stamp or level.
 
 ## Crash files
 

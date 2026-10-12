@@ -34,6 +34,29 @@ java = "jdk-21.0.12.1+1/bin/java"
 javac = "jdk-21.0.12.1+1/bin/javac"
 jcmd = "jdk-21.0.12.1+1/bin/jcmd"
 
+# Eclipse Temurin 25, for PowerNukkitX nightly builds, which are compiled for Java 25.
+[artifacts.version."jdk-25.0.4.1"]
+release = "jdk-25.0.4.1+1"
+
+[artifacts.version."jdk-25.0.4.1".windows]
+url = "https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.4.1%2B1/OpenJDK25U-jdk_x64_windows_hotspot_25.0.4.1_1.zip"
+sha256 = "00c847d804f4a78e9f04f2683faf14fed898535b177b7fc704486cb0284e9283"
+size = 141167264
+home = "jdk-25.0.4.1+1"
+java = "jdk-25.0.4.1+1/bin/java.exe"
+javac = "jdk-25.0.4.1+1/bin/javac.exe"
+jcmd = "jdk-25.0.4.1+1/bin/jcmd.exe"
+
+[artifacts.version."jdk-25.0.4.1".linux]
+url = "https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.4.1%2B1/OpenJDK25U-jdk_x64_linux_hotspot_25.0.4.1_1.tar.gz"
+sha256 = "dbb698396d478e7fa2b1e50f4103324b2a99b90569ee27c33f2261f9215cf41e"
+size = 141329719
+executables = ["jdk-25.0.4.1+1/bin/java", "jdk-25.0.4.1+1/bin/javac", "jdk-25.0.4.1+1/bin/jcmd"]
+home = "jdk-25.0.4.1+1"
+java = "jdk-25.0.4.1+1/bin/java"
+javac = "jdk-25.0.4.1+1/bin/javac"
+jcmd = "jdk-25.0.4.1+1/bin/jcmd"
+
 # PHP 8.2 as PocketMine-MP 5 needs it (pmmpthread, leveldb, chunkutils2 and the other extensions), from PocketMine's
 # PHP-Binaries build 524. The pm5-php-8.2-latest tag points at the same files but moves; this one does not.
 [artifacts.version."php-8.2-pm5-524"]

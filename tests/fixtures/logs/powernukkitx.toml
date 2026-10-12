@@ -1,6 +1,7 @@
-# Synthetic console lines in PowerNukkitX's format, one per dialect role (roles as in bds.toml). Log lines are
+# Console lines in PowerNukkitX's format, one per dialect role (roles as in bds.toml). Log lines are
 # `HH:MM:SS [<thread>] [LEVEL] text`; log4j's own start-up warning has an ISO time stamp and the thread name.
-# powernukkitx-session.log is a whole synthetic session in the same format.
+# The 3.0.5 lines and powernukkitx-session.log are synthetic. The nightly lines and powernukkitx-nightly-session.log
+# are copied from a nightly 86f70bc run with four bots.
 adapter = "powernukkitx"
 
 [[sample]]
@@ -40,3 +41,38 @@ value = "a00[/127.0.0.1:55527] logged in with entity id 3 at (bench, 2.0689, 64.
 [[sample]]
 role = "not_benign"
 line = "12:00:31 [main] [ERROR] Could not save chunk 80,80"
+
+[[sample]]
+role = "ready"
+line = "18:35:27 [main] [INFO] Done (3.06s)! For help, type \"help\" or \"?\""
+
+[[sample]]
+role = "version"
+line = "18:35:25 [main] [INFO] This server is running PowerNukkitX version nightly-SNAPSHOT (git-86f70bc) (API 3.0.5)"
+value = "nightly.86f70bc"
+
+[[sample]]
+role = "player_in_world"
+line = "18:35:32 [main] [INFO] a03 joined the game"
+value = "a03"
+
+[[sample]]
+role = "tick"
+line = "18:35:58 [main] [INFO] Gametime is 610"
+value = 610
+
+[[sample]]
+role = "level"
+line = "2026-10-12T17:35:24.567686900Z main WARN Advanced terminal features are not available in this environment"
+value = "warn"
+
+[[sample]]
+role = "strip"
+line = "18:35:30 [Netty Server IO #2] [INFO] a01[/127.0.0.1:60872] logged in with entity uniqueId -9223372036854775807 at (bench, 2.1698, 62.0, 3.9585)"
+value = "a01[/127.0.0.1:60872] logged in with entity uniqueId -9223372036854775807 at (bench, 2.1698, 62.0, 3.9585)"
+
+# The JVM's own warnings on JDK 25 have no prefix and no level.
+[[sample]]
+role = "strip"
+line = "WARNING: A restricted method in java.lang.System has been called"
+value = "WARNING: A restricted method in java.lang.System has been called"
