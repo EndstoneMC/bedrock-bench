@@ -1,0 +1,68 @@
+Back-port the client side of gophertunnel's modern offline login to v1.57.1.
+
+PocketMine-MP 5.44.3 speaks protocol 1001, the protocol of gophertunnel v1.57.1, but rejects that release's offline
+login. It expects the client data fields and identity token claims that gophertunnel adopted in v1.58.0. This patch
+applies these upstream changes to v1.57.1:
+
+  * 654cd5f "protocol/login: Fix modern self-signed login claims" (#468), in full. The self-signed identity token
+    gets the multiplayer audience and carries the player UUID as "leguuid", and the client data sends
+    FilterProfanity, ClientEditorConnectionIntent and ClientIsEditorCapable instead of IsEditorMode.
+  * b36ddad "minecraft: Update protocol to 1.26.40" (#481), only the ClientData.ProfileHash field.
+
+Left out on purpose: the login parsing changes made to the same files between v1.57.1 and v1.58.0 (#474 and the
+Validate part of #481), because the bot never parses a login, and ClientData.Nonce from #501, because it is
+omitempty and the bot never sets it, so it never reaches the wire.
+
+Upstream:  https://github.com/Sandertv/gophertunnel/pull/468 and https://github.com/Sandertv/gophertunnel/pull/481
+Test:      TestLoginRequestFormat in bots/legacy1001 fails against unpatched v1.57.1.
+Drop when: the pinned PocketMine-MP accepts the protocol bots/loadbot speaks. bots/legacy1001 goes with it.
+
+diff --git a/minecraft/protocol/login/data.go b/minecraft/protocol/login/data.go
+index 198e39f..c0e30b7 100644
+--- a/minecraft/protocol/login/data.go
++++ b/minecraft/protocol/login/data.go
+@@ -140,8 +140,12 @@ type ClientData struct {
+ 	// GUIScale is the GUI scale of the player. It is by default 0, and is otherwise -1 or -2 for a smaller
+ 	// GUI scale than usual.
+ 	GUIScale int `json:"GuiScale"`
+-	// IsEditorMode is a value to dictate if the player is in editor mode.
+-	IsEditorMode bool
++	// FilterProfanity indicates if the client has profanity filtering enabled.
++	FilterProfanity bool
++	// ClientEditorConnectionIntent indicates how the client intends to connect to an editor world.
++	ClientEditorConnectionIntent int
++	// ClientIsEditorCapable specifies if the client supports editor features.
++	ClientIsEditorCapable bool
+ 	// LanguageCode is the language code of the player. It looks like 'en_UK'. It follows the ISO language
+ 	// codes, but hyphens ('-') are replaced with underscores. ('_')
+ 	LanguageCode string
+@@ -246,6 +250,8 @@ type ClientData struct {
+ 	PartyID string `json:"PartyId"`
+ 	// PartyLeader is if the client is the leader of the party they are in.
+ 	PartyLeader bool `json:"IsPartyLeader"`
++	// ProfileHash is a client-generated hash of the equipped persona skin.
++	ProfileHash string `json:"ProfileHash"`
+ }
+ 
+ // PersonaPiece represents a piece of a persona skin. All pieces are sent separately.
+diff --git a/minecraft/protocol/login/request.go b/minecraft/protocol/login/request.go
+index fa8c8cb..d6c4039 100644
+--- a/minecraft/protocol/login/request.go
++++ b/minecraft/protocol/login/request.go
+@@ -405,6 +405,7 @@ func EncodeOffline(identityData IdentityData, data ClientData, key *ecdsa.Privat
+ 		req.Certificate = certificate{Chain: chain{chainJWT}}
+ 		req.Legacy = true
+ 	} else {
++		claims.Audience = jwt.Audience{"api://auth-minecraft-services/multiplayer"}
+ 		req.Certificate = certificate{Chain: chain{""}}
+ 		req.Token, _ = jwt.Signed(signer).Claims(tokenClaims{
+ 			Claims:          claims,
+@@ -447,7 +448,7 @@ type tokenClaims struct {
+ 	DisplayName string `json:"xname"`
+ 	// Identity is the UUID of the player. It is only set for offline logins where
+ 	// the UUID cannot be derived from the XUID.
+-	Identity string `json:"identity,omitempty"`
++	Identity string `json:"leguuid,omitempty"`
+ }
+ 
+ // identityData converts the OIDC tokenClaims into IdentityData.
