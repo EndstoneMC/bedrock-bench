@@ -399,7 +399,7 @@ def _run_json(v: Variant) -> dict[str, Any]:
         "schema": "bedrock-bench/run/1",
         "schema_minor": 0,
         "analysis_version": 1,
-        "run_id": f"20261012T135800Z-synthetic-1.0-{SCENARIO.name}-r1-{hex4}",
+        "run_id": f"20261012T135800Z-synthetic@1.0-{SCENARIO.name}-r1-{hex4}",
         "status": "ok" if ok else "server_failed",
         "status_reasons": [] if ok else ["server_alive: the server exited before teardown"],
         "flags": [],
@@ -408,7 +408,7 @@ def _run_json(v: Variant) -> dict[str, Any]:
         "nonstandard": [],
         "harness": {"version": "0.1.0.dev0", "git": None, "dirty": None, "python": "3.13", "backend": "native-linux"},
         "matrix": {"name": "fixtures", "repeat": 1, "order_index": 0, "order": "rotate"},
-        "arm": {"id": "synthetic-1.0", "server": "synthetic", "version": "1.0", "variant": None, "bds": None},
+        "arm": {"id": "synthetic@1.0", "server": "synthetic", "version": "1.0", "variant": None, "bds": None},
         "artifacts": [{"name": "synthetic", "url": None, "sha256": "0" * 64, "size": 0, "source": "local"}],
         "install": {"tree_sha256": "1" * 64, "exe_sha256_before": None, "exe_sha256_after": None},
         "server": {

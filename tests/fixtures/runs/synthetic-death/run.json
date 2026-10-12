@@ -2,7 +2,7 @@
   "analysis_version": 1,
   "arm": {
     "bds": null,
-    "id": "synthetic-1.0",
+    "id": "synthetic@1.0",
     "server": "synthetic",
     "variant": null,
     "version": "1.0"
@@ -173,7 +173,7 @@
     ],
     "verified": true
   },
-  "run_id": "20261012T135800Z-synthetic-1.0-synthetic-r1-e6ce",
+  "run_id": "20261012T135800Z-synthetic@1.0-synthetic-r1-e6ce",
   "scenario": {
     "name": "synthetic",
     "resolved": {
