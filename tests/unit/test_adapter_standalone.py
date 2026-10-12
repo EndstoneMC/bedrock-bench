@@ -311,7 +311,7 @@ def sha(data: bytes) -> str:
 def project(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """A project root with pinned artifacts and an artifact directory holding them."""
     root = tmp_path / "project"
-    (root / "configs" / "demo").mkdir(parents=True)
+    (root / "servers" / "demo").mkdir(parents=True)
     store = tmp_path / "store"
     store.mkdir()
     runtime = make_tar(store / "rt-linux.tar.gz", [("rt/bin/tool", b"tool", None)])
@@ -336,7 +336,7 @@ tool = "rt/bin/tool.exe"
 """,
         encoding="utf-8",
     )
-    (root / "configs" / "demo" / "server.toml").write_text(
+    (root / "servers" / "demo" / "server.toml").write_text(
         f"""schema = 1
 server = "demo"
 [artifacts.version."1.0"]

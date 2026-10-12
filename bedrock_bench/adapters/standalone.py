@@ -642,13 +642,13 @@ class StandaloneServer(ServerAdapter):
     #: Generator recorded in run.json (one of model.GENERATORS).
     generator: ClassVar[str] = "custom"
     #: File whose ``[config]`` table is the config plan, relative to the project root; defaults to
-    #: ``configs/<name>/server.toml``.
+    #: ``servers/<name>/server.toml``.
     config_template: ClassVar[str]
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
         if "name" in cls.__dict__ and "config_template" not in cls.__dict__:
-            cls.config_template = f"configs/{cls.name}/server.toml"
+            cls.config_template = f"{config.SERVERS_DIR}/{cls.name}/{config.SERVER_FILE}"
 
     def config_plan(self) -> ConfigPlan:
         return load_config_plan(config.project_root() / self.config_template)
