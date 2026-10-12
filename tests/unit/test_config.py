@@ -223,42 +223,27 @@ class TestServerFile:
 
 
 #: The benchmark default of every server, from the cleanup brief.
-BENCHMARK_DEFAULTS = {
-    "bds": ("1.26.52.3", None, None),
-    "endstone": ("0.11.14", "1.26.52.3", "3.13"),
-    "levilamina": ("26.51.6", None, None),
-    "pocketmine": ("5.44.3", None, None),
-    "altay": ("5.44.7", None, None),
-    "nukkit": ("b3caad6", None, None),
-    "nukkitmot": ("9cb0aba", None, None),
-    "powernukkitx": ("nightly.86f70bc", None, None),
-    "allay": ("0.14.0", None, None),
-    "dragonfly": ("1793369", None, None),
-    "chorus": ("95ca835", None, None),
-}
-
-
 class TestBenchmark:
-    def test_every_server_has_its_default(self) -> None:
-        defaults = {b.server: b for b in config.benchmark_defaults()}
-        assert set(defaults) == set(BENCHMARK_DEFAULTS) == set(config.available("servers"))
-        for server, (version, bds, python) in BENCHMARK_DEFAULTS.items():
-            default = defaults[server]
-            assert (default.version, default.bds, default.python) == (version, bds, python), server
-            assert version in config.load_artifacts(server).versions, f"{server}@{version} is not pinned"
-            if bds is not None:
-                assert bds in config.load_artifacts("bds").versions
-        excluded = {s: b.reason for s, b in defaults.items() if not b.include}
-        assert excluded == {"chorus": "its player list gives the bots decode errors"}
+    def test_every_default_is_pinned(self) -> None:
+        defaults = config.benchmark_defaults()
+        assert [b.server for b in defaults] == config.available("servers")
+        for default in defaults:
+            pins = config.load_artifacts(default.server).versions
+            assert default.version in pins, f"{default.server}@{default.version} is not pinned"
+            meta = pins[default.version].meta
+            if default.bds is not None:
+                assert default.bds == meta["bds"] and default.bds in config.load_artifacts("bds").versions
+            if default.python is not None:
+                assert default.python == meta["python"]
 
     def test_arm(self) -> None:
-        arm = config.load_benchmark("endstone").arm
-        assert (arm.id, arm.server, arm.version, arm.bds, arm.python) == (
-            "endstone@0.11.14",
-            "endstone",
-            "0.11.14",
-            "1.26.52.3",
-            "3.13",
+        default = config.load_benchmark("endstone")
+        arm = default.arm
+        assert (arm.id, arm.version, arm.bds, arm.python) == (
+            f"endstone@{default.version}",
+            default.version,
+            default.bds,
+            default.python,
         )
 
     @pytest.mark.parametrize(

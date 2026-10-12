@@ -74,7 +74,7 @@ def pinned_versions(cls: type[ServerAdapter]) -> list[str]:
     """Versions pinned in ``servers/<name>/server.toml``, which every registered adapter must have."""
     if is_fake(cls):
         return [FAKE_VERSION]
-    path = ROOT / "servers" / cls.name / "server.toml"
+    path = config.server_dir(cls.name) / config.SERVER_FILE
     if not path.is_file():
         pytest.fail(f"no server file for {cls.name}: add {path.relative_to(ROOT).as_posix()}")
     return sorted(config.load_artifacts(path).versions)
@@ -163,9 +163,14 @@ def test_standalone_versions_name_a_pinned_runtime(cls: type[ServerAdapter]) -> 
 
 @real_adapters
 def test_server_folder(cls: type[ServerAdapter]) -> None:
-    folder = ROOT / "servers" / cls.name
-    missing = [name for name in ("README.md", "server.toml") if not (folder / name).is_file()]
-    assert not missing, f"configs/{cls.name}/ needs {', '.join(missing)}"
+    folder = config.server_dir(cls.name)
+    missing = [name for name in ("README.md", config.SERVER_FILE) if not (folder / name).is_file()]
+    assert not missing, f"servers/{cls.name}/ needs {', '.join(missing)}"
+
+
+@pytest.mark.parametrize("name", config.available("servers"))
+def test_server_folder_has_an_adapter(name: str) -> None:
+    assert name in adapters.names(), f"servers/{name}/ has no adapter in bedrock_bench/adapters/"
 
 
 @pytest.mark.parametrize("cls", [cls for cls in REGISTERED if issubclass(cls, BdsFamily)], ids=adapter_id)

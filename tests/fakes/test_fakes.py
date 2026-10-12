@@ -25,6 +25,7 @@ import psutil
 import pytest
 
 from bedrock_bench import adapters, bots, config
+from bedrock_bench.adapters.bdsfamily import BdsFamily
 from bedrock_bench.cache import Cache
 from bedrock_bench.model import LaunchSpec, Layout, LogLine, OverrideCategory, Placement, RunContext
 from bedrock_bench.workload import WORKLOAD, with_overrides
@@ -583,7 +584,7 @@ def test_entry_point_registers_every_fake_adapter(tmp_path: Path, monkeypatch: p
 # --------------------------------------------------------------------------------------------------------------------
 
 #: Families whose console output is the server's own, not a bench helper's, so the real adapter must read the fake.
-VANILLA_OUTPUT = ("bds", "endstone", "levilamina")
+VANILLA_OUTPUT = [f for f in fake_server.FAMILIES if issubclass(adapters.get(f), BdsFamily)]
 
 
 @pytest.mark.parametrize("family", VANILLA_OUTPUT)
