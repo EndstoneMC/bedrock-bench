@@ -1,0 +1,352 @@
+{
+  "analysis_version": 1,
+  "arm": {
+    "bds": null,
+    "id": "synthetic-1.0",
+    "server": "synthetic",
+    "variant": null,
+    "version": "1.0"
+  },
+  "artifacts": [
+    {
+      "name": "synthetic",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size": 0,
+      "source": "local",
+      "url": null
+    }
+  ],
+  "bot": {
+    "argv": [],
+    "module": "loadbot",
+    "protocol": 2193,
+    "sha256": null
+  },
+  "config_files": [],
+  "exit_code": 4,
+  "files": {
+    "bots.jsonl.gz": {
+      "bytes": 1785,
+      "sha256": "8a7456104202dd88992bb0206a75810ad06dd19892aac7c0f445e66780ec1476"
+    },
+    "commands.jsonl.gz": {
+      "bytes": 256,
+      "sha256": "bec40d29279370a94d55bdf6accd1387e57ef11901652e29a90341a55c4ed3f7"
+    },
+    "series/machine.csv.gz": {
+      "bytes": 634,
+      "sha256": "92d1e0aab420c8b94d1ae18e89ffedc001a6671e5a3cdf10837252ce026e23d6"
+    },
+    "series/probe.csv": {
+      "bytes": 571,
+      "sha256": "626cd184729c97675cbb7655e046f094b0c9ce2a0ff7b49866cefddafa813eec"
+    },
+    "series/process.csv.gz": {
+      "bytes": 1341,
+      "sha256": "093c8d16408c1c233c4df2beb7f75f86e05e65dd7e329233b03078ff6a06d74e"
+    },
+    "series/threads.csv.gz": {
+      "bytes": 2303,
+      "sha256": "b236ce6f40340aa66e70d222c54a57a19c88b558c1288a59c0386895629bf9dd"
+    },
+    "series/tick.csv.gz": {
+      "bytes": 3866,
+      "sha256": "b89ede497aa8a62c44ff4ce3b1443241573fb423b8ffc7ebec52d836d088293e"
+    },
+    "server.log.gz": {
+      "bytes": 164,
+      "sha256": "219ef7c024edbce42b4da54759345542de421b6e76fccaddcd2636201f5cbf46"
+    }
+  },
+  "flags": [],
+  "harness": {
+    "backend": "native-linux",
+    "dirty": null,
+    "git": null,
+    "python": "3.13",
+    "version": "0.1.0.dev0"
+  },
+  "health": {
+    "crash_files": [
+      "crash/crash-report.txt"
+    ],
+    "decode_errors": 0,
+    "died": true,
+    "dropped": 6,
+    "failed": 0,
+    "joined": 6,
+    "server_exit": -6
+  },
+  "install": {
+    "exe_sha256_after": null,
+    "exe_sha256_before": null,
+    "tree_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "interference": {
+    "idle_foreign_cores": 0.05,
+    "windows": {}
+  },
+  "interventions": {
+    "in_measured": 0,
+    "nudged": [],
+    "nudges": 0,
+    "retp": 0,
+    "retp_bots": []
+  },
+  "machine": {
+    "core_classes": {
+      "efficiency": [],
+      "performance": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    "cpu": "synthetic 8-core",
+    "fingerprint_id": "synthetic",
+    "kernel": null,
+    "label": "synthetic",
+    "logical": 8,
+    "os": "Linux",
+    "physical": 8,
+    "power": null,
+    "profile_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "ram_gib": 16,
+    "tsc_hz_calibrated": null,
+    "virtualized": false
+  },
+  "marks": {
+    "alljoined": 37.5,
+    "bots_start": 35.0,
+    "chaos0": null,
+    "chaos1": null,
+    "idle0": 15.0,
+    "idle1": 35.0,
+    "ready": 5.0,
+    "settled": null,
+    "steady0": null,
+    "steady1": null,
+    "stop": 92.0
+  },
+  "matrix": {
+    "name": "fixtures",
+    "order": "rotate",
+    "order_index": 0,
+    "repeat": 1
+  },
+  "nonstandard": [],
+  "official": false,
+  "overrides": [],
+  "parity": {
+    "does_less": [],
+    "fidelity": null,
+    "file_sha256": null,
+    "range": null,
+    "row": {}
+  },
+  "placement": {
+    "bot_cpus": [
+      4,
+      5,
+      6,
+      7
+    ],
+    "harness_cpus": [
+      4,
+      5,
+      6,
+      7
+    ],
+    "kind": "physical",
+    "method": "preexec",
+    "priority": "normal",
+    "server_cpus": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "verified": true
+  },
+  "run_id": "20261012T135800Z-synthetic-1.0-synthetic-r1-e6ce",
+  "scenario": {
+    "name": "synthetic",
+    "resolved": {
+      "bots": {
+        "decode_errors": "count",
+        "identity_seed": "bedrock-bench",
+        "join_retries": 0,
+        "loadscreen": true,
+        "n": 6,
+        "pkt_interval_s": 30.0,
+        "prefix": "a",
+        "probe_bots": 0,
+        "progress_interval_s": 5.0,
+        "radius": 16,
+        "radius_jitter_s": 0.0,
+        "rejoin_on_drop": false,
+        "spawn_timeout_s": 180.0,
+        "stagger_ms": 300,
+        "stat_interval_s": 10.0,
+        "walk": "circle"
+      },
+      "exercises": [
+        "terrain.vanilla_generator",
+        "player.physics"
+      ],
+      "grid": {
+        "columns": 11,
+        "origin": 1280,
+        "spacing": 640,
+        "warn_offset_blocks": 200.0,
+        "y": 300.0
+      },
+      "name": "synthetic",
+      "phases": [
+        {
+          "cap_s": 600.0,
+          "delay_s": 0.0,
+          "duration_s": null,
+          "name": "boot",
+          "options": {}
+        },
+        {
+          "cap_s": null,
+          "delay_s": 10.0,
+          "duration_s": 20.0,
+          "name": "idle",
+          "options": {}
+        },
+        {
+          "cap_s": 300.0,
+          "delay_s": 0.0,
+          "duration_s": null,
+          "name": "join",
+          "options": {
+            "pre_bots_s": 0.0
+          }
+        },
+        {
+          "cap_s": 900.0,
+          "delay_s": 0.0,
+          "duration_s": null,
+          "name": "settle",
+          "options": {
+            "eval_interval_s": 5.0,
+            "max_data_age_s": 5.0,
+            "min_s": 60.0,
+            "min_view_frac": 0.0,
+            "nudge_after_s": 60.0,
+            "nudge_max": 2,
+            "nudge_max_uniq": 30,
+            "nudge_min_y": 290.0,
+            "nudge_step": 16.0,
+            "rate_per_bot": 0.1,
+            "rate_window_s": 60.0,
+            "retp_after_s": 20.0,
+            "retp_max": 3,
+            "view_complete_frac": 0.95,
+            "view_median_frac": 0.5
+          }
+        },
+        {
+          "cap_s": null,
+          "delay_s": 0.0,
+          "duration_s": null,
+          "name": "spread",
+          "options": {
+            "query_timeout_s": 10.0
+          }
+        },
+        {
+          "cap_s": null,
+          "delay_s": 15.0,
+          "duration_s": 90.0,
+          "name": "steady",
+          "options": {}
+        },
+        {
+          "cap_s": null,
+          "delay_s": 0.0,
+          "duration_s": null,
+          "name": "teardown",
+          "options": {
+            "bot_quit_timeout_s": 10.0,
+            "crash_log_lines": 200,
+            "stop_timeout_s": 180.0
+          }
+        }
+      ],
+      "probe": {
+        "interval_s": 5.0,
+        "lagging_p99_ms": 1000.0,
+        "max_gap_s": 15.0
+      },
+      "requires": [],
+      "server": {
+        "autosave_ticks": 6000,
+        "csg": false,
+        "difficulty": "easy",
+        "gamemode": "survival",
+        "max_players": 200,
+        "save_player_data": true,
+        "tick_distance": 4,
+        "view_distance": 10
+      },
+      "world": {
+        "level_name": "bench",
+        "min_coverage": 0.99,
+        "seed": 20261010,
+        "source": "fresh",
+        "template_radius": 12
+      }
+    },
+    "sha256": "969a0b930a8c527297ada161531f51210a73479814b28d83ecb9d44acec827d7"
+  },
+  "schema": "bedrock-bench/run/1",
+  "schema_minor": 0,
+  "server": {
+    "aux_pids": [],
+    "banner_version": "1.0",
+    "facts": {
+      "allocator": "default",
+      "csg_setting": false,
+      "jvm_heap_mib": null,
+      "thread_census_idle": {}
+    },
+    "pid": 4242
+  },
+  "settle": {
+    "capped": false,
+    "settle_s": null,
+    "views_incomplete": false
+  },
+  "spread": {
+    "cells_occupied": null,
+    "max_per_cell": null,
+    "players": null,
+    "source": null,
+    "worst_offset_blocks": null
+  },
+  "status": "server_failed",
+  "status_reasons": [
+    "server_alive: the server exited before teardown"
+  ],
+  "time": {
+    "drift_ms": 0.0,
+    "end_epoch_ms": 1791813688000,
+    "end_mono_ns": 5208000000000,
+    "origin_epoch_ms": 1791813480000,
+    "origin_mono_ns": 5000000000000
+  },
+  "world": {
+    "fresh": true,
+    "generator": "vanilla",
+    "template_sha256": null
+  }
+}

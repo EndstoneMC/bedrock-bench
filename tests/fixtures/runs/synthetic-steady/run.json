@@ -1,0 +1,363 @@
+{
+  "analysis_version": 1,
+  "arm": {
+    "bds": null,
+    "id": "synthetic-1.0",
+    "server": "synthetic",
+    "variant": null,
+    "version": "1.0"
+  },
+  "artifacts": [
+    {
+      "name": "synthetic",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size": 0,
+      "source": "local",
+      "url": null
+    }
+  ],
+  "bot": {
+    "argv": [],
+    "module": "loadbot",
+    "protocol": 2193,
+    "sha256": null
+  },
+  "config_files": [],
+  "exit_code": 0,
+  "files": {
+    "bots.jsonl.gz": {
+      "bytes": 2962,
+      "sha256": "d09e69056fdbea7662f7197534a9f51e81941755beabee8454b17d36a774802c"
+    },
+    "commands.jsonl.gz": {
+      "bytes": 392,
+      "sha256": "b7bad2a76f39a15d921768d41182bdbc15e9c0125fc7cddf57d78777fdcf87f0"
+    },
+    "series/machine.csv.gz": {
+      "bytes": 617,
+      "sha256": "e7f54426c1a6b9e45c677859bb3967adf9196fbab31a4e39b36bf73cca091d4e"
+    },
+    "series/probe.csv": {
+      "bytes": 1363,
+      "sha256": "2816f554950cad1dbe2dddc76586ffb963af6d8ef72c44f5beaf75d1b5c220bb"
+    },
+    "series/process.csv.gz": {
+      "bytes": 3239,
+      "sha256": "7ebd50ab29a784d26ad4c2e0bf259a72d433ccf1d10e3d2b5e8f54f5a9a6c562"
+    },
+    "series/threads.csv.gz": {
+      "bytes": 5336,
+      "sha256": "05404c3693e7d21a7c3f45c09087b9ea6617be3974b2a352a313d2c40526d3a1"
+    },
+    "series/tick.csv.gz": {
+      "bytes": 9697,
+      "sha256": "0cfe829b298b146fb7ca05174ceab9524007638db44af111be29c5d869ee0d12"
+    },
+    "server.log.gz": {
+      "bytes": 164,
+      "sha256": "e2160f0b45f133f3ad77d3acd87502f4ab760dd9c5a74a4cfcf8fb8ccd8df6db"
+    }
+  },
+  "flags": [],
+  "harness": {
+    "backend": "native-linux",
+    "dirty": null,
+    "git": null,
+    "python": "3.13",
+    "version": "0.1.0.dev0"
+  },
+  "health": {
+    "crash_files": [],
+    "decode_errors": 0,
+    "died": false,
+    "dropped": 0,
+    "failed": 0,
+    "joined": 6,
+    "server_exit": 0
+  },
+  "install": {
+    "exe_sha256_after": null,
+    "exe_sha256_before": null,
+    "tree_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "interference": {
+    "idle_foreign_cores": 0.05,
+    "windows": {
+      "load": {
+        "foreign_cores": 0.07,
+        "harness_cores": 0.08,
+        "peak_10s": 0.09,
+        "server_set": 0.01,
+        "top": []
+      },
+      "steady": {
+        "foreign_cores": 0.07,
+        "harness_cores": 0.08,
+        "peak_10s": 0.09,
+        "server_set": 0.01,
+        "top": []
+      }
+    }
+  },
+  "interventions": {
+    "in_measured": 0,
+    "nudged": [],
+    "nudges": 0,
+    "retp": 0,
+    "retp_bots": []
+  },
+  "machine": {
+    "core_classes": {
+      "efficiency": [],
+      "performance": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    "cpu": "synthetic 8-core",
+    "fingerprint_id": "synthetic",
+    "kernel": null,
+    "label": "synthetic",
+    "logical": 8,
+    "os": "Linux",
+    "physical": 8,
+    "power": null,
+    "profile_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "ram_gib": 16,
+    "tsc_hz_calibrated": null,
+    "virtualized": false
+  },
+  "marks": {
+    "alljoined": 37.5,
+    "bots_start": 35.0,
+    "chaos0": null,
+    "chaos1": null,
+    "idle0": 15.0,
+    "idle1": 35.0,
+    "ready": 5.0,
+    "settled": 100.0,
+    "steady0": 115.0,
+    "steady1": 205.0,
+    "stop": 207.0
+  },
+  "matrix": {
+    "name": "fixtures",
+    "order": "rotate",
+    "order_index": 0,
+    "repeat": 1
+  },
+  "nonstandard": [],
+  "official": false,
+  "overrides": [],
+  "parity": {
+    "does_less": [],
+    "fidelity": null,
+    "file_sha256": null,
+    "range": null,
+    "row": {}
+  },
+  "placement": {
+    "bot_cpus": [
+      4,
+      5,
+      6,
+      7
+    ],
+    "harness_cpus": [
+      4,
+      5,
+      6,
+      7
+    ],
+    "kind": "physical",
+    "method": "preexec",
+    "priority": "normal",
+    "server_cpus": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "verified": true
+  },
+  "run_id": "20261012T135800Z-synthetic-1.0-synthetic-r1-5a50",
+  "scenario": {
+    "name": "synthetic",
+    "resolved": {
+      "bots": {
+        "decode_errors": "count",
+        "identity_seed": "bedrock-bench",
+        "join_retries": 0,
+        "loadscreen": true,
+        "n": 6,
+        "pkt_interval_s": 30.0,
+        "prefix": "a",
+        "probe_bots": 0,
+        "progress_interval_s": 5.0,
+        "radius": 16,
+        "radius_jitter_s": 0.0,
+        "rejoin_on_drop": false,
+        "spawn_timeout_s": 180.0,
+        "stagger_ms": 300,
+        "stat_interval_s": 10.0,
+        "walk": "circle"
+      },
+      "exercises": [
+        "terrain.vanilla_generator",
+        "player.physics"
+      ],
+      "grid": {
+        "columns": 11,
+        "origin": 1280,
+        "spacing": 640,
+        "warn_offset_blocks": 200.0,
+        "y": 300.0
+      },
+      "name": "synthetic",
+      "phases": [
+        {
+          "cap_s": 600.0,
+          "delay_s": 0.0,
+          "duration_s": null,
+          "name": "boot",
+          "options": {}
+        },
+        {
+          "cap_s": null,
+          "delay_s": 10.0,
+          "duration_s": 20.0,
+          "name": "idle",
+          "options": {}
+        },
+        {
+          "cap_s": 300.0,
+          "delay_s": 0.0,
+          "duration_s": null,
+          "name": "join",
+          "options": {
+            "pre_bots_s": 0.0
+          }
+        },
+        {
+          "cap_s": 900.0,
+          "delay_s": 0.0,
+          "duration_s": null,
+          "name": "settle",
+          "options": {
+            "eval_interval_s": 5.0,
+            "max_data_age_s": 5.0,
+            "min_s": 60.0,
+            "min_view_frac": 0.0,
+            "nudge_after_s": 60.0,
+            "nudge_max": 2,
+            "nudge_max_uniq": 30,
+            "nudge_min_y": 290.0,
+            "nudge_step": 16.0,
+            "rate_per_bot": 0.1,
+            "rate_window_s": 60.0,
+            "retp_after_s": 20.0,
+            "retp_max": 3,
+            "view_complete_frac": 0.95,
+            "view_median_frac": 0.5
+          }
+        },
+        {
+          "cap_s": null,
+          "delay_s": 0.0,
+          "duration_s": null,
+          "name": "spread",
+          "options": {
+            "query_timeout_s": 10.0
+          }
+        },
+        {
+          "cap_s": null,
+          "delay_s": 15.0,
+          "duration_s": 90.0,
+          "name": "steady",
+          "options": {}
+        },
+        {
+          "cap_s": null,
+          "delay_s": 0.0,
+          "duration_s": null,
+          "name": "teardown",
+          "options": {
+            "bot_quit_timeout_s": 10.0,
+            "crash_log_lines": 200,
+            "stop_timeout_s": 180.0
+          }
+        }
+      ],
+      "probe": {
+        "interval_s": 5.0,
+        "lagging_p99_ms": 1000.0,
+        "max_gap_s": 15.0
+      },
+      "requires": [],
+      "server": {
+        "autosave_ticks": 6000,
+        "csg": false,
+        "difficulty": "easy",
+        "gamemode": "survival",
+        "max_players": 200,
+        "save_player_data": true,
+        "tick_distance": 4,
+        "view_distance": 10
+      },
+      "world": {
+        "level_name": "bench",
+        "min_coverage": 0.99,
+        "seed": 20261010,
+        "source": "fresh",
+        "template_radius": 12
+      }
+    },
+    "sha256": "969a0b930a8c527297ada161531f51210a73479814b28d83ecb9d44acec827d7"
+  },
+  "schema": "bedrock-bench/run/1",
+  "schema_minor": 0,
+  "server": {
+    "aux_pids": [],
+    "banner_version": "1.0",
+    "facts": {
+      "allocator": "default",
+      "csg_setting": false,
+      "jvm_heap_mib": null,
+      "thread_census_idle": {}
+    },
+    "pid": 4242
+  },
+  "settle": {
+    "capped": false,
+    "settle_s": 62.5,
+    "views_incomplete": false
+  },
+  "spread": {
+    "cells_occupied": 6,
+    "max_per_cell": 1,
+    "players": 6,
+    "source": "querytarget",
+    "worst_offset_blocks": 0.5
+  },
+  "status": "ok",
+  "status_reasons": [],
+  "time": {
+    "drift_ms": 0.0,
+    "end_epoch_ms": 1791813688000,
+    "end_mono_ns": 5208000000000,
+    "origin_epoch_ms": 1791813480000,
+    "origin_mono_ns": 5000000000000
+  },
+  "world": {
+    "fresh": true,
+    "generator": "vanilla",
+    "template_sha256": null
+  }
+}
