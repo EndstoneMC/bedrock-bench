@@ -138,7 +138,6 @@ def _configure_analyze(p: argparse.ArgumentParser) -> None:
 def _configure_report(p: argparse.ArgumentParser) -> None:
     p.add_argument("matrix_dir", type=Path, metavar="MATRIX_DIR")
     p.add_argument("--format", choices=("md", "json"), default="md")
-    p.add_argument("--claims", type=Path, metavar="FILE", help="claims TOML to check")
     p.add_argument(
         "--publish",
         action="store_true",

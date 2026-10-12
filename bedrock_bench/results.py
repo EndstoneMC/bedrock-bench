@@ -37,7 +37,6 @@ import secrets
 import sys
 import threading
 import time
-import tomllib
 from collections.abc import Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -45,7 +44,7 @@ from typing import IO, Any
 
 from bedrock_bench import ANALYSIS_VERSION, METRICS_SCHEMA, RUN_SCHEMA, SCHEMA_MINOR
 from bedrock_bench.clock import NS_PER_S, Origin, utc_compact
-from bedrock_bench.config import ConfigError, load_features, load_schema, parse_claims, project_root
+from bedrock_bench.config import ConfigError, load_features, load_schema, project_root
 from bedrock_bench.model import (
     MARKS,
     ExitCode,
@@ -661,17 +660,8 @@ def _check_document(path: Path, validators: _Validators) -> tuple[list[str], int
                 problems += validators.errors("bot-event", event, f"{where}:{number}", limit=5)
                 count += 1
             return problems, count
-        if name.endswith(".toml"):
-            data = tomllib.loads(path.read_text(encoding="utf-8"))
-            if "claim" not in data:
-                return [f"{where}: no schema for this TOML file (only claims files are validated)"], 0
-            try:
-                parse_claims(data, file=path)
-            except ConfigError as exc:
-                return [str(exc)], 1
-            return [], 1
         document = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError, EOFError, tomllib.TOMLDecodeError) as exc:
+    except (OSError, ValueError, EOFError) as exc:
         return [f"{where}: cannot read: {exc}"], 0
     schema_id = document.get("schema") if isinstance(document, dict) else None
     schema = SCHEMA_FILES.get(str(schema_id))
@@ -740,8 +730,7 @@ def validate_cli(args: argparse.Namespace) -> int:
 
     A run directory has its run.json (or run.partial.json), metrics.json and bot events checked, and every raw file
     compared with its hash in run.json. A directory without run.json is searched for run directories. Single files
-    are recognised by their ``schema`` field (run, metrics), by extension (``.jsonl``/``.jsonl.gz`` bot events) or as
-    claims files (``.toml``).
+    are recognised by their ``schema`` field (run, metrics) or by extension (``.jsonl``/``.jsonl.gz`` bot events).
     """
     try:
         import jsonschema

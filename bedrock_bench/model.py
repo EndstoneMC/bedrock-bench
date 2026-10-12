@@ -420,7 +420,7 @@ class Placement:
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# Artifacts, features and claims files
+# Artifacts and features
 # --------------------------------------------------------------------------------------------------------------------
 
 
@@ -494,27 +494,6 @@ class FeatureFile:
             if rng.prefix == "*" or version == rng.prefix or version.startswith(rng.prefix + ".")
         ]
         return max(matches, key=lambda rng: (rng.prefix != "*", len(rng.prefix)), default=None)
-
-
-@dataclass(frozen=True)
-class Claim:
-    """A relational statement checked against a report (``bbench report --claims <file>``)."""
-
-    id: str
-    text: str
-    expr: str  # evaluated by report/claims.py with a whitelisted AST
-    inconclusive_if: str | None = None
-    scenario: str | None = None
-    machine: str | None = None  # machine label the claim is restricted to
-    source: str | None = None  # where the claimed figure was published
-
-
-@dataclass(frozen=True)
-class ClaimSet:
-    matrix: str
-    path: Path
-    sha256: str
-    claims: tuple[Claim, ...]
 
 
 # --------------------------------------------------------------------------------------------------------------------

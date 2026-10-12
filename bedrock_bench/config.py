@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Load and validate the TOML inputs: scenarios, matrices, server files, machine profiles and claims.
+"""Load and validate the TOML inputs: scenarios, matrices, server files and machine profiles.
 
 Every loader rejects unknown keys, so a typo fails loudly instead of falling back to a default. Failures raise
 :class:`ConfigError` naming the file and the dotted key; the CLI turns them into exit code 2.
 
 Scenarios, matrices and server files are referenced by path or by bare name. A bare name resolves inside the project
 checkout, for example ``spread100`` -> ``configs/scenarios/spread100.toml`` and ``bds`` ->
-``configs/bds/server.toml``. Machine profiles and claims files are always paths.
+``configs/bds/server.toml``. Machine profiles are always paths.
 
 A server file holds ``schema = 1``, an optional ``server`` that must match its folder, and three tables:
 ``[artifacts]`` (download pins), ``[features]`` (declared parity) and ``[config]`` (the values written into the
@@ -15,7 +15,6 @@ server's config files, read by its adapter).
 
 from __future__ import annotations
 
-import ast
 import dataclasses
 import hashlib
 import json
@@ -43,8 +42,6 @@ from bedrock_bench.model import (
     ArtifactSpec,
     ArtifactVersion,
     BotParams,
-    Claim,
-    ClaimSet,
     FeatureCell,
     FeatureClass,
     FeatureFile,
@@ -164,7 +161,7 @@ def _input_name(path: Path) -> str:
 
 
 def input_file(ref: str | Path, what: str) -> Path:
-    """An input that is always given as a path, such as a machine profile or a claims file."""
+    """An input that is always given as a path, such as a machine profile."""
     path = Path(ref)
     if not path.is_file():
         raise ConfigError(f"no such {what}", file=path)
@@ -1133,57 +1130,6 @@ def _equals(expected: Any, message: str) -> Callable[[Any], None]:
             raise ValueError(message)
 
     return check
-
-
-# --------------------------------------------------------------------------------------------------------------------
-# Claims
-# --------------------------------------------------------------------------------------------------------------------
-
-
-def load_claims(ref: str | Path) -> ClaimSet:
-    path = input_file(ref, "claims file")
-    return parse_claims(load_toml(path), file=path)
-
-
-def parse_claims(data: Mapping[str, Any], *, file: Path | None = None) -> ClaimSet:
-    top = _Table(dict(data), file=file)
-    top.get("schema", int, check=_equals(1, "only schema = 1 is supported"))
-    matrix = top.get("matrix", str, pattern=NAME_RE.pattern)
-    raw_claims = top.raw("claim", None)
-    top.finish()
-    if not isinstance(raw_claims, list) or not raw_claims:
-        raise top.error("claim", "needs at least one [[claim]] table")
-    claims = []
-    seen: set[str] = set()
-    for index, raw in enumerate(raw_claims):
-        table = _Table(raw, file=file, where=f"claim[{index}]")
-        claim = Claim(
-            id=table.get("id", str, pattern=NAME_RE.pattern),
-            text=table.get("text", str, pattern=r"^\S.*$"),
-            expr=table.get("expr", str, check=_expression),
-            inconclusive_if=table.get("inconclusive_if", str, None, check=_expression),
-            scenario=table.get("scenario", str, None, pattern=NAME_RE.pattern),
-            machine=table.get("machine", str, None),
-            source=table.get("source", str, None),
-        )
-        table.finish()
-        if claim.id in seen:
-            raise table.error("id", f"duplicate claim id {claim.id!r}")
-        seen.add(claim.id)
-        claims.append(claim)
-    return ClaimSet(
-        matrix=matrix,
-        path=file if file is not None else Path(f"{matrix}.toml"),
-        sha256=file_sha256(file) if file is not None else sha256_json(data),
-        claims=tuple(claims),
-    )
-
-
-def _expression(text: str) -> None:
-    try:
-        ast.parse(text, mode="eval")
-    except SyntaxError as exc:
-        raise ValueError(f"not a valid expression: {exc.msg}") from None
 
 
 # --------------------------------------------------------------------------------------------------------------------

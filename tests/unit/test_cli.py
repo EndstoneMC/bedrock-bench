@@ -148,13 +148,8 @@ class TestArguments:
         assert parse("prepare-world", "nukkit@1.0", "--scenario", "spread100-pregen").server == "nukkit@1.0"
         assert parse("smoke", "bds@1.26.52.3", "--artifact", "x.zip").artifact == Path("x.zip")
         assert parse("analyze", "a", "b").run_dirs == [Path("a"), Path("b")]
-        report = parse("report", "runs/m", "--format", "json", "--claims", "claims.toml", "--publish")
-        assert (report.matrix_dir, report.format, report.claims, report.publish) == (
-            Path("runs/m"),
-            "json",
-            Path("claims.toml"),
-            True,
-        )
+        report = parse("report", "runs/m", "--format", "json", "--publish")
+        assert (report.matrix_dir, report.format, report.publish) == (Path("runs/m"), "json", True)
         assert parse("validate", "r1", "r2").paths == [Path("r1"), Path("r2")]
         docs = parse("docs", "metrics", "--check")
         assert docs.target == "metrics" and docs.check

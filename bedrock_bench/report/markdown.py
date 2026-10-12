@@ -90,6 +90,7 @@ EFFICIENCY_ROWS: tuple[Row, ...] = (
     Row("chunks_per_cpu_s_load", "Chunks per CPU second while views load", "rate", HIGHER),
 )
 
+
 def layout_metric_ids() -> list[str]:
     """Every metric id the report layout shows; each should exist in the metric registry."""
     rows = (*COST_ROWS, *WORK_ROWS, *EFFICIENCY_ROWS)
@@ -201,7 +202,7 @@ class _Doc:
 
 
 def render(summary: Mapping[str, Any]) -> str:
-    """The markdown report of a summary, including its ``claims`` and ``publish`` results when present."""
+    """The markdown report of a summary, including its ``publish`` results when present."""
     doc = _Doc()
     notes = Footnotes()
     _header(doc, summary)
@@ -210,8 +211,6 @@ def render(summary: Mapping[str, Any]) -> str:
         _publication(doc, summary["publish"].get("problems") or ())
     for scenario in summary.get("scenarios", ()):
         _scenario(doc, scenario, notes)
-    if "claims" in summary:
-        _claims(doc, summary["claims"])
     if len(notes):
         doc.add(notes.render())
     return doc.text()
@@ -583,23 +582,6 @@ def _difference(a: Sequence[Sample], b: Sequence[Sample], row: Row) -> str:
     if "ratio" in result:
         text += f", {result['ratio']:.2f}x [{result['ratio_low']:.2f}, {result['ratio_high']:.2f}]"
     return text
-
-
-def _claims(doc: _Doc, claims: Mapping[str, Any]) -> None:
-    counts = claims.get("counts") or {}
-    doc.add("## Claims")
-    doc.add(
-        f"From `{claims.get('file')}`: "
-        + ", ".join(f"{counts.get(v, 0)} {v}" for v in ("pass", "fail", "inconclusive", "error"))
-        + "."
-    )
-    rows = []
-    for result in claims.get("results") or ():
-        details = [f"{call} = {_format_value(value)}" for call, value in (result.get("values") or {}).items()]
-        if result.get("reason"):
-            details.append(str(result["reason"]))
-        rows.append([str(result.get("text")), str(result.get("verdict")), "; ".join(details) or "-"])
-    doc.add(*_table(["Claim", "Verdict", "Values and reason"], rows, numeric=False))
 
 
 __all__ = [

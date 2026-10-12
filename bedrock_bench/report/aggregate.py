@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Aggregate the runs of a matrix directory into ``summary.json``.
 
-The summary is plain JSON data, and everything downstream (the markdown report, claims) reads only the summary. It
+The summary is plain JSON data, and everything downstream (the markdown report) reads only the summary. It
 holds no wall-clock time and no paths, so regenerating it from the same run directories gives the same bytes.
 
 Rules (docs/methodology.md#statistics-and-run-status):

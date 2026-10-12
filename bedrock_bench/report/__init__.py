@@ -2,12 +2,11 @@
 """Matrix reports: ``bbench report <matrix_dir>``.
 
 ``write`` aggregates the runs of a matrix directory into ``summary.json`` and renders ``report.md`` next to them,
-optionally checking a claims file and the publication rules. The runner calls it after every matrix; the CLI entry
-point is ``report_cli``.
+optionally checking the publication rules. The runner calls it after every matrix; the CLI entry point is
+``report_cli``.
 
-Exit codes: 2 when the directory cannot be reported, a claims file is invalid or ``--publish`` refuses; otherwise the
-worst run status (0 all ok, 4 a server failed, 5 a run is invalid), as for ``bbench run``. Claim verdicts do not
-change the exit code.
+Exit codes: 2 when the directory cannot be reported or ``--publish`` refuses; otherwise the worst run status (0 all ok,
+4 a server failed, 5 a run is invalid), as for ``bbench run``.
 """
 
 from __future__ import annotations
@@ -19,9 +18,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from bedrock_bench.config import load_claims
-from bedrock_bench.model import ClaimSet, ExitCode
-from bedrock_bench.report import claims as claims_module
+from bedrock_bench.model import ExitCode
 from bedrock_bench.report import export, markdown
 from bedrock_bench.report.aggregate import (
     FeatureLookup,
@@ -56,16 +53,12 @@ class Report:
 def build(
     matrix_dir: Path,
     *,
-    claims: str | Path | ClaimSet | None = None,
     publish: bool = False,
     features: FeatureLookup | None = default_features,
 ) -> tuple[dict[str, Any], str, tuple[str, ...] | None]:
     """Summary, markdown and publication problems for a matrix directory, without writing anything."""
     matrix_dir = Path(matrix_dir)
     summary = summarize(load_runs(matrix_dir), default_name=matrix_dir.name, features=features)
-    if claims is not None:
-        claim_set = claims if isinstance(claims, ClaimSet) else load_claims(claims)
-        summary["claims"] = claims_module.evaluate(claim_set, summary)
     problems = tuple(publish_problems(summary)) if publish else None
     if problems is not None:
         summary["publish"] = {"problems": list(problems)}
@@ -75,13 +68,12 @@ def build(
 def write(
     matrix_dir: Path,
     *,
-    claims: str | Path | ClaimSet | None = None,
     publish: bool = False,
     features: FeatureLookup | None = default_features,
 ) -> Report:
     """Write ``summary.json``, ``report.md`` and the figure CSVs into ``matrix_dir``. Run directories are never touched."""
     matrix_dir = Path(matrix_dir)
-    summary, text, problems = build(matrix_dir, claims=claims, publish=publish, features=features)
+    summary, text, problems = build(matrix_dir, publish=publish, features=features)
     summary_path = matrix_dir / SUMMARY_FILE
     report_path = matrix_dir / REPORT_FILE
     write_summary(summary, summary_path)
@@ -91,9 +83,9 @@ def write(
 
 
 def report_cli(args: argparse.Namespace) -> int:
-    """``bbench report <matrix_dir> [--format md|json] [--claims C] [--publish]``."""
+    """``bbench report <matrix_dir> [--format md|json] [--publish]``."""
     try:
-        report = write(args.matrix_dir, claims=args.claims, publish=args.publish)
+        report = write(args.matrix_dir, publish=args.publish)
     except ReportError as exc:
         print(f"bbench report: {exc}", file=sys.stderr)
         return ExitCode.USAGE

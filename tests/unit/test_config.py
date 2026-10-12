@@ -122,7 +122,6 @@ class TestScenarioValidation:
 
 
 class TestScenarioPhases:
-
     def test_disable_optional_phases(self) -> None:
         s = scenario({"server": {"csg": False}, "phases": {"steady": {"enabled": False}, "idle": {"enabled": False}}})
         assert not s.has_phase("steady") and not s.has_phase("idle")
@@ -612,9 +611,7 @@ class TestArtifacts:
 
 class TestFeatures:
     def test_load_and_row(self, write_file) -> None:
-        f = config.load_features(
-            write_file("configs/pocketmine/server.toml", server_file("pocketmine", FEATURES))
-        )
+        f = config.load_features(write_file("configs/pocketmine/server.toml", server_file("pocketmine", FEATURES)))
         assert f.server == "pocketmine" and len(f.ranges) == 3
         row = f.row("5.44.3")
         assert row is not None and row.prefix == "5.44" and row.fidelity is Fidelity.V1
@@ -646,46 +643,6 @@ class TestFeatures:
     def test_rejects(self, rng: dict, message: str) -> None:
         with pytest.raises(ConfigError, match=message):
             config.parse_features({"range": {"1.0": rng}}, server="x")
-
-
-# --------------------------------------------------------------------------------------------------------------------
-# Claims
-# --------------------------------------------------------------------------------------------------------------------
-
-
-class TestClaims:
-    def test_fixture_file(self, project_root: Path) -> None:
-        claims = config.load_claims(project_root / "tests" / "fixtures" / "claims.toml")
-        assert claims.matrix == "fixture" and len(claims.claims) == 3
-        ratio = claims.claims[1]
-        assert ratio.inconclusive_if is not None and ratio.scenario == "spread100-csg"
-        assert claims.claims[0].source == "https://example.invalid/claims"
-        assert claims.claims[2].machine == "reference"
-
-    @pytest.mark.parametrize(
-        ("claim", "message"),
-        [
-            ({"id": "a", "text": "t", "expr": "x >="}, r"expr: not a valid expression"),
-            ({"id": "a", "text": "t", "expr": "x", "inconclusive_if": "("}, r"inconclusive_if"),
-            ({"id": "A b", "text": "t", "expr": "x"}, r"id: invalid value"),
-            ({"id": "a", "expr": "x"}, r"text: is required"),
-            ({"id": "a", "text": "t", "expr": "x", "weight": 2}, r"weight: unknown key"),
-        ],
-    )
-    def test_rejects(self, claim: dict, message: str) -> None:
-        with pytest.raises(ConfigError, match=message):
-            config.parse_claims({"schema": 1, "matrix": "m", "claim": [claim]})
-
-    def test_duplicates_and_empty(self) -> None:
-        claim = {"id": "a", "text": "t", "expr": "1 < 2"}
-        with pytest.raises(ConfigError, match="duplicate claim id"):
-            config.parse_claims({"schema": 1, "matrix": "m", "claim": [claim, claim]})
-        with pytest.raises(ConfigError, match=r"\[\[claim\]\]"):
-            config.parse_claims({"schema": 1, "matrix": "m"})
-        with pytest.raises(ConfigError, match=r"\[\[claim\]\]"):
-            config.parse_claims({"schema": 1, "matrix": "m", "claim": []})
-        with pytest.raises(ConfigError, match="only schema = 1"):
-            config.parse_claims({"schema": 2, "matrix": "m", "claim": [claim]})
 
 
 # --------------------------------------------------------------------------------------------------------------------

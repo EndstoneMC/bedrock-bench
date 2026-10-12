@@ -31,7 +31,6 @@ FIXTURES = project_root() / "tests" / "fixtures"
 MATRIX = "fixture"
 BASE_RUN = json.loads((FIXTURES / "run.ok.json").read_text(encoding="utf-8"))
 EXERCISES = BASE_RUN["scenario"]["resolved"]["exercises"]
-CLAIMS = FIXTURES / "claims.toml"
 
 RESCUE = {
     "category": "rescue",
@@ -233,7 +232,7 @@ def test_synthetic_runs_are_schema_valid(tmp_path: Path, schema_validator: Any) 
 class TestRender:
     @pytest.fixture
     def markdown(self, matrix_dir: Path) -> str:
-        _, text, _ = build(matrix_dir, claims=CLAIMS, features=None)
+        _, text, _ = build(matrix_dir, features=None)
         return text
 
     def test_sections(self, markdown: str) -> None:
@@ -315,11 +314,6 @@ class TestRender:
         assert table_row(markdown, "Client-side chunk generation in effect")[1:] == ["yes", "yes", "yes"]
         assert table_row(markdown, "Overrides")[1] == "harness 1, parity 1"
 
-    def test_claims(self, markdown: str) -> None:
-        claims = markdown.split("## Claims")[1]
-        assert "From `claims.toml`: 3 pass, 0 fail, 0 inconclusive, 0 error." in claims
-        assert table_row(claims, "endstone@0.11.14 holds at least 19 TPS")[1] == "pass"
-
     def test_ascii(self, markdown: str) -> None:
         markdown.encode("ascii")
 
@@ -368,10 +362,10 @@ class TestFormatting:
 
 class TestWrite:
     def test_files_are_deterministic_and_rerenderable(self, matrix_dir: Path) -> None:
-        report = write(matrix_dir, claims=CLAIMS, publish=True, features=None)
+        report = write(matrix_dir, publish=True, features=None)
         summary_bytes = (matrix_dir / SUMMARY_FILE).read_bytes()
         assert report.report_path == matrix_dir / REPORT_FILE
-        write(matrix_dir, claims=CLAIMS, publish=True, features=None)
+        write(matrix_dir, publish=True, features=None)
         assert (matrix_dir / SUMMARY_FILE).read_bytes() == summary_bytes
         summary = json.loads(summary_bytes)
         assert render(summary) == (matrix_dir / REPORT_FILE).read_text(encoding="utf-8")
@@ -392,9 +386,9 @@ class TestWrite:
 
 class TestCli:
     def test_markdown_to_stdout(self, matrix_dir: Path, capsys: pytest.CaptureFixture[str]) -> None:
-        assert cli.main(["report", str(matrix_dir), "--claims", str(CLAIMS)]) == 4
+        assert cli.main(["report", str(matrix_dir)]) == 4
         out, err = capsys.readouterr()
-        assert out.startswith(f"# Matrix `{MATRIX}`") and "## Claims" in out
+        assert out.startswith(f"# Matrix `{MATRIX}`")
         assert "wrote" in err and (matrix_dir / SUMMARY_FILE).is_file() and (matrix_dir / REPORT_FILE).is_file()
 
     def test_json_to_stdout(self, clean_dir: Path, capsys: pytest.CaptureFixture[str]) -> None:
@@ -412,12 +406,3 @@ class TestCli:
         assert cli.main(["report", str(tmp_path)]) == 2
         assert "different machine profiles" in capsys.readouterr().err
         assert not (tmp_path / SUMMARY_FILE).exists()
-
-    def test_bad_claims_file(self, clean_dir: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-        claims = tmp_path / "bad.toml"
-        claims.write_text(
-            f'schema = 1\nmatrix = "{MATRIX}"\n[[claim]]\nid = "x"\ntext = "t"\nexpr = "open(\'f\')"\n',
-            encoding="utf-8",
-        )
-        assert cli.main(["report", str(clean_dir), "--claims", str(claims)]) == 2
-        assert "claim[0].expr: function 'open' is not allowed" in capsys.readouterr().err
