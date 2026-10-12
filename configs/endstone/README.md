@@ -67,7 +67,7 @@ CheckNetIsolation LoopbackExempt -a -p=S-1-15-2-1958404141-86561845-1752920682-3
 - Console: `[12:00:00 INFO]: text` or `[12:00:00 INFO]: [Logger] text` on every line, the launcher's own lines
   included. The version banner, `This server is running Endstone version: 0.11.14 (Minecraft: 26.52)`, must equal the
   arm's version.
-- Ready line, tick probe, in-world line, positions, tick thread and chaos commands are those of
+- Ready line, tick probe, in-world line, positions and tick thread are those of
   [vanilla BDS](../bds/README.md#how-a-run-starts). An extra diagnostic thread group, `crash_reporter`, holds the
   threads named `sentry*`.
 

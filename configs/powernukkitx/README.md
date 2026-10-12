@@ -77,8 +77,6 @@ processor, which with the server pinned is the server's CPU set. The nightly als
 - It checks movement (`checkMovement`), but sends no movement corrections and no locator-bar packets, and bots
   teleported to the spread height keep hovering there. The `[features]` rows say so, and `corrections_per_bot_s`,
   `locator_pkts_per_bot_s` and `airborne_frac_steady` check it in every run.
-- It loads the chunks it ticks from disk synchronously on its main thread, which shows in the tick-thread CPU of
-  `spread100-pregen`.
 - It has busy threads besides `main`, so tick-thread CPU covers only part of its work; process CPU covers all of it.
 - The nightly runs on JDK 25 and 3.0.5 on JDK 21, so a comparison of the two includes the JDK change. On JDK 25 the
   JVM prints a few `WARNING:` lines at start without a time stamp or level.

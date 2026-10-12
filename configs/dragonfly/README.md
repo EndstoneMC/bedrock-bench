@@ -159,9 +159,7 @@ Dragonfly's random tick speed of 3, which is fixed when the world is created. No
   dfbench adds a loader to the overworld that counts as a viewer: its chunk radius is 0, it is never asked to load a
   chunk and it sits far from every benchmark position, so the world ticks but has nothing more to tick. dfbench's
   `TestIdleTicking` checks both halves against the pinned Dragonfly. Once bots are in a world they keep it ticking
-  anyway; the loader matters while the server is empty, or when every bot has left the overworld during chaos.
-- Worlds written by other servers do not load reliably (Nukkit's and PowerNukkitX's failed to decode or fell back to
-  flat chunks), so a `spread100-pregen` template must come from Dragonfly itself.
+  anyway; the loader matters while the server is empty.
 
 ## Crash files
 

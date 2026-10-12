@@ -78,8 +78,8 @@ Held in the adapter:
 
 - No bot has joined Allay yet. The protocol 1001 bot builds only once the `EndstoneMC/gophertunnel` fork tag
   `v1.57.1-bench.1` is published ([Patches](../../bots/README.md#patches)), so `bbench smoke allay@0.14.0` waits on
-  that tag. Until then the join line, the chaos replies with players online and the rows observed by a counter come
-  from the source only.
+  that tag. Until then the join line, the command replies with players online and the rows observed by a counter
+  come from the source only.
 - The world is flat: bedrock, three layers of dirt and grass, with the surface at y 5 and air below y 0. There is no
   seed. The spawn point of a fresh world differs between runs; bots are teleported to their cells after they join.
 - It sends whole chunk columns, at most 16 per player per tick, and never lets clients generate terrain. Sub-chunk
@@ -92,8 +92,7 @@ Held in the adapter:
 - Effects last 1,000,000 s, because Allay's `effect` takes whole seconds and has no `infinite`. Effect ids must be
   plain (`resistance`); namespaced ids are a syntax error.
 - Replies to console commands start with `[Server] `, which the dialect removes before matching.
-- `kill`, `summon`, `setblock` and `difficulty` refuse the console. Chaos runs kill, summon and setblock as the player
-  (`execute as <p> ...`) and cleanup as a random player (`execute as @r run kill @e[type=!player]`).
+- `kill`, `summon`, `setblock` and `difficulty` refuse the console.
 
 ## Crash files
 

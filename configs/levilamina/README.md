@@ -58,7 +58,7 @@ bedrock_server_mod.exe       measured process, started directly in the run's ser
   loads and spells its levels out (`INFO`). Colour codes are stripped before parsing.
 - Ready line: `Server started in (5.0s)! For help, type "help" or "?"`. The version banner,
   `Version: 1.26.51.1(ProtocolVersion 2193) with LeviLamina-26.51.6`, must carry the arm's LeviLamina version.
-- Tick probe, in-world line, positions, tick thread and chaos commands are those of
+- Tick probe, in-world line, positions and tick thread are those of
   [vanilla BDS](../bds/README.md#how-a-run-starts). LeviLamina's own threads go in the diagnostic groups
   `levilamina_pool` (`ll_default_thread_pool[...]`) and `levilamina_logger` (`logger[...]`), and
   `facts.thread_census_idle` records how many there were.

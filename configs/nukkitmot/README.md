@@ -64,8 +64,7 @@ Held in the adapter:
 - `-Xms` and `-Xmx` from the machine profile (parity), and UTF-8 console streams (harness).
 
 Left as shipped and recorded in run.json facts: movement mode `server-auth`, async workers `auto`, virtual threads, 4
-chunk sends per player per tick. The Nether and the End load at start as separate levels; the chaos dimension action
-uses them.
+chunk sends per player per tick. The Nether and the End load at start as separate levels.
 
 ## Caveats
 

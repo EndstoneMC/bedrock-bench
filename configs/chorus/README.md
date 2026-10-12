@@ -134,8 +134,7 @@ Nothing is `rescue` or `nonvanilla`.
   terrain. With the client blob cache on, each chunk is a `LevelChunk` with blob ids; the bots answer that every blob
   is missing, and Chorus sends a `ClientCacheMissResponse` with the data.
 - With `level.chunk_saving = modified`, generated chunks nobody changed are never written: the world folder stays a few
-  kilobytes, and autosave and shutdown save nothing during a spread run. For the same reason Chorus cannot build a
-  world template, and `prepare` refuses scenarios that need one, such as `spread100-pregen`.
+  kilobytes, and autosave and shutdown save nothing during a spread run.
 - It sends no movement corrections and no locator-bar packets, and bots teleported to the spread height keep hovering
   there. `corrections_per_bot_s`, `locator_pkts_per_bot_s` and `airborne_frac_steady` check this in every run.
 - There are no mobs, no damage and no effects, so placement sends no effect commands.
