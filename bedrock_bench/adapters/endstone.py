@@ -93,7 +93,6 @@ class EndstoneAdapter(BdsFamily):
             **bds.extra,
             "bds_root": bds.root,
             "version_marker": str(meta.get("version_marker") or version_marker(bds_version)),
-            "known_issues": known_issues(meta, platform),
         }
         python = self.arm.python or meta.get("python")
         if not isinstance(python, str) or not re.match(r"^3\.\d+$", python):
@@ -198,7 +197,6 @@ class EndstoneAdapter(BdsFamily):
             "python_version": install.extra.get("python_version"),
             "endstone_version": install.extra.get("endstone_version"),
             "version_marker": marker,
-            "known_issues": list(install.extra.get("known_issues", ())),
         }
         return overrides, files, extra
 
@@ -278,7 +276,6 @@ class EndstoneAdapter(BdsFamily):
                 "python_version": layout.extra.get("python_version"),
                 "usage_statistics": "off",
                 "crash_upload": "on; this Endstone version has no switch for it",
-                "known_issues": list(layout.extra.get("known_issues", ())),
             }
         )
         return facts
@@ -295,18 +292,6 @@ def version_marker(bds_version: str) -> str:
     if len(parts) < 3 or not all(part.isdigit() for part in parts):
         raise ConfigError(f"not a BDS version: {bds_version!r}")
     return f"{parts[1]}.{parts[2]}"
-
-
-def known_issues(meta: Mapping[str, Any], platform: str) -> list[str]:
-    """Issues of the pinned Endstone version that affect measurements on ``platform`` (from its server file)."""
-    issues = []
-    for item in meta.get("known_issues", ()):
-        if not isinstance(item, Mapping) or not isinstance(item.get("text"), str):
-            raise ConfigError("known_issues entries are tables with text, platforms and source")
-        platforms = item.get("platforms") or ["windows", "linux"]
-        if platform in platforms:
-            issues.append(item["text"])
-    return issues
 
 
 def find_uv() -> str:

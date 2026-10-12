@@ -19,7 +19,6 @@ from bedrock_bench.adapters.bdsfamily import Properties, fetch_bds
 from bedrock_bench.adapters.endstone import (
     ENDSTONE_DIALECT,
     EndstoneAdapter,
-    known_issues,
     venv_commands,
     venv_python,
     version_marker,
@@ -75,7 +74,6 @@ def fake_install(tmp_path: Path, adapter: EndstoneAdapter) -> Install:
             **bds.extra,
             "bds_root": bds.root,
             "version_marker": "26.52",
-            "known_issues": [],
             "venv": venv,
             "python": venv_python(venv),
             "python_version": "3.13.7",
@@ -134,7 +132,7 @@ class TestPins:
     def test_catalog(self) -> None:
         bds = config.load_artifacts("bds")
         catalog = config.load_artifacts("endstone")
-        assert {"0.11.13", "0.11.14"} <= set(catalog.versions)
+        assert "0.11.14" in catalog.versions
         for version, entry in catalog.versions.items():
             meta = dict(entry.meta)
             assert meta["bds"] in bds.versions, version
@@ -162,12 +160,6 @@ class TestPins:
         assert version_marker("1.26.51.1") == "26.51"
         with pytest.raises(ConfigError):
             version_marker("26.52")
-
-    def test_known_issues(self) -> None:
-        meta = dict(config.load_artifacts("endstone").versions["0.11.13"].meta)
-        assert len(known_issues(meta, "windows")) == 2
-        assert len(known_issues(meta, "linux")) == 1
-        assert known_issues(dict(config.load_artifacts("endstone").versions["0.11.14"].meta), "windows") == []
 
 
 class TestFetch:
@@ -217,7 +209,7 @@ class TestFetch:
     ) -> None:
         from bedrock_bench.fetch import FetchError
 
-        monkeypatch.setattr(endstone_module, "venv_info", lambda python: {"python": "3.13.7", "endstone": "0.11.13"})
+        monkeypatch.setattr(endstone_module, "venv_info", lambda python: {"python": "3.13.7", "endstone": "0.11.0"})
         monkeypatch.setattr(
             endstone_module.fetch,
             "obtain",
@@ -349,4 +341,4 @@ class TestFacts:
         assert facts["allocator"] == "mimalloc"
         assert facts["endstone_version"] == "0.11.14" and facts["python_version"] == "3.13.7"
         assert facts["usage_statistics"] == "off" and "no switch" in facts["crash_upload"]
-        assert facts["csg_setting"] is True and facts["known_issues"] == []
+        assert facts["csg_setting"] is True

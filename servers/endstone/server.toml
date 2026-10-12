@@ -17,7 +17,6 @@ python = "3.13"
 #   protocol        network protocol of that BDS build
 #   python          CPython used when the arm does not name one
 #   version_marker  what the launcher expects in the server's version.txt (<minor>.<patch> of the BDS build)
-#   known_issues    defects of the release that change measurements; recorded in each run's facts
 [artifacts]
 source = "pypi"
 
