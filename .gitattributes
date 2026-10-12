@@ -1,9 +1,5 @@
 * text=auto eol=lf
 
-*.ps1 text eol=crlf
-*.bat text eol=crlf
-*.cmd text eol=crlf
-
 *.gz binary
 *.zip binary
 *.png binary
@@ -12,4 +8,3 @@
 
 uv.lock linguist-generated=true
 docs/metrics.md linguist-generated=true
-legacy/** linguist-vendored=true
