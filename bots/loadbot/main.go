@@ -30,8 +30,8 @@ var (
 
 const gophertunnelModule = "github.com/sandertv/gophertunnel"
 
-// carriedPatches lists the gophertunnel patches this build carries (bots/PATCHES.md). Keep it in sync with the
-// replace directive in go.mod.
+// carriedPatches lists the gophertunnel patches this build carries (bots/README.md#patches). Keep it in sync with
+// the replace directive in go.mod.
 var carriedPatches = []string{}
 
 func main() {

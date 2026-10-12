@@ -5,8 +5,17 @@
 //
 // It is bots/loadbot built against an older gophertunnel: v1.57.1, the last release for protocol 1001, with the
 // login back-port in 0001-login-backport.patch. Flags, events, the stdin protocol and all behaviour come from
-// bots/core and are the same as loadbot's; see bots/README.md. The files of this module mirror loadbot's one for one
-// and differ only where the two gophertunnel versions do.
+// bots/core and are the same as loadbot's; see bots/README.md. A behaviour change to loadbot must be made here too.
+//
+// The non-test files mirror loadbot's one for one. Apart from names, they differ only where the older gophertunnel
+// API does:
+//
+//   - A chunk in sub-chunk request mode is marked by LevelChunk.SubChunkCount, with HighestSubChunk in limited mode,
+//     instead of SubChunkLimit.
+//   - Sub-chunk blob hashes are plain values when SubChunk.CacheEnabled is set, not optional ones.
+//   - PlayerAuthInput flags are a protocol.NewBitset(packet.PlayerAuthInputBitsetSize), not protocol.NewInputFlags.
+//   - A kick ends the session with a closed-connection error that carries the server's message, not a
+//     DisconnectError.
 package main
 
 import (
