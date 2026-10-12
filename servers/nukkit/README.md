@@ -50,23 +50,25 @@ The JDK, not a JRE, is pinned because of `javac` and `jcmd`.
 
 ## Configuration changes
 
-The values, the defaults and the reasons are in the `[config]` table of [server.toml](server.toml), and every change is
-recorded in run.json with its category ([methodology](../../docs/methodology.md#fairness-and-feature-parity)).
-`nukkit.yml` starts from the shipped copy; `server.properties` and `plugins/bStats/config.yml` start empty and Nukkit
-adds its own defaults.
+Prepare renders [server.properties](server.properties) and [nukkit.yml](nukkit.yml) into the server directory and
+[bstats.yml](bstats.yml) as `plugins/bStats/config.yml`. Each key the harness sets has its reason in a comment above
+it, and run.json records every key's value before and after. `nukkit.yml` is merged onto the shipped copy; the other
+two are written as rendered and Nukkit adds its own defaults.
 
-- harness: the machine profile's port; offline login; `allow-flight=on` (see Caveats); an empty `rcon.password`, so no
-  generated secret lands in the run's archived configs (RCON stays off); bStats off.
-- parity: view and simulation distance, seed, level name, difficulty, game mode, max players, autosave interval and
-  player data. `level-settings.auto-tick-rate` is off: with it, Nukkit ticks a slow level only every few server ticks
-  while the tick counter keeps advancing, which would hide slowness from the probe. `worlds` is emptied, because the
-  shipped list loads a level named `world` next to the benchmark level.
+- `server.properties`: the run's port; offline login; `allow-flight=on` (see Caveats); an empty `rcon.password`, so no
+  generated secret lands in the run's saved configs (RCON stays off); view distance, seed, level name, difficulty,
+  game mode, max players and autosave, the same as on every server.
+- `nukkit.yml`: simulation distance, autosave interval and player data, the same as on every server.
+  `level-settings.auto-tick-rate` is off: with it, Nukkit ticks a slow level only every few server ticks while the
+  tick counter keeps advancing, which would hide slowness from the probe. `worlds` is emptied, because the shipped list
+  loads a level named `world` next to the benchmark level.
+- `plugins/bStats/config.yml`: bStats off.
 
 Held in the adapter:
 
-- `plugins/BenchTick.jar` is installed (harness). 20 ticks after it loads, it lifts the per-IP limit of Nukkit's RakNet
+- `plugins/BenchTick.jar` is installed. 20 ticks after it loads, it lifts the per-IP limit of Nukkit's RakNet
   listener (120 packets per 10 ms), which has no setting. Every bot connects from 127.0.0.1.
-- `-Xms` and `-Xmx` from the machine profile (parity), and UTF-8 console streams (harness).
+- `-Xms` and `-Xmx` from the machine profile, and UTF-8 console streams.
 
 ## Caveats
 

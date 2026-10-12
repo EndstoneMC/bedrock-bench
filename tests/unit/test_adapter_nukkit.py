@@ -14,7 +14,7 @@ from bedrock_bench.adapters import nukkit
 from bedrock_bench.adapters.nukkit import NUKKIT_DIALECT, NukkitAdapter, build_plugin
 from bedrock_bench.adapters.standalone import Runtime, yaml_scalars
 from bedrock_bench.cache import Cache
-from bedrock_bench.model import ArtifactRef, Install, LogLine, OverrideCategory, Placement, RunContext, ThreadInfo
+from bedrock_bench.model import ArtifactRef, Install, LogLine, Placement, RunContext, ThreadInfo
 from bedrock_bench.provenance import sha256_file
 from workloads import WORKLOAD
 
@@ -159,7 +159,7 @@ class TestPrepare:
         assert (install.root / "defaults" / "nukkit.yml").read_text(encoding="utf-8") == SHIPPED_YML
         assert install.extra["commit"].startswith("b3caad6")
 
-    def test_configs_and_overrides(self, install: Install, tmp_path: Path) -> None:
+    def test_prepare_renders_the_templates(self, install: Install, tmp_path: Path) -> None:
         adapter = make_adapter()
         layout = adapter.prepare(install, make_ctx(tmp_path, adapter))
         server = layout.server_dir
@@ -173,17 +173,19 @@ class TestPrepare:
         assert yml["chunk-ticking.tick-radius"] == "4"
         assert yml["worlds"] == "{}" and "generator" not in yml_text
         assert yml["debug.level"] == "1", "the watchdog stays on"
+        assert yml["settings.language"] == "eng", "shipped values stay"
         assert yaml_scalars((server / "plugins" / "bStats" / "config.yml").read_text(encoding="utf-8")) == {
             "enabled": "false"
         }
-        by_key = {(o.file, o.key): o for o in layout.overrides}
-        assert by_key[("nukkit.yml", "worlds")].default == "world, nether"
-        assert by_key[("nukkit.yml", "level-settings.auto-tick-rate")].category is OverrideCategory.PARITY
-        assert by_key[("server.properties", "rcon.password")].value == ""
-        assert ("server.properties", "view-distance") not in by_key, "Nukkit's default is already 10"
-        assert by_key[("<command line>", "-Xmx")].value == "8G"
-        assert not [o for o in layout.overrides if o.category is OverrideCategory.RESCUE]
-        assert [c.path for c in layout.config_files] == ["server.properties", "nukkit.yml", "plugins/bStats/config.yml"]
+        files = {c.path: c for c in layout.config_files}
+        assert list(files) == ["server.properties", "nukkit.yml", "plugins/bStats/config.yml"]
+        assert [c.template for c in files.values()] == ["server.properties", "nukkit.yml", "bstats.yml"]
+        assert files["server.properties"].created and not files["nukkit.yml"].created
+        changes = {c.key: (c.before, c.after) for c in files["nukkit.yml"].keys}
+        assert changes["level-settings.auto-tick-rate"] == ("true", "false")
+        assert changes["chunk-ticking.tick-radius"] == ("3", "4")
+        assert changes["worlds"] == (None, "{}")
+        assert {c.key: c.after for c in files["server.properties"].keys}["rcon.password"] == ""
         assert adapter.readback(layout) == []
 
     def test_launch(self, install: Install, tmp_path: Path) -> None:

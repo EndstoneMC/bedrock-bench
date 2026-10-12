@@ -8,6 +8,9 @@ against the pinned jar with the JDK's ``javac`` and packed into ``plugins/BenchT
 server tick counter, since Nukkit's ``time query`` prints no number) and ``positions``, and lifts the per-IP packet
 limit of the RakNet listener.
 
+Prepare renders ``server.properties``, ``nukkit.yml`` (onto the shipped copy) and ``bstats.yml`` (as
+``plugins/bStats/config.yml``) from ``servers/nukkit``.
+
 Launch: ``java -Xms<heap> -Xmx<heap> -jar nukkit.jar``. Nukkit derives a player's UUID from the XUID, so the bots get
 ``-fake-xuid`` or every bot would replace the previous one. See servers/nukkit/README.md.
 """
@@ -56,6 +59,8 @@ if TYPE_CHECKING:
 JAR = "nukkit.jar"
 SHIPPED_CONFIG = "lang/eng/nukkit.yml"
 PLUGIN_FILE = "plugins/BenchTick.jar"
+BSTATS_TEMPLATE = "bstats.yml"
+BSTATS_FILE = "plugins/bStats/config.yml"
 
 #: ``13:58:00 [INFO ] text`` (the level padded to five characters); log4j's own start-up warning is
 #: ``2026-10-10T22:29:18.168Z main WARN text``.
@@ -86,6 +91,7 @@ class NukkitAdapter(JavaServer):
     bot_compat_flags: ClassVar[tuple[str, ...]] = ("-fake-xuid",)
     dialect: ClassVar[Dialect] = NUKKIT_DIALECT
     server_file: ClassVar[str] = JAR
+    config_templates: ClassVar[tuple[str, ...]] = ("server.properties", "nukkit.yml")
 
     # ---- fetch ----------------------------------------------------------------------------------------------------
 
@@ -127,7 +133,7 @@ class NukkitAdapter(JavaServer):
                 "every bot connects from 127.0.0.1; at the default limit the listener blocks the address",
             ),
         ]
-        return overrides, [], {}
+        return overrides, [self.write_config(server_dir, BSTATS_TEMPLATE, ctx, target=BSTATS_FILE)], {}
 
     def launch(self, layout: Layout) -> LaunchSpec:
         return LaunchSpec(argv=self.java_launch(layout), cwd=layout.server_dir)
