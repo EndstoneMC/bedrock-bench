@@ -478,7 +478,7 @@ class DragonflyAdapter(ServerAdapter):
         check_source(src, pin)
         go = shutil.which("go")
         if go is None:
-            raise fetch.FetchError("building dfbench needs the Go toolchain (1.26 or later) on PATH")
+            raise fetch.FetchError("building dfbench needs the Go toolchain its go.mod names on PATH")
         go_version = run_command([go, "env", "GOVERSION"], what="go env", cwd=src, env=_go_env(target)).strip()
         key = ("dragonfly", self.arm.version, target.slug, source_sha256(src), go_version, __version__)
         root = cache.install_dir(*key)
