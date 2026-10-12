@@ -32,7 +32,7 @@ jobs:
         with:
           name: go-built-on-linux
           path: ${{ runner.temp }}/build
-      - name: Collect the bot binaries and their checksums
+      - name: Collect the bot binaries, their checksums and the license files
         run: |
           mkdir -p "$RUNNER_TEMP/dist"
           cd "$RUNNER_TEMP/build"
@@ -40,18 +40,7 @@ jobs:
           awk '{ print $2 }' "$RUNNER_TEMP/dist/SHA256SUMS" | xargs -I{} cp {} "$RUNNER_TEMP/dist/"
           cd "$RUNNER_TEMP/dist"
           sha256sum --check --strict SHA256SUMS
-      - name: Release notes from CHANGELOG.md
-        run: |
-          version=${GITHUB_REF_NAME#v}
-          awk -v heading="## [$version]" '
-            index($0, heading) == 1 { found = 1; next }
-            found && /^## \[/ { exit }
-            found && !/^\[[^]]+\]: / { print }
-          ' CHANGELOG.md >"$RUNNER_TEMP/notes.md"
-          if ! grep -q '[^[:space:]]' "$RUNNER_TEMP/notes.md"; then
-            echo "::error file=CHANGELOG.md::no section for $version"
-            exit 1
-          fi
+          cp "$GITHUB_WORKSPACE/LICENSE" "$GITHUB_WORKSPACE/NOTICE" .
       - name: Create the release or update its assets
         env:
           GH_TOKEN: ${{ github.token }}
@@ -63,5 +52,5 @@ jobs:
             prerelease=()
             [[ $GITHUB_REF_NAME == *-* ]] && prerelease=(--prerelease)
             gh release create "$GITHUB_REF_NAME" "$RUNNER_TEMP"/dist/* --verify-tag \
-              --title "$GITHUB_REF_NAME" --notes-file "$RUNNER_TEMP/notes.md" "${prerelease[@]}"
+              --title "$GITHUB_REF_NAME" --generate-notes "${prerelease[@]}"
           fi
