@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/EndstoneMC/bedrock-bench/schemas/metrics.schema.json",
   "title": "bedrock-bench metrics",
-  "description": "metrics.json: every metric computed from one run's raw files. bbench analyze regenerates it byte for byte. Metric ids carry their unit as a suffix (_s, _ms, _mib, _cores, _ms_per_s, _frac, _per_bot_s, ...); docs/METRICS.md documents each one.",
+  "description": "metrics.json: every metric computed from one run's raw files. bbench analyze regenerates it byte for byte. Metric ids carry their unit as a suffix (_s, _ms, _mib, _cores, _ms_per_s, _frac, _per_bot_s, ...); docs/metrics.md documents each one.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema", "analysis_version", "status", "flags", "metrics"],

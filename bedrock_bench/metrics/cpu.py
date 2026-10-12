@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
-"""CPU metrics: tick thread, per-thread, process, and the machine-wide interference counters (SPEC.md 7.1, 7.2).
+"""CPU metrics: tick thread, per-thread, process, and the machine-wide interference counters (docs/metrics.md).
 
 Window bounds are seconds since the run origin; samples carry nanoseconds since the origin. Rates are computed over
 the span the samples actually cover inside the window (first sample at or after ``t0`` to last at or before ``t1``),
 which differs from ``t1 - t0`` by at most one sampling period.
 
 Tick-thread CPU is CPU time, not wall time: it excludes time the thread spends blocked, so it is not MSPT
-(docs/adr/0003-tick-cpu-is-not-mspt.md).
+(docs/methodology.md#tick-thread-cpu-is-not-mspt).
 """
 
 from __future__ import annotations

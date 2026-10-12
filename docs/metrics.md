@@ -66,7 +66,7 @@ TPS comes only from a counter that advances once per executed tick, read through
 
 ## Tick thread CPU
 
-Tick-thread CPU is CPU time, not wall time: it excludes time the thread is blocked, so it is not MSPT (ADR 0003). Servers whose adapter declares no tick thread report these as not_applicable; compare process_cores across servers instead.
+Tick-thread CPU is CPU time, not wall time, so it is not MSPT. It leaves out the time the thread is blocked on a lock, I/O or a worker: a tick that waits 20 ms for a worker and computes for 30 ms takes 50 ms of wall time and 30 ms of CPU. Below saturation it is a lower bound on MSPT, and tick_busy_frac shows how close the thread is to full. Wall time per tick needs a hook or the server's own readout, so it is reported only where it is exact without one: mspt_saturated, below 19.5 TPS, when ticks run back to back. Servers whose adapter declares no tick thread report these as not_applicable; compare process_cores across servers instead.
 
 | Metric | Windows | Unit | Value | Better | Inputs | Formula |
 |---|---|---|---|---|---|---|

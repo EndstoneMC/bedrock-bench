@@ -151,7 +151,7 @@ def _configure_validate(p: argparse.ArgumentParser) -> None:
 
 
 def _configure_docs(p: argparse.ArgumentParser) -> None:
-    p.add_argument("target", choices=("metrics",), help="metrics: regenerate docs/METRICS.md")
+    p.add_argument("target", choices=("metrics",), help="metrics: regenerate docs/metrics.md")
     p.add_argument("--check", action="store_true", help="exit nonzero if the file is out of date instead of writing")
 
 

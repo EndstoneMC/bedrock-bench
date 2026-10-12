@@ -71,8 +71,8 @@ def test_compute_emits_exactly_the_declared_ids(name: str) -> None:
 
 
 def test_metrics_md_is_current(project_root: Path) -> None:
-    current = (project_root / "docs" / "METRICS.md").read_text(encoding="utf-8")
-    assert current == render_markdown(), "docs/METRICS.md is out of date: run 'bbench docs metrics'"
+    current = (project_root / "docs" / "metrics.md").read_text(encoding="utf-8")
+    assert current == render_markdown(), "docs/metrics.md is out of date: run 'bbench docs metrics'"
 
 
 def test_render_docs_writes_and_checks(
@@ -81,7 +81,7 @@ def test_render_docs_writes_and_checks(
     monkeypatch.setenv("BBENCH_ROOT", str(tmp_path))
     assert render_docs(argparse.Namespace(target="metrics", check=True)) == 1
     assert render_docs(argparse.Namespace(target="metrics", check=False)) == 0
-    assert (tmp_path / "docs" / "METRICS.md").read_text(encoding="utf-8") == render_markdown()
+    assert (tmp_path / "docs" / "metrics.md").read_text(encoding="utf-8") == render_markdown()
     assert render_docs(argparse.Namespace(target="metrics", check=True)) == 0
     assert "up to date" in capsys.readouterr().out
 

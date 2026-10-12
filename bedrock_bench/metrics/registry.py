@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Every metric and table ``metrics.json`` can hold, with its unit, window, direction, inputs and formula.
 
-This is the single source of docs/METRICS.md (``bbench docs metrics``). ``compute`` emits exactly the declared ids,
+This is the single source of docs/metrics.md (``bbench docs metrics``). ``compute`` emits exactly the declared ids,
 each with an availability, so every metrics.json of one analysis version has the same keys.
 
 Ids carry their unit: ``tick_ms_per_s_steady`` is in ms per second, ``process_cores_load`` in cores. Counts, booleans
@@ -54,7 +54,7 @@ UNITS: dict[str, Unit] = {
     )
 }
 
-#: Raw inputs a metric reads (the run directory files behind them, SPEC.md section 10.1).
+#: Raw inputs a metric reads (the run directory files behind them).
 INPUTS = {
     "probe": "series/probe.csv",
     "tick": "series/tick.csv.gz",
@@ -93,9 +93,13 @@ SECTION_NOTES = {
         "alone."
     ),
     "tick": (
-        "Tick-thread CPU is CPU time, not wall time: it excludes time the thread is blocked, so it is not MSPT "
-        "(ADR 0003). Servers whose adapter declares no tick thread report these as not_applicable; compare "
-        "process_cores across servers instead."
+        "Tick-thread CPU is CPU time, not wall time, so it is not MSPT. It leaves out the time the thread is "
+        "blocked on a lock, I/O or a worker: a tick that waits 20 ms for a worker and computes for 30 ms takes "
+        "50 ms of wall time and 30 ms of CPU. Below saturation it is a lower bound on MSPT, and tick_busy_frac shows "
+        "how close the thread is to full. Wall time per tick needs a hook or the server's own readout, so it is "
+        "reported only where it is exact without one: mspt_saturated, below 19.5 TPS, when ticks run back to back. "
+        "Servers whose adapter declares no tick thread report these as not_applicable; compare process_cores across "
+        "servers instead."
     ),
     "cpu": (
         "process_cores is the cross-server CPU metric. Bot and foreign load are interference checks, read from the "
@@ -213,7 +217,7 @@ def _table(
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# Tick rate and headroom (SPEC.md 7.1)
+# Tick rate and headroom
 # --------------------------------------------------------------------------------------------------------------------
 
 _metric(
@@ -347,7 +351,7 @@ _metric(
 )
 
 # --------------------------------------------------------------------------------------------------------------------
-# Tick thread CPU (SPEC.md 7.1)
+# Tick thread CPU
 # --------------------------------------------------------------------------------------------------------------------
 
 _metric(
@@ -420,7 +424,7 @@ _metric(
 )
 
 # --------------------------------------------------------------------------------------------------------------------
-# CPU (SPEC.md 7.2)
+# CPU
 # --------------------------------------------------------------------------------------------------------------------
 
 _metric(
@@ -529,7 +533,7 @@ _table(
 )
 
 # --------------------------------------------------------------------------------------------------------------------
-# Memory (SPEC.md 7.3)
+# Memory
 # --------------------------------------------------------------------------------------------------------------------
 
 for _what, _label in (("private_mib", "private_mib"), ("resident_mib", "resident_mib")):
@@ -570,7 +574,7 @@ _metric(
 )
 
 # --------------------------------------------------------------------------------------------------------------------
-# Join, view load and chunk work (SPEC.md 7.4)
+# Join, view load and chunk work
 # --------------------------------------------------------------------------------------------------------------------
 
 _metric(
@@ -732,7 +736,7 @@ _metric(
 )
 
 # --------------------------------------------------------------------------------------------------------------------
-# Work counters (SPEC.md 7.5)
+# Work counters
 # --------------------------------------------------------------------------------------------------------------------
 
 for _id, _formula, _doc in (
@@ -790,7 +794,7 @@ _table(
 )
 
 # --------------------------------------------------------------------------------------------------------------------
-# Efficiency (SPEC.md 7.6)
+# Efficiency
 # --------------------------------------------------------------------------------------------------------------------
 
 _metric(
@@ -813,7 +817,7 @@ _metric(
 )
 
 # --------------------------------------------------------------------------------------------------------------------
-# Chaos (SPEC.md 7.7)
+# Chaos
 # --------------------------------------------------------------------------------------------------------------------
 
 _metric(
@@ -925,7 +929,7 @@ _table(
 )
 
 # --------------------------------------------------------------------------------------------------------------------
-# Health (SPEC.md 7.8)
+# Health
 # --------------------------------------------------------------------------------------------------------------------
 
 _metric("server_exit_code", "code", "health", ["run"], "the server's exit code after teardown", window="run")
@@ -1050,7 +1054,7 @@ def _has_words(metric_id: str, token: str) -> bool:
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# docs/METRICS.md
+# docs/metrics.md
 # --------------------------------------------------------------------------------------------------------------------
 
 _HEADER = """\
@@ -1092,7 +1096,7 @@ def _cell(text: str) -> str:
 
 
 def render_markdown() -> str:
-    """docs/METRICS.md as text."""
+    """docs/metrics.md as text."""
     from bedrock_bench.metrics import FLOAT_DIGITS
     from bedrock_bench.metrics.health import GATES
 
@@ -1159,12 +1163,12 @@ def render_markdown() -> str:
 
 
 def render_docs(args: argparse.Namespace) -> int:
-    """``bbench docs metrics [--check]``: write docs/METRICS.md, or check that it is current."""
+    """``bbench docs metrics [--check]``: write docs/metrics.md, or check that it is current."""
     from bedrock_bench.config import project_root
 
     if getattr(args, "target", "metrics") != "metrics":
         raise NotImplementedError(f"bbench docs {args.target} is not implemented yet")
-    path = project_root() / "docs" / "METRICS.md"
+    path = project_root() / "docs" / "metrics.md"
     text = render_markdown()
     if getattr(args, "check", False):
         current = path.read_text(encoding="utf-8") if path.is_file() else ""
