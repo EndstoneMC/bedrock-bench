@@ -194,7 +194,7 @@ class TestRecord:
         results.apply_layout(doc, layout)
         assert doc["overrides"][0]["category"] == "harness"
         assert doc["config_files"] == [{"path": "server.properties", "written_sha256": "a" * 64, "after_sha256": None}]
-        assert doc["world"] == {"fresh": True, "generator": "vanilla", "template_sha256": None}
+        assert doc["world"] == {"fresh": True, "generator": "vanilla"}
         assert doc["install"]["exe_sha256_before"] == "b" * 64
 
 

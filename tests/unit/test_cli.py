@@ -17,7 +17,6 @@ ENTRY_POINTS = {
     "doctor": "host:doctor",
     "fetch": "fetch:fetch_cli",
     "bots": "bots:build_cli",
-    "prepare-world": "pregen:prepare_world",
     "smoke": "runner:smoke",
     "run": "runner:run_matrix",
     "run-one": "runner:run_one",
@@ -145,7 +144,6 @@ class TestArguments:
 
     def test_other_commands(self) -> None:
         assert parse("doctor", "--json").json
-        assert parse("prepare-world", "nukkit@1.0", "--scenario", "spread100-pregen").server == "nukkit@1.0"
         assert parse("smoke", "bds@1.26.52.3", "--artifact", "x.zip").artifact == Path("x.zip")
         assert parse("analyze", "a", "b").run_dirs == [Path("a"), Path("b")]
         report = parse("report", "runs/m", "--format", "json", "--publish")

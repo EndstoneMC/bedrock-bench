@@ -134,8 +134,6 @@ class PowerNukkitXAdapter(JavaServer):
     ) -> tuple[Sequence[Override], Sequence[ConfigFile], Mapping[str, Any]]:
         relative = f"worlds/{ctx.scenario.world.level_name}/config.json"
         seed = ctx.scenario.world.seed
-        if not world.fresh:
-            return [], [], {"world_config": None}  # the template brings the config it was generated with
         data = json.loads((config.project_root() / WORLD_CONFIG_TEMPLATE).read_text(encoding="utf-8"))
         for generator in data["generators"].values():
             generator["seed"] = seed

@@ -119,12 +119,6 @@ def test_gates_from_run_json(
     assert failed_gates(reasons) == [gate.value]
 
 
-def test_template_world_with_a_hash_passes(steady: tuple[RunData, dict[str, Any]]) -> None:
-    run = edit(steady, "world", {"fresh": False, "generator": "vanilla", "template_sha256": "3" * 64})
-    run["scenario"]["resolved"] = {**run["scenario"]["resolved"], "world": {"source": "template"}}
-    assert check(steady, run=run)[0] is Status.OK
-
-
 def test_outcome_gates(steady: tuple[RunData, dict[str, Any]]) -> None:
     status, reasons, _ = check(steady, died_during_run=True)
     assert status is Status.SERVER_FAILED

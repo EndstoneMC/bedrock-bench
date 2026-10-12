@@ -21,7 +21,6 @@ import pytest
 
 from bedrock_bench import runner
 from bedrock_bench.adapters.base import host_os
-from bedrock_bench.cache import Cache
 from bedrock_bench.config import ConfigError, load_machine, load_scenario, parse_matrix, parse_scenario
 from bedrock_bench.grid import cell
 from bedrock_bench.model import Arm, LogLine, Matrix
@@ -202,17 +201,6 @@ class TestPreflight:
             placement = host.plan_placement(machine, topology)
             problems = runner.preflight(machine, placement, topology)
         assert any(str(port) in problem for problem in problems)
-
-    def test_template(self, tmp_path: Path) -> None:
-        cache = Cache(tmp_path)
-        arm = Arm("x@1", "x", "1")
-        assert runner.template_for(cache, arm, load_scenario("spread100")) is None
-        pregen = load_scenario("spread100-pregen")
-        with pytest.raises(ConfigError, match="bbench prepare-world x@1 --scenario spread100-pregen"):
-            runner.template_for(cache, arm, pregen)
-        expected = cache.template_dir("x", "1", "spread100-pregen")
-        expected.mkdir(parents=True)
-        assert runner.template_for(cache, arm, pregen) == expected
 
 
 # --------------------------------------------------------------------------------------------------------------------

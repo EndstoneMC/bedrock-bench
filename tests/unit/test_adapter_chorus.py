@@ -308,10 +308,6 @@ class TestPrepare:
         path.write_text("[server\n", encoding="utf-8")
         assert adapter.readback(layout)[0].startswith("chorus.toml cannot be read")
 
-    def test_template_scenario(self, tmp_path: Path) -> None:
-        with pytest.raises(ConfigError, match="saves only the chunks that changed"):
-            make_adapter().prepare(make_install(tmp_path), make_ctx(tmp_path, source="template"))
-
     def test_tampered_install(self, tmp_path: Path) -> None:
         install = make_install(tmp_path)
         (install.root / chorus.EXE).write_bytes(b"changed")

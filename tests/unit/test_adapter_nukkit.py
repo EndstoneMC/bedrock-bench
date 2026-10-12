@@ -14,7 +14,7 @@ from bedrock_bench.adapters import nukkit
 from bedrock_bench.adapters.nukkit import NUKKIT_DIALECT, NukkitAdapter, build_plugin
 from bedrock_bench.adapters.standalone import Runtime, yaml_scalars
 from bedrock_bench.cache import Cache
-from bedrock_bench.model import ArtifactRef, Grid, Install, LogLine, OverrideCategory, Placement, RunContext, ThreadInfo
+from bedrock_bench.model import ArtifactRef, Install, LogLine, OverrideCategory, Placement, RunContext, ThreadInfo
 from bedrock_bench.provenance import sha256_file
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -245,8 +245,7 @@ class TestCommands:
         assert adapter.cmd_effects("@a") == []
         assert adapter.cmd_effects("a07")[0] == "effect a07 resistance 1000000 255 true"
         assert NUKKIT_DIALECT.tick_cmd == "gametime" and adapter.cmd_positions() == "positions"
-        grid = Grid()
-        assert adapter.pregen_command(12, grid, 100) == "pregen 12 11 640 1280 100"
+
 
 # --------------------------------------------------------------------------------------------------------------------
 # The helper plugin build
@@ -284,7 +283,7 @@ def test_build_plugin_needs_sources(tmp_path: Path) -> None:
 
 def test_helper_sources_are_committed() -> None:
     plugin = ROOT / nukkit.PLUGIN_SOURCE
-    assert [p.name for p in nukkit.plugin_files(plugin)] == ["plugin.yml", "BenchTick.java", "PreGen.java"]
+    assert [p.name for p in nukkit.plugin_files(plugin)] == ["plugin.yml", "BenchTick.java"]
     manifest = (plugin / "plugin.yml").read_text(encoding="utf-8")
-    for command in ("gametime", "positions", "pregen"):
+    for command in ("gametime", "positions"):
         assert f"\n  {command}:\n" in manifest

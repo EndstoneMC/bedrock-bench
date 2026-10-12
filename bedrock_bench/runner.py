@@ -178,7 +178,6 @@ def execute(request: RunRequest) -> RunResult:
         except FetchError as exc:
             _say(f"bbench run-one: cannot fetch {arm.id}: {exc}")
             return RunResult(ExitCode.ENV_GATE)
-        template = template_for(cache, arm, scenario)
         tsc_hz = host.calibrate_tsc()
         idle = host.idle_check(machine, placement)
         if not idle.ok:
@@ -186,7 +185,7 @@ def execute(request: RunRequest) -> RunResult:
             for entry in idle.top[:5]:
                 _say(f"  {entry['name']} (pid {entry['pid']}): {entry['cores']:.2f} cores")
             return RunResult(ExitCode.ENV_GATE)
-        return _measure(request, adapter, placement, topology, install, template, tsc_hz, idle.foreign_cores, bot)
+        return _measure(request, adapter, placement, topology, install, tsc_hz, idle.foreign_cores, bot)
     finally:
         lock.release()
 
@@ -197,7 +196,6 @@ def _measure(
     placement: Placement,
     topology: host.Topology,
     install: Any,
-    template: Path | None,
     tsc_hz: float | None,
     idle_foreign: float,
     bot: Any,
@@ -252,7 +250,6 @@ def _measure(
             machine=machine,
             placement=placement,
             repeat=request.repeat,
-            template=template,
         )
         try:
             layout = adapter.prepare(install, ctx)
@@ -339,19 +336,6 @@ def preflight(machine: Machine, placement: Placement, topology: host.Topology) -
         elif check.level != "ok":
             log.warning("%s", check.summary)
     return problems
-
-
-def template_for(cache: Cache, arm: Arm, scenario: Scenario) -> Path | None:
-    """The validated world template of a template scenario: ``Cache.template_dir(server, version, scenario)``."""
-    if scenario.world.source != "template":
-        return None
-    path = cache.template_dir(arm.server, arm.version, scenario.name)
-    if not path.is_dir():
-        raise ConfigError(
-            f"no world template for {arm.ref} and scenario {scenario.name}; build one with "
-            f"'bbench prepare-world {arm.ref} --scenario {scenario.name}'"
-        )
-    return path
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -524,7 +508,6 @@ def _prepare_matrix(matrix: Matrix, plan: Sequence[PlannedRun], machine: Machine
             for name in {run.scenario for run in plan if run.arm.id == arm.id}:
                 scenario = config.load_scenario(name)
                 bot_command(adapter, scenario, machine)
-                template_for(cache, arm, scenario)
             _say(f"fetching {arm.id}")
             adapter.fetch(cache)
         except (FetchError, bots.BotError) as exc:
@@ -715,5 +698,4 @@ __all__ = [
     "run_one",
     "smoke",
     "smoke_problems",
-    "template_for",
 ]

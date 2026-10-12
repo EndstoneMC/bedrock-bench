@@ -57,7 +57,7 @@ GATES: tuple[GateDef, ...] = (
         Gate.CSG_MATCHES, "csg_effective = the scenario's CSG setting, on servers that support client-side generation"
     ),
     GateDef(Gate.VERSION_MATCH, "the banner version equals the arm version"),
-    GateDef(Gate.WORLD_FRESH, "world dir absent before launch, or a template scenario with its template hash recorded"),
+    GateDef(Gate.WORLD_FRESH, "world dir absent before launch"),
     GateDef(
         Gate.CONFIG_READBACK, "parity keys read back after the run equal what was written (recorded by the runner)"
     ),
@@ -271,8 +271,8 @@ def evaluate(
         if banner != version:
             out.fail(Gate.VERSION_MATCH, f"banner version {banner!r} for arm version {version!r}")
     world = meta.get("world") or {}
-    if not world.get("fresh") and not (scenario.world.source == "template" and world.get("template_sha256")):
-        out.fail(Gate.WORLD_FRESH, "the world existed before launch and no template hash is recorded")
+    if not world.get("fresh"):
+        out.fail(Gate.WORLD_FRESH, "the world existed before launch")
     in_measured = _value(metrics, "interventions_in_measured")
     if in_measured:
         out.fail(Gate.INTERVENTIONS_IN_MEASURED, f"{in_measured} interventions in a measured window")

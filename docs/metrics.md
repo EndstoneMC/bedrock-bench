@@ -210,7 +210,7 @@ A run is `invalid` if any invalid-level gate fails, else `server_failed` if an o
 | `spread` | invalid | after settle: positions known, spread cells_occupied = joined and max_per_cell = 1 |
 | `csg_matches` | invalid | csg_effective = the scenario's CSG setting, on servers that support client-side generation |
 | `version_match` | invalid | the banner version equals the arm version |
-| `world_fresh` | invalid | world dir absent before launch, or a template scenario with its template hash recorded |
+| `world_fresh` | invalid | world dir absent before launch |
 | `config_readback` | invalid | parity keys read back after the run equal what was written (recorded by the runner) |
 | `interventions_in_measured` | invalid | interventions_in_measured = 0 |
 | `server_alive` | server_failed | the server ran until teardown and exited with 0 on stop, without being killed |

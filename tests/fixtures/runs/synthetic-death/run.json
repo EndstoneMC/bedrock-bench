@@ -342,7 +342,6 @@
   },
   "world": {
     "fresh": true,
-    "generator": "vanilla",
-    "template_sha256": null
+    "generator": "vanilla"
   }
 }

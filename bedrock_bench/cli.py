@@ -91,15 +91,6 @@ def _configure_bots(p: argparse.ArgumentParser) -> None:
     )
 
 
-def _configure_prepare_world(p: argparse.ArgumentParser) -> None:
-    p.add_argument("server", metavar="SERVER@VERSION")
-    p.add_argument(
-        "--scenario", required=True, metavar="S", help="template scenario: a name in configs/scenarios/ or a path"
-    )
-    _add_machine(p)
-    p.add_argument("--variant", metavar="V")
-
-
 def _configure_smoke(p: argparse.ArgumentParser) -> None:
     p.add_argument("server", metavar="SERVER@VERSION")
     _add_machine(p)
@@ -160,12 +151,6 @@ COMMANDS: tuple[Command, ...] = (
     ),
     Command("fetch", "fetch:fetch_cli", "download and verify server artifacts", _configure_fetch),
     Command("bots", "bots:build_cli", "build or download the load bot", _configure_bots),
-    Command(
-        "prepare-world",
-        "pregen:prepare_world",
-        "build and validate a pre-generated world template",
-        _configure_prepare_world,
-    ),
     Command("smoke", "runner:smoke", "short strict run that checks an adapter end to end", _configure_smoke),
     Command("run", "runner:run_matrix", "run a matrix", _configure_run),
     Command("run-one", "runner:run_one", "run one arm once", _configure_run_one),

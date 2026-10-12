@@ -91,7 +91,7 @@ def make_adapter(machine: Machine | None = None, artifact: Path | None = None) -
     return DragonflyAdapter(arm, machine or config.default_machine())
 
 
-def make_ctx(tmp_path: Path, *, template: Path | None = None, **world: Any) -> RunContext:
+def make_ctx(tmp_path: Path, **world: Any) -> RunContext:
     scenario = config.parse_scenario({"server": {"csg": False}, "world": world}, name="test")
     return RunContext(
         run_id="20260101T120000Z-dragonfly-test-r1-abcd",
@@ -101,7 +101,6 @@ def make_ctx(tmp_path: Path, *, template: Path | None = None, **world: Any) -> R
         scenario=scenario,
         machine=config.default_machine(),
         placement=Placement((0, 1), (2, 3), (2, 3), "normal", "physical"),
-        template=template,
     )
 
 
@@ -473,20 +472,6 @@ class TestPrepare:
         assert adapter.readback(layout) == ["config.toml: Players.MaxCount was written as 200 and read back as 0"]
         path.unlink()
         assert adapter.readback(layout)[0].startswith("config.toml cannot be read")
-
-    def test_template_world(self, tmp_path: Path) -> None:
-        template = tmp_path / "template"
-        (template / "db").mkdir(parents=True)
-        (template / "level.dat").write_bytes(b"level")
-        layout = make_adapter().prepare(
-            make_install(tmp_path), make_ctx(tmp_path, template=template, source="template")
-        )
-        assert not layout.world.fresh and layout.world.template_sha256
-        assert (layout.server_dir / "bench" / "level.dat").read_bytes() == b"level"
-
-    def test_template_scenario_without_template(self, tmp_path: Path) -> None:
-        with pytest.raises(ConfigError, match="prepare-world"):
-            make_adapter().prepare(make_install(tmp_path), make_ctx(tmp_path, source="template"))
 
     def test_tampered_install(self, tmp_path: Path) -> None:
         install = make_install(tmp_path)

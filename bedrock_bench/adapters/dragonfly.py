@@ -46,7 +46,7 @@ from bedrock_bench.model import (
     RunContext,
     WorldInfo,
 )
-from bedrock_bench.provenance import sha256_file, tree_sha256
+from bedrock_bench.provenance import sha256_file
 
 if TYPE_CHECKING:
     import psutil
@@ -566,13 +566,6 @@ class DragonflyAdapter(ServerAdapter):
         )
 
     def _prepare_world(self, level_dir: Path, ctx: RunContext) -> WorldInfo:
-        if ctx.scenario.world.source == "template":
-            if ctx.template is None:
-                raise ConfigError(
-                    f"scenario {ctx.scenario.name} needs a world template; build one with bbench prepare-world"
-                )
-            fetch.copy_install(ctx.template, level_dir)
-            return WorldInfo(fresh=False, generator="flat", template_sha256=tree_sha256(ctx.template), path=level_dir)
         if level_dir.exists():
             raise RuntimeError(f"the fresh server copy already has a world at {level_dir}")
         return WorldInfo(fresh=True, generator="flat", path=level_dir)

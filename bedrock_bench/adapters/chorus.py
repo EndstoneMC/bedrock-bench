@@ -449,10 +449,6 @@ class ChorusAdapter(ServerAdapter):
     # ---- prepare and launch ---------------------------------------------------------------------------------------
 
     def prepare(self, install: Install, ctx: RunContext) -> Layout:
-        if ctx.scenario.world.source == "template":
-            raise ConfigError(
-                f"scenario {ctx.scenario.name} needs a world template, but Chorus saves only the chunks that changed"
-            )
         server_dir = ctx.work_dir
         fetch.copy_install(install.root, server_dir)
         exe_rel = install.extra["exe"]

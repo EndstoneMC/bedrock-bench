@@ -451,7 +451,7 @@ def _run_json(v: Variant) -> dict[str, Any]:
             "end_epoch_ms": v.epoch_ms + round((MARKS["stop"] + 1) * 1000),
             "drift_ms": 0.0,
         },
-        "world": {"fresh": True, "generator": "vanilla", "template_sha256": None},
+        "world": {"fresh": True, "generator": "vanilla"},
         "marks": _marks(v),
         "settle": {"settle_s": 62.5 if ok or v.death_s > 100 else None, "capped": False, "views_incomplete": False},
         "interventions": {"nudges": 0, "nudged": [], "retp": 0, "retp_bots": [], "in_measured": 0},

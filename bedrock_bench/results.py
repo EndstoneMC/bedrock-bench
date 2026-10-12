@@ -404,11 +404,7 @@ def apply_layout(record: dict[str, Any], layout: Layout) -> None:
     record["config_files"] = [
         {"path": c.path, "written_sha256": c.written_sha256, "after_sha256": None} for c in layout.config_files
     ]
-    record["world"] = {
-        "fresh": layout.world.fresh,
-        "generator": layout.world.generator,
-        "template_sha256": layout.world.template_sha256,
-    }
+    record["world"] = {"fresh": layout.world.fresh, "generator": layout.world.generator}
     exe_sha256 = layout.extra.get("exe_sha256")
     record["install"]["exe_sha256_before"] = exe_sha256 if isinstance(exe_sha256, str) else None
 

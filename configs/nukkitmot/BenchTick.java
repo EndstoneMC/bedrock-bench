@@ -15,7 +15,6 @@ import java.util.Locale;
  * <ul>
  *   <li>{@code gametime}: {@code Gametime is <n>}, the server tick counter; it advances once per executed tick.</li>
  *   <li>{@code positions}: {@code positions: <n>}, then {@code position: <name> <x> <y> <z> <dimension>} per player.</li>
- *   <li>{@code pregen}: builds and checks a pre-generated world, see {@link PreGen}.</li>
  * </ul>
  */
 public final class BenchTick extends PluginBase {
@@ -28,8 +27,6 @@ public final class BenchTick extends PluginBase {
             case "positions":
                 positions(sender);
                 return true;
-            case "pregen":
-                return PreGen.start(this, sender, args);
             default:
                 return false;
         }

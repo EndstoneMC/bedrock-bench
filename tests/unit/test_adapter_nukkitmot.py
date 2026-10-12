@@ -13,7 +13,7 @@ from bedrock_bench.adapters.nukkit import plugin_files
 from bedrock_bench.adapters.nukkitmot import NUKKITMOT_DIALECT, NukkitMotAdapter
 from bedrock_bench.adapters.standalone import Runtime, main_thread_from_jcmd, yaml_scalars
 from bedrock_bench.cache import Cache
-from bedrock_bench.model import ArtifactRef, Grid, Install, LogLine, OverrideCategory, Placement, RunContext
+from bedrock_bench.model import ArtifactRef, Install, LogLine, OverrideCategory, Placement, RunContext
 from bedrock_bench.provenance import sha256_file
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -265,12 +265,12 @@ class TestCommands:
         assert adapter.cmd_effects("@a")[3] == "effect @a saturation 1000000 255 true", "selectors work"
         assert NUKKITMOT_DIALECT.tick_cmd == "gametime" and adapter.cmd_positions() == "positions"
         assert adapter.cmd_tp("a07", 1280.5, 300, 1280.5) == "tp a07 1280.5 300 1280.5"
-        assert adapter.pregen_command(12, Grid(), 100) == "pregen 12 11 640 1280 100"
+
 
 def test_helper_sources_are_committed() -> None:
     plugin = ROOT / nukkitmot.PLUGIN_SOURCE
-    assert [p.name for p in plugin_files(plugin)] == ["plugin.yml", "BenchTick.java", "PreGen.java"]
+    assert [p.name for p in plugin_files(plugin)] == ["plugin.yml", "BenchTick.java"]
     manifest = (plugin / "plugin.yml").read_text(encoding="utf-8")
-    for command in ("gametime", "positions", "pregen"):
+    for command in ("gametime", "positions"):
         assert f"\n  {command}:\n" in manifest
     assert "RakNetInterface" not in (plugin / "BenchTick.java").read_text(encoding="utf-8")

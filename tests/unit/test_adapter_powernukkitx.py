@@ -7,12 +7,11 @@ from pathlib import Path
 
 import pytest
 
-from bedrock_bench import adapters, config, pregen
+from bedrock_bench import adapters, config
 from bedrock_bench.adapters import powernukkitx
 from bedrock_bench.adapters.powernukkitx import PNX_DIALECT, PowerNukkitXAdapter
 from bedrock_bench.adapters.standalone import Runtime, yaml_scalars
 from bedrock_bench.cache import Cache
-from bedrock_bench.config import ConfigError
 from bedrock_bench.model import ArtifactRef, Install, LogLine, OverrideCategory, Placement, RunContext
 from bedrock_bench.provenance import sha256_file
 
@@ -59,7 +58,7 @@ def make_adapter(version: str = "3.0.5") -> PowerNukkitXAdapter:
     return PowerNukkitXAdapter(config.arm_from_ref(f"powernukkitx@{version}"), config.default_machine())
 
 
-def make_ctx(tmp_path: Path, adapter: PowerNukkitXAdapter, template: Path | None = None, **world: object) -> RunContext:
+def make_ctx(tmp_path: Path, adapter: PowerNukkitXAdapter, **world: object) -> RunContext:
     return RunContext(
         run_id="20260101T120000Z-powernukkitx-test-r1-abcd",
         run_dir=tmp_path / "run",
@@ -68,7 +67,6 @@ def make_ctx(tmp_path: Path, adapter: PowerNukkitXAdapter, template: Path | None
         scenario=config.parse_scenario({"server": {"csg": False}, "world": world}, name="test"),
         machine=adapter.machine,
         placement=Placement((0, 1, 2, 3), (4, 5), (4, 5), "normal", "physical"),
-        template=template,
     )
 
 
@@ -225,36 +223,6 @@ class TestPrepare:
         assert any("seeds read back" in p for p in adapter.readback(layout))
         (layout.server_dir / "pnx.yml").write_text(REWRITTEN_PNX_YML.replace("viewDistance: 10", "viewDistance: 8"))
         assert any("viewDistance" in p for p in adapter.readback(layout))
-
-    def test_template_world(self, install: Install, tmp_path: Path) -> None:
-        adapter = make_adapter()
-        ctx = make_ctx(tmp_path, adapter, source="template")
-        world = tmp_path / "built" / "bench"
-        (world / "db").mkdir(parents=True)
-        (world / "db" / "000001.ldb").write_bytes(b"chunks")
-        (world / "config.json").write_text('{"generators": {}}', encoding="utf-8")
-        report = pregen.TemplateReport(
-            server="powernukkitx",
-            version="3.0.5",
-            scenario="test",
-            pipeline=pregen.PIPELINE_TOUR,
-            world=pregen.world_key(ctx.scenario),
-            min_coverage=0.99,
-            cells=tuple(pregen.CellCoverage(i, 0, 0, 441, 441) for i in range(ctx.scenario.bots.n)),
-        )
-        template = Cache(tmp_path / "cache").template_dir("powernukkitx", "3.0.5", "test")
-        stored = pregen.store_template(Cache(tmp_path / "cache"), template, world, report)
-        layout = adapter.prepare(install, make_ctx(tmp_path, adapter, template=template, source="template"))
-        assert not layout.world.fresh and layout.world.template_sha256 == stored.tree_sha256
-        assert (layout.server_dir / "worlds" / "bench" / "db" / "000001.ldb").read_bytes() == b"chunks"
-        assert (layout.server_dir / "worlds" / "bench" / "config.json").read_text() == '{"generators": {}}'
-        assert not [o for o in layout.overrides if o.file.endswith("config.json")]
-        assert adapter.readback(layout) == []
-
-    def test_template_scenario_needs_a_template(self, install: Install, tmp_path: Path) -> None:
-        adapter = make_adapter()
-        with pytest.raises(ConfigError, match="prepare-world"):
-            adapter.prepare(install, make_ctx(tmp_path, adapter, source="template"))
 
     def test_nightly_fetch_uses_the_pinned_jdk(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         jar = tmp_path / "powernukkitx.jar"

@@ -544,7 +544,6 @@ class ConfigFile:
 class WorldInfo:
     fresh: bool
     generator: str  # one of GENERATORS
-    template_sha256: str | None = None
     path: Path | None = None  # world directory, checked absent before launch when fresh
 
 
@@ -580,7 +579,6 @@ class RunContext:
     machine: Machine
     placement: Placement
     repeat: int = 1
-    template: Path | None = None  # validated world template for template scenarios
 
 
 @dataclass(frozen=True)

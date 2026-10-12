@@ -13,10 +13,6 @@ commands:
     description: Prints every online player's position
     usage: /positions
     permission: benchtick.use
-  pregen:
-    description: Generates the chunks around every grid cell, then counts them per cell
-    usage: /pregen <radius> <columns> <spacing> <origin> <cells> [in_flight]
-    permission: benchtick.use
 permissions:
   benchtick.use:
     default: op

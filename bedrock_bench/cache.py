@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""The local cache: verified downloads, installs, virtual environments, world templates and server work copies.
+"""The local cache: verified downloads, installs, virtual environments and server work copies.
 
 The root is ``$BBENCH_CACHE`` if set, else ``%LOCALAPPDATA%\\bedrock-bench`` on Windows and
 ``$XDG_CACHE_HOME/bedrock-bench`` (default ``~/.cache/bedrock-bench``) elsewhere. Directory names under it are short
@@ -90,10 +90,6 @@ class Cache:
         return self.root / "venv"
 
     @property
-    def templates(self) -> Path:
-        return self.root / "tpl"
-
-    @property
     def bots(self) -> Path:
         return self.root / "bots"
 
@@ -118,10 +114,6 @@ class Cache:
         if not name or Path(name).name != name or name.startswith("."):
             raise ValueError(f"not a plain directory name: {name!r}")
         return self.venvs / name
-
-    def template_dir(self, *key: str) -> Path:
-        """A pre-generated world template keyed by server, version and scenario."""
-        return self.templates / short_key(*key)
 
     def work_dir(self, run_id: str) -> Path:
         """A short scratch directory for one run's fresh server copy. Not created here."""
@@ -165,7 +157,7 @@ class Cache:
         """Remove staging leftovers of interrupted builds. Returns what was removed."""
         removed: list[Path] = []
         cutoff = time.time() - older_than_s
-        for area in (self.downloads, self.installs, self.venvs, self.templates, self.bots, self.work):
+        for area in (self.downloads, self.installs, self.venvs, self.bots, self.work):
             if not area.is_dir():
                 continue
             for parent in (area, *[p for p in area.iterdir() if p.is_dir()]):

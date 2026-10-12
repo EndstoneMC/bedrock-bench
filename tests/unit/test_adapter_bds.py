@@ -65,9 +65,7 @@ def bds_zip(path: Path, properties: str = SHIPPED_PROPERTIES) -> Path:
     return path
 
 
-def make_ctx(
-    tmp_path: Path, *, csg: bool = True, machine: Machine | None = None, template: Path | None = None, **world: Any
-) -> RunContext:
+def make_ctx(tmp_path: Path, *, csg: bool = True, machine: Machine | None = None, **world: Any) -> RunContext:
     scenario = config.parse_scenario({"server": {"csg": csg}, "world": world}, name="test")
     machine = machine or config.default_machine()
     return RunContext(
@@ -78,7 +76,6 @@ def make_ctx(
         scenario=scenario,
         machine=machine,
         placement=Placement((0, 1), (2, 3), (2, 3), "normal", "physical"),
-        template=template,
     )
 
 
@@ -319,19 +316,6 @@ class TestFetchAndPrepare:
         (ctx.work_dir / "leftover").write_text("x", encoding="utf-8")
         with pytest.raises(FileExistsError):
             local_adapter.prepare(install, ctx)
-
-    def test_template_world(self, local_adapter: BdsAdapter, tmp_path: Path) -> None:
-        install = local_adapter.fetch(Cache(tmp_path / "cache"))
-        template = tmp_path / "template"
-        (template / "db").mkdir(parents=True)
-        (template / "level.dat").write_bytes(b"level")
-        ctx = make_ctx(tmp_path, source="template")
-        with pytest.raises(ConfigError, match="prepare-world"):
-            local_adapter.prepare(install, ctx)
-        ctx = make_ctx(tmp_path / "second", source="template", template=template)
-        layout = local_adapter.prepare(install, ctx)
-        assert not layout.world.fresh and layout.world.template_sha256
-        assert (layout.server_dir / "worlds" / "bench" / "level.dat").read_bytes() == b"level"
 
 
 class TestLaunch:

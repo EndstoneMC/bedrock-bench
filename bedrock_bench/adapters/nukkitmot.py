@@ -6,7 +6,7 @@ jar ships neither ``server.properties`` nor ``nukkit-mot.yml``; both start empty
 start. The helper plugin (``plugin.yml`` and the ``*.java`` files in ``configs/nukkitmot``, Nukkit's helper
 without its RakNet reflection) is compiled once against the pinned jar with the JDK's ``javac`` and packed into
 ``plugins/BenchTick.jar``. It adds ``gametime`` (``time query`` prints the day time, which wraps at 24000),
-``positions`` and ``pregen`` for templates.
+and ``positions``.
 
 Launch: ``java -Xms<heap> -Xmx<heap> -jar nukkit-mot.jar``. Offline players get a UUID from their name, so the bots
 need no compat flag. See configs/nukkitmot/README.md.
@@ -33,7 +33,6 @@ from bedrock_bench.adapters.standalone import (
 )
 from bedrock_bench.model import (
     ConfigFile,
-    Grid,
     Install,
     LaunchSpec,
     Layout,
@@ -138,10 +137,6 @@ class NukkitMotAdapter(JavaServer):
 
     def parse_positions(self, lines: list[LogLine]) -> list[PlayerPos] | None:
         return parse_helper_positions(lines)
-
-    def pregen_command(self, radius: int, grid: Grid, cells: int) -> str:
-        """The helper command that builds a world template (``bbench prepare-world``, see bedrock_bench.pregen)."""
-        return f"pregen {radius} {grid.columns} {grid.spacing} {grid.origin} {cells}"
 
     # ---- facts ----------------------------------------------------------------------------------------------------
 

@@ -5,8 +5,8 @@ Fetch: the jar from ``configs/nukkit/server.toml`` and the JDK from ``configs/ru
 shipped ``nukkit.yml`` (``lang/eng/nukkit.yml`` in the jar, which Nukkit writes on its first start) is extracted from
 the jar. The helper plugin (``plugin.yml`` and the ``*.java`` files in ``configs/nukkit``) is compiled once
 against the pinned jar with the JDK's ``javac`` and packed into ``plugins/BenchTick.jar``. It adds ``gametime`` (the
-server tick counter, since Nukkit's ``time query`` prints no number), ``positions``, ``pregen`` for templates, and
-lifts the per-IP packet limit of the RakNet listener.
+server tick counter, since Nukkit's ``time query`` prints no number) and ``positions``, and lifts the per-IP packet
+limit of the RakNet listener.
 
 Launch: ``java -Xms<heap> -Xmx<heap> -jar nukkit.jar``. Nukkit derives a player's UUID from the XUID, so the bots get
 ``-fake-xuid`` or every bot would replace the previous one. See configs/nukkit/README.md.
@@ -37,7 +37,6 @@ from bedrock_bench.adapters.standalone import (
 from bedrock_bench.config import ConfigError
 from bedrock_bench.model import (
     ConfigFile,
-    Grid,
     Install,
     LaunchSpec,
     Layout,
@@ -156,10 +155,6 @@ class NukkitAdapter(JavaServer):
 
     def parse_positions(self, lines: list[LogLine]) -> list[PlayerPos] | None:
         return parse_helper_positions(lines)
-
-    def pregen_command(self, radius: int, grid: Grid, cells: int) -> str:
-        """The helper command that builds a world template (``bbench prepare-world``, see bedrock_bench.pregen)."""
-        return f"pregen {radius} {grid.columns} {grid.spacing} {grid.origin} {cells}"
 
     # ---- facts ----------------------------------------------------------------------------------------------------
 

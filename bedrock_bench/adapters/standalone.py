@@ -740,18 +740,8 @@ class StandaloneServer(ServerAdapter):
         )
 
     def prepare_world(self, server_dir: Path, ctx: RunContext) -> WorldInfo:
-        """``worlds/<level>``: absent for a fresh world, or a copy of the validated template."""
+        """``worlds/<level>``, which must not exist yet."""
         level_dir = server_dir / "worlds" / ctx.scenario.world.level_name
-        if ctx.scenario.world.source == "template":
-            if ctx.template is None:
-                raise ConfigError(
-                    f"scenario {ctx.scenario.name} needs a world template; build one with bbench prepare-world"
-                )
-            from bedrock_bench import pregen
-
-            report = pregen.verified_template(ctx.template, ctx.scenario)
-            fetch.copy_install(ctx.template, level_dir)
-            return WorldInfo(fresh=False, generator=self.generator, template_sha256=report.tree_sha256, path=level_dir)
         if level_dir.exists():
             raise RuntimeError(f"the fresh server copy already has a world at {level_dir}")
         return WorldInfo(fresh=True, generator=self.generator, path=self.world_data(level_dir))

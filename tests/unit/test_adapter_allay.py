@@ -10,7 +10,7 @@ from typing import Any
 
 import pytest
 
-from bedrock_bench import adapters, config, fetch, pregen
+from bedrock_bench import adapters, config, fetch
 from bedrock_bench.adapters import allay
 from bedrock_bench.adapters.allay import ALLAY_DIALECT, AllayAdapter, thread_from_jcmd, world_settings_problems
 from bedrock_bench.adapters.standalone import Runtime, yaml_scalars
@@ -88,9 +88,7 @@ def make_adapter() -> AllayAdapter:
     return AllayAdapter(config.arm_from_ref("allay@0.14.0"), config.default_machine())
 
 
-def make_ctx(
-    tmp_path: Path, adapter: AllayAdapter, template: Path | None = None, difficulty: str = "easy", **world: object
-) -> RunContext:
+def make_ctx(tmp_path: Path, adapter: AllayAdapter, difficulty: str = "easy", **world: object) -> RunContext:
     server = {"csg": False, "difficulty": difficulty}
     return RunContext(
         run_id="20260101T120000Z-allay-test-r1-abcd",
@@ -100,7 +98,6 @@ def make_ctx(
         scenario=config.parse_scenario({"server": server, "world": world}, name="test"),
         machine=adapter.machine,
         placement=Placement((0, 1, 2, 3), (4, 5), (4, 5), "normal", "physical"),
-        template=template,
     )
 
 
@@ -245,30 +242,6 @@ class TestPrepare:
         worlds.write_text(REWRITTEN_WORLD_SETTINGS, encoding="utf-8")
         settings.write_text(REWRITTEN_SERVER_SETTINGS.replace("view-distance: 10", "view-distance: 8"))
         assert any("view-distance" in p for p in adapter.readback(layout))
-
-    def test_template_world(self, install: Install, tmp_path: Path) -> None:
-        adapter = make_adapter()
-        ctx = make_ctx(tmp_path, adapter, source="template")
-        world = tmp_path / "built" / "bench"
-        (world / "db").mkdir(parents=True)
-        (world / "db" / "000001.ldb").write_bytes(b"chunks")
-        report = pregen.TemplateReport(
-            server="allay",
-            version="0.14.0",
-            scenario="test",
-            pipeline=pregen.PIPELINE_TOUR,
-            world=pregen.world_key(ctx.scenario),
-            min_coverage=0.99,
-            cells=tuple(pregen.CellCoverage(i, 0, 0, 441, 441) for i in range(ctx.scenario.bots.n)),
-        )
-        cache = Cache(tmp_path / "cache")
-        template = cache.template_dir("allay", "0.14.0", "test")
-        stored = pregen.store_template(cache, template, world, report)
-        layout = adapter.prepare(install, make_ctx(tmp_path, adapter, template=template, source="template"))
-        assert not layout.world.fresh and layout.world.template_sha256 == stored.tree_sha256
-        assert (layout.server_dir / "worlds" / "bench" / "db" / "000001.ldb").read_bytes() == b"chunks"
-        assert (layout.server_dir / "worlds" / "world-settings.yml").is_file()
-        assert adapter.readback(layout) == []
 
     def test_launch(self, install: Install, tmp_path: Path) -> None:
         adapter = make_adapter()

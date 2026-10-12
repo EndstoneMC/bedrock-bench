@@ -250,14 +250,7 @@ class FakeAdapter(ServerAdapter):
             shutil.copyfile(install.root / "scripts" / f"{self.arm.variant}.json", server_dir / SCRIPT_FILE)
 
         world_dir = server_dir / "worlds" / scenario.world.level_name
-        if scenario.world.source == "template":
-            if ctx.template is None:
-                raise RuntimeError("a template scenario needs ctx.template")
-            shutil.copytree(ctx.template, world_dir)
-            files = [p for p in ctx.template.rglob("*") if p.is_file()]
-            world = WorldInfo(False, "custom", _tree_sha256(files, ctx.template), world_dir)
-        else:
-            world = WorldInfo(fresh=True, generator="custom", path=world_dir)
+        world = WorldInfo(fresh=True, generator="custom", path=world_dir)
         return Layout(
             server_dir=server_dir,
             overrides=overrides,

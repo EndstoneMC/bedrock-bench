@@ -257,14 +257,13 @@
       }
     },
     "world": {
-      "description": "fresh or template, generator and template hash",
+      "description": "whether the world was fresh, and its generator",
       "type": "object",
       "additionalProperties": false,
       "required": ["fresh"],
       "properties": {
         "fresh": { "type": "boolean" },
-        "generator": { "enum": ["vanilla", "custom", "flat", null] },
-        "template_sha256": { "$ref": "#/$defs/sha256_or_null" }
+        "generator": { "enum": ["vanilla", "custom", "flat", null] }
       }
     },
     "marks": {

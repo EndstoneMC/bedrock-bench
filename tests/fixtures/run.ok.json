@@ -374,8 +374,7 @@
   },
   "world": {
     "fresh": true,
-    "generator": "vanilla",
-    "template_sha256": null
+    "generator": "vanilla"
   },
   "marks": {
     "ready": 14.2,
