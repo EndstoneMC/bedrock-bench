@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Work counters: what the server actually did for the bots (SPEC.md section 7.5).
+"""Work counters: what the server actually did for the bots.
 
 Rates are per bot per second over a window. Cumulative counters come from the bots' ``stat`` events (first and last
 inside the window); packet counts come from ``pkt`` events, each holding the packets received since the previous one.

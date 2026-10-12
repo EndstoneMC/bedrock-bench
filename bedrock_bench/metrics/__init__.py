@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Metrics: pure functions from a run's raw data to ``metrics.json`` (SPEC.md sections 5.4 and 7).
+"""Metrics: pure functions from a run's raw data to ``metrics.json`` (docs/metrics.md).
 
 ``compute(run)`` is deterministic: the same raw files give the same bytes on every platform, so ``bbench analyze``
 can recompute any stored run. It emits every metric declared in :mod:`bedrock_bench.metrics.registry`, each with an

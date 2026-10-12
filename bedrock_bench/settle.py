@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""When views have finished loading, and the interventions allowed until then (SPEC.md section 6.2).
+"""When views have finished loading, and the interventions allowed until then (docs/methodology.md#run-phases).
 
 :class:`Settle` is a pure state machine. The phase loop feeds it what happened, each with its time in seconds on the
 run's timebase, and asks for a decision; it never sends anything itself:
@@ -47,7 +47,7 @@ _EPS = 1e-9
 
 @dataclass(frozen=True)
 class SettleRules:
-    """The settle phase's options (``[phases.settle]`` of a scenario), with the SPEC.md defaults."""
+    """The settle phase's options (``[phases.settle]`` of a scenario), with their defaults."""
 
     min_s: float = 300.0
     cap_s: float = 900.0

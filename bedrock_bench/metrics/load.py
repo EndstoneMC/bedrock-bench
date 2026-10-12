@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Join and view-load latency, chunk work (SPEC.md section 7.4).
+"""Join and view-load latency, chunk work.
 
 Bot events are first put on the run's timebase with :func:`timed_events`. A bot process stamps every line with its
 own monotonic clock (``mono_ms``) and the harness adds its receive time (``rx_ns``); since both clocks are monotonic,

@@ -21,8 +21,8 @@ from bedrock_bench.model import Scenario
 ROOT = config.project_root()
 CATALOGUE_FILE = ROOT / "configs" / "scenarios" / "chaos-actions.toml"
 
-#: Action intervals from SPEC.md section 6.3.
-SPEC_INTERVALS = {
+#: Action intervals the catalogue must keep.
+INTERVALS = {
     "churn": 20,
     "stack": 25,
     "waypoints": 60,
@@ -74,7 +74,7 @@ def scenario(
 
 def golden_scenario(**changes: Any) -> Scenario:
     options: dict[str, Any] = {"cycle": (0, 1, 3, 100, 1000, 1)} | changes
-    return scenario(list(SPEC_INTERVALS), **options)
+    return scenario(list(INTERVALS), **options)
 
 
 @pytest.fixture(scope="module")
@@ -104,11 +104,11 @@ def key(step: chaos.Step) -> tuple[Any, ...]:
 
 class TestCatalogue:
     def test_shipped_catalogue_declares_every_action(self, catalogue: chaos.Catalogue) -> None:
-        assert set(catalogue.actions) == set(chaos.ACTIONS) == set(SPEC_INTERVALS)
+        assert set(catalogue.actions) == set(chaos.ACTIONS) == set(INTERVALS)
         assert catalogue.far_cells > 0 and len(catalogue.sha256) == 64
 
     def test_intervals_match_the_spec(self, catalogue: chaos.Catalogue) -> None:
-        assert {name: action.interval_s for name, action in catalogue.actions.items()} == SPEC_INTERVALS
+        assert {name: action.interval_s for name, action in catalogue.actions.items()} == INTERVALS
 
     def test_examples_name_every_parameter(self, catalogue: chaos.Catalogue) -> None:
         for spec in catalogue.commands.values():
@@ -230,7 +230,7 @@ class TestPlan:
         header = plan.header
         assert header["plan"] == chaos.PLAN_FORMAT and header["sha256"] == chaos.plan_sha256(plan.steps)
         assert header["seed"] == 20261010 and header["n"] == 100 and header["duration_s"] == 900.0
-        assert header["actions"] == list(SPEC_INTERVALS) and header["steps"] == len(plan.steps)
+        assert header["actions"] == list(INTERVALS) and header["steps"] == len(plan.steps)
         assert header["catalogue_sha256"] == catalogue.sha256
         assert header["scenario"] == "chaos-test" and len(header["scenario_sha256"]) == 64
 
@@ -256,7 +256,7 @@ class TestPlan:
         for step in plan.steps:
             if step.parent is None:
                 firings[step.action].append(step.t_s)
-        assert set(firings) == set(SPEC_INTERVALS)
+        assert set(firings) == set(INTERVALS)
         for action, times in firings.items():
             interval = catalogue.actions[action].interval_s
             assert 3.0 - 1e-3 <= times[0] <= min(interval, 60.0) + 1e-3, action
@@ -411,7 +411,7 @@ class TestShippedScenarios:
         spread = config.load_scenario("spread100")
         full_spec, portable_spec = full.phase("chaos"), portable.phase("chaos")
         assert full_spec is not None and portable_spec is not None
-        assert set(full_spec["actions"]) == set(SPEC_INTERVALS)
+        assert set(full_spec["actions"]) == set(INTERVALS)
         assert set(portable_spec["actions"]) == {
             "churn",
             "stack",

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Render a matrix summary as ``report.md``.
 
-Layout (SPEC.md section 11.2, rule R10): a conditions block, then for each scenario one section for the arms that are
+Layout (rule R10): a conditions block, then for each scenario one section for the arms that are
 ``vanilla`` on every exercised feature and one for the rest. Each section shows the arms, cost, work, parity and
 efficiency tables together. Sections are never ranked against each other and there is no composite score. Inside a
 section, an arm that hosts a BDS build is compared with that build using the difference rule of

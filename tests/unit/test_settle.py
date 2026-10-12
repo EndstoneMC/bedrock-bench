@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""The settle rule and its interventions (SPEC.md section 6.2), driven with synthetic times and progress rows."""
+"""The settle rule and its interventions, driven with synthetic times and progress rows."""
 
 from __future__ import annotations
 

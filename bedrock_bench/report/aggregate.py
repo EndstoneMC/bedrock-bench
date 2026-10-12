@@ -4,7 +4,7 @@
 The summary is plain JSON data, and everything downstream (the markdown report, claims) reads only the summary. It
 holds no wall-clock time and no paths, so regenerating it from the same run directories gives the same bytes.
 
-Rules (SPEC.md sections 8, 9 and 11):
+Rules (docs/methodology.md#statistics-and-run-status):
 
 - A cell is one arm in one scenario. Only ``ok`` runs enter the statistics. ``server_failed`` and ``invalid`` runs are
   counted (``n_ok/n_total``) and listed with their reasons, never averaged.

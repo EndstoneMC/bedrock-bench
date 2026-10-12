@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Run directories, run.json assembly, the raw-file loader and ``bbench validate`` (SPEC.md section 10)."""
+"""Run directories, run.json assembly, the raw-file loader and ``bbench validate``."""
 
 from __future__ import annotations
 
@@ -201,7 +201,7 @@ class TestRecord:
 class TestParity:
     def test_row_covers_every_exercised_feature(self, write_file: Callable[[str, str], Path]) -> None:
         path = write_file(
-            "servers/x/server.toml",
+            "configs/servers/x/server.toml",
             'schema = 1\nserver = "x"\n[features.range."1.2"]\nfidelity = "V1"\n'
             '"player.physics" = { class = "absent", observed_by = "airborne_frac_steady" }\n'
             '"block.redstone" = { class = "vanilla", evidence = "https://example.org" }\n',
@@ -218,7 +218,7 @@ class TestParity:
 
     def test_no_matching_range(self, write_file: Callable[[str, str], Path]) -> None:
         path = write_file(
-            "servers/x/server.toml",
+            "configs/servers/x/server.toml",
             'schema = 1\nserver = "x"\n[features.range."2"]\nfidelity = "V0"\n'
             '"player.physics" = { class = "vanilla", evidence = "https://example.org" }\n',
         )

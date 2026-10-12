@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Tick rate from the probe (SPEC.md section 7.1).
+"""Tick rate from the probe.
 
 The probe asks the server for a counter that advances once per executed tick. Each reply is
 ``(s_i, t_i, g_i)``: send time, receive time and counter. Times here are seconds since the run origin (the samples

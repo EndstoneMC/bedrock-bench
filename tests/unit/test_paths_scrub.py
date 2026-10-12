@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""run.json and friends must not carry absolute paths, the user name or the host name (SPEC.md section 10.2)."""
+"""run.json and friends must not carry absolute paths, the user name or the host name."""
 
 from __future__ import annotations
 

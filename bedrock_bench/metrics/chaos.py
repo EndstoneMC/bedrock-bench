@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Chaos window metrics (SPEC.md section 7.7). Chaos results are shown, never ranked.
+"""Chaos window metrics. Chaos results are shown, never ranked.
 
 Input is the executor's journal (``chaos-exec.jsonl``), one record per planned action::
 

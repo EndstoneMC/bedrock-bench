@@ -12,8 +12,8 @@ from bedrock_bench import __version__, cli
 from bedrock_bench.config import ConfigError
 from bedrock_bench.model import ExitCode
 
-#: SPEC.md section 5.3: command -> entry point. Changing one is a contract change.
-SPEC_ENTRY_POINTS = {
+#: Command -> entry point. Changing one is a contract change.
+ENTRY_POINTS = {
     "doctor": "host:doctor",
     "fetch": "fetch:fetch_cli",
     "bots": "bots:build_cli",
@@ -33,7 +33,7 @@ def parse(*argv: str) -> argparse.Namespace:
 
 
 def test_entry_points_match_spec() -> None:
-    assert {c.name: c.entry for c in cli.COMMANDS} == SPEC_ENTRY_POINTS
+    assert {c.name: c.entry for c in cli.COMMANDS} == ENTRY_POINTS
 
 
 def test_help_lists_every_command(capsys: pytest.CaptureFixture[str]) -> None:
@@ -41,11 +41,11 @@ def test_help_lists_every_command(capsys: pytest.CaptureFixture[str]) -> None:
         cli.main(["--help"])
     assert info.value.code == 0
     out = capsys.readouterr().out
-    for name in SPEC_ENTRY_POINTS:
+    for name in ENTRY_POINTS:
         assert name in out
 
 
-@pytest.mark.parametrize("name", list(SPEC_ENTRY_POINTS))
+@pytest.mark.parametrize("name", list(ENTRY_POINTS))
 def test_subcommand_help(name: str, capsys: pytest.CaptureFixture[str]) -> None:
     with pytest.raises(SystemExit) as info:
         cli.main([name, "--help"])

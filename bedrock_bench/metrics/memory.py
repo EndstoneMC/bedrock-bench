@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Memory of the server process (SPEC.md section 7.3), from the 1 Hz process samples.
+"""Memory of the server process, from the 1 Hz process samples.
 
 ``resident_mib`` is the working set on Windows and VmRSS on Linux; ``private_mib`` is PrivateUsage on Windows and
 RssAnon + VmSwap on Linux. The two operating systems measure different things, so values are never compared across

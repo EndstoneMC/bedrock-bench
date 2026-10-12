@@ -2,7 +2,7 @@
 """Synthetic runs with known answers, for the metric unit tests and the golden recompute test.
 
 Every run is built from closed-form profiles (tick rate, tick-thread utilisation, chunk delivery), so expected values
-can be worked out by hand. ``write_run_dir`` writes a run in the raw run-directory format of SPEC.md section 10.1;
+can be worked out by hand. ``write_run_dir`` writes a run in the raw run-directory format;
 the committed directories next to this file were produced by it, together with their ``metrics.json`` golden files.
 
 Regenerate after an intended formula change (and an ``ANALYSIS_VERSION`` bump)::

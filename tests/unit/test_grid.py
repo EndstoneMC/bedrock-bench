@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""The spread grid: cell positions, nearest-cell mapping and the spread check (SPEC.md section 6.1)."""
+"""The spread grid: cell positions, nearest-cell mapping and the spread check (docs/methodology.md#workload)."""
 
 from __future__ import annotations
 

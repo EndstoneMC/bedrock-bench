@@ -155,7 +155,7 @@ class TestScenarioPhases:
 class TestScenarioFiles:
     def test_load_by_path_and_extends(self, write_file) -> None:
         base = write_file(
-            "scenarios/base.toml",
+            "configs/scenarios/base.toml",
             toml(
                 """
                 name = "base"
@@ -172,7 +172,7 @@ class TestScenarioFiles:
             ),
         )
         child = write_file(
-            "scenarios/child.toml",
+            "configs/scenarios/child.toml",
             toml(
                 """
                 extends = "base"
@@ -194,30 +194,30 @@ class TestScenarioFiles:
         assert parent.server.csg is True
 
     def test_extends_composition_does_not_change_hash(self, write_file) -> None:
-        write_file("scenarios/base.toml", "[server]\ncsg = true\n[bots]\nn = 50\n")
-        composed = write_file("scenarios/same.toml", 'extends = "base"\n# comment\n')
+        write_file("configs/scenarios/base.toml", "[server]\ncsg = true\n[bots]\nn = 50\n")
+        composed = write_file("configs/scenarios/same.toml", 'extends = "base"\n# comment\n')
         flat = write_file("other/same.toml", "[bots]\nn = 50\n\n[server]\ncsg = true\n")
         assert config.load_scenario(composed).sha256 == config.load_scenario(flat).sha256
 
     def test_extends_cycle(self, write_file) -> None:
-        write_file("scenarios/a.toml", 'extends = "b"\n[server]\ncsg = true\n')
-        b = write_file("scenarios/b.toml", 'extends = "a"\n')
+        write_file("configs/scenarios/a.toml", 'extends = "b"\n[server]\ncsg = true\n')
+        b = write_file("configs/scenarios/b.toml", 'extends = "a"\n')
         with pytest.raises(ConfigError, match="circular extends"):
             config.load_scenario(b)
 
     def test_extends_missing(self, write_file) -> None:
-        path = write_file("scenarios/a.toml", 'extends = "nope"\n')
+        path = write_file("configs/scenarios/a.toml", 'extends = "nope"\n')
         with pytest.raises(ConfigError, match="no scenario 'nope'"):
             config.load_scenario(path)
 
     def test_invalid_toml(self, write_file) -> None:
-        path = write_file("scenarios/broken.toml", "[server\ncsg = true\n")
+        path = write_file("configs/scenarios/broken.toml", "[server\ncsg = true\n")
         with pytest.raises(ConfigError, match="invalid TOML") as info:
             config.load_scenario(path)
         assert "broken.toml" in str(info.value)
 
     def test_error_names_file_and_key(self, write_file) -> None:
-        path = write_file("scenarios/typo.toml", "[server]\ncsg = true\n[bots]\nprefx = 'a'\n")
+        path = write_file("configs/scenarios/typo.toml", "[server]\ncsg = true\n[bots]\nprefx = 'a'\n")
         with pytest.raises(ConfigError) as info:
             config.load_scenario(path)
         err = info.value
@@ -257,7 +257,7 @@ MATRIX = toml(
 
 class TestMatrix:
     def test_load(self, write_file) -> None:
-        path = write_file("matrices/endstone-0.11.14.toml", MATRIX)
+        path = write_file("configs/matrices/endstone-0.11.14.toml", MATRIX)
         m = config.load_matrix(path)
         assert m.name == "endstone-0.11.14" and m.scenarios == ("spread100",)
         assert (m.repeats, m.order, m.cooldown_s, m.rerun_invalid) == (3, "rotate", 60, 1)
@@ -345,7 +345,7 @@ class TestMatrix:
 
     def test_arm_scenario_subset_and_artifact_path(self, write_file) -> None:
         path = write_file(
-            "matrices/cross.toml",
+            "configs/matrices/cross.toml",
             toml(
                 """
                 [matrix]
@@ -588,7 +588,7 @@ class TestServerFile:
 
 class TestArtifacts:
     def test_load(self, write_file) -> None:
-        catalog = config.load_artifacts(write_file("servers/bds/server.toml", server_file("bds", ARTIFACTS)))
+        catalog = config.load_artifacts(write_file("configs/servers/bds/server.toml", server_file("bds", ARTIFACTS)))
         assert catalog.server == "bds" and set(catalog.versions) == {"1.26.52.3", "0.11.14"}
         win = catalog.get("1.26.52.3", "windows")
         assert win.sha256 == SHA and win.size == 123 and win.executables == ("bedrock_server.exe",)
@@ -625,7 +625,9 @@ class TestArtifacts:
 
 class TestFeatures:
     def test_load_and_row(self, write_file) -> None:
-        f = config.load_features(write_file("servers/pocketmine/server.toml", server_file("pocketmine", FEATURES)))
+        f = config.load_features(
+            write_file("configs/servers/pocketmine/server.toml", server_file("pocketmine", FEATURES))
+        )
         assert f.server == "pocketmine" and len(f.ranges) == 3
         row = f.row("5.44.3")
         assert row is not None and row.prefix == "5.44" and row.fidelity is Fidelity.V1

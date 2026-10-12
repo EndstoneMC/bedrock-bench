@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Validity gates and run status (SPEC.md section 9).
+"""Validity gates and run status (docs/methodology.md#statistics-and-run-status).
 
 ``evaluate`` reads the computed metrics, run.json and the scenario; it never re-reads raw series. A gate on a window
 the run never reached is skipped, so a server that dies during join is a ``server_failed`` result, not an invalid run.

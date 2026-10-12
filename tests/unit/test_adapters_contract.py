@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""The server adapter contract (SPEC.md section 5.1), checked for every registered adapter and every fake adapter.
+"""The server adapter contract, checked for every registered adapter and every fake adapter.
 
 Per adapter: the class attributes, the dialect against fixture log lines, well-formed commands, commands against a
 committed snapshot, chaos actions rendered or marked unsupported, bot flags inside the allowlist, and a feature file

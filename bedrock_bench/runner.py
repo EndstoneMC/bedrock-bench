@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Running benchmarks: ``bbench run-one``, ``bbench run`` and ``bbench smoke`` (SPEC.md sections 4, 5.3 and 8).
+"""Running benchmarks: ``bbench run-one``, ``bbench run`` and ``bbench smoke`` (docs/methodology.md#run-phases).
 
 ``run-one`` measures one arm once::
 

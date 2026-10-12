@@ -13,7 +13,7 @@ import statistics
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 
-#: Tail percentiles below this sample count are left out of a distribution (SPEC.md section 7.1: p5 needs n >= 20).
+#: Tail percentiles below this sample count are left out of a distribution (p5 needs n >= 20).
 P5_MIN_N = 20
 
 
@@ -75,7 +75,7 @@ def censored_median(values: Iterable[float | Censored]) -> float | None:
 
 
 def separated(a: Sequence[float], b: Sequence[float], higher_is_better: bool) -> bool:
-    """True when every value of ``a`` beats every value of ``b`` (SPEC.md section 8, the "A better than B" rule).
+    """True when every value of ``a`` beats every value of ``b`` (the "A better than B" rule).
 
     With 3 runs each, complete separation by chance has a one-sided probability of 1/20.
     """

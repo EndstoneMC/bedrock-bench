@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 """The runner and the phase helpers that need no live server: run order, matrix-directory refusal, pre-flight checks,
-the bot command, placement and the smoke checks (SPEC.md sections 5.3, 6 and 8).
+the bot command, placement and the smoke checks.
 
 End-to-end runs against the fake server are in ``tests/integration``.
 """
@@ -157,7 +157,7 @@ class TestRequest:
         self, write_file: Callable[[str, str], Path], monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
         path = write_file(
-            "matrices/m.toml",
+            "configs/matrices/m.toml",
             '[matrix]\nname = "m"\nscenarios = ["smoke"]\norder = "rotate"\npriority_override = "above_normal"\n'
             '[[arm]]\nserver = "bds@1.26.52.3"\n',
         )
@@ -168,7 +168,9 @@ class TestRequest:
         assert request.matrix_dir == tmp_path / "m"
 
     def test_matrix_arm_errors(self, write_file: Callable[[str, str], Path]) -> None:
-        path = write_file("matrices/m.toml", '[matrix]\nscenarios = ["spread100"]\n[[arm]]\nserver = "bds@1.0"\n')
+        path = write_file(
+            "configs/matrices/m.toml", '[matrix]\nscenarios = ["spread100"]\n[[arm]]\nserver = "bds@1.0"\n'
+        )
         with pytest.raises(ConfigError, match="no arm"):
             runner._request(namespace(matrix=str(path), arm="bds@2.0", scenario="spread100"))
         with pytest.raises(ConfigError, match="does not run scenario smoke"):

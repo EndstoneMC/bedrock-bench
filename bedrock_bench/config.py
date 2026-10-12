@@ -171,7 +171,10 @@ def input_file(ref: str | Path, what: str) -> Path:
 
 
 def schema_path(name: str) -> Path:
-    """Path of a JSON schema shipped in the package, e.g. ``schema_path("run")`` -> ``schemas/run.schema.json``."""
+    """Path of a JSON schema shipped in the package.
+
+    ``schema_path("run")`` -> ``bedrock_bench/schemas/run.schema.json``.
+    """
     filename = name if name.endswith(".json") else f"{name}.schema.json"
     return SCHEMA_DIR / filename
 
@@ -514,7 +517,7 @@ class _PhaseDef:
 _NON_NEGATIVE = {"minimum": 0}
 _POSITIVE = {"above": 0}
 
-#: Phase keys and their defaults (SPEC.md section 6.2).
+#: Phase keys and their defaults (docs/methodology.md#run-phases).
 PHASE_DEFS: Mapping[str, _PhaseDef] = {
     "boot": _PhaseDef(cap_s=600.0),
     "idle": _PhaseDef(delay_s=10.0, duration_s=20.0, optional=True),

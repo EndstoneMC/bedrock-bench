@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""The phases of one run: boot, idle, join, settle, spread, steady, chaos and teardown (SPEC.md section 6.2).
+"""The phases of one run: boot, idle, join, settle, spread, steady, chaos and teardown (docs/methodology.md#run-phases).
 
 :class:`Session` drives one prepared server through the scenario's phases. It knows the server only through its
 adapter: the launch command, the console dialect, the placement and position commands and the tick-thread rule.

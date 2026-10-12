@@ -214,7 +214,7 @@ class TestEvaluateClaim:
 
 class TestEvaluate:
     def claim_set(self, *claims: Claim, matrix: str = "endstone-0.11.14") -> ClaimSet:
-        return ClaimSet(matrix=matrix, path=Path("claims/x.toml"), sha256="0" * 64, claims=claims)
+        return ClaimSet(matrix=matrix, path=Path("x.toml"), sha256="0" * 64, claims=claims)
 
     def test_counts(self) -> None:
         claims = self.claim_set(

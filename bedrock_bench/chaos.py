@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Seeded chaos: a plan made before the run and an executor that never skips for backlog (SPEC.md section 6.3).
+"""Seeded chaos: a plan made before the run and an executor that never skips for backlog (docs/methodology.md#workload).
 
 The catalogue (``configs/scenarios/chaos-actions.toml``) declares two vocabularies:
 

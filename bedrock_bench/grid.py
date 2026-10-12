@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""The spread grid: where each bot is placed, and whether the bots ended up one per cell (SPEC.md section 6.1).
+"""The spread grid: where each bot is placed, and whether the bots ended up one per cell (docs/methodology.md#workload).
 
 Bot ``i`` goes to ``cell(i) = (origin + (i % columns) * spacing, origin + (i // columns) * spacing)``. With the default
 spacing of 640 blocks (40 chunks, more than two view distances of 10) no two bots share a chunk, which is the worst

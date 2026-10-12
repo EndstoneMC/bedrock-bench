@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""The server adapter contract (SPEC.md section 5.1).
+"""The server adapter contract (.github/CONTRIBUTING.md#adding-a-server).
 
 Adapters are the only code that knows servers by name. Each one says how to fetch and verify a build, how to lay out a
 fresh server directory with every config override categorised, how to launch it, and how to talk to its console: the

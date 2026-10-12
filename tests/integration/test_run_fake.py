@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""``bbench run-one`` end to end against the fake server and the fake bots (SPEC.md section 16, item 3).
+"""``bbench run-one`` end to end against the fake server and the fake bots.
 
 A good run leaves a complete, schema-valid run directory whose metrics ``bbench analyze`` recomputes byte for byte.
 A broken run is classified by the gate that fails, with the matching status and exit code. Every console family goes
@@ -25,7 +25,7 @@ from fakes.fake_server import FAMILIES
 
 pytestmark = [pytest.mark.integration, needs("runner:run_one")]
 
-#: Raw files every run directory holds (SPEC.md section 10.1).
+#: Raw files every run directory holds (docs/methodology.md#results-files).
 RAW_FILES = (
     "server.log.gz",
     "commands.jsonl.gz",

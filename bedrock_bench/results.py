@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Run directories: layout, ``run.json`` assembly, the raw-file loader and schema validation (SPEC.md section 10).
+"""Run directories: layout, ``run.json`` assembly, the raw-file loader and schema validation.
 
 A run directory is ``<out>/<matrix>/<run_id>/``. It is created once, with a unique id, and never overwritten or
 deleted. While the run is in progress ``run.partial.json`` is rewritten after every phase, so a crashed harness
