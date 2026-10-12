@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Matrix reports: ``bbench report <matrix_dir>``.
+"""Reports: ``bbench report <dir>``.
 
-``write`` aggregates the runs of a matrix directory into ``summary.json`` and renders ``report.md`` next to them,
-optionally checking the publication rules. The runner calls it after every matrix; the CLI entry point is
-``report_cli``.
+``write`` aggregates the run directories below ``<dir>`` into ``summary.json``, renders ``report.md`` and writes the
+CSV files next to them, optionally checking the publication rules. The runner calls it at the end of ``bbench run``;
+the CLI entry point is ``report_cli``.
 
 Exit codes: 2 when the directory cannot be reported or ``--publish`` refuses; otherwise the worst run status (0 all ok,
 4 a server failed, 5 a run is invalid), as for ``bbench run``.
@@ -21,9 +21,7 @@ from typing import Any
 from bedrock_bench.model import ExitCode
 from bedrock_bench.report import export, markdown
 from bedrock_bench.report.aggregate import (
-    FeatureLookup,
     ReportError,
-    default_features,
     load_runs,
     publish_problems,
     statuses,
@@ -50,40 +48,29 @@ class Report:
         return ExitCode.for_statuses(statuses(self.summary))
 
 
-def build(
-    matrix_dir: Path,
-    *,
-    publish: bool = False,
-    features: FeatureLookup | None = default_features,
-) -> tuple[dict[str, Any], str, tuple[str, ...] | None]:
-    """Summary, markdown and publication problems for a matrix directory, without writing anything."""
-    matrix_dir = Path(matrix_dir)
-    summary = summarize(load_runs(matrix_dir), default_name=matrix_dir.name, features=features)
+def build(report_dir: Path, *, publish: bool = False) -> tuple[dict[str, Any], str, tuple[str, ...] | None]:
+    """Summary, markdown and publication problems for a directory of runs, without writing anything."""
+    summary = summarize(load_runs(Path(report_dir)))
     problems = tuple(publish_problems(summary)) if publish else None
     if problems is not None:
         summary["publish"] = {"problems": list(problems)}
     return summary, markdown.render(summary), problems
 
 
-def write(
-    matrix_dir: Path,
-    *,
-    publish: bool = False,
-    features: FeatureLookup | None = default_features,
-) -> Report:
-    """Write ``summary.json``, ``report.md`` and the CSV files into ``matrix_dir``. Run directories are not touched."""
-    matrix_dir = Path(matrix_dir)
-    summary, text, problems = build(matrix_dir, publish=publish, features=features)
-    summary_path = matrix_dir / SUMMARY_FILE
-    report_path = matrix_dir / REPORT_FILE
+def write(report_dir: Path, *, publish: bool = False) -> Report:
+    """Write ``summary.json``, ``report.md`` and the CSV files into ``report_dir``. Run directories are not touched."""
+    report_dir = Path(report_dir)
+    summary, text, problems = build(report_dir, publish=publish)
+    summary_path = report_dir / SUMMARY_FILE
+    report_path = report_dir / REPORT_FILE
     write_summary(summary, summary_path)
     report_path.write_text(text, encoding="utf-8", newline="\n")
-    export.write(matrix_dir)
+    export.write(report_dir)
     return Report(summary, text, summary_path, report_path, problems)
 
 
 def report_cli(args: argparse.Namespace) -> int:
-    """``bbench report <matrix_dir> [--format md|json] [--publish]``."""
+    """``bbench report <dir> [--format md|json] [--publish]``."""
     try:
         report = write(args.matrix_dir, publish=args.publish)
     except ReportError as exc:

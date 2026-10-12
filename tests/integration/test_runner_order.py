@@ -1,9 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """``bbench run`` over a matrix: rotate order, one subprocess and directory per run, refusal to mix machine
-profiles in one matrix directory, and a report that groups arms by declared fidelity (rule R10, no composite score).
+profiles in one matrix directory, and a report with one Results row per server.
 
-The matrix has a full-fidelity arm (``fake_bds``, every exercised feature vanilla) and a reduced one
-(``fake_dragonfly``, physics and movement validation absent), each run twice.
+The matrix has two arms, ``fake_bds`` and ``fake_dragonfly``, each run twice.
 """
 
 from __future__ import annotations
@@ -91,23 +90,18 @@ def test_dry_run_prints_the_order_and_runs_nothing(tmp_path: Path) -> None:
     assert bench.run_dirs() == []
 
 
-def test_report_groups_arms_by_fidelity(matrix_run: tuple[FakeBench, subprocess.CompletedProcess[str]]) -> None:
+def test_report_has_one_row_per_server(matrix_run: tuple[FakeBench, subprocess.CompletedProcess[str]]) -> None:
     bench = completed(matrix_run)
     matrix_dir = bench.out / MATRIX
     result = bench.bbench("report", matrix_dir)
     assert result.returncode == ExitCode.OK, result.stdout + result.stderr
     assert (matrix_dir / "summary.json").is_file()
     report = (matrix_dir / "report.md").read_text(encoding="utf-8")
-    full, reduced = report.find("Full vanilla fidelity"), report.find("Reduced fidelity")
-    assert full >= 0 and reduced >= 0, "the report has both fidelity sections"
-
-    def section(start: int) -> str:
-        return report[start : min(end for end in (full, reduced, len(report)) if end > start)]
-
-    full_section, reduced_section = section(full), section(reduced)
-    assert FULL in full_section and REDUCED not in full_section
-    assert REDUCED in reduced_section and FULL not in reduced_section
-    assert "does less" in reduced_section.lower()
+    results = report.split("## Results\n")[1].split("\n## ")[0]
+    rows = [line for line in results.splitlines() if line.startswith("| `")]
+    assert [row.split(" | ")[1] for row in rows] == ["2/2", "2/2"]
+    assert FULL in rows[0] and REDUCED in rows[1]
+    assert "## Differences from vanilla BDS" in report
 
 
 def test_report_refuses_mixed_machine_profiles(
