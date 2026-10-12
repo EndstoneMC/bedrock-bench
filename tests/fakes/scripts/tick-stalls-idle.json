@@ -1,0 +1,4 @@
+{
+  "description": "the tick counter only advances while a player is online, like a world clock",
+  "tick_mode": "stall_without_players"
+}

@@ -1,0 +1,17 @@
+{
+  "description": "runs at 12 TPS for 2 s from the first spawn, then recovers",
+  "events": [
+    {
+      "anchor": "first_spawn",
+      "after_s": 0.0,
+      "action": "tps",
+      "value": 12.0
+    },
+    {
+      "anchor": "first_spawn",
+      "after_s": 2.0,
+      "action": "tps",
+      "value": 20.0
+    }
+  ]
+}

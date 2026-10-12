@@ -1,0 +1,12 @@
+{
+  "description": "crashes 3.5 s after every bot has spawned and writes a crash report",
+  "events": [
+    {
+      "anchor": "all_spawned",
+      "after_s": 3.5,
+      "action": "crash",
+      "exit_code": 3,
+      "reason": "scripted crash after join"
+    }
+  ]
+}

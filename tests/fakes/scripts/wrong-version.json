@@ -1,0 +1,4 @@
+{
+  "description": "prints a version banner that does not match the arm",
+  "banner_version": "0.0.0-other"
+}

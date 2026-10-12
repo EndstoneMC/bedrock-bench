@@ -1,0 +1,13 @@
+{
+  "description": "crashes before printing the ready line",
+  "boot_s": 1.0,
+  "events": [
+    {
+      "anchor": "start",
+      "after_s": 0.2,
+      "action": "crash",
+      "exit_code": 3,
+      "reason": "scripted crash during boot"
+    }
+  ]
+}

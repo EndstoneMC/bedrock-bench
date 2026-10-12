@@ -1,0 +1,4 @@
+{
+  "description": "prints the stop lines, then never exits",
+  "ignore_stop": true
+}

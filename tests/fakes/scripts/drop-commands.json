@@ -1,0 +1,4 @@
+{
+  "description": "silently drops every third console command other than the tick probe",
+  "drop_every": 3
+}

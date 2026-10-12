@@ -1,0 +1,11 @@
+{
+  "description": "stops answering the tick probe 2 s after every bot has spawned",
+  "events": [
+    {
+      "anchor": "all_spawned",
+      "after_s": 2.0,
+      "action": "probe_gap",
+      "duration_s": 600.0
+    }
+  ]
+}

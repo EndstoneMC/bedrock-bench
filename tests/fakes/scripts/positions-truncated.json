@@ -1,0 +1,4 @@
+{
+  "description": "cuts the positions reply short, so positions are unknown",
+  "positions": "truncated"
+}

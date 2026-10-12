@@ -1,0 +1,11 @@
+{
+  "description": "sends bot a01 a packet it cannot decode",
+  "events": [
+    {
+      "anchor": "all_spawned",
+      "after_s": 0.5,
+      "action": "decode_error",
+      "player": "a01"
+    }
+  ]
+}

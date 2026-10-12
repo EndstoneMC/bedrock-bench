@@ -1,0 +1,4 @@
+{
+  "description": "exits with code 1 after a normal stop",
+  "stop_exit_code": 1
+}

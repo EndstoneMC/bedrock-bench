@@ -1,0 +1,6 @@
+{
+  "description": "refuses the login of bot a02",
+  "reject_players": [
+    "a02"
+  ]
+}
