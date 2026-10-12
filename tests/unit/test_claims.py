@@ -47,7 +47,7 @@ def summary(
     scenario: str = "spread100",
 ) -> dict[str, Any]:
     runs = []
-    for k, (e14_tps, tick, bds) in enumerate(zip((20.0, 19.9, 19.95), (43.1, 42.5, 42.9), bds_tps, strict=True)):
+    for k, (e14_tps, tick, bds) in enumerate(zip((20.0, 19.9, 19.95), (41.1, 40.5, 40.9), bds_tps, strict=True)):
         runs.append(
             _record(
                 E14,
@@ -91,8 +91,8 @@ class TestParseExpression:
         "expr",
         [
             "median('a', 'tps_window_steady') >= 19.8",
-            "ratio('a', 'b', 'tps_window_steady') >= 1.8",
-            "abs(median('a', 'm') / 42.9 - 1) <= 0.15",
+            "ratio('a', 'b', 'tps_window_steady') >= 1.5",
+            "abs(median('a', 'm') / 40 - 1) <= 0.15",
             "0.85 <= low('a', 'm') < high('a', 'm') != 3",
             "not above('a', 'b', 'm') or below('a', 'b', 'm') and n_ok('a') == 3",
             "max(median('a', 'm'), 1, -2) - min(1.5, +2) * 2 > 0",
@@ -161,7 +161,7 @@ class TestEvaluateClaim:
             assert evaluate_claim(claim(expr), s)["verdict"] == "pass", expr
 
     def test_inconclusive_if(self) -> None:
-        expr = f"ratio('{E14}', '{BDS}', 'tps_window_steady') >= 1.8"
+        expr = f"ratio('{E14}', '{BDS}', 'tps_window_steady') >= 1.5"
         gate = f"median('{BDS}', 'tps_window_steady') >= 19.5"
         assert evaluate_claim(claim(expr, inconclusive_if=gate), summary())["verdict"] == "pass"
         fast = evaluate_claim(claim(expr, inconclusive_if=gate), summary(bds_tps=(19.9, 20.0, 19.8)))

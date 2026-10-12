@@ -121,40 +121,21 @@ def scenarios_for(cls: type[ServerAdapter]) -> list[Any]:
     return found
 
 
-def chaos_catalogue() -> dict[str, dict[str, Any]] | None:
-    """Actions of ``scenarios/chaos-actions.toml`` with their table, or None while the file does not exist."""
-    path = ROOT / "scenarios" / "chaos-actions.toml"
-    if not path.is_file():
-        return None
-    data = tomllib.loads(path.read_text(encoding="utf-8"))
-    for key in ("action", "actions"):
-        table = data.get(key)
-        if isinstance(table, dict):
-            return {str(name): value if isinstance(value, dict) else {} for name, value in table.items()}
-        if isinstance(table, list):
-            return {str(item["name"]): item for item in table if isinstance(item, dict) and "name" in item}
-    return {str(name): value for name, value in data.items() if isinstance(value, dict)}
-
-
-def example_params(entry: dict[str, Any]) -> dict[str, Any] | None:
-    for key in ("example", "params"):
-        if isinstance(entry.get(key), dict):
-            return dict(entry[key])
-    return None
+def chaos_commands() -> dict[str, dict[str, Any]]:
+    """The ``[command.<name>]`` tables of the chaos catalogue: the console commands a chaos dialect renders."""
+    path = config.resolve("scenarios", "chaos-actions")
+    return dict(tomllib.loads(path.read_text(encoding="utf-8"))["command"])
 
 
 def rendered_commands(adapter: ServerAdapter) -> dict[str, Any]:
     """Every console command the adapter renders for a fixed input, in a JSON-ready form."""
     dialect = adapter.chaos_dialect()
-    catalogue = chaos_catalogue()
     chaos: dict[str, Any] = {}
-    if catalogue is not None:
-        for action, entry in sorted(catalogue.items()):
-            params = example_params(entry)
-            if not dialect.supports(action):
-                chaos[action] = {"unsupported": dialect.unsupported.get(action, "")}
-            elif params is not None:
-                chaos[action] = dialect.render(action, **params)
+    for command, entry in sorted(chaos_commands().items()):
+        if not dialect.supports(command):
+            chaos[command] = {"unsupported": dialect.unsupported.get(command, "")}
+        else:
+            chaos[command] = dialect.render(command, **entry["example"])
     return {
         "tick": adapter.dialect.tick_cmd,
         "stop": adapter.dialect.stop_cmd,
@@ -319,13 +300,10 @@ def test_commands_match_snapshot(cls: type[ServerAdapter]) -> None:
 
 
 @every_adapter
-def test_chaos_actions_rendered_or_unsupported(cls: type[ServerAdapter]) -> None:
-    catalogue = chaos_catalogue()
-    if catalogue is None:
-        pytest.skip("scenarios/chaos-actions.toml does not exist yet")
+def test_chaos_commands_rendered_or_unsupported(cls: type[ServerAdapter]) -> None:
     dialect = make(cls).chaos_dialect()
-    undeclared = sorted(a for a in catalogue if not dialect.supports(a) and a not in dialect.unsupported)
-    assert not undeclared, f"actions neither rendered nor marked unsupported: {undeclared}"
+    undeclared = sorted(c for c in chaos_commands() if not dialect.supports(c) and c not in dialect.unsupported)
+    assert not undeclared, f"commands neither rendered nor marked unsupported: {undeclared}"
 
 
 @every_adapter

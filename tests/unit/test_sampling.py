@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import gzip
-import json
 import os
 import subprocess
 import sys
@@ -478,44 +477,6 @@ def test_samplers_on_a_cpu_burner(tmp_path: Path) -> None:
     assert sum(busy_on_set) / len(busy_on_set) > 0.5
     for line in series.read_jsonl(out / series.FOREIGN_TOP_FILE):
         assert burner.pid not in {t["pid"] for t in line["top"]}
-
-
-def test_sidecar_entry_point(tmp_path: Path) -> None:
-    burner = subprocess.Popen([python_exe(), "-c", BURNER, "20"])
-    sidecar = subprocess.Popen(
-        [sys.executable, "-m", "bedrock_bench.sampling", "--pid", str(burner.pid), "--out", str(tmp_path)],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        text=True,
-    )
-    try:
-        assert sidecar.stdin is not None and sidecar.stdout is not None
-        hello = json.loads(sidecar.stdout.readline())
-        assert hello["ev"] == "hello" and hello["pid"] == burner.pid
-        sidecar.stdin.write('{"op": "threads"}\n')
-        sidecar.stdin.flush()
-        event = json.loads(sidecar.stdout.readline())
-        assert event["ev"] == "threads" and event["threads"]
-        tid = min(event["threads"], key=lambda t: (t["created_ns"] or 0, t["tid"]))["tid"]
-        sidecar.stdin.write(json.dumps({"op": "tick", "tid": tid}) + "\n")
-        sidecar.stdin.flush()
-        assert json.loads(sidecar.stdout.readline()) == {"ev": "tick", "tid": tid}
-        time.sleep(1.2)
-        sidecar.stdin.write('{"op": "stop"}\n')
-        sidecar.stdin.flush()
-        events = [json.loads(line) for line in sidecar.stdout]
-        assert sidecar.wait(30) == 0
-    finally:
-        burner.kill()
-        burner.wait(30)
-        if sidecar.poll() is None:
-            sidecar.kill()
-    done = [e for e in events if e["ev"] == "done"]
-    assert done and set(done[0]["samplers"]) == {"threads", "process", "tick"}
-    assert all(s["error"] is None for s in done[0]["samplers"].values())
-    assert len(series.read_tick(tmp_path / series.TICK_FILE)) >= 5
-    assert series.read_threads(tmp_path / series.THREADS_FILE).samples
-    assert series.read_process(tmp_path / series.PROCESS_FILE)
 
 
 # --------------------------------------------------------------------------------------------------------------------

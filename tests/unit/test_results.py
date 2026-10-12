@@ -46,7 +46,6 @@ MACHINE = Machine(
     bot_cpus="2-3",
     harness_cpus="bot",
     priority="normal",
-    runtime="native",
     port=19672,
     jvm_heap="8G",
     gates=Gates(),

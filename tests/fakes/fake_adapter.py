@@ -68,8 +68,19 @@ CONFIG_KEYS: Mapping[str, tuple[OverrideCategory, str]] = {
 }
 
 CHAOS_UNSUPPORTED: Mapping[str, str] = {
-    action: "the fake server does not simulate it"
-    for action in ("summon", "cleanup", "dimension", "blocks", "tickingarea", "waypoints", "stack")
+    command: "the fake server does not simulate it"
+    for command in (
+        "summon",
+        "loot",
+        "cleanup",
+        "fill",
+        "setblock",
+        "tp_dimension",
+        "effect_clear",
+        "playerwaypoints",
+        "tickingarea_add",
+        "tickingarea_remove",
+    )
 }
 
 
@@ -117,7 +128,7 @@ def _variants() -> dict[str, str]:
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# Chaos actions
+# Chaos commands
 # --------------------------------------------------------------------------------------------------------------------
 
 
@@ -145,11 +156,11 @@ def _list(**params: Any) -> str:
     return "list"
 
 
-def _tickspeed(**params: Any) -> str:
-    return f"gamerule randomtickspeed {int(params.get('speed', params.get('value', 1)))}"
+def _randomtickspeed(**params: Any) -> str:
+    return f"gamerule randomtickspeed {int(params.get('value', 1))}"
 
 
-def _far_tp(**params: Any) -> str:
+def _tp(**params: Any) -> str:
     x, y, z = (float(params.get(axis, default)) for axis, default in (("x", 0.0), ("y", 300.0), ("z", 0.0)))
     return f"tp {_target(params)} {format_coord(x)} {format_coord(y)} {format_coord(z)}"
 
@@ -160,8 +171,8 @@ CHAOS_RENDERERS = {
     "gamemode": _gamemode,
     "weather": _weather,
     "list": _list,
-    "tickspeed": _tickspeed,
-    "far_tp": _far_tp,
+    "randomtickspeed": _randomtickspeed,
+    "tp": _tp,
 }
 
 
@@ -383,10 +394,10 @@ class FakeAdapter(ServerAdapter):
         return ChaosDialect(renderers=CHAOS_RENDERERS, unsupported=CHAOS_UNSUPPORTED)
 
     def applied(self, action: str, line: LogLine) -> dict[str, Any] | None:
-        if action != "tickspeed":
+        if action != "randomtickspeed":
             return None
         match = re.search(self.server_family.gamerule_re, line.text)
-        return {"tickspeed": int(match["value"])} if match else None
+        return {"randomtickspeed": int(match["value"])} if match else None
 
     def facts(self, layout: Layout, proc: psutil.Process) -> dict[str, Any]:
         return {"allocator": "default", "csg_setting": bool(layout.extra.get("csg")), "fake_family": self.family}

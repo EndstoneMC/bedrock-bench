@@ -562,12 +562,12 @@ def test_chaos_dialect_and_applied_lines() -> None:
     adapter = make_adapter(FakeDragonfly, 19672)
     dialect = adapter.chaos_dialect()
     assert dialect.render("kick", player="a03", reason="churn") == ["kick a03 churn"]
-    assert dialect.render("tickspeed", speed=100) == ["gamerule randomtickspeed 100"]
-    assert dialect.render("far_tp", player="a01", x=5000, y=300, z=-12.5) == ["tp a01 5000 300 -12.5"]
+    assert dialect.render("randomtickspeed", value=100) == ["gamerule randomtickspeed 100"]
+    assert dialect.render("tp", player="a01", x=5000, y=300, z=-12.5) == ["tp a01 5000 300 -12.5"]
     assert set(CHAOS_UNSUPPORTED) <= set(dialect.unsupported)
     assert not dialect.supports("summon")
     line = LogLine(0, 0, "info", None, "Game rule randomtickspeed has been updated to 3", "")
-    assert adapter.applied("tickspeed", line) == {"tickspeed": 3}
+    assert adapter.applied("randomtickspeed", line) == {"randomtickspeed": 3}
     assert adapter.applied("weather", line) is None
 
 
@@ -627,14 +627,12 @@ def test_bench_workspace_resolves_inputs(tmp_path: Path, monkeypatch: pytest.Mon
     assert config.load_scenario("fake-quick").bots.n == 4
     extended = bench.scenario("short-stop", phases={"teardown": {"stop_timeout_s": 2.0}})
     assert config.load_scenario(extended).phase("teardown").options["stop_timeout_s"] == 2.0
-    machine = config.load_machine(bench.root / "machines" / "fake.toml")
+    machine = config.load_machine(bench.machine_path())
     assert machine.port == bench.port
     assert set(config.parse_cpu_list(machine.server_cpus)).isdisjoint(config.parse_cpu_list(machine.bot_cpus))
     matrix = config.load_matrix(bench.matrix("pair", ["fake_bds", {"server": "fake_nukkit", "variant": "dip-on-join"}]))
     assert (matrix.repeats, matrix.cooldown_s) == (1, 0.0)
     assert [arm.id for arm in matrix.arms] == ["fake_bds@1.0.0", "fake_nukkit@1.0.0+dip-on-join"]
-    for name in ("run.schema.json", "metrics.schema.json", "bot-event.schema.json"):
-        assert (bench.root / "schemas" / name).is_file()
 
 
 def test_bench_environment_reaches_bbench_subprocesses(tmp_path: Path) -> None:

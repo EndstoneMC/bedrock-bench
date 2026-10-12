@@ -15,8 +15,7 @@
   ``loaded_modules(pid)``.
 
 This module adds :func:`thread_infos`, the live threads of a process as :class:`bedrock_bench.model.ThreadInfo`.
-Everything above this package goes through :func:`current` and never checks the OS itself. The Docker runtime
-(``platform/docker.py``) starts containers and runs the Linux implementation in a sampler sidecar.
+Everything above this package goes through :func:`current` and never checks the OS itself.
 
 Servers are black boxes here: everything comes from what the operating system reports about a process.
 """

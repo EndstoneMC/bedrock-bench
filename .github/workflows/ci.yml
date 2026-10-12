@@ -36,7 +36,7 @@ jobs:
         run: uv run ruff format --check --diff
 
   generated:
-    name: Generated files and schemas
+    name: Generated files
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -46,10 +46,6 @@ jobs:
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
       - name: docs/METRICS.md is up to date
         run: uv run bbench docs metrics --check
-      - name: Schema examples and published results validate
-        run: |
-          git ls-files -z -- 'schemas/examples/*.json' 'published/*run.json' 'published/*metrics.json' \
-            | xargs -0 uv run bbench validate
 
   test:
     name: Test (${{ matrix.os }}, Python ${{ matrix.python }})

@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Check relational claims against a matrix summary (``bbench report --claims claims/<name>.toml``).
+"""Check relational claims against a matrix summary (``bbench report --claims <file>``).
 
 A claim turns a published statement into an expression over the summary, for example::
 
-    median('endstone@0.11.14', 'tps_window_steady') / median('bds@1.26.52.3', 'tps_window_steady') >= 1.8
+    median('endstone@0.11.14', 'tps_window_steady') / median('bds@1.26.52.3', 'tps_window_steady') >= 1.5
 
 Expressions are parsed with :mod:`ast` and interpreted node by node; nothing reaches ``eval``. Allowed:
 

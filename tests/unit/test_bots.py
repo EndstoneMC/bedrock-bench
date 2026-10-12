@@ -17,7 +17,7 @@ import pytest
 
 from bedrock_bench import bots
 from bedrock_bench.bots import BotBinary, BotError, BotExit, BotFleet, Target, ToolchainError
-from bedrock_bench.config import ConfigError
+from bedrock_bench.config import ConfigError, load_schema
 from bedrock_bench.model import BotParams
 
 GOLDEN = Path("bots") / "core" / "testdata" / "golden.jsonl"
@@ -28,9 +28,8 @@ GOLDEN = Path("bots") / "core" / "testdata" / "golden.jsonl"
 # --------------------------------------------------------------------------------------------------------------------
 
 
-def _event_kinds(project_root: Path) -> set[str]:
-    schema = json.loads((project_root / "schemas" / "bot-event.schema.json").read_text(encoding="utf-8"))
-    return set(schema["properties"]["ev"]["enum"])
+def _event_kinds() -> set[str]:
+    return set(load_schema("bot-event")["properties"]["ev"]["enum"])
 
 
 def test_golden_events_match_the_schema(project_root: Path, schema_validator: Any) -> None:
@@ -43,7 +42,7 @@ def test_golden_events_match_the_schema(project_root: Path, schema_validator: An
         errors = sorted(validator.iter_errors(event), key=str)
         assert not errors, f"{event['ev']}: {errors[0].message}"
         seen.add(event["ev"])
-    assert seen == _event_kinds(project_root)
+    assert seen == _event_kinds()
     assert json.loads(lines[0])["ev"] == "hello"
     assert json.loads(lines[-1])["ev"] == "done"
 
@@ -68,12 +67,12 @@ def test_built_binary_selftest_matches_the_schema(project_root: Path, schema_val
         errors = sorted(validator.iter_errors(event), key=str)
         assert not errors, f"{event['ev']}: {errors[0].message}"
         seen.add(event["ev"])
-    assert seen == _event_kinds(project_root)
+    assert seen == _event_kinds()
 
 
-def test_provenance_matches_the_run_schema(project_root: Path) -> None:
+def test_provenance_matches_the_run_schema() -> None:
     jsonschema = pytest.importorskip("jsonschema")
-    run_schema = json.loads((project_root / "schemas" / "run.schema.json").read_text(encoding="utf-8"))
+    run_schema = load_schema("run")
     bot_schema = {"$defs": run_schema["$defs"], **run_schema["properties"]["bot"]}
     info = {
         "module": "loadbot",

@@ -55,10 +55,8 @@ config:
 """
 
 
-def make_adapter(runtime: str = "native") -> PowerNukkitXAdapter:
-    return PowerNukkitXAdapter(
-        config.arm_from_ref("powernukkitx@3.0.5"), config.parse_machine({"runtime": {"kind": runtime}})
-    )
+def make_adapter() -> PowerNukkitXAdapter:
+    return PowerNukkitXAdapter(config.arm_from_ref("powernukkitx@3.0.5"), config.default_machine())
 
 
 def make_ctx(tmp_path: Path, adapter: PowerNukkitXAdapter, template: Path | None = None, **world: object) -> RunContext:

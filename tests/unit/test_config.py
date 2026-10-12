@@ -396,7 +396,7 @@ class TestMachine:
         assert m.gates == Gates(30.0, 0.5, 2.0, 0.5, 0.9)
 
     def test_label_defaults_to_the_file_name(self, write_file) -> None:
-        m = config.load_machine(write_file("box.toml", '[runtime]\nport = 20000\n'))
+        m = config.load_machine(write_file("box.toml", "[runtime]\nport = 20000\n"))
         assert m.label == "box" and m.port == 20000
 
     def test_load_takes_a_path(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

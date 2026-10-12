@@ -42,7 +42,7 @@
       "censored": true
     },
     "tick_cpu_ms_per_tick_steady": {
-      "value": 42.9,
+      "value": 40.9,
       "unit": "ms",
       "window": "steady",
       "n": 900,

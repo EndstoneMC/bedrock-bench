@@ -510,10 +510,6 @@ def virtualization(proc_root: Path = PROC, sys_root: Path = SYS) -> str | None:
     return "hypervisor" if " hypervisor" in flags else None
 
 
-def in_container(root: Path = Path("/")) -> bool:
-    return (root / ".dockerenv").exists() or (root / "run" / ".containerenv").exists()
-
-
 def power_settings(sys_root: Path = SYS) -> dict[str, object]:
     """CPU frequency governors and driver, e.g. ``{"driver": "intel_pstate", "governors": ["performance"]}``."""
     cpu_dir = sys_root / "devices" / "system" / "cpu"
@@ -545,7 +541,6 @@ __all__ = [
     "cpu_model",
     "cpu_records",
     "get_priority",
-    "in_container",
     "interrupt",
     "loaded_modules",
     "parse_cpu_list",

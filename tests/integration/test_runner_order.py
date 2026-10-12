@@ -32,7 +32,7 @@ RUN_ID = re.compile(r"^\d{8}T\d{6}Z-fake_(bds|dragonfly)@1\.0\.0-fake-quick-r[12
 def matrix_run(tmp_path_factory: pytest.TempPathFactory) -> tuple[FakeBench, subprocess.CompletedProcess[str]]:
     bench = FakeBench.create(tmp_path_factory.mktemp("bench"))
     matrix = bench.matrix(MATRIX, ARMS, repeats=2, order="rotate")
-    machine = bench.root / "machines" / "fake.toml"
+    machine = bench.machine_path()
     result = bench.bbench("run", matrix, "--machine", machine, "--out", bench.out, timeout=900)
     return bench, result
 
@@ -83,7 +83,7 @@ def test_blocks_rotate_the_arm_order(matrix_run: tuple[FakeBench, subprocess.Com
 def test_dry_run_prints_the_order_and_runs_nothing(tmp_path: Path) -> None:
     bench = FakeBench.create(tmp_path)
     matrix = bench.matrix(MATRIX, ARMS, repeats=2, order="rotate")
-    machine = bench.root / "machines" / "fake.toml"
+    machine = bench.machine_path()
     result = bench.bbench("run", matrix, "--machine", machine, "--out", bench.out, "--dry-run")
     assert result.returncode == ExitCode.OK, result.stderr
     order = [arm for line in result.stdout.splitlines() for arm in ARMS if arm in line]

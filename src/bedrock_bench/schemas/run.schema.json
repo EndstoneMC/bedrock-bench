@@ -34,7 +34,7 @@
         "git": { "type": ["string", "null"] },
         "dirty": { "type": ["boolean", "null"] },
         "python": { "type": "string", "minLength": 1 },
-        "backend": { "enum": ["native-windows", "native-linux", "docker-linux"] }
+        "backend": { "enum": ["native-windows", "native-linux"] }
       }
     },
     "matrix": {
@@ -226,7 +226,7 @@
         "harness_cpus": { "$ref": "#/$defs/cpus" },
         "priority": { "enum": ["normal", "above_normal"] },
         "kind": { "enum": ["physical", "vcpu"] },
-        "method": { "type": ["string", "null"], "description": "suspended-launch, preexec, cpuset" },
+        "method": { "type": ["string", "null"], "description": "suspended-launch, preexec, none" },
         "verified": { "type": ["boolean", "null"] }
       }
     },

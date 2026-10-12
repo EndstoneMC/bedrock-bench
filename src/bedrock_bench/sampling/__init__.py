@@ -9,9 +9,7 @@
 - :class:`TickProbe`, every 5 s, ``probe.csv``: the server's tick counter through the console priority lane.
 
 Every stamp is taken right after the read it belongs to, on the harness monotonic clock. Samplers end quietly when
-the process they watch exits. ``python -m bedrock_bench.sampling`` runs the process samplers as a standalone sidecar
-(the Docker runtime starts one next to the server container). File formats and readers are in
-:mod:`bedrock_bench.sampling.series`.
+the process they watch exits. File formats and readers are in :mod:`bedrock_bench.sampling.series`.
 """
 
 from __future__ import annotations

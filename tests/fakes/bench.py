@@ -3,8 +3,8 @@
 
 ``FakeBench.create(tmp_path)`` lays out a small project mirror and an environment for ``bbench`` subprocesses:
 
-- ``schemas/``, ``features/`` and ``scenarios/`` copies, so names resolve the same way as in a checkout;
-  ``BBENCH_ROOT`` points at the workspace and ``BBENCH_CACHE`` into it;
+- ``features/`` and ``scenarios/`` copies, so names resolve the same way as in a checkout; ``BBENCH_ROOT`` points
+  at the workspace and ``BBENCH_CACHE`` into it;
 - a ``.dist-info`` folder that registers ``fakes.fake_adapter`` under the ``bedrock_bench.adapters`` entry point
   group, with ``tests/`` and that folder on ``PYTHONPATH``;
 - ``BBENCH_BOT_CMD``, the JSON argv that replaces the loadbot binary with ``fake_bots.py``;
@@ -33,7 +33,6 @@ import psutil
 import pytest
 
 from bedrock_bench import cli
-from bedrock_bench.config import project_root
 from fakes.fake_adapter import BOTS_SCRIPT, FAKE_ADAPTERS, FEATURES_DIR, interpreter
 
 #: Environment variable the bot fleet reads instead of the loadbot binary path: a JSON array, the argv prefix.
@@ -52,7 +51,7 @@ RELAXED_GATES = {
     "foreign_server_set_cores_mean": 1024.0,
     "bot_cpu_frac_max": 1.0,
 }
-#: The shipped defaults (machines/example.toml) with a short idle check.
+#: The built-in defaults with a short idle check.
 STRICT_GATES = {
     "idle_check_s": 1.0,
     "foreign_cores_mean": 0.25,
@@ -282,8 +281,6 @@ class FakeBench:
     @classmethod
     def create(cls, root: Path) -> FakeBench:
         root.mkdir(parents=True, exist_ok=True)
-        repo = project_root()
-        shutil.copytree(repo / "schemas", root / "schemas", dirs_exist_ok=True)
         (root / "features").mkdir(exist_ok=True)
         for adapter in FAKE_ADAPTERS:
             shutil.copyfile(FEATURES_DIR / f"{adapter.name}.toml", root / "features" / f"{adapter.name}.toml")
@@ -336,7 +333,7 @@ class FakeBench:
         server_cpus: Sequence[int] | None = None,
         bot_cpus: Sequence[int] | None = None,
     ) -> Path:
-        """``machines/<name>.toml`` on this host's CPUs and the workspace port."""
+        """A machine profile at :meth:`machine_path` on this host's CPUs and the workspace port."""
         profile = {
             "label": name,
             "placement": {
@@ -345,13 +342,15 @@ class FakeBench:
                 "harness_cpus": "bot",
                 "priority": "normal",
             },
-            "runtime": {"kind": "native", "port": self.port, "jvm_heap": "1G"},
+            "runtime": {"port": self.port, "jvm_heap": "1G"},
             "gates": STRICT_GATES if strict_gates else RELAXED_GATES,
         }
-        path = self.root / "machines" / f"{name}.toml"
-        path.parent.mkdir(exist_ok=True)
+        path = self.machine_path(name)
         path.write_text(toml_dumps(profile), encoding="utf-8", newline="\n")
         return path
+
+    def machine_path(self, name: str = "fake") -> Path:
+        return self.root / f"machine-{name}.toml"
 
     def matrix(
         self,
@@ -430,7 +429,7 @@ class FakeBench:
             "--scenario",
             scenario if isinstance(scenario, Path) else self.scenario(scenario),
             "--machine",
-            self.root / "machines" / f"{machine}.toml",
+            self.machine_path(machine),
             "--out",
             self.out,
         ]
