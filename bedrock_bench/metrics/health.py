@@ -4,7 +4,7 @@
 ``evaluate`` reads the computed metrics, run.json and the workload; it never re-reads raw series. A gate on a window
 the run never reached is skipped, so a server that dies during join is a ``server_failed`` result, not an invalid run.
 
-Some facts only exist while the run is live: a harness exception, a parity key that read back differently after
+Some facts only exist while the run is live: a harness exception, a config value that read back differently after
 shutdown, or a server that ignored its stop command and was killed. The runner records those as
 ``"<gate>: <detail>"`` entries in run.json ``status_reasons``; they are kept on every recompute (``RECORDED_GATES``).
 """
@@ -60,7 +60,7 @@ GATES: tuple[GateDef, ...] = (
     GateDef(Gate.VERSION_MATCH, "the banner version equals the arm version"),
     GateDef(Gate.WORLD_FRESH, "world dir absent before launch"),
     GateDef(
-        Gate.CONFIG_READBACK, "parity keys read back after the run equal what was written (recorded by the runner)"
+        Gate.CONFIG_READBACK, "config values read back after the run equal what was written (recorded by the runner)"
     ),
     GateDef(Gate.INTERVENTIONS_IN_MEASURED, "interventions_in_measured = 0"),
     GateDef(Gate.SERVER_ALIVE, "the server ran until teardown and exited with 0 on stop, without being killed"),
