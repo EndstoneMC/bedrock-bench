@@ -1,0 +1,51 @@
+# Synthetic console lines in Endstone's format, one per dialect role (roles as in bds.toml). The launcher and the
+# server print the same `[HH:MM:SS LEVEL]: ` prefix, optionally followed by `[logger] `.
+# endstone-session.log is a whole synthetic session in the same format.
+adapter = "endstone"
+
+[[sample]]
+role = "ready"
+line = "[12:00:02 INFO]: Server started."
+
+[[sample]]
+role = "version"
+line = "[12:00:00 INFO]: This server is running Endstone version: 0.11.14 (Minecraft: 26.52)"
+value = "0.11.14"
+
+[[sample]]
+role = "player_in_world"
+line = "[12:00:09 INFO]: Player Spawned: a00 xuid: , pfid: "
+value = "a00"
+
+[[sample]]
+role = "tick"
+line = "[12:00:07 INFO]: Gametime is 102"
+value = 102
+
+[[sample]]
+role = "level"
+line = "[12:00:00 WARNING]: Content logging to console is disabled."
+value = "warn"
+
+[[sample]]
+role = "level"
+line = "[12:00:26 CRITICAL]: Something went badly wrong"
+value = "fatal"
+
+[[sample]]
+role = "strip"
+line = "[12:00:01 INFO]: [ExamplePlugin] Enabling ExamplePlugin v1.0.0"
+value = "Enabling ExamplePlugin v1.0.0"
+
+[[sample]]
+role = "strip"
+line = "[12:00:20 INFO]:       \"dimension\" : 0,"
+value = "      \"dimension\" : 0,"
+
+[[sample]]
+role = "benign"
+line = "[12:00:02 ERROR]: ================ TRANSPORT TYPE ERROR  ==================="
+
+[[sample]]
+role = "not_benign"
+line = "[12:00:25 ERROR]: Could not pass event PlayerJoinEvent to ExamplePlugin"

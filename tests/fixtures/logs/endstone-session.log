@@ -1,0 +1,49 @@
+[12:00:00 INFO]: Added a rate limit for packet 115 to packetlimitconfig.json.
+[12:00:00 INFO]: setting up server logging...
+[12:00:00 INFO]: Starting Server
+[12:00:00 INFO]: Version: 1.26.52.3
+[12:00:00 INFO]: Level Name: bench
+[12:00:00 WARNING]: Content logging to console is disabled.
+[12:00:00 INFO]: #####################################################
+[12:00:00 INFO]: #              CREATING VANILLA WORLD               #
+[12:00:00 INFO]: #####################################################
+[12:00:00 INFO]: This server is running Endstone version: 0.11.14 (Minecraft: 26.52)
+[12:00:01 INFO]: [ExamplePlugin] Enabling ExamplePlugin v1.0.0
+[12:00:02 INFO]: IPv4 supported, port: 19672: Used for gameplay
+[12:00:02 INFO]: IPv6 not supported
+[12:00:02 INFO]: Server started.
+[12:00:02 INFO]: Gametime is 2
+[12:00:07 INFO]: Gametime is 102
+[12:00:08 INFO]: Player connected: a00, xuid:
+[12:00:09 INFO]: Player Spawned: a00 xuid: , pfid:
+[12:00:09 INFO]: a00 joined the game
+[12:00:11 INFO]: Player Spawned: a01 xuid: , pfid:
+[12:00:20 INFO]: Target data: [
+[12:00:20 INFO]:    {
+[12:00:20 INFO]:       "dimension" : 0,
+[12:00:20 INFO]:       "id" : -4294967295,
+[12:00:20 INFO]:       "position" : {
+[12:00:20 INFO]:          "x" : 1280.5,
+[12:00:20 INFO]:          "y" : 71.62001037597656,
+[12:00:20 INFO]:          "z" : 1280.5
+[12:00:20 INFO]:       },
+[12:00:20 INFO]:       "uniqueId" : "-4294967295",
+[12:00:20 INFO]:       "yRot" : 12.5
+[12:00:20 INFO]:    },
+[12:00:20 INFO]:    {
+[12:00:20 INFO]:       "dimension" : 1,
+[12:00:20 INFO]:       "id" : -4294967294,
+[12:00:20 INFO]:       "position" : {
+[12:00:20 INFO]:          "x" : 240.0,
+[12:00:20 INFO]:          "y" : 100.0,
+[12:00:20 INFO]:          "z" : 160.0
+[12:00:20 INFO]:       },
+[12:00:20 INFO]:       "uniqueId" : "-4294967294",
+[12:00:20 INFO]:       "yRot" : -97.0
+[12:00:20 INFO]:    }
+[12:00:20 INFO]: ]
+[12:00:21 INFO]: Game rule randomtickspeed has been updated to 3
+[12:00:25 ERROR]: Could not pass event PlayerJoinEvent to ExamplePlugin
+[12:00:26 CRITICAL]: Something went badly wrong
+[12:00:30 INFO]: Stopping server...
+Quit correctly

@@ -1,0 +1,68 @@
+# Synthetic console lines in vanilla BDS's format (Windows and Linux print the same shape), one per dialect role.
+# The adapter tests and the adapter contract test check every sample against the adapter's Dialect:
+#   ready            Dialect.ready matches the stripped text
+#   version          Dialect.version yields `value`
+#   player_in_world  Dialect.player_in_world yields `value`
+#   tick             Dialect.tick_re yields `value`
+#   level            the prefix yields the normalised level `value`
+#   strip            the stripped text equals `value`
+#   benign           an error-level line that Dialect.benign accepts
+#   not_benign       an error-level line that Dialect.benign must not accept
+# bds-session.log is a whole synthetic session in the same format.
+adapter = "bds"
+
+[[sample]]
+role = "ready"
+line = "[2026-01-01 12:00:02:150 INFO] Server started."
+
+[[sample]]
+role = "version"
+line = "[2026-01-01 12:00:00:001 INFO] Version: 1.26.52.3"
+value = "1.26.52.3"
+
+[[sample]]
+role = "player_in_world"
+line = "[2026-01-01 12:00:09:500 INFO] Player Spawned: a00 xuid: , pfid: "
+value = "a00"
+
+[[sample]]
+role = "tick"
+line = "[2026-01-01 12:00:07:300 INFO] Gametime is 102"
+value = 102
+
+[[sample]]
+role = "level"
+line = "[2026-01-01 12:00:00:003 WARN] Content logging to console is disabled."
+value = "warn"
+
+[[sample]]
+role = "level"
+line = "[2026-01-01 12:00:02:151 ERROR] Players will not be able to connect to your game without NetherNet."
+value = "error"
+
+[[sample]]
+role = "strip"
+line = "NO LOG FILE! - setting up server logging..."
+value = "setting up server logging..."
+
+[[sample]]
+role = "strip"
+line = " [2026-01-01 12:00:20:000 INFO] Target data: ["
+value = "Target data: ["
+
+[[sample]]
+role = "strip"
+line = "      \"dimension\" : 0,"
+value = "      \"dimension\" : 0,"
+
+[[sample]]
+role = "benign"
+line = "[2026-01-01 12:00:02:151 ERROR] ================ TRANSPORT TYPE ERROR  ==================="
+
+[[sample]]
+role = "benign"
+line = "[2026-01-01 12:00:02:151 ERROR] To switch, set 'transport=nethernet' in server.properties."
+
+[[sample]]
+role = "not_benign"
+line = "[2026-01-01 12:00:40:000 ERROR] Failed to save the level"

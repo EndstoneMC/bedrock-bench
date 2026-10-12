@@ -1,0 +1,30 @@
+# Vanilla Bedrock Dedicated Server: the reference every other server is compared with, so every feature is vanilla by
+# definition. Observed counters are listed anyway; they give the baseline values the other servers are read against.
+
+schema = 1
+server = "bds"
+
+[range."1.26"]
+fidelity = "V0"
+"terrain.vanilla_generator" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock", note = "reference implementation" }
+"terrain.any_generator" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock" }
+"terrain.structures" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock" }
+"chunks.client_side_generation" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock", observed_by = "csg_effective", note = "server.properties client-side-chunk-generation-enabled" }
+"chunks.subchunk_requests" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock" }
+"entity.mob_spawning" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock" }
+"entity.mob_ai" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock" }
+"entity.collision_push" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock" }
+"entity.item_entities" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock" }
+"player.server_authoritative_movement" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock", observed_by = "corrections_per_bot_s" }
+"player.physics" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock", observed_by = "airborne_frac_steady", note = "bots teleported to y=300 fall and land" }
+"player.hunger_damage" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock" }
+"player.locator_bar" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock", observed_by = "locator_pkts_per_bot_s" }
+"block.redstone" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock" }
+"block.random_ticks" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock" }
+"block.fluids" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock" }
+"block.falling" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock" }
+"world.lighting" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock" }
+"world.dimensions" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock" }
+"world.autosave" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock" }
+"commands.vanilla_set" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock" }
+"net.encryption" = { class = "vanilla", evidence = "https://www.minecraft.net/download/server/bedrock", note = "not exercised: benchmarks run offline" }

@@ -1,0 +1,32 @@
+# server.properties values for every server that hosts BDS: vanilla BDS, Endstone and LeviLamina.
+#
+# Each key sits in the table of its override category (docs/FAIRNESS.md). At prepare time the value is written into the
+# run's fresh server copy. When it differs from the value the pinned BDS build ships, run.json records the change with
+# its category and reason; a value equal to the shipped one is written anyway and checked after the run, but is not an
+# override. Placeholders in braces come from the scenario ([server] and [world]) and the machine profile ([runtime]).
+#
+# max-threads is deliberately absent: it stays at the shipped default and is recorded as a fact.
+
+schema = 1
+file = "server.properties"
+
+[harness]
+server-name = { value = "{server_name}", reason = "names the benchmark server in logs" }
+online-mode = { value = "false", reason = "the bots log in offline with self-signed identities" }
+server-port = { value = "{port}", reason = "machine profile port, away from 19132 so a local game cannot collide" }
+server-portv6 = { value = "{port_v6}", reason = "machine profile port + 1" }
+transport = { value = "raknet", reason = "the load bot connects over RakNet" }
+enable-lan-visibility = { value = "false", reason = "with RakNet, LAN discovery also binds 19132 and 19133, where a local game may listen" }
+allow-list = { value = "false", reason = "the bots are not on the allow list" }
+emit-server-telemetry = { value = "false", reason = "no telemetry upload during measurement" }
+
+[parity]
+view-distance = { value = "{view_distance}", reason = "the same view distance on every server" }
+tick-distance = { value = "{tick_distance}", reason = "the same simulation distance on every server" }
+max-players = { value = "{max_players}", reason = "room for every bot, plus rejoins in chaos scenarios" }
+level-name = { value = "{level_name}", reason = "a fixed world folder, checked absent before launch" }
+level-seed = { value = "{seed}", reason = "the same seed, and so the same terrain, on every server" }
+gamemode = { value = "{gamemode}", reason = "the same game mode on every server" }
+difficulty = { value = "{difficulty}", reason = "the same difficulty on every server" }
+client-side-chunk-generation-enabled = { value = "{csg}", reason = "the scenario decides whether clients may generate terrain themselves" }
+server-build-radius-ratio = { value = "Disabled", reason = "the server splits each view between itself and the client dynamically, as shipped" }

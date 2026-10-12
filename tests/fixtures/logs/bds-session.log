@@ -1,0 +1,56 @@
+NO LOG FILE! - setting up server logging...
+[2026-01-01 12:00:00:001 INFO] Starting Server
+[2026-01-01 12:00:00:001 INFO] Version: 1.26.52.3
+[2026-01-01 12:00:00:002 INFO] Level Name: bench
+[2026-01-01 12:00:00:003 INFO] Game mode: 0 Survival
+[2026-01-01 12:00:00:003 WARN] Content logging to console is disabled.
+[2026-01-01 12:00:00:004 INFO]
+
+#####################################################
+#              CREATING VANILLA WORLD               #
+#####################################################
+[2026-01-01 12:00:02:100 INFO] IPv4 supported, port: 19672: Used for gameplay
+[2026-01-01 12:00:02:150 INFO] Server started.
+[2026-01-01 12:00:02:151 ERROR] ================ TRANSPORT TYPE ERROR  ===================
+[2026-01-01 12:00:02:151 ERROR] Your current connection type is not set to NetherNet. In this release, NetherNet is the only supported transport type.
+[2026-01-01 12:00:02:151 ERROR] Players will not be able to connect to your game without NetherNet.
+[2026-01-01 12:00:02:151 ERROR]
+[2026-01-01 12:00:02:151 ERROR] To switch, set 'transport=nethernet' in server.properties.
+[2026-01-01 12:00:02:151 ERROR]
+[2026-01-01 12:00:02:151 ERROR] For more information, please reference the included bedrock_server_how_to.html file.
+[2026-01-01 12:00:02:151 ERROR] =======================================================
+[2026-01-01 12:00:02:300 INFO] Gametime is 2
+[2026-01-01 12:00:07:300 INFO] Gametime is 102
+[2026-01-01 12:00:08:000 INFO] Player connected: a00, xuid:
+[2026-01-01 12:00:09:500 INFO] Player Spawned: a00 xuid: , pfid:
+[2026-01-01 12:00:09:800 INFO] Player connected: a01, xuid:
+[2026-01-01 12:00:11:200 INFO] Player Spawned: a01 xuid: , pfid:
+[2026-01-01 12:00:12:300 INFO] Gametime is 202
+ [2026-01-01 12:00:20:000 INFO] Target data: [
+   {
+      "dimension" : 0,
+      "id" : -4294967295,
+      "position" : {
+         "x" : 1280.5,
+         "y" : 71.62001037597656,
+         "z" : 1280.5
+      },
+      "uniqueId" : "-4294967295",
+      "yRot" : 12.5
+   },
+   {
+      "dimension" : 0,
+      "id" : -4294967294,
+      "position" : {
+         "x" : 1922.25,
+         "y" : 301.6000061035156,
+         "z" : 1279.75
+      },
+      "uniqueId" : "-4294967294",
+      "yRot" : -97.0
+   }
+]
+[2026-01-01 12:00:21:000 INFO] Game rule randomtickspeed has been updated to 100
+[2026-01-01 12:00:30:000 INFO] Server stop requested.
+[2026-01-01 12:00:30:500 INFO] Stopping server...
+Quit correctly
