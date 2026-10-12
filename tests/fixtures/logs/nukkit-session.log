@@ -1,0 +1,24 @@
+2026-01-01T12:00:00.168074800Z main WARN Advanced terminal features are not available in this environment
+12:00:00 [INFO ] Loading server properties...
+12:00:00 [INFO ] Selected English (eng) as the base language
+12:00:00 [INFO ] Starting Minecraft: BE server version v1.26.50
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+12:00:02 [INFO ] Opening server on 0.0.0.0:19672
+12:00:02 [WARN ] Xbox authentication is not enabled!
+12:00:02 [INFO ] This server is running Nukkit version git-b3caad6 "" (API 1.1.0)
+12:00:02 [INFO ] Loading BenchTick v1.0
+12:00:03 [INFO ] Preparing level "bench"
+12:00:03 [INFO ] Enabling BenchTick v1.0
+12:00:03 [INFO ] Done (3.585s)! For help, type "help" or "?"
+12:00:03 [INFO ] Gametime is 3
+12:00:04 [INFO ] [BenchTick] RakNet per-IP packet limit lifted
+12:00:09 [INFO ] a00[/127.0.0.1:55506] logged in with entity id 1 at (bench, 128, 70, 128)
+12:00:11 [INFO ] a00 joined the game
+12:00:11 [INFO ] [CONSOLE: Teleported a00 to 1280.0, 300.0, 1280.0]
+12:00:13 [INFO ] Gametime is 203
+12:00:20 [INFO ] positions: 1
+12:00:20 [INFO ] position: a00 1280.50 300.00 1280.50 0
+12:00:25 [INFO ] [BenchTick] pregen: cell 0 441 441
+12:00:30 [ERROR] Could not save chunk 80,80
+12:00:31 [FATAL] Something went badly wrong
+12:00:40 [INFO ] Stopping the server

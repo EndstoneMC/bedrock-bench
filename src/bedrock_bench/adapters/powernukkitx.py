@@ -1,0 +1,167 @@
+# SPDX-License-Identifier: Apache-2.0
+"""PowerNukkitX, a Nukkit fork with vanilla-like gameplay, run from its release jar on the pinned JDK.
+
+Fetch: ``powernukkitx.jar`` from ``artifacts/powernukkitx.toml`` and the JDK from ``artifacts/runtimes.toml``. No
+helper plugin: ``time query gametime`` prints the tick counter, and positions come from the bots, because
+PowerNukkitX has no ``querytarget``.
+
+Prepare writes ``pnx.yml`` with the benchmark's values (PowerNukkitX completes and rewrites it on start) and
+``worlds/<level>/config.json`` with the scenario seed, which PowerNukkitX reads only from there. Launch:
+``java -Xms<heap> -Xmx<heap> -jar powernukkitx.jar``. Like Nukkit, it derives a player's UUID from the XUID, so the
+bots get ``-fake-xuid``. See docs/servers/powernukkitx.md.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+from collections.abc import Mapping, Sequence
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, ClassVar
+
+from bedrock_bench import config
+from bedrock_bench.adapters.base import ChaosDialect, Dialect
+from bedrock_bench.adapters.bdsfamily import BdsFamily
+from bedrock_bench.adapters.standalone import JavaServer, fetch_release, fetch_runtime, runtime_platform
+from bedrock_bench.model import (
+    ConfigFile,
+    Install,
+    LaunchSpec,
+    Layout,
+    Override,
+    OverrideCategory,
+    RunContext,
+    WorldInfo,
+)
+from bedrock_bench.provenance import sha256_file
+
+if TYPE_CHECKING:
+    import psutil
+
+    from bedrock_bench.cache import Cache
+
+JAR = "powernukkitx.jar"
+WORLD_CONFIG_TEMPLATE = "servers/powernukkitx/world-config.json"
+DEFAULT_RUNTIME = "jdk-21.0.12.1"
+
+#: ``13:58:00 [main] [INFO] text`` with the thread name; log4j's own start-up warning is
+#: ``2026-10-10T22:29:18.175Z main WARN text``.
+PNX_PREFIX = re.compile(
+    r"^(?:\d{4}-\d{2}-\d{2}T\S+Z \S+ |\d{2}:\d{2}:\d{2} \[(?P<logger>[^\]]+)\] \[)(?P<level>[A-Z]+)(?:\] | )"
+)
+PNX_LEVELS: Mapping[str, str] = {
+    "TRACE": "debug",
+    "DEBUG": "debug",
+    "INFO": "info",
+    "WARN": "warn",
+    "ERROR": "error",
+    "FATAL": "fatal",
+}
+#: Release jars report themselves as ``<version>-SNAPSHOT (git-<commit>)``; the commit is pinned in artifacts.
+PNX_DIALECT = Dialect(
+    ready=re.compile(r"^Done \(\d+(?:\.\d+)?s\)!"),
+    prefix=PNX_PREFIX,
+    level_map=PNX_LEVELS,
+    benign=(),
+    version=re.compile(r"This server is running PowerNukkitX version (?P<version>\d+(?:\.\d+)+)(?:-SNAPSHOT)?\b"),
+    player_in_world=re.compile(r"^(?P<player>\S+) joined the game$"),
+    tick_cmd="time query gametime",
+    tick_re=re.compile(r"^Gametime is (?P<tick>\d+)"),
+)
+
+
+class PowerNukkitXAdapter(JavaServer):
+    name: ClassVar[str] = "powernukkitx"
+    platforms: ClassVar[frozenset[str]] = frozenset({"windows", "linux", "docker"})
+    protocol: ClassVar[int] = 2193
+    bot_compat_flags: ClassVar[tuple[str, ...]] = ("-fake-xuid",)
+    dialect: ClassVar[Dialect] = PNX_DIALECT
+    server_file: ClassVar[str] = JAR
+
+    # ---- fetch ----------------------------------------------------------------------------------------------------
+
+    def fetch(self, cache: Cache) -> Install:
+        jar, jar_ref, entry = fetch_release(cache, self.name, self.arm.version, artifact=self.arm.artifact)
+        meta = dict(entry.meta) if entry is not None else {}
+        runtime = fetch_runtime(cache, str(meta.get("runtime", DEFAULT_RUNTIME)), runtime_platform())
+        return self.build_install(
+            cache,
+            release=jar,
+            release_ref=jar_ref,
+            runtime=runtime,
+            build=lambda tmp: None,
+            extra={"commit": meta.get("commit"), "protocol": meta.get("protocol"), "minecraft": meta.get("minecraft")},
+        )
+
+    # ---- prepare and launch ---------------------------------------------------------------------------------------
+
+    def world_data(self, level_dir: Path) -> Path:
+        """The level's database: prepare writes ``config.json`` into the level folder before the first start."""
+        return level_dir / "db"
+
+    def prepare_extra(
+        self, server_dir: Path, install: Install, ctx: RunContext, world: WorldInfo
+    ) -> tuple[Sequence[Override], Sequence[ConfigFile], Mapping[str, Any]]:
+        relative = f"worlds/{ctx.scenario.world.level_name}/config.json"
+        seed = ctx.scenario.world.seed
+        if not world.fresh:
+            return [], [], {"world_config": None}  # the template brings the config it was generated with
+        data = json.loads((config.project_root() / WORLD_CONFIG_TEMPLATE).read_text(encoding="utf-8"))
+        for generator in data["generators"].values():
+            generator["seed"] = seed
+        path = server_dir / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8", newline="\n")
+        override = Override(
+            OverrideCategory.PARITY,
+            relative,
+            "generators.*.seed",
+            "(random)",
+            str(seed),
+            "the same seed on every server; PowerNukkitX reads it only from the level's config.json",
+        )
+        return [override], [ConfigFile(relative, sha256_file(path))], {"world_config": relative, "seed": seed}
+
+    def launch(self, layout: Layout) -> LaunchSpec:
+        argv, image = self.java_launch(layout)
+        return LaunchSpec(argv=argv, cwd=layout.server_dir, image=image)
+
+    def readback(self, layout: Layout) -> list[str]:
+        problems = super().readback(layout)
+        relative = layout.extra.get("world_config")
+        if relative:
+            try:
+                data = json.loads((layout.server_dir / relative).read_text(encoding="utf-8"))
+                seeds = {str(g.get("seed")) for g in data["generators"].values()}
+            except (OSError, ValueError, KeyError, AttributeError) as exc:
+                problems.append(f"{relative}: unreadable after the run ({exc})")
+            else:
+                if seeds != {str(layout.extra.get("seed"))}:
+                    problems.append(f"{relative}: seeds read back as {sorted(seeds)}")
+        return problems
+
+    # ---- commands -------------------------------------------------------------------------------------------------
+
+    def chaos_dialect(self) -> ChaosDialect:
+        """The vanilla command set, as BDS renders it, minus the commands PowerNukkitX lacks or runs differently."""
+        vanilla = BdsFamily.chaos_dialect(self)  # only uses cmd_tp and cmd_effects, which are vanilla here too
+        unsupported = {
+            "loot": "no loot command",
+            "playerwaypoints": "no playerwaypoints game rule",
+            "cleanup": "kill @e[type=!player] also kills players on PowerNukkitX",
+        }
+        renderers = {action: r for action, r in vanilla.renderers.items() if action not in unsupported}
+        return ChaosDialect(renderers=renderers, unsupported=unsupported)
+
+    # ---- facts ----------------------------------------------------------------------------------------------------
+
+    def facts(self, layout: Layout, proc: psutil.Process) -> dict[str, Any]:
+        facts = self.jvm_facts(layout)
+        facts.update(
+            {
+                "usage_statistics": "off",
+                "inbound_rate_limit": "on as shipped: 1500 packets/s and 500 per tick per session",
+                "level_worker_threads": "-1 (one per available processor)",
+            }
+        )
+        return facts

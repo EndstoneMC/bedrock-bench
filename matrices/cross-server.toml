@@ -1,0 +1,55 @@
+# SPDX-License-Identifier: Apache-2.0
+# Every server on the spread100 headline: 100 spread bots, client-side generation off, the same scenario, bot flags
+# and placement for every arm (docs/FAIRNESS.md). Nukkit and PowerNukkitX also run spread100-pregen, which separates
+# chunk delivery from their slow generation; build their templates first with
+#   bbench prepare-world nukkit@b3caad6 --scenario spread100-pregen
+#   bbench prepare-world powernukkitx@3.0.5 --scenario spread100-pregen
+# Reports group arms by declared fidelity and never rank across groups.
+#
+# levilamina runs on Windows only; on Linux, pick the other arms with --only.
+[matrix]
+name = "cross-server"
+scenarios = ["spread100", "spread100-pregen"]
+repeats = 3
+order = "rotate"
+cooldown_s = 60.0
+rerun_invalid = 1
+
+[[arm]]
+server = "bds@1.26.52.3"
+scenarios = ["spread100"]
+
+[[arm]]
+server = "endstone@0.11.14"
+bds = "1.26.52.3"
+python = "3.13"
+scenarios = ["spread100"]
+
+# Same-build baseline for levilamina@26.51.6.
+[[arm]]
+server = "bds@1.26.51.1"
+scenarios = ["spread100"]
+
+[[arm]]
+server = "levilamina@26.51.6"
+bds = "1.26.51.1"
+scenarios = ["spread100"]
+
+[[arm]]
+server = "pocketmine@5.44.3"
+scenarios = ["spread100"]
+
+# With its watchdog on, Nukkit may stop itself during the first autosave of a fresh world; that is a result.
+[[arm]]
+server = "nukkit@b3caad6"
+
+[[arm]]
+server = "nukkit@b3caad6"
+variant = "no-watchdog"
+
+[[arm]]
+server = "powernukkitx@3.0.5"
+
+[[arm]]
+server = "dragonfly@1793369"
+scenarios = ["spread100"]

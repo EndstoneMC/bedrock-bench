@@ -1,0 +1,52 @@
+# Synthetic console lines in PocketMine-MP's format, one per dialect role (roles as in bds.toml). Log lines are
+# `[HH:MM:SS.mmm] [<thread>/<LEVEL>]: text`; replies to console commands are `Command output | text` with no level.
+# pocketmine-session.log is a whole synthetic session in the same format.
+adapter = "pocketmine"
+
+[[sample]]
+role = "ready"
+line = "[12:00:03.300] [Server thread/INFO]: Done (3.205s)! For help, type \"help\" or \"?\""
+
+[[sample]]
+role = "version"
+line = "[12:00:00.300] [Server thread/INFO]: This server is running PocketMine-MP version 5.44.3"
+value = "5.44.3"
+
+[[sample]]
+role = "player_in_world"
+line = "[12:00:10.100] [Server thread/INFO]: a00 joined the game"
+value = "a00"
+
+[[sample]]
+role = "tick"
+line = "Command output | Gametime is 103"
+value = 103
+
+[[sample]]
+role = "level"
+line = "[12:00:00.118] [Server thread/WARNING]: Online mode is disabled."
+value = "warn"
+
+[[sample]]
+role = "level"
+line = "[12:00:01.120] [Server thread/NOTICE]: Spawn terrain for world \"bench\" is being generated in the background"
+value = "info"
+
+[[sample]]
+role = "level"
+line = "[12:00:31.000] [Server thread/CRITICAL]: Something went badly wrong"
+value = "fatal"
+
+[[sample]]
+role = "strip"
+line = "Command output | position: a00 1280.50 300.00 1280.50 0"
+value = "position: a00 1280.50 300.00 1280.50 0"
+
+[[sample]]
+role = "strip"
+line = "[12:00:04.300] [Server thread/INFO]: [BenchHelper] RakLib per-IP packet limit lifted"
+value = "[BenchHelper] RakLib per-IP packet limit lifted"
+
+[[sample]]
+role = "not_benign"
+line = "[12:00:30.000] [Server thread/ERROR]: Could not save player data for a00"

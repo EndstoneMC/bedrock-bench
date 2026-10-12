@@ -1,0 +1,18 @@
+# Nukkit (CloudburstMC) publishes no releases, so a version is the 7-character commit of a snapshot build from the
+# OpenCollab Maven repository, pinned by its timestamped file name and sha256. Snapshot repositories prune old builds;
+# keep a copy of the jar and pass it with --artifact-dir, where it is checked against the same pin.
+# `runtime` names the JDK in artifacts/runtimes.toml.
+
+server = "nukkit"
+source = "maven"
+
+[version."b3caad6"]
+commit = "b3caad67d86be34aeca3937e64e8176f6760a2d4"
+protocol = 2193
+minecraft = "1.26.50"
+runtime = "jdk-21.0.12.1"
+
+[version."b3caad6".any]
+url = "https://repo.opencollab.dev/maven-snapshots/cn/nukkit/nukkit/1.0-SNAPSHOT/nukkit-1.0-20260919.123832-1250.jar"
+sha256 = "b373dcdb240d0d32fccbc9e0f9e727c4591082580dad7d522f924b7b411daa49"
+size = 27105379

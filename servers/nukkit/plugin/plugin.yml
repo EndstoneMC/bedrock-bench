@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: Apache-2.0
+name: BenchTick
+main: bench.BenchTick
+version: "1.0"
+api: ["1.0.0"]
+description: Console commands for bedrock-bench
+commands:
+  gametime:
+    description: Prints the server tick counter
+    usage: /gametime
+    permission: benchtick.use
+  positions:
+    description: Prints every online player's position
+    usage: /positions
+    permission: benchtick.use
+  fillnear:
+    description: Fills a box of blocks relative to a player
+    usage: /fillnear <player> <dx1> <dy1> <dz1> <dx2> <dy2> <dz2> <block>
+    permission: benchtick.use
+  dim:
+    description: Moves a player to another dimension
+    usage: /dim <player> <overworld|nether|the_end> <x> <y> <z>
+    permission: benchtick.use
+  pregen:
+    description: Generates the chunks around every grid cell, then counts them per cell
+    usage: /pregen <radius> <columns> <spacing> <origin> <cells> [in_flight]
+    permission: benchtick.use
+permissions:
+  benchtick.use:
+    default: op

@@ -1,0 +1,17 @@
+# PowerNukkitX release jars from GitHub, verified against the sha256 GitHub publishes for each release asset.
+# A release jar reports its version as <version>-SNAPSHOT with the commit it was built from; `commit` is that commit.
+# `runtime` names the JDK in artifacts/runtimes.toml.
+
+server = "powernukkitx"
+source = "github"
+
+[version."3.0.5"]
+commit = "9813b75a973aa93d3c29c49c85742a0c1beee3de"
+protocol = 2193
+minecraft = "1.26.50"
+runtime = "jdk-21.0.12.1"
+
+[version."3.0.5".any]
+url = "https://github.com/PowerNukkitX/PowerNukkitX/releases/download/3.0.5/powernukkitx.jar"
+sha256 = "bc3c54236256c8e3bf8573ecf090e3853785c7622891d7d28d780a398fc1de60"
+size = 86100503

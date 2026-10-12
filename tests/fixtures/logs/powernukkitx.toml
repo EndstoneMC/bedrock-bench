@@ -1,0 +1,42 @@
+# Synthetic console lines in PowerNukkitX's format, one per dialect role (roles as in bds.toml). Log lines are
+# `HH:MM:SS [<thread>] [LEVEL] text`; log4j's own start-up warning has an ISO time stamp and the thread name.
+# powernukkitx-session.log is a whole synthetic session in the same format.
+adapter = "powernukkitx"
+
+[[sample]]
+role = "ready"
+line = "12:00:05 [main] [INFO] Done (5.406s)! For help, type \"help\" or \"?\""
+
+[[sample]]
+role = "version"
+line = "12:00:01 [main] [INFO] This server is running PowerNukkitX version 3.0.5-SNAPSHOT (git-9813b75) (API 3.0.5)"
+value = "3.0.5"
+
+[[sample]]
+role = "player_in_world"
+line = "12:00:12 [main] [INFO] a00 joined the game"
+value = "a00"
+
+[[sample]]
+role = "tick"
+line = "12:00:15 [main] [INFO] Gametime is 203"
+value = 203
+
+[[sample]]
+role = "level"
+line = "12:00:30 [main] [WARN] Can't keep up! Is the server overloaded?"
+value = "warn"
+
+[[sample]]
+role = "level"
+line = "12:00:31 [main] [ERROR] Could not save chunk 80,80"
+value = "error"
+
+[[sample]]
+role = "strip"
+line = "12:00:09 [Netty Server IO #1] [INFO] a00[/127.0.0.1:55527] logged in with entity id 3 at (bench, 2.0689, 64.0, 3.8129)"
+value = "a00[/127.0.0.1:55527] logged in with entity id 3 at (bench, 2.0689, 64.0, 3.8129)"
+
+[[sample]]
+role = "not_benign"
+line = "12:00:31 [main] [ERROR] Could not save chunk 80,80"

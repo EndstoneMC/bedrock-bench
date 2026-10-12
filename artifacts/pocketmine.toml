@@ -1,0 +1,16 @@
+# PocketMine-MP release phars from GitHub, verified against the sha256 GitHub publishes for each release asset.
+# `runtime` names the PHP build in artifacts/runtimes.toml; `protocol` and `minecraft` are what the release speaks.
+
+server = "pocketmine"
+source = "github"
+
+[version."5.44.3"]
+commit = "51c8777b46683d24cfd29fe650205c22c262b678"
+protocol = 1001
+minecraft = "1.26.30"
+runtime = "php-8.2-pm5-524"
+
+[version."5.44.3".any]
+url = "https://github.com/pmmp/PocketMine-MP/releases/download/5.44.3/PocketMine-MP.phar"
+sha256 = "d8b4d87a64124d83659f629c87d6a8e0e142192f6c719fe4684272ff44105539"
+size = 3354057

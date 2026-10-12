@@ -1,0 +1,19 @@
+2026-01-01T12:00:00.175697600Z main WARN Advanced terminal features are not available in this environment
+12:00:00 [main] [INFO] Loading pnx.yml...
+12:00:00 [main] [INFO] Selected English (eng) as the base language
+12:00:01 [main] [INFO] Starting Minecraft: BE server version 1.26.50
+12:00:01 [main] [INFO] This server is running PowerNukkitX version 3.0.5-SNAPSHOT (git-9813b75) (API 3.0.5)
+12:00:04 [ComputeThreadPool-thread-0] [INFO] Loaded 4986 recipes.
+12:00:05 [main] [INFO] Loading is complete for level "bench"
+12:00:05 [main] [INFO] RakNet listening on udp/19672
+12:00:05 [main] [INFO] Done (5.406s)! For help, type "help" or "?"
+12:00:05 [main] [INFO] Gametime is 2
+12:00:09 [Netty Server IO #1] [INFO] a00[/127.0.0.1:55527] logged in with entity id 3 at (bench, 2.0689, 64.0, 3.8129)
+12:00:12 [main] [INFO] a00 joined the game
+12:00:12 [main] [INFO] Gave Resistance * 255 to a00 for an infinite duration
+12:00:12 [main] [INFO] Teleported a00 to 1280.0, 300.0, 1280.0
+12:00:15 [main] [INFO] Gametime is 203
+12:00:20 [main] [INFO] Game rule randomtickspeed has been updated to 3
+12:00:30 [main] [WARN] Can't keep up! Is the server overloaded?
+12:00:31 [main] [ERROR] Could not save chunk 80,80
+12:00:40 [main] [INFO] Stopping the server

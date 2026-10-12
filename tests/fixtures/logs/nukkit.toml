@@ -1,0 +1,52 @@
+# Synthetic console lines in Nukkit's format, one per dialect role (roles as in bds.toml). Log lines are
+# `HH:MM:SS [LEVEL] text` with the level padded to five characters; log4j's own start-up warning has an ISO time stamp
+# and the thread name. nukkit-session.log is a whole synthetic session in the same format.
+adapter = "nukkit"
+
+[[sample]]
+role = "ready"
+line = "12:00:03 [INFO ] Done (3.585s)! For help, type \"help\" or \"?\""
+
+[[sample]]
+role = "version"
+line = "12:00:02 [INFO ] This server is running Nukkit version git-b3caad6 \"\" (API 1.1.0)"
+value = "b3caad6"
+
+[[sample]]
+role = "player_in_world"
+line = "12:00:11 [INFO ] a00 joined the game"
+value = "a00"
+
+[[sample]]
+role = "tick"
+line = "12:00:13 [INFO ] Gametime is 203"
+value = 203
+
+[[sample]]
+role = "level"
+line = "12:00:02 [WARN ] Xbox authentication is not enabled!"
+value = "warn"
+
+[[sample]]
+role = "level"
+line = "2026-01-01T12:00:00.168074800Z main WARN Advanced terminal features are not available in this environment"
+value = "warn"
+
+[[sample]]
+role = "level"
+line = "12:00:31 [FATAL] Something went badly wrong"
+value = "fatal"
+
+[[sample]]
+role = "strip"
+line = "12:00:25 [INFO ] [BenchTick] pregen: cell 0 441 441"
+value = "[BenchTick] pregen: cell 0 441 441"
+
+[[sample]]
+role = "strip"
+line = "2026-01-01T12:00:00.168074800Z main WARN Advanced terminal features are not available in this environment"
+value = "Advanced terminal features are not available in this environment"
+
+[[sample]]
+role = "not_benign"
+line = "12:00:30 [ERROR] Could not save chunk 80,80"
