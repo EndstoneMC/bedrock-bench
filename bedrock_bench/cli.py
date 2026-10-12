@@ -142,7 +142,7 @@ def _configure_report(p: argparse.ArgumentParser) -> None:
     p.add_argument(
         "--publish",
         action="store_true",
-        help="enforce publication rules: n_ok >= 3, released artifacts only, equal-chunk scenario for cross-server",
+        help="enforce publication rules: n_ok >= 3, official runs only, no client-side generation across servers",
     )
 
 

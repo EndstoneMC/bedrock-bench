@@ -11,7 +11,7 @@ server = "endstone"
 #   python          CPython used when the arm does not name one
 #   version_marker  what the launcher expects in the server's version.txt (<minor>.<patch> of the BDS build)
 #   linux_allocator allocator the launcher sets up on Linux: "mimalloc" (preloaded) or "glibc" (the default)
-#   known_issues    defects of the release that change measurements; shown as known_issue footnotes
+#   known_issues    defects of the release that change measurements; recorded in each run's facts
 [artifacts]
 source = "pypi"
 
