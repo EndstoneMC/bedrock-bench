@@ -24,7 +24,7 @@ from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from bedrock_bench import config, fetch
+from bedrock_bench import fetch, templates
 from bedrock_bench.adapters.base import Dialect
 from bedrock_bench.adapters.standalone import (
     COMMAND_LINE,
@@ -66,7 +66,7 @@ JAR = "allay.jar"
 HELPER_DESCRIPTOR = "plugin.json"
 PLUGIN_FILE = "plugins/BenchTick.jar"
 WORLD_SETTINGS = "worlds/world-settings.yml"
-WORLD_SETTINGS_TEMPLATE = "servers/allay/world-settings.yml"
+WORLD_SETTINGS_TEMPLATE = "world-settings.yml"
 DEFAULT_WORLD = "world"
 WORLD_THREAD = "World Thread #"
 SENTRY_FLAG = "-Dsentry.dsn="
@@ -158,10 +158,10 @@ class AllayAdapter(JavaServer):
         self, server_dir: Path, install: Install, ctx: RunContext, world: WorldInfo
     ) -> tuple[Sequence[Override], Sequence[ConfigFile], Mapping[str, Any]]:
         level = ctx.workload.world.level_name
-        template = (config.project_root() / WORLD_SETTINGS_TEMPLATE).read_text(encoding="utf-8")
+        text = templates.render(self.folder(), WORLD_SETTINGS_TEMPLATE, self.template_variables(ctx))
         path = server_dir / WORLD_SETTINGS
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(template.replace("{level_name}", level), encoding="utf-8", newline="\n")
+        path.write_text(text, encoding="utf-8", newline="\n")
         harness, parity = OverrideCategory.HARNESS, OverrideCategory.PARITY
         overrides = [
             Override(harness, PLUGIN_FILE, "plugin", None, "installed", "prints the tick counter and player positions"),

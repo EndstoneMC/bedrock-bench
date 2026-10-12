@@ -204,7 +204,7 @@ class TestPrepare:
         assert settings["generic-settings.default-difficulty"] == "EASY"
         assert settings["world-settings.view-distance"] == "10"
         worlds = (server / "worlds" / "world-settings.yml").read_text(encoding="utf-8")
-        assert "\n  bench:\n" in worlds and worlds.endswith("default-world: bench\n") and "{level_name}" not in worlds
+        assert "\n  bench:\n" in worlds and worlds.endswith("default-world: bench\n") and "{{" not in worlds
         assert world_settings_problems(worlds, "bench") == []
         assert layout.world.fresh and layout.world.generator == "flat"
         assert layout.world.path == server / "worlds" / "bench" and not layout.world.path.exists()
@@ -333,7 +333,7 @@ def test_helper_sources_are_committed() -> None:
     for text in ('"gametime"', '"positions"', '"Gametime is "', '"positions: "', "AllayTerminalConsole"):
         assert text in source
     template = (folder / "world-settings.yml").read_text(encoding="utf-8")
-    assert template.count("{level_name}") == 3 and "generator-type: FLAT" in template
+    assert template.count("{{ workload.world.level_name }}") == 2 and "generator-type: FLAT" in template
 
 
 def test_thread_from_jcmd() -> None:
