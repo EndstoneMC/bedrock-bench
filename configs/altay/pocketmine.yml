@@ -1,0 +1,27 @@
+settings:
+  # One async worker per server CPU; auto counts every CPU of the machine, not the server's.
+  async-workers: {{ run.server_cpu_count }}
+memory:
+  # Altay ships PocketMine-MP's 1024 MB limit, which stops the server about 23 s into the 100-bot join.
+  main-hard-limit: 0
+network:
+  # The bots connect over RakNet, which Altay logs as deprecated, so the transport is pinned.
+  transport: raknet
+chunk-ticking:
+  # Same simulation distance on every server.
+  tick-radius: {{ workload.server.tick_distance }}
+ticks-per:
+  # Same autosave interval on every server.
+  autosave: {{ workload.server.autosave_ticks }}
+player:
+  # Player data is saved, as on every server.
+  save-player-data: {{ workload.server.save_player_data | lower }}
+auto-report:
+  # No crash report upload.
+  enabled: false
+auto-updater:
+  # No update checks during measurement.
+  enabled: false
+anonymous-statistics:
+  # No usage statistics upload.
+  enabled: false
