@@ -1,0 +1,8 @@
+55d0c0a00000-55d0c4a00000 r-xp 00000000 08:02 1048601                    /data/bedrock_server
+55d0c6000000-55d0c8000000 rw-p 00000000 00:00 0                          [heap]
+7f3a10000000-7f3a10021000 rw-p 00000000 00:00 0 
+7f3a2c000000-7f3a2c1b8000 r-xp 00000000 08:02 2097230                    /usr/lib/x86_64-linux-gnu/libc.so.6
+7f3a2c400000-7f3a2c44a000 r-xp 00000000 08:02 1048700                    /data/libmimalloc.so.2
+7f3a2c600000-7f3a2c601000 rw-s 00000000 00:05 4096                       /dev/shm/bench (deleted)
+7f3a2c800000-7f3a2c82a000 r-xp 00000000 08:02 2097201                    /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7ffd5c3dd000-7ffd5c3fe000 rw-p 00000000 00:00 0                          [stack]
