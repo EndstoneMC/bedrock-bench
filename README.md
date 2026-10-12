@@ -83,12 +83,12 @@ scenario files, bot flags and CPU placement.
 |---|---|---|---|---|---|---|
 | E1 | Endstone against the BDS build it hosts, client-side generation off | [`endstone-0.11.14.toml`](configs/matrices/endstone-0.11.14.toml) | `bds@1.26.52.3`, `endstone@0.11.13`, `endstone@0.11.14` | [`spread100`](configs/scenarios/spread100.toml) | 3 × 3 | 1.5–3 h |
 | E2 | E1 with client-side generation on, the setting of the blog's figures | [`endstone-0.11.14-csg.toml`](configs/matrices/endstone-0.11.14-csg.toml) | as E1 | [`spread100-csg`](configs/scenarios/spread100-csg.toml) | 3 × 3 | 1.5–3 h |
-| E3 | Every server on the same workload | [`cross-server.toml`](configs/matrices/cross-server.toml) | every server but Chorus, 14 arms | [`spread100`](configs/scenarios/spread100.toml), [`spread100-pregen`](configs/scenarios/spread100-pregen.toml) | 20 × 3 | 11–21 h |
+| E3 | Every server on the same workload | [`cross-server.toml`](configs/matrices/cross-server.toml) | every server but Chorus, 14 arms | [`spread100`](configs/scenarios/spread100.toml) | 14 × 3 | 8–15 h |
 | E4 | LeviLamina and LeviOptimize against the BDS build they host | [`levilamina-26.51.toml`](configs/matrices/levilamina-26.51.toml) | `bds@1.26.51.1`, `levilamina@26.51.6` and its 2 variants | [`spread100`](configs/scenarios/spread100.toml) | 4 × 3 | 2–4 h |
 
 Runs are cells (arm and scenario) times repeats. Times follow from the phase lengths in the scenario files: a spread100
-run takes 10 to 20 minutes, most of it waiting for the views to settle. The cooldowns are included; downloads,
-installs and the E3 world templates are not.
+run takes 10 to 20 minutes, most of it waiting for the views to settle. The cooldowns are included; downloads and
+installs are not.
 
 ```shell
 uv run bbench fetch endstone-0.11.14 --accept-eula   # every pin the matrix needs
@@ -104,12 +104,10 @@ uv run scripts/plot_results.py runs/endstone-0.11.14  # figures into results/
 
 An experiment runs on one machine and one OS; it is not repeated per platform. The repeats (3, rotated) all run on
 that machine. A report never mixes machines, and `bbench run` refuses to add runs from another machine or machine
-profile to an existing results directory. Keep machine profiles and claims files in `local/`, which git ignores: any
+profile to an existing results directory. Keep machine profiles in `local/`, which git ignores: any
 other untracked or changed file in the checkout marks every run `dirty_harness`, and `--publish` refuses those runs.
 
-- E3: build the world templates first with `uv run bbench prepare-world nukkit@b3caad6 --scenario spread100-pregen` and
-  the same for `nukkitmot@9cb0aba`, `powernukkitx@3.0.5` and `powernukkitx@nightly.86f70bc`. Reports group arms by
-  declared fidelity and never rank across groups.
+- E3: reports group arms by declared fidelity and never rank across groups.
 - E3: the PocketMine-MP and Allay arms need the protocol 1001 bot, which builds only once its gophertunnel fork tag is
   published ([bots/README.md](bots/README.md#patches)). Until then E3 cannot run in full: `bbench run cross-server`
   stops at the first of those arms. [docs/get_started.md](docs/get_started.md#running-an-experiment) shows how to run
@@ -140,7 +138,7 @@ Read [docs/methodology.md](docs/methodology.md#reading-a-report) before comparin
   beats every run of the other, at p ≤ 0.05 (`separated` in `bedrock_bench/report/aggregate.py`).
   `bbench report --publish` refuses fewer than 3 ok runs per cell, local artifacts, unofficial runs, unknown parity and
   client-side generation in a cross-server table (`publish_problems`,
-  [publication rules](docs/methodology.md#publishing-and-claims)).
+  [publication rules](docs/methodology.md#publishing)).
 - **CI re-checks the harness.** Synthetic fixture runs (`tests/fixtures/runs/`) must recompute to byte-identical
   `metrics.json` (`tests/integration/test_recompute_golden.py`), the bots built on Linux and on Windows must be
   identical (`.github/workflows/bots.yml`), and a real Dragonfly server passes a 4-bot smoke on every harness change

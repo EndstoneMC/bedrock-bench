@@ -14,7 +14,7 @@ Code and error messages cite these rules by number.
 | R2 | One bot source with identical flags for every arm. Only allowlisted identity flags (`-fake-xuid`) may differ. The protocol 1001 build for PocketMine-MP is flagged `bot_protocol_differs`. | Adapter contract test; report flag. |
 | R3 | Identical server CPU set, bot CPU set, priority and JVM heap for every arm. | The runner refuses mixed placement; the report refuses mixed machine profiles. |
 | R4 | One measured run at a time, with continuous interference sampling. | Machine lock, idle gate, per-window foreign-load gate. |
-| R5 | A fresh server copy and a fresh (or validated template) world for every run. Nothing is edited in place. | Run directory layout, install-tree hash. |
+| R5 | A fresh server copy and a fresh world for every run. Nothing is edited in place. | Run directory layout, install-tree hash. |
 | R6 | Every config change from a server's defaults is recorded with a category: `harness`, `parity`, `rescue` or `nonvanilla`. `rescue` and `nonvanilla` always produce a footnote. | Adapters return an override list from `prepare()`. |
 | R7 | No interventions (nudges, re-teleports, commands other than the tick probe) inside measured windows. | `interventions_in_measured` gate. |
 | R8 | TPS comes only from a monotonic counter that advances once per executed tick. World time and day time are rejected. | Adapters declare the probe monotonic; the probe must advance during idle. |
@@ -33,9 +33,6 @@ in `bedrock_bench/config.py`.
 | `smoke` | Checks one adapter end to end with a few bots (`bbench smoke`). Every command the harness sends must be accepted. |
 | `spread100` | The headline for every server, Endstone included. Client-side generation off. |
 | `spread100-csg` | `spread100` with client-side generation on. BDS-hosted servers only, never in a cross-server table. |
-| `spread100-pregen` | `spread100` on a world template, to measure chunk delivery without generation. |
-| `chaos-portable` | Seeded admin actions every adapter supports, at normal tick speed. Never ranked. |
-| `chaos` | Every action, random tick speed cycling included. BDS-hosted servers. Never ranked. |
 
 Each scenario lists the features whose parity rows the report shows (`exercises`) and the features that must match for
 efficiency metrics to be comparable (`requires`).
@@ -55,28 +52,7 @@ over RakNet from 127.0.0.1 with a deterministic identity, walks a circle, report
 server always sends full chunks, and counts unique chunks within its current view. A decode error makes the run
 invalid, because the bot did not see everything the server sent.
 
-**World.** A fresh world is absent before launch and generated during the run (`world_fresh` checks it). A template
-scenario loads a world the server built beforehand with its own pipeline (`bbench prepare-world <server@version>
---scenario spread100-pregen`): a bot tour by default, a helper plugin on Nukkit and Nukkit-MOT. A template is accepted
-only when every cell reaches `world.min_coverage` of its view disc, and its tree hash is recorded in each run that uses
-it. Templates stay in the local cache. They are never committed, published or shared between servers, because world
-formats are not interchangeable. Fresh and template worlds are different scenarios, so they never share a table.
-
-**Chaos.** Chaos runs after steady and looks for crashes, stalls, lost players and memory growth under rapid admin
-actions. The action catalogue is [`configs/scenarios/chaos-actions.toml`](../configs/scenarios/chaos-actions.toml).
-
-- The plan is generated before the run from the seed, the scenario and the bot count, and saved with its hash as
-  `chaos-plan.jsonl`. Nothing measured goes in, so every arm gets the same plan.
-- Each action fires at its catalogue interval times U(0.6, 1.4). Targets are bot indices; an offline target is recorded
-  as `skip_offline`.
-- Nothing is skipped for backlog. Every action records when it was scheduled, sent and applied. If the console writer
-  falls more than `overrun_lag_s` behind, no new action starts and the run is flagged `chaos_overrun`, which is a
-  result.
-- An action the server has no command for is counted as `unsupported` and never sent.
-- Bot radius jitter starts at chaos start, not before.
-- Tick speed regimes come from the server's own applied lines, never from when a command was queued, because a busy
-  console applies a command late. TPS samples that straddle a change are `mixed` and left out.
-- Cross-server chaos runs at normal tick speed only (`chaos-portable`).
+**World.** The world is absent before launch and generated during the run (`world_fresh` checks it).
 
 ## Run phases
 
@@ -86,10 +62,10 @@ bbench run <matrix>
           then start one `bbench run-one` subprocess per (arm, repeat) in rotated order
   run-one:
     fetch      verified, immutable install from the cache
-    prepare    fresh server copy, rendered configs, categorised overrides, fresh world or template
+    prepare    fresh server copy, rendered configs, categorised overrides, fresh world
     launch     pinned and prioritised before the first server thread runs
     console    log pump, tick probe, samplers, death watch
-    phases     boot -> idle -> join -> settle -> spread -> steady -> [chaos] -> teardown
+    phases     boot -> idle -> join -> settle -> spread -> steady -> teardown
     results    run.json, raw series, metrics.json, status, exit code
   runner: summary.json and report.md for the matrix directory
 ```
@@ -105,7 +81,6 @@ after every phase, so an interrupted run keeps what it measured.
 | settle | `alljoined` | `settled` | Views fill. Interventions are allowed here and only here. |
 | spread | `settled` | | Effects sent to everyone again, positions read back from the server, spread checked. |
 | steady | `settled` + `delay_s` | + `duration_s` | Only the tick probe is sent. The headline window. |
-| chaos | after steady | + `duration_s` | Chaos scenarios only. |
 | teardown | | | Bots get `quit`, then a signal; the server gets its stop command, then its process tree is killed; crash files are collected. |
 
 `join.pre_bots_s` adds a pause between idle and the first dial. It is 0 unless a scenario sets it.
@@ -117,7 +92,6 @@ after every phase, so an interrupted run keeps what it measured.
 | `settle` | `[alljoined, settled]` | diagnostics |
 | `load` | `[bots_start, settled]` | dip depth, ticks lost, recovery, chunk throughput |
 | `steady` | `[steady0, steady1]` | headline TPS, tick-thread CPU, process cores, memory, work counters |
-| `chaos` | `[chaos0, chaos1]` | chaos TPS by tick speed regime |
 
 **Settle.** The rule is evaluated every `eval_interval_s` from the bots' `progress` events, never on data older than
 `max_data_age_s`. The rate is the growth of all bots' unique chunks over the last `rate_window_s`.
@@ -340,8 +314,7 @@ dies early is `server_failed`, not invalid. Exit codes come from the recorded st
 died never exits 0 ([get_started.md](get_started.md#reading-the-output)).
 
 Flags never change the status but always appear next to the numbers: `settle_capped`, `views_incomplete`,
-`chaos_overrun`, `parity_mismatch`, `bot_protocol_differs`, `terrain_mismatch`, `different_bds_build` and
-`unpublished_artifact`.
+`parity_mismatch`, `bot_protocol_differs`, `terrain_mismatch`, `different_bds_build` and `unpublished_artifact`.
 
 When the server dies or exits nonzero, the harness copies the last `teardown.crash_log_lines` log lines, and every file
 modified since the run started under the adapter's crash paths, into `crash/`.
@@ -378,8 +351,7 @@ These look comparable but are not:
   heap;
 - log error counts across servers, since each server logs differently;
 - join time, measured on the bot's clock from dial to spawn, before any chunk arrives;
-- settle duration, which has a floor; use the view-load metrics instead;
-- chaos TPS, shown only at normal tick speed with delivered and unsupported action counts, and never ranked.
+- settle duration, which has a floor; use the view-load metrics instead.
 
 ## Results files
 
@@ -396,8 +368,6 @@ runs/<matrix>/
     bots.jsonl.gz        raw bot events
     bots.stderr.log      the bot's standard error, kept only when it is not empty
     series/              probe.csv, threads.csv.gz, tick.csv.gz, process.csv.gz, machine.csv.gz, foreign_top.jsonl
-    chaos-plan.jsonl     chaos scenarios: the plan
-    chaos-exec.jsonl     chaos scenarios: scheduled, sent and applied time of every action
     config/written/      rendered configs as written before launch
     config/after/        the same files as found after shutdown
     crash/               log tail and crash files, when the server died or exited nonzero
@@ -427,12 +397,12 @@ server's own output and are not scrubbed, so check them before sharing.
 **Schemas.** [`bedrock_bench/schemas/`](../bedrock_bench/schemas/) holds JSON Schema (draft 2020-12) for `run.json`
 and `run.partial.json` (`bedrock-bench/run/1`), `metrics.json` (`bedrock-bench/metrics/1`) and each line of the bot's
 output (`v = 1`). `run.schema.json` describes each section of `run.json`. `bbench validate <path>...` checks run
-directories and files against them, checks raw files against the hashes in `run.json`, and checks a claims file through
-its loader. `summary.json`, the CSVs, the chaos journals and the TOML inputs have no schema. `bedrock_bench/config.py`
+directories and files against them and checks raw files against the hashes in `run.json`. `summary.json`, the CSVs and
+the TOML inputs have no schema. `bedrock_bench/config.py`
 validates the inputs when it loads them. How a schema or the analysis version changes is in
 [CONTRIBUTING.md](../.github/CONTRIBUTING.md#versioning).
 
-## Publishing and claims
+## Publishing
 
 `bbench report --publish` refuses a summary, and names each reason, when:
 
@@ -452,31 +422,8 @@ cannot check these rules:
   sections.
 - The raw run bundles are published with their sha256, so anyone can run `bbench analyze` and get the same
   `metrics.json`.
-- Nothing from Mojang is included: no server binaries, worlds or world templates.
+- Nothing from Mojang is included: no server binaries or worlds.
 - A publication is immutable. A correction is a new publication that names the one it replaces.
-
-**Claims.** `bbench report --claims <file>` checks relational statements against the summary and adds the verdicts to
-`summary.json` and `report.md`. A claims file names the matrix it is for:
-
-```toml
-schema = 1
-matrix = "endstone-0.11.14"
-
-[[claim]]
-id = "endstone-vs-vanilla-tps"
-text = "endstone@0.11.14 ticks faster than bds@1.26.52.3"
-scenario = "spread100"
-expr = "above('endstone@0.11.14', 'bds@1.26.52.3', 'tps_window_steady')"
-inconclusive_if = "median('bds@1.26.52.3', 'tps_window_steady') >= 19.5"
-machine = "my-machine"   # optional: only for runs whose machine profile has this label
-source = "https://example.org/post"   # optional: where the statement was published
-```
-
-Expressions use `median`, `low`, `high`, `n_ok`, `ratio`, `above` and `below` over the `ok` runs of the claim's
-scenario, with arithmetic, comparisons, `and`, `or`, `not`, `abs`, `min` and `max`. They are parsed and interpreted node
-by node, never passed to `eval`. The full grammar is in `bedrock_bench/report/claims.py`. A verdict is `pass`, `fail`,
-`inconclusive` (another machine, `inconclusive_if` holds, or the data cannot decide) or `error`. Verdicts do not change
-the exit code, but an invalid claims file exits 2.
 
 ## Design decisions
 
@@ -526,8 +473,8 @@ distance 10. `spread100-csg` keeps it on only to reproduce Endstone's earlier fi
   and encryption cost is not measured.
 - **Shared host.** The bots run on separate CPUs of the same machine but share memory bandwidth, the last-level cache
   and the power budget with the server.
-- **Fresh worlds.** Terrain generation dominates the load phase of a fresh world. `spread100-pregen` separates delivery
-  from generation. Mob-dense and redstone-dense workloads are not covered.
+- **Fresh worlds.** Terrain generation dominates the load phase of a fresh world. Mob-dense and redstone-dense
+  workloads are not covered.
 - **Virtual CPUs.** On a virtual machine or WSL2, pinning applies to virtual CPUs. Such runs are `vcpu` and carry a
   warning.
 - **Declared parity.** Most parity cells are declared from public sources. Only features with an `observed_by` counter
@@ -536,4 +483,3 @@ distance 10. `spread100-csg` keeps it on only to reproduce Endstone's earlier fi
   row. The server's README lists what each variant changes.
 - **Server defaults.** A server's defaults may be tuned for another workload. The harness changes them only for the
   reasons above and records every change.
-- **Chaos is a robustness check.** It is never ranked.

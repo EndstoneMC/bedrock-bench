@@ -294,7 +294,7 @@ Runs with different scenario hashes, analysis versions or machines never share a
 bedrock-bench measures. It does not profile. Profilers, thread dumps and traces change what they observe: sampling
 slows the tick loop, trace files make antivirus software scan them during the run, and a Java thread dump pauses the
 JVM. Profile in a separate run, and never report its numbers as results
-([docs/methodology.md](../docs/methodology.md#publishing-and-claims)).
+([docs/methodology.md](../docs/methodology.md#publishing)).
 
 Produce the load with the harness, on the machine and scenario of the run you want to explain, and attach the
 profiler from outside:
@@ -351,8 +351,7 @@ Open an issue and attach:
 
 - `run.json` and `metrics.json` of the run, or `summary.json` and `report.md` for a matrix;
 - the output of `bbench doctor --json`, and the machine profile if you passed `--machine`;
-- the run's `crash/` folder if the server crashed;
-- the claims output, if a claim check is the problem.
+- the run's `crash/` folder if the server crashed.
 
 `run.json` holds no hostname, username or absolute path. Raw logs are not scrubbed, so read any log before you
 attach it.

@@ -107,7 +107,7 @@ comments below, with `auto` CPU sets.
 
 For explicit CPU lists, copy this example to a file such as `local/my-machine.toml` and edit it. Every key is optional.
 Any file in the checkout that git does not track or ignore marks every run `dirty_harness`, and `--publish` refuses
-those runs. `local/` is ignored, so keep machine profiles and claims files there.
+those runs. `local/` is ignored, so keep machine profiles there.
 
 ```toml
 # Intel Core i7-14700F: 8 performance cores with SMT (CPUs 0-15), 12 efficiency cores (CPUs 16-27).
@@ -137,7 +137,7 @@ uv run bbench doctor --machine local/my-machine.toml
 ```
 
 - The machine label is the file name without `.toml` (`my-machine`), unless the file sets `label`. It is recorded in
-  `run.json`, and a claim that names a machine applies only to runs with that label.
+  `run.json`.
 - Every arm of a matrix runs with the same profile (rule R3, [docs/methodology.md#rules](methodology.md#rules)).
   `bbench run` refuses to add runs to a results directory that holds runs made with another profile or on another
   machine, so a changed profile needs another `--out` directory. The label and the port are not part of that check.
@@ -195,15 +195,10 @@ uv run bbench report runs/endstone-0.11.14
 - LeviLamina runs on Windows only, so E3 and E4 are Windows experiments. On Linux, `--only` can run the other arms of
   the cross-server matrix, but that partial run is not E3.
 
-The cross-server matrix has two extra steps. PocketMine-MP and Allay need the protocol 1001 bot, and Nukkit, Nukkit-MOT
-and PowerNukkitX also run `spread100-pregen`, which needs a world template built first:
+PocketMine-MP and Allay need the protocol 1001 bot:
 
 ```shell
 uv run bbench bots build --module legacy1001
-uv run bbench prepare-world nukkit@b3caad6 --scenario spread100-pregen
-uv run bbench prepare-world nukkitmot@9cb0aba --scenario spread100-pregen
-uv run bbench prepare-world powernukkitx@3.0.5 --scenario spread100-pregen
-uv run bbench prepare-world powernukkitx@nightly.86f70bc --scenario spread100-pregen
 ```
 
 `legacy1001` builds only once its gophertunnel fork tag is published ([bots/README.md](../bots/README.md#patches)).
@@ -219,7 +214,7 @@ uv run bbench run cross-server --machine local/my-machine.toml --only bds@1.26.5
 Other `run` options:
 
 - `--repeats N` overrides the matrix's repeat count. Publication needs at least 3 `ok` runs per cell (arm and scenario)
-  ([docs/methodology.md#publishing-and-claims](methodology.md#publishing-and-claims)).
+  ([docs/methodology.md#publishing](methodology.md#publishing)).
 - `--order` takes `rotate`, `sequential` or `seeded:N`.
 - `--out DIR` writes results under DIR instead of `runs/`.
 
@@ -278,14 +273,12 @@ To recompute, check or publish:
 ```shell
 uv run bbench analyze runs/endstone-0.11.14/<run id>
 uv run bbench validate runs/endstone-0.11.14
-uv run bbench report runs/endstone-0.11.14 --claims local/my-claims.toml
 uv run bbench report runs/endstone-0.11.14 --publish
 ```
 
 `analyze` recomputes `metrics.json` and the status from the raw files. `validate` checks every run against the schemas
-in `bedrock_bench/schemas/` and every raw file against its hash in `run.json`. `--claims` checks a claims file against
-the report, and `--publish` applies the publication rules; both are described in
-[docs/methodology.md#publishing-and-claims](methodology.md#publishing-and-claims).
+in `bedrock_bench/schemas/` and every raw file against its hash in `run.json`. `--publish` applies the publication
+rules in [docs/methodology.md#publishing](methodology.md#publishing).
 
 To send results or report a problem, see
 [.github/CONTRIBUTING.md#reporting-a-problem](../.github/CONTRIBUTING.md#reporting-a-problem).
