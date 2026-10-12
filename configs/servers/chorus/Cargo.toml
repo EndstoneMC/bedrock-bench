@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: Apache-2.0
+[package]
+name = "chorusbench"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+publish = false
+build = "build.rs"
+
+[[bin]]
+name = "chorusbench"
+path = "main.rs"
+
+[dependencies]
+chorus = { git = "https://github.com/bedrock-crustaceans/chorus", rev = "95ca8355f5961619ff2949b01ef85a5c6f13e492" }
+chorus_core = { git = "https://github.com/bedrock-crustaceans/chorus", rev = "95ca8355f5961619ff2949b01ef85a5c6f13e492" }
+bedrock = { git = "https://github.com/bedrock-crustaceans/bedrock-rs", branch = "main", default-features = false, features = ["protocol"] }
+bevy_app = "0.20.0"
+bevy_ecs = "0.20.0"
+bevy_tasks = "0.20.0"
+glam = "0.34.0"
+serde_json = "1.0.151"
+toml = "1.1.6"
+tracing = "0.1.44"

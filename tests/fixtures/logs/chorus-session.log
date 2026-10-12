@@ -1,0 +1,77 @@
+chorusbench 95ca835 (chorus 0.0.1, Minecraft 1.26.50, protocol 2193, rustc 1.95.0)
+Chorus v0.0.1 1.26.50 (2193)
+18:58:21 INFO registry registered 2076 items, 2221 creative entries
+18:58:21 INFO resources loaded 0 pack(s)
+18:58:21 INFO network Listening for RakNet connections on 127.0.0.1:19930
+18:58:21 INFO registry registered 17 commands
+18:58:21 INFO registry registered 1477 blocks
+18:58:21 INFO level created "bench" at worlds\bench with seed 20261010
+18:58:21 INFO registered 4 commands
+18:58:21 INFO level "bench" spawn at [8, 64, 8]
+18:58:21 INFO Started on 127.0.0.1:19930.
+Gametime is 23
+positions: 0
+» Performance
+  TPS: 20 (20 avg, 20 min)
+  Tick time: 0.09 ms (0.12 ms avg, 0.81 ms max)
+  Tick usage: 0.2% (0.2% avg)
+  Pool threads: 1 compute, 3 async, 0 io
+18:58:25 INFO network Connected: RakNet(RakSessionId(0))
+18:58:25 INFO network Connected: RakNet(RakSessionId(1))
+18:58:26 INFO network Connected: RakNet(RakSessionId(2))
+18:58:26 INFO network Connected: RakNet(RakSessionId(3))
+18:58:26 INFO a00 joined the game
+18:58:27 INFO a01 joined the game
+18:58:27 INFO a02 joined the game
+18:58:27 INFO a03 joined the game
+There are 4/200 players online:
+a00, a01, a02, a03
+positions: 4
+position: a00 5.48 64.00 19.39 0
+position: a01 3.91 64.00 0.52 0
+position: a02 16.14 64.00 10.68 0
+position: a03 2.84 64.00 11.59 0
+Unknown command: effect. Type /help for a list of commands.
+Teleported a00 to 1280.00, 300.00, 1280.00
+Teleported a01 to 1920.00, 300.00, 1280.00
+Teleported a02 to 2560.00, 300.00, 1280.00
+Teleported a03 to 3200.00, 300.00, 1280.00
+positions: 4
+position: a00 1264.13 300.00 1286.63 0
+position: a01 1925.69 300.00 1265.04 0
+position: a02 2565.88 300.00 1293.58 0
+position: a03 3187.40 300.00 1274.95 0
+Gametime is 286
+positions: 4
+position: a00 1247.04 300.00 1252.28 0
+position: a01 1962.69 300.00 1275.18 0
+position: a02 2532.85 300.00 1313.11 0
+position: a03 3195.96 300.00 1237.55 0
+Gametime is 486
+» Performance
+  TPS: 20 (20 avg, 20 min)
+  Tick time: 0.67 ms (0.43 ms avg, 15.85 ms max)
+  Tick usage: 1.3% (0.9% avg)
+  Pool threads: 1 compute, 3 async, 0 io
+» Worlds
+  overworld: 1,406 chunks (0 unsaved, generating), 4 players, 4 entities
+18:58:48 ERROR No player named "a 01" is online.
+Teleported a01 to 1920.50, 300.00, 1280.50
+Kicked a03: chaos
+There are 3/200 players online:
+a00, a01, a02
+18:58:53 ERROR No player named "a09" is online.
+positions: 3
+position: a00 1242.88 300.00 1266.13 0
+position: a01 1915.35 300.00 1252.96 0
+position: a02 2546.96 300.00 1316.26 0
+Gametime is 1046
+» Server status
+  Uptime: 53s
+  TPS: 20 (20 avg, 2.5% of the tick)
+  Players: 3/200
+  Memory: 693.7 MB
+  Chunks: 1,126 loaded (0 unsaved)
+  /status <performance|network|memory|worlds|storage|all> for more
+Stopping the server
+18:59:17 INFO shutdown saved 0 chunks before exiting

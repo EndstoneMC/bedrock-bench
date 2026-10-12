@@ -1,0 +1,52 @@
+# Console lines chorusbench printed in a 4-bot boot of chorus@95ca835 on Windows, one per dialect role (roles as in
+# bds.toml). Log lines are `HH:MM:SS LEVEL text`, with span names such as `network` left in the text; command replies
+# have no prefix. chorus-session.log is the whole console output of that boot.
+adapter = "chorus"
+
+[[sample]]
+role = "ready"
+line = "18:58:21 INFO Started on 127.0.0.1:19930."
+
+[[sample]]
+role = "version"
+line = "chorusbench 95ca835 (chorus 0.0.1, Minecraft 1.26.50, protocol 2193, rustc 1.95.0)"
+value = "95ca835"
+
+[[sample]]
+role = "player_in_world"
+line = "18:58:26 INFO a00 joined the game"
+value = "a00"
+
+[[sample]]
+role = "tick"
+line = "Gametime is 286"
+value = 286
+
+[[sample]]
+role = "level"
+line = "18:58:21 INFO registry registered 17 commands"
+value = "info"
+
+[[sample]]
+role = "level"
+line = "18:58:53 ERROR No player named \"a09\" is online."
+value = "error"
+
+[[sample]]
+role = "strip"
+line = "18:58:25 INFO network Connected: RakNet(RakSessionId(0))"
+value = "network Connected: RakNet(RakSessionId(0))"
+
+[[sample]]
+role = "strip"
+line = "position: a00 1264.13 300.00 1286.63 0"
+value = "position: a00 1264.13 300.00 1286.63 0"
+
+[[sample]]
+role = "strip"
+line = "Chorus v0.0.1 1.26.50 (2193)"
+value = "Chorus v0.0.1 1.26.50 (2193)"
+
+[[sample]]
+role = "not_benign"
+line = "18:58:48 ERROR No player named \"a 01\" is online."
