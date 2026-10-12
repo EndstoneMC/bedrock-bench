@@ -7,8 +7,8 @@ pinned jar with the JDK's ``javac`` and packed into ``plugins/BenchTick.jar``. I
 world's tick counter) and ``positions``, and starts Allay's console on piped stdin, which Allay itself only does when
 the JDK reports a console.
 
-Prepare writes ``server-settings.yml``, which Allay completes and rewrites on start, and ``worlds/world-settings.yml``
-with one flat overworld named after the level. Allay generates only flat and void worlds.
+Prepare renders ``server-settings.yml``, which Allay completes and rewrites on start, and ``world-settings.yml`` into
+``worlds/``, with one flat overworld named after the level. Allay generates only flat and void worlds.
 
 Launch: ``java -Xms<heap> -Xmx<heap> ... -Dsentry.dsn= -jar allay.jar``. The world ticks on its own thread,
 ``World Thread #<level>``, found with ``jcmd``. The 0.14 line speaks protocol 1001 (Minecraft 1.26.30), so it gets the
@@ -20,16 +20,14 @@ from __future__ import annotations
 import re
 import tempfile
 from collections.abc import Mapping, Sequence
-from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from bedrock_bench import fetch, templates
+from bedrock_bench import fetch
 from bedrock_bench.adapters.base import Dialect
 from bedrock_bench.adapters.standalone import (
     COMMAND_LINE,
     SERVER_PART,
-    ConfigPlan,
     JavaServer,
     deterministic_zip,
     fetch_release,
@@ -37,7 +35,6 @@ from bedrock_bench.adapters.standalone import (
     parse_helper_positions,
     run_tool,
     runtime_platform,
-    yaml_scalars,
 )
 from bedrock_bench.config import ConfigError
 from bedrock_bench.model import (
@@ -65,13 +62,10 @@ if TYPE_CHECKING:
 JAR = "allay.jar"
 HELPER_DESCRIPTOR = "plugin.json"
 PLUGIN_FILE = "plugins/BenchTick.jar"
-WORLD_SETTINGS = "worlds/world-settings.yml"
-WORLD_SETTINGS_TEMPLATE = "world-settings.yml"
-DEFAULT_WORLD = "world"
+SERVER_SETTINGS = "server-settings.yml"
+WORLD_SETTINGS = "world-settings.yml"
 WORLD_THREAD = "World Thread #"
 SENTRY_FLAG = "-Dsentry.dsn="
-#: Allay's spelling of the workload's difficulty in the ``[config]`` table (``EASY``).
-DIFFICULTY_UPPER = "{difficulty_upper}"
 
 #: ``"World Thread #bench" #55 [52604] prio=5 os_prio=0 ... tid=0x... nid=52604 runnable``; older JDKs print
 #: ``nid=0xcd7c``.
@@ -109,13 +103,13 @@ class AllayAdapter(JavaServer):
     dialect: ClassVar[Dialect] = ALLAY_DIALECT
     server_file: ClassVar[str] = JAR
     generator: ClassVar[str] = "flat"
+    config_templates: ClassVar[tuple[str, ...]] = (SERVER_SETTINGS,)
     #: Used only when jcmd fails; the workload's level is ``bench``.
     tick_thread_rule: ClassVar[str] = f"name:{WORLD_THREAD}bench"
 
     def __init__(self, arm: Arm, machine: Machine) -> None:
         super().__init__(arm, machine)
         self._level_name = "bench"
-        self._difficulty: str | None = None
 
     # ---- fetch ----------------------------------------------------------------------------------------------------
 
@@ -142,27 +136,11 @@ class AllayAdapter(JavaServer):
 
     # ---- prepare and launch ---------------------------------------------------------------------------------------
 
-    def prepare(self, install: Install, ctx: RunContext) -> Layout:
-        self._difficulty = ctx.workload.server.difficulty.upper()
-        return super().prepare(install, ctx)
-
-    def config_plan(self) -> ConfigPlan:
-        """The ``[config]`` plan with ``{difficulty_upper}`` filled in from the workload."""
-        plan, upper = super().config_plan(), self._difficulty
-        if upper is None:
-            return plan
-        pins = tuple(replace(pin, template=pin.template.replace(DIFFICULTY_UPPER, upper)) for pin in plan.pins)
-        return replace(plan, pins=pins)
-
     def prepare_extra(
         self, server_dir: Path, install: Install, ctx: RunContext, world: WorldInfo
     ) -> tuple[Sequence[Override], Sequence[ConfigFile], Mapping[str, Any]]:
-        level = ctx.workload.world.level_name
-        text = templates.render(self.folder(), WORLD_SETTINGS_TEMPLATE, self.template_variables(ctx))
-        path = server_dir / WORLD_SETTINGS
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8", newline="\n")
-        harness, parity = OverrideCategory.HARNESS, OverrideCategory.PARITY
+        settings = self.write_config(server_dir, WORLD_SETTINGS, ctx, target=f"worlds/{WORLD_SETTINGS}")
+        harness = OverrideCategory.HARNESS
         overrides = [
             Override(harness, PLUGIN_FILE, "plugin", None, "installed", "prints the tick counter and player positions"),
             Override(
@@ -174,13 +152,7 @@ class AllayAdapter(JavaServer):
                 "the harness sends commands through a pipe, for which current JDKs report no console",
             ),
         ]
-        if level != DEFAULT_WORLD:
-            folder = "a fixed world folder, checked absent before launch"
-            overrides += [
-                Override(parity, WORLD_SETTINGS, "worlds", DEFAULT_WORLD, level, folder),
-                Override(parity, WORLD_SETTINGS, "default-world", DEFAULT_WORLD, level, "players join that world"),
-            ]
-        return overrides, [ConfigFile(WORLD_SETTINGS, sha256_file(path))], {"level_name": level}
+        return overrides, [settings], {"level_name": ctx.workload.world.level_name}
 
     def jvm_args(self) -> list[str]:
         return [*super().jvm_args(), SENTRY_FLAG]
@@ -218,18 +190,6 @@ class AllayAdapter(JavaServer):
             self._main_tid = thread_from_jcmd(output, self.world_thread())
         return super().tick_thread(threads)
 
-    def readback(self, layout: Layout) -> list[str]:
-        problems = super().readback(layout)
-        level = layout.extra.get("level_name")
-        if level:
-            path = layout.server_dir / WORLD_SETTINGS
-            try:
-                text = path.read_text(encoding="utf-8", errors="replace")
-            except OSError:
-                return [*problems, f"{WORLD_SETTINGS} is missing after the run"]
-            problems += world_settings_problems(text, level)
-        return problems
-
     # ---- commands -------------------------------------------------------------------------------------------------
 
     def cmd_effects(self, player: str) -> list[str]:
@@ -259,7 +219,7 @@ class AllayAdapter(JavaServer):
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# Helper plugin and world settings
+# Helper plugin
 # --------------------------------------------------------------------------------------------------------------------
 
 
@@ -307,27 +267,3 @@ def thread_from_jcmd(text: str, name: str) -> int | None:
         if match is not None and match["name"] == name:
             return int(match["tid"]) if match["tid"] else int(match["nid"], 0)
     return None
-
-
-def world_settings_problems(text: str, level: str) -> list[str]:
-    """Differences from one flat overworld named ``level`` in the ``world-settings.yml`` Allay saved on stop."""
-    problems: list[str] = []
-    default = yaml_scalars(text).get("default-world")
-    if default != level:
-        problems.append(f"{WORLD_SETTINGS}: default-world was written as {level!r} and read back as {default!r}")
-    worlds: list[str] = []
-    inside = False
-    for line in text.splitlines():
-        if not line.strip() or line.lstrip().startswith("#"):
-            continue
-        indent = len(line) - len(line.lstrip(" "))
-        if indent == 0:
-            inside = line.rstrip() == "worlds:"
-        elif inside and indent == 2:
-            worlds.append(line.strip().rstrip(":").strip("'\""))
-    if worlds != [level]:
-        problems.append(f"{WORLD_SETTINGS}: worlds were written as [{level!r}] and read back as {worlds}")
-    generators = re.findall(r"^\s+generator-type: *(\S+)", text, re.MULTILINE)
-    if generators != ["FLAT"]:
-        problems.append(f"{WORLD_SETTINGS}: generators were written as ['FLAT'] and read back as {generators}")
-    return problems

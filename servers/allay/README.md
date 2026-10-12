@@ -8,7 +8,8 @@ runs use the [protocol 1001 bot](../../bots/README.md#protocol-1001) and are fla
 scenario that exercises terrain is flagged `terrain_mismatch`.
 
 Adapter: [allay.py](../../bedrock_bench/adapters/allay.py). Helper plugin: [plugin.json](plugin.json) and
-[BenchTick.java](BenchTick.java). World settings: [world-settings.yml](world-settings.yml).
+[BenchTick.java](BenchTick.java). Config templates: [server-settings.yml](server-settings.yml) and
+[world-settings.yml](world-settings.yml).
 
 ## Setup
 
@@ -55,24 +56,23 @@ Allay writes its own config files on start, so nothing is extracted from the jar
 
 ## Configuration changes
 
-The values, the defaults and the reasons are in the `[config]` table of [server.toml](server.toml), and every change is
-recorded in run.json with its category ([methodology](../../docs/methodology.md#fairness-and-feature-parity)).
-`server-settings.yml` starts empty; Allay adds its own defaults and rewrites the file on start and stop.
+Prepare renders [server-settings.yml](server-settings.yml) into the server directory and
+[world-settings.yml](world-settings.yml) into `worlds/`. Each key the harness sets has its reason in a comment above it,
+and run.json records every key's value before and after. Neither file exists before the first start, so both are
+written as rendered; Allay adds its own defaults and rewrites them on start and stop.
 
-- harness: the machine profile's port, with IPv6 off; offline login; the RakNet per-address limit (120 datagrams per
+- `server-settings.yml`: the run's port, with IPv6 off; offline login; the RakNet per-address limit (120 datagrams per
   10 ms) raised to the largest int, because every bot connects from 127.0.0.1; the dashboard window off; bStats off,
-  with a fixed server id so no generated identifier lands in the run's archived configs.
-- parity: max players, game mode, difficulty, view and simulation distance, chunk autosave interval and player data.
-  Game mode and difficulty apply when the world is created, and every run creates it.
+  with a fixed server id; max players, game mode, difficulty, view and simulation distance, chunk autosave interval and
+  player data, the same as on every server. Game mode and difficulty apply when the world is created, and every run
+  creates it.
+- `worlds/world-settings.yml`: one world named after the level and made the default world, with Allay's flat generator
+  and LevelDB storage, ticked on a platform thread so the world tick has its own OS thread.
 
 Held in the adapter:
 
-- `worlds/world-settings.yml` is written whole from [world-settings.yml](world-settings.yml), the file Allay writes on
-  its first start, with the world named after the level and made the default world (parity). Its flat generator and
-  LevelDB storage are Allay's defaults. After the run, the file Allay saved must still name that one world with one
-  flat dimension.
-- `plugins/BenchTick.jar` is installed, and it starts the console on a piped stdin (harness).
-- `-Xms` and `-Xmx` from the machine profile (parity); UTF-8 console streams and the empty Sentry DSN (harness).
+- `plugins/BenchTick.jar` is installed, and it starts the console on a piped stdin.
+- `-Xms` and `-Xmx` from the machine profile; UTF-8 console streams and the empty Sentry DSN.
 
 ## Caveats
 

@@ -12,10 +12,10 @@ import pytest
 
 from bedrock_bench import adapters, config, fetch
 from bedrock_bench.adapters import allay
-from bedrock_bench.adapters.allay import ALLAY_DIALECT, AllayAdapter, thread_from_jcmd, world_settings_problems
+from bedrock_bench.adapters.allay import ALLAY_DIALECT, AllayAdapter, thread_from_jcmd
 from bedrock_bench.adapters.standalone import Runtime, yaml_scalars
 from bedrock_bench.cache import Cache
-from bedrock_bench.model import ArtifactRef, Install, LogLine, OverrideCategory, Placement, RunContext, ThreadInfo
+from bedrock_bench.model import ArtifactRef, Install, LogLine, Placement, RunContext, ThreadInfo
 from bedrock_bench.provenance import sha256_file
 from workloads import WORKLOAD, with_overrides
 
@@ -192,7 +192,7 @@ class TestPrepare:
         assert not any((install.root / "defaults").iterdir()), "Allay writes its defaults itself"
         assert install.extra["commit"].startswith("058fef833")
 
-    def test_configs_and_overrides(self, install: Install, tmp_path: Path) -> None:
+    def test_configs(self, install: Install, tmp_path: Path) -> None:
         adapter = make_adapter()
         layout = adapter.prepare(install, make_ctx(tmp_path, adapter))
         server = layout.server_dir
@@ -203,22 +203,25 @@ class TestPrepare:
         assert settings["generic-settings.default-game-mode"] == "SURVIVAL"
         assert settings["generic-settings.default-difficulty"] == "EASY"
         assert settings["world-settings.view-distance"] == "10"
+        assert settings["storage-settings.save-player-data"] == "true"
         worlds = (server / "worlds" / "world-settings.yml").read_text(encoding="utf-8")
         assert "\n  bench:\n" in worlds and worlds.endswith("default-world: bench\n") and "{{" not in worlds
-        assert world_settings_problems(worlds, "bench") == []
         assert layout.world.fresh and layout.world.generator == "flat"
         assert layout.world.path == server / "worlds" / "bench" and not layout.world.path.exists()
 
+        assert [(c.path, c.template, c.created) for c in layout.config_files] == [
+            ("server-settings.yml", "server-settings.yml", True),
+            ("worlds/world-settings.yml", "world-settings.yml", True),
+        ]
+        keys = {(c.path, k.key): k for c in layout.config_files for k in c.keys}
+        assert keys[("server-settings.yml", "bstats-settings.enable")].after == "false"
+        assert keys[("server-settings.yml", "network-settings.port")].before is None
+        flat = ("worlds/world-settings.yml", "worlds.bench.dimensions.minecraft:overworld.generator-type")
+        assert keys[flat].after == "FLAT"
+        assert keys[("worlds/world-settings.yml", "default-world")].after == "bench"
         by_key = {(o.file, o.key): o for o in layout.overrides}
-        assert by_key[("server-settings.yml", "world-settings.view-distance")].default == "8"
-        assert by_key[("server-settings.yml", "generic-settings.default-game-mode")].default == "CREATIVE"
-        assert by_key[("server-settings.yml", "bstats-settings.enable")].category is OverrideCategory.HARNESS
-        assert by_key[("worlds/world-settings.yml", "worlds")].value == "bench"
         assert by_key[("plugins/BenchTick.jar", "console on piped stdin")].value == "on"
         assert by_key[("<command line>", "-Dsentry.dsn")].value == ""
-        assert ("server-settings.yml", "world-settings.tick-radius") not in by_key, "Allay's default is already 4"
-        assert not [o for o in layout.overrides if o.category.footnoted]
-        assert [c.path for c in layout.config_files] == ["server-settings.yml", "worlds/world-settings.yml"]
         assert adapter.readback(layout) == []
 
     def test_read_back_after_the_server_rewrote_its_configs(self, install: Install, tmp_path: Path) -> None:
@@ -231,11 +234,12 @@ class TestPrepare:
         assert adapter.readback(layout) == []
         worlds.write_text(REWRITTEN_WORLD_SETTINGS.replace("generator-type: FLAT", "generator-type: VOID"))
         assert adapter.readback(layout) == [
-            "worlds/world-settings.yml: generators were written as ['FLAT'] and read back as ['VOID']"
+            "worlds/world-settings.yml: worlds.bench.dimensions.minecraft:overworld.generator-type was written as "
+            "'FLAT' and read back as 'VOID'"
         ]
         worlds.write_text(REWRITTEN_WORLD_SETTINGS.replace("bench", "world"))
         problems = adapter.readback(layout)
-        assert any("default-world" in p for p in problems) and any("worlds were written" in p for p in problems)
+        assert any("default-world" in p for p in problems) and any("worlds.bench.storage-type" in p for p in problems)
         worlds.unlink()
         assert adapter.readback(layout) == ["worlds/world-settings.yml is missing after the run"]
         worlds.write_text(REWRITTEN_WORLD_SETTINGS, encoding="utf-8")
@@ -280,7 +284,6 @@ class TestPrepare:
 
     def test_difficulty_in_allays_spelling(self, install: Install, tmp_path: Path) -> None:
         adapter = make_adapter()
-        assert any("{difficulty_upper}" in pin.template for pin in adapter.config_plan().pins)
         layout = adapter.prepare(install, make_ctx(tmp_path, adapter, difficulty="hard"))
         settings = yaml_scalars((layout.server_dir / "server-settings.yml").read_text(encoding="utf-8"))
         assert settings["generic-settings.default-difficulty"] == "HARD"
@@ -320,7 +323,7 @@ class TestCommands:
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# Helper plugin and world settings
+# Helper plugin and templates
 # --------------------------------------------------------------------------------------------------------------------
 
 
@@ -344,16 +347,6 @@ def test_thread_from_jcmd() -> None:
     old_jdk = '"World Thread #bench" #55 prio=5 os_prio=0 tid=0x1 nid=0xcd7c runnable'
     assert thread_from_jcmd(old_jdk, "World Thread #bench") == 0xCD7C
     assert thread_from_jcmd("", "main") is None
-
-
-def test_world_settings_problems() -> None:
-    assert world_settings_problems(REWRITTEN_WORLD_SETTINGS, "bench") == []
-    two_dimensions = REWRITTEN_WORLD_SETTINGS.replace(
-        "    overworld: null", "      minecraft:nether:\n        generator-type: VOID\n    overworld: null"
-    )
-    assert world_settings_problems(two_dimensions, "bench") == [
-        "worlds/world-settings.yml: generators were written as ['FLAT'] and read back as ['FLAT', 'VOID']"
-    ]
 
 
 def find_javac() -> Path | None:

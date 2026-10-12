@@ -23,33 +23,3 @@ runtime = "jdk-21.0.12.1"
 url = "https://github.com/AllayMC/Allay/releases/download/0.14.0/allay-server-0.14.0-058fef833-shaded.jar"
 sha256 = "fc944c56be559a1a9df3097b7f7974ea7d644677d7a6c14b2b86d25c070f9c03"
 size = 43956861
-
-# Values the harness writes into Allay's server-settings.yml, one table per override category
-# (docs/methodology.md#fairness-and-feature-parity).
-#
-# server-settings.yml starts empty: Allay fills in every other key with its built-in default and rewrites the file on
-# start and stop, and `default` gives that built-in value for the keys written here. The world is not in this file:
-# worlds/world-settings.yml (world-settings.yml next to this file) names it and makes it flat, Allay's default
-# generator.
-[config]
-
-[config.file."server-settings.yml"]
-format = "yaml"
-
-[config.file."server-settings.yml".harness]
-"network-settings.port" = { value = "{port}", type = "int", default = "19132", reason = "machine profile port, away from 19132 so a local game cannot collide" }
-"network-settings.enablev6" = { value = "false", type = "bool", default = "true", reason = "the bots use IPv4; with IPv6 on, the server also binds 19133" }
-"network-settings.xbox-auth" = { value = "false", type = "bool", default = "true", reason = "the bots log in offline with self-signed identities" }
-"network-settings.raknet-packet-limit" = { value = "2147483647", type = "int", default = "120", reason = "every bot connects from 127.0.0.1; the per-address limit of 120 datagrams per 10 ms is sized for one player" }
-"generic-settings.enable-gui" = { value = "false", type = "bool", default = "true", reason = "no dashboard window" }
-"bstats-settings.enable" = { value = "false", type = "bool", default = "true", reason = "no usage statistics upload" }
-"bstats-settings.server-uuid" = { value = "00000000-0000-0000-0000-000000000000", default = "(random, generated on first start)", reason = "no generated identifier in the run's archived configs" }
-
-[config.file."server-settings.yml".parity]
-"generic-settings.max-player-count" = { value = "{max_players}", type = "int", default = "20", reason = "room for every bot" }
-"generic-settings.default-game-mode" = { value = "{gamemode_upper}", default = "CREATIVE", reason = "the same game mode on every server; it applies to a world when it is created" }
-"generic-settings.default-difficulty" = { value = "{difficulty_upper}", default = "NORMAL", reason = "the same difficulty on every server; it applies to a world when it is created" }
-"world-settings.view-distance" = { value = "{view_distance}", type = "int", default = "8", reason = "the same view distance on every server" }
-"world-settings.tick-radius" = { value = "{tick_distance}", type = "int", default = "4", reason = "the same simulation distance on every server" }
-"storage-settings.chunk-auto-save-cycle" = { value = "{autosave_ticks}", type = "int", default = "6000", reason = "the same autosave interval on every server" }
-"storage-settings.save-player-data" = { value = "{save_player_data}", type = "bool", default = "true", reason = "player data is saved, as on every server" }
