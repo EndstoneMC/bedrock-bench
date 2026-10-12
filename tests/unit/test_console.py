@@ -359,6 +359,7 @@ class TestRequest:
         console = Console(reader, EchoServer(writer), BDS_DIALECT, pace_s=0).start()
         writer.write(b"[2026-01-01 12:00:00:000 INFO] Gametime is 1\n")
         writer.flush()
+        assert console.wait_for("Gametime is 1", after=0, timeout=5) is not None
         reply = console.request("time query gametime", BDS_DIALECT.tick_re, timeout=5, lane="priority", origin="probe")
         assert reply.ok and reply.match is not None and int(reply.match["tick"]) == 200
         assert reply.line is not None and reply.command.send_ns is not None
