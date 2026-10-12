@@ -41,7 +41,7 @@ func TestPartialConfigKeepsDefaults(t *testing.T) {
 }
 
 // TestHarnessConfig reads testdata/config.toml, which the harness's adapter test checks is exactly what it writes for
-// the spread100 scenario.
+// configs/spread-100.toml.
 func TestHarnessConfig(t *testing.T) {
 	data, err := os.ReadFile(filepath.Join("testdata", "config.toml"))
 	if err != nil {

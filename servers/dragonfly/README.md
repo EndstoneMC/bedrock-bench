@@ -16,7 +16,7 @@ Dragonfly's example server plus a console on standard input. Adapter:
 | `config.go` | `config.toml` loading and the `[Bench]` table |
 | `console.go` | console commands |
 | `server.toml` | the pinned Dragonfly module, declared parity, and what the harness writes into the run's `config.toml` |
-| `testdata/config.toml` | the `config.toml` the harness writes for `spread100`; Go and Python tests both check it |
+| `testdata/config.toml` | the `config.toml` the harness writes for `configs/spread-100.toml`; Go and Python tests both check it |
 
 ```shell
 GOWORK=off go vet ./... && GOWORK=off go test ./...
