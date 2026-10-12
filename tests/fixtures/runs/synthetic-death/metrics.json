@@ -1,87 +1,9 @@
 {
-  "analysis_version": 1,
+  "analysis_version": 2,
   "flags": [
     "dropped"
   ],
   "metrics": {
-    "actor_moves_per_bot_s": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "per_bot_s",
-      "value": null,
-      "window": "steady"
-    },
-    "airborne_frac_steady": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "frac",
-      "value": null,
-      "window": "steady"
-    },
-    "aux_cores_idle": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the server has no launcher process",
-      "unit": "cores",
-      "value": null,
-      "window": "idle"
-    },
-    "aux_cores_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "cores",
-      "value": null,
-      "window": "load"
-    },
-    "aux_cores_steady": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "cores",
-      "value": null,
-      "window": "steady"
-    },
-    "block_updates_per_bot_s": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "per_bot_s",
-      "value": null,
-      "window": "steady"
-    },
-    "bot_cores_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "cores",
-      "value": 0.0857,
-      "window": "idle"
-    },
-    "bot_cores_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "cores",
-      "value": null,
-      "window": "load"
-    },
-    "bot_cores_steady": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "cores",
-      "value": null,
-      "window": "steady"
-    },
-    "bot_cpu_frac_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "frac",
-      "value": 0.0214,
-      "window": "idle"
-    },
     "bot_cpu_frac_load": {
       "availability": "unavailable",
       "n": null,
@@ -106,14 +28,6 @@
       "value": null,
       "window": "load"
     },
-    "chunks_per_cpu_s_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "chunks_per_cpu_s",
-      "value": null,
-      "window": "load"
-    },
     "chunks_per_s_load": {
       "availability": "unavailable",
       "n": null,
@@ -121,37 +35,6 @@
       "unit": "chunks_per_s",
       "value": null,
       "window": "load"
-    },
-    "chunks_zero_bots": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "count",
-      "value": null,
-      "window": "load"
-    },
-    "corrections_per_bot_s": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "per_bot_s",
-      "value": null,
-      "window": "steady"
-    },
-    "cpu_ms_per_player_tick_steady": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "ms",
-      "value": null,
-      "window": "steady"
-    },
-    "crash_files": {
-      "availability": "measured",
-      "n": null,
-      "unit": "count",
-      "value": 1,
-      "window": "run"
     },
     "csg_effective": {
       "availability": "unavailable",
@@ -168,22 +51,6 @@
       "value": 0,
       "window": "run"
     },
-    "delivery_t50_s": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "s",
-      "value": null,
-      "window": "load"
-    },
-    "delivery_t90_s": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "s",
-      "value": null,
-      "window": "load"
-    },
     "died_during_run": {
       "availability": "measured",
       "n": null,
@@ -198,21 +65,6 @@
       "value": 6,
       "window": "run"
     },
-    "first_chunk_ms": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "ms",
-      "value": null,
-      "window": "load"
-    },
-    "foreign_cores_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "cores",
-      "value": 0.07,
-      "window": "idle"
-    },
     "foreign_cores_load": {
       "availability": "unavailable",
       "n": null,
@@ -220,13 +72,6 @@
       "unit": "cores",
       "value": null,
       "window": "load"
-    },
-    "foreign_cores_peak_10s_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "cores",
-      "value": 0.072,
-      "window": "idle"
     },
     "foreign_cores_peak_10s_load": {
       "availability": "unavailable",
@@ -252,13 +97,6 @@
       "value": null,
       "window": "steady"
     },
-    "foreign_server_set_cores_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "cores",
-      "value": 0.01,
-      "window": "idle"
-    },
     "foreign_server_set_cores_load": {
       "availability": "unavailable",
       "n": null,
@@ -275,45 +113,6 @@
       "value": null,
       "window": "steady"
     },
-    "handles_max_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "count",
-      "value": 850,
-      "window": "idle"
-    },
-    "handles_max_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "count",
-      "value": null,
-      "window": "load"
-    },
-    "handles_max_steady": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "count",
-      "value": null,
-      "window": "steady"
-    },
-    "harness_cores_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "cores",
-      "value": null,
-      "window": "load"
-    },
-    "harness_cores_steady": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "cores",
-      "value": null,
-      "window": "steady"
-    },
     "interventions_in_measured": {
       "availability": "unavailable",
       "n": null,
@@ -322,129 +121,12 @@
       "value": null,
       "window": "steady"
     },
-    "join_failed": {
-      "availability": "measured",
-      "n": null,
-      "unit": "count",
-      "value": 0,
-      "window": "join"
-    },
-    "join_ms": {
-      "availability": "measured",
-      "n": 6,
-      "unit": "ms",
-      "value": {
-        "max": 850.0,
-        "median": 825.0,
-        "n": 6,
-        "p90": 850.0
-      },
-      "window": "join"
-    },
     "joined": {
       "availability": "measured",
       "n": null,
       "unit": "count",
       "value": 6,
       "window": "run"
-    },
-    "locator_pkts_per_bot_s": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "per_bot_s",
-      "value": null,
-      "window": "steady"
-    },
-    "log_error_lines": {
-      "availability": "measured",
-      "n": 9,
-      "unit": "count",
-      "value": 0,
-      "window": "run"
-    },
-    "log_fatal_lines": {
-      "availability": "measured",
-      "n": 9,
-      "unit": "count",
-      "value": 0,
-      "window": "run"
-    },
-    "log_warn_lines": {
-      "availability": "measured",
-      "n": 9,
-      "unit": "count",
-      "value": 0,
-      "window": "run"
-    },
-    "mspt_saturated_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "ms",
-      "value": null,
-      "window": "load"
-    },
-    "mspt_saturated_steady": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "ms",
-      "value": null,
-      "window": "steady"
-    },
-    "nudges": {
-      "availability": "measured",
-      "n": null,
-      "unit": "count",
-      "value": 0,
-      "window": "settle"
-    },
-    "players_steady": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "count",
-      "value": null,
-      "window": "steady"
-    },
-    "private_mib_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "mib",
-      "value": 1230.0,
-      "window": "idle"
-    },
-    "private_mib_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "mib",
-      "value": null,
-      "window": "load"
-    },
-    "private_mib_max_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "mib",
-      "value": 1245.0,
-      "window": "idle"
-    },
-    "private_mib_max_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "mib",
-      "value": null,
-      "window": "load"
-    },
-    "private_mib_max_steady": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "mib",
-      "value": null,
-      "window": "steady"
     },
     "private_mib_steady": {
       "availability": "unavailable",
@@ -460,14 +142,6 @@
       "unit": "ticks",
       "value": 300,
       "window": "idle"
-    },
-    "probe_latency_ms_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "ms",
-      "value": null,
-      "window": "load"
     },
     "probe_latency_ms_steady": {
       "availability": "unavailable",
@@ -500,111 +174,11 @@
       "value": 0,
       "window": "run"
     },
-    "process_cores_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "cores",
-      "value": 0.3,
-      "window": "idle"
-    },
-    "process_cores_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "cores",
-      "value": null,
-      "window": "load"
-    },
     "process_cores_steady": {
       "availability": "unavailable",
       "n": null,
       "reason": "the steady window was not reached",
       "unit": "cores",
-      "value": null,
-      "window": "steady"
-    },
-    "recovery_s": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "s",
-      "value": null,
-      "window": "load"
-    },
-    "resend_ratio": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "ratio",
-      "value": null,
-      "window": "load"
-    },
-    "resident_mib_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "mib",
-      "value": 1540.0,
-      "window": "idle"
-    },
-    "resident_mib_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "mib",
-      "value": null,
-      "window": "load"
-    },
-    "resident_mib_max_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "mib",
-      "value": 1560.0,
-      "window": "idle"
-    },
-    "resident_mib_max_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "mib",
-      "value": null,
-      "window": "load"
-    },
-    "resident_mib_max_steady": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "mib",
-      "value": null,
-      "window": "steady"
-    },
-    "resident_mib_steady": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "mib",
-      "value": null,
-      "window": "steady"
-    },
-    "retp": {
-      "availability": "measured",
-      "n": null,
-      "unit": "count",
-      "value": 0,
-      "window": "settle"
-    },
-    "rx_kib_per_bot_s": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "kib_per_bot_s",
-      "value": null,
-      "window": "steady"
-    },
-    "rx_pkts_per_bot_s": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "per_bot_s",
       "value": null,
       "window": "steady"
     },
@@ -615,75 +189,6 @@
       "value": -6,
       "window": "run"
     },
-    "settle_s": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the settle window was not reached",
-      "unit": "s",
-      "value": null,
-      "window": "settle"
-    },
-    "threads_max_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "count",
-      "value": 36,
-      "window": "idle"
-    },
-    "threads_max_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "count",
-      "value": null,
-      "window": "load"
-    },
-    "threads_max_steady": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "count",
-      "value": null,
-      "window": "steady"
-    },
-    "tick_busy_frac_idle": {
-      "availability": "measured",
-      "n": 201,
-      "unit": "frac",
-      "value": 0.05,
-      "window": "idle"
-    },
-    "tick_busy_frac_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "frac",
-      "value": null,
-      "window": "load"
-    },
-    "tick_busy_frac_steady": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "frac",
-      "value": null,
-      "window": "steady"
-    },
-    "tick_cpu_ms_per_tick_idle": {
-      "availability": "measured",
-      "n": 300,
-      "unit": "ms_per_tick",
-      "value": 2.5,
-      "window": "idle"
-    },
-    "tick_cpu_ms_per_tick_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "ms_per_tick",
-      "value": null,
-      "window": "load"
-    },
     "tick_cpu_ms_per_tick_steady": {
       "availability": "unavailable",
       "n": null,
@@ -692,219 +197,7 @@
       "value": null,
       "window": "steady"
     },
-    "tick_cycles_ms_per_s_idle": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "no cycle counts or no calibrated TSC frequency",
-      "unit": "ms_per_s",
-      "value": null,
-      "window": "idle"
-    },
-    "tick_cycles_ms_per_s_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "ms_per_s",
-      "value": null,
-      "window": "load"
-    },
-    "tick_cycles_ms_per_s_steady": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "ms_per_s",
-      "value": null,
-      "window": "steady"
-    },
-    "tick_deficit_frac_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "frac",
-      "value": null,
-      "window": "load"
-    },
-    "tick_ms_per_s_idle": {
-      "availability": "measured",
-      "n": 201,
-      "unit": "ms_per_s",
-      "value": 50.0,
-      "window": "idle"
-    },
-    "tick_ms_per_s_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "ms_per_s",
-      "value": null,
-      "window": "load"
-    },
-    "tick_ms_per_s_steady": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "ms_per_s",
-      "value": null,
-      "window": "steady"
-    },
-    "tick_saturated_frac_idle": {
-      "availability": "measured",
-      "n": 20,
-      "unit": "frac",
-      "value": 0.0,
-      "window": "idle"
-    },
-    "tick_saturated_frac_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "frac",
-      "value": null,
-      "window": "load"
-    },
-    "tick_saturated_frac_steady": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "frac",
-      "value": null,
-      "window": "steady"
-    },
-    "tick_util_frac_idle": {
-      "availability": "measured",
-      "n": 20,
-      "unit": "frac",
-      "value": {
-        "n": 20,
-        "p50": 0.05,
-        "p99": 0.05
-      },
-      "window": "idle"
-    },
-    "tick_util_frac_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "frac",
-      "value": null,
-      "window": "load"
-    },
-    "tick_util_frac_steady": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "frac",
-      "value": null,
-      "window": "steady"
-    },
-    "ticks_lost_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "ticks",
-      "value": null,
-      "window": "load"
-    },
-    "ticks_per_cpu_s_steady": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "ticks_per_cpu_s",
-      "value": null,
-      "window": "steady"
-    },
-    "time_below_19_5_load_s": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "s",
-      "value": null,
-      "window": "load"
-    },
-    "total_cores_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "cores",
-      "value": 0.3,
-      "window": "idle"
-    },
-    "total_cores_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "cores",
-      "value": null,
-      "window": "load"
-    },
-    "total_cores_steady": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "cores",
-      "value": null,
-      "window": "steady"
-    },
-    "tps_load_low15": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "tps",
-      "value": null,
-      "window": "load"
-    },
     "tps_load_low5": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "tps",
-      "value": null,
-      "window": "load"
-    },
-    "tps_stats_idle": {
-      "availability": "measured",
-      "n": 3,
-      "unit": "tps",
-      "value": {
-        "max": 20.0321,
-        "median": 19.984,
-        "min": 19.984,
-        "n": 3
-      },
-      "window": "idle"
-    },
-    "tps_stats_join": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "fewer than two probe replies in the window",
-      "unit": "tps",
-      "value": null,
-      "window": "join"
-    },
-    "tps_stats_load": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "tps",
-      "value": null,
-      "window": "load"
-    },
-    "tps_stats_settle": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the settle window was not reached",
-      "unit": "tps",
-      "value": null,
-      "window": "settle"
-    },
-    "tps_stats_steady": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "tps",
-      "value": null,
-      "window": "steady"
-    },
-    "tps_window_load": {
       "availability": "unavailable",
       "n": null,
       "reason": "the load window was not reached",
@@ -920,42 +213,11 @@
       "value": null,
       "window": "steady"
     },
-    "tx_pkts_per_bot_s": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the steady window was not reached",
-      "unit": "per_bot_s",
-      "value": null,
-      "window": "steady"
-    },
-    "view_fill_frac": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "frac",
-      "value": null,
-      "window": "load"
-    },
-    "view_radius_chunks": {
-      "availability": "measured",
-      "n": null,
-      "unit": "chunks",
-      "value": 10.0,
-      "window": "join"
-    },
     "view_t90_own_s": {
       "availability": "unavailable",
       "n": null,
       "reason": "the load window was not reached",
       "unit": "s",
-      "value": null,
-      "window": "load"
-    },
-    "view_t_n_censored": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "the load window was not reached",
-      "unit": "count",
       "value": null,
       "window": "load"
     },
@@ -975,91 +237,5 @@
   "status_reasons": [
     "server_alive: the server exited before teardown",
     "server_alive: exit code -6"
-  ],
-  "tables": {
-    "log_errors_first": {
-      "columns": [
-        "t_s",
-        "level",
-        "text"
-      ],
-      "rows": []
-    },
-    "pkt_mix_steady": {
-      "columns": [
-        "packet",
-        "per_bot_s"
-      ],
-      "rows": []
-    },
-    "thread_census_idle": {
-      "columns": [
-        "name",
-        "threads"
-      ],
-      "rows": [
-        [
-          "io",
-          1
-        ],
-        [
-          "job(#)",
-          1
-        ],
-        [
-          "tick",
-          1
-        ],
-        [
-          "worker(#)",
-          3
-        ]
-      ]
-    },
-    "thread_groups_load": {
-      "columns": [
-        "group",
-        "threads",
-        "sum_ms_per_s",
-        "max_ms_per_s"
-      ],
-      "rows": []
-    },
-    "thread_groups_steady": {
-      "columns": [
-        "group",
-        "threads",
-        "sum_ms_per_s",
-        "max_ms_per_s"
-      ],
-      "rows": []
-    },
-    "threads_top_load": {
-      "columns": [
-        "name",
-        "threads",
-        "sum_ms_per_s",
-        "max_ms_per_s",
-        "busy"
-      ],
-      "rows": []
-    },
-    "threads_top_steady": {
-      "columns": [
-        "name",
-        "threads",
-        "sum_ms_per_s",
-        "max_ms_per_s",
-        "busy"
-      ],
-      "rows": []
-    },
-    "y_distribution_steady": {
-      "columns": [
-        "y_from",
-        "bots"
-      ],
-      "rows": []
-    }
-  }
+  ]
 }

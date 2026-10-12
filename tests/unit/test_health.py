@@ -3,14 +3,13 @@ from __future__ import annotations
 
 import copy
 import dataclasses
-import re
 from typing import Any
 
 import pytest
 
 from bedrock_bench.metrics import compute, health
 from bedrock_bench.metrics.health import GATES, ServerTraits, evaluate, failed_gates, gates_of
-from bedrock_bench.model import Gate, LogLine, RunData, Status
+from bedrock_bench.model import Gate, RunData, Status
 from bedrock_bench.workload import from_record
 from fixtures.runs import synthetic
 
@@ -189,42 +188,21 @@ def test_a_death_skips_the_gates_of_windows_never_reached() -> None:
 
 class FakeDialect:
     tick_monotonic = False
-    benign = (re.compile(r"TRANSPORT"),)
 
 
 class FakeAdapter:
     dialect = FakeDialect()
     supports_csg = True
     tick_thread_rule = "name:main"
-    thread_groups = {"pool": "^Pool"}
 
 
 def test_server_traits() -> None:
     traits = ServerTraits.of(FakeAdapter)
-    assert traits == ServerTraits(False, True, "name:main", {"pool": "^Pool"}, (re.compile("TRANSPORT"),))
-    assert traits.is_benign("TRANSPORT TYPE ERROR") and not traits.is_benign("boom")
+    assert traits == ServerTraits(False, True, "name:main")
     assert ServerTraits.of(traits) is traits
     assert ServerTraits.of(None) == ServerTraits()
     assert ServerTraits.lookup("no_such_server") == ServerTraits()
     assert ServerTraits.lookup(None) == ServerTraits()
-
-
-def test_log_counts_follow_levels_and_the_benign_list(steady: tuple[RunData, dict[str, Any]]) -> None:
-    def line(t: float, level: str | None, text: str) -> LogLine:
-        return LogLine(synthetic.ORIGIN_NS + round(t * 1e9), 0, level, None, text, text)
-
-    log = [
-        line(1, "info", "starting"),
-        line(2, "warn", "slow"),
-        line(3, "error", "TRANSPORT banner"),
-        line(4, "error", "real problem 42"),
-        line(5, "fatal", "gone"),
-    ]
-    run = dataclasses.replace(steady[0], log=log)
-    doc = compute(run, adapter=ServerTraits(benign=(re.compile("TRANSPORT"),)))
-    counts = {k: doc["metrics"][f"log_{k}_lines"]["value"] for k in ("warn", "error", "fatal")}
-    assert counts == {"warn": 1, "error": 1, "fatal": 1}
-    assert doc["tables"]["log_errors_first"]["rows"] == [[4.0, "error", "real problem 42"], [5.0, "fatal", "gone"]]
 
 
 def test_module_exports() -> None:

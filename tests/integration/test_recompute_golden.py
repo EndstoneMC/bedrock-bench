@@ -74,32 +74,20 @@ def test_known_answers_of_the_steady_run() -> None:
     doc = stored_doc("synthetic-steady")
     assert doc["status"] == "ok" and doc["status_reasons"] == [] and doc["flags"] == []
     assert value(doc, "tps_window_steady") == pytest.approx(20.0, abs=0.01)
-    assert value(doc, "recovery_s") == 0.0
-    assert value(doc, "tick_ms_per_s_steady") == pytest.approx(400.0)
+    assert value(doc, "tps_load_low5") == pytest.approx(20.0, abs=0.02)
     assert value(doc, "tick_cpu_ms_per_tick_steady") == pytest.approx(20.0, abs=0.01)
-    assert value(doc, "tick_cpu_ms_per_tick_load") == pytest.approx(30.0, abs=0.01)
     assert value(doc, "chunks_per_bot") == {"min": 290, "median": 297.5, "max": 305, "n": 6}
     assert value(doc, "chunks_per_s_load") == pytest.approx(
         sum(synthetic.u_final(i) for i in range(6)) / 65.0, abs=1e-4
     )
-    assert value(doc, "corrections_per_bot_s") == pytest.approx(2.0)
-    assert value(doc, "actor_moves_per_bot_s") == pytest.approx(10.0)
-    assert value(doc, "rx_kib_per_bot_s") == pytest.approx(400_000 / 1024)
     assert value(doc, "csg_effective") is False
-    assert value(doc, "airborne_frac_steady") == 0.0
-    assert doc["metrics"]["aux_cores_steady"]["availability"] == "not_applicable"
+    assert value(doc, "joined") == 6
 
 
 def test_known_answers_of_the_dip_run() -> None:
     doc = stored_doc("synthetic-dip")
     # 10 TPS from 50 s to 70 s while the tick thread saturates
     assert value(doc, "tps_load_low5") == pytest.approx(10.0, abs=0.01)
-    assert value(doc, "tps_load_low15") == pytest.approx(10.0, abs=0.01)
-    assert value(doc, "ticks_lost_load") == pytest.approx(200.0)
-    assert value(doc, "recovery_s") == pytest.approx(71.024 - 35.0)
-    assert value(doc, "tick_saturated_frac_load") == pytest.approx(20 / 65, abs=1e-4)
-    assert value(doc, "tick_cpu_ms_per_tick_load") == pytest.approx(44.0, abs=0.01)
-    assert value(doc, "mspt_saturated_load") == pytest.approx(60.0, abs=0.01)
     assert value(doc, "tps_window_steady") == pytest.approx(20.0, abs=0.01)
 
 
@@ -112,7 +100,7 @@ def test_known_answers_of_the_death_run() -> None:
     ]
     assert doc["flags"] == ["dropped"]
     assert doc["metrics"]["tps_window_steady"]["reason"] == "the steady window was not reached"
-    assert value(doc, "join_ms")["n"] == 6
+    assert value(doc, "joined") == 6
 
 
 def test_fixture_directory_has_no_stray_runs() -> None:

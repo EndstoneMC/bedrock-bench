@@ -20,11 +20,10 @@ from pathlib import Path
 from typing import Any
 
 from bedrock_bench import ANALYSIS_VERSION, METRICS_SCHEMA, SCHEMA_MINOR
-from bedrock_bench.metrics import cpu, health, load, memory, registry, tps, workload
+from bedrock_bench.metrics import cpu, health, load, memory, registry, tps
 from bedrock_bench.metrics.health import ServerTraits
-from bedrock_bench.metrics.stats import Censored, censored_median, distribution, median
+from bedrock_bench.metrics.stats import Censored, censored_median, distribution
 from bedrock_bench.model import (
-    WINDOWS,
     Availability,
     CpuSample,
     ExitCode,
@@ -33,8 +32,6 @@ from bedrock_bench.model import (
     ProcSample,
     RunData,
     Status,
-    ThreadSample,
-    ThreadSeries,
 )
 from bedrock_bench.workload import from_record
 
@@ -60,17 +57,7 @@ _WINDOW_PHASE = {
 }
 
 #: Metrics computed from the tick counter: unavailable when the adapter declares no monotonic counter.
-_TICK_COUNTER_PREFIXES = (
-    "tps_",
-    "ticks_lost_",
-    "tick_deficit_",
-    "time_below_",
-    "recovery_s",
-    "tick_cpu_ms_per_tick_",
-    "mspt_saturated_",
-    "cpu_ms_per_player_tick_",
-    "ticks_per_cpu_s_",
-)
+_TICK_COUNTER_PREFIXES = ("tps_", "tick_cpu_ms_per_tick_")
 
 NS_PER_S = 1e9
 
@@ -105,15 +92,9 @@ class _Run:
         epoch = int(time_info.get("origin_epoch_ms", 0))
         self.probe = [ProbeSample(s.send_ns - o, s.rx_ns - o, s.tick) for s in data.probe]
         self.tick = [CpuSample(s.t_ns - o, s.cpu_ns, s.cycles) for s in data.tick]
-        self.threads = ThreadSeries(
-            [ThreadSample(s.t_ns - o, s.tid, s.name, s.cpu_ns, s.cycles) for s in data.threads.samples]
-        )
         self.process: list[ProcSample] = [dataclasses.replace(s, t_ns=s.t_ns - o) for s in data.process]
         self.machine: list[MachineSample] = [dataclasses.replace(s, t_ns=s.t_ns - o) for s in data.machine]
         self.bots = load.timed_events(data.bots, o, epoch)
-        self.errors = [
-            line for line in data.log if line.level in ("error", "fatal") and not traits.is_benign(line.text)
-        ]
 
     def seconds(self, mono_ns: int) -> float:
         return (mono_ns - self.origin_ns) / NS_PER_S
@@ -140,22 +121,14 @@ class _Run:
 
 
 class _Out:
-    """Metric values and tables as sections produce them."""
+    """Metric values as sections produce them."""
 
     def __init__(self) -> None:
         self.values: dict[str, dict[str, Any]] = {}
-        self.tables: dict[str, list[list[Any]]] = {}
 
-    def measured(
-        self, metric_id: str, value: Any, *, n: int | None = None, censored: bool = False, reason: str | None = None
-    ) -> None:
+    def measured(self, metric_id: str, value: Any, *, n: int | None = None) -> None:
         registry.get(metric_id)  # an undeclared id fails loudly
-        entry: dict[str, Any] = {"value": value, "n": n, "availability": Availability.MEASURED.value}
-        if censored:
-            entry["censored"] = True
-        if reason:
-            entry["reason"] = reason
-        self.values[metric_id] = entry
+        self.values[metric_id] = {"value": value, "n": n, "availability": Availability.MEASURED.value}
 
     def missing(self, metric_id: str, availability: Availability, reason: str) -> None:
         registry.get(metric_id)
@@ -168,14 +141,6 @@ class _Out:
         else:
             self.measured(metric_id, value, n=n)
 
-    def table(self, table_id: str, rows: list[list[Any]]) -> None:
-        registry.table(table_id)
-        self.tables[table_id] = rows
-
-    def get(self, metric_id: str) -> Any:
-        entry = self.values.get(metric_id)
-        return entry["value"] if entry and entry["availability"] == Availability.MEASURED.value else None
-
 
 def _each_window(r: _Run, windows: Sequence[str], fill: Callable[[str, float, float], None]) -> None:
     """``fill(window, t0, t1)`` for each reached window; metrics of the others are filled in by ``compute``."""
@@ -185,11 +150,6 @@ def _each_window(r: _Run, windows: Sequence[str], fill: Callable[[str, float, fl
             fill(w, *bounds)
 
 
-def _median_int(values: Sequence[int]) -> int | None:
-    med = median(values)
-    return None if med is None else round(med)
-
-
 # --------------------------------------------------------------------------------------------------------------------
 # Sections
 # --------------------------------------------------------------------------------------------------------------------
@@ -197,71 +157,34 @@ def _median_int(values: Sequence[int]) -> int | None:
 
 def _tps_section(out: _Out, r: _Run) -> None:
     probe = r.probe
-
-    def tps_window(w: str, t0: float, t1: float) -> None:
+    steady = r.bounds("steady")
+    if steady is not None:
         out.value(
-            f"tps_window_{w}",
-            tps.window(probe, t0, t1),
+            "tps_window_steady",
+            tps.window(probe, *steady),
             "probe replies cover less than 90% of the window",
-            n=tps.count(probe, t0, t1),
+            n=tps.count(probe, *steady),
         )
-
-    def tps_stats(w: str, t0: float, t1: float) -> None:
-        stats = tps.stats(probe, t0, t1)
-        out.value(f"tps_stats_{w}", stats, "fewer than two probe replies in the window", n=stats and stats["n"])
-
-    _each_window(r, registry.MEASURED, tps_window)
-    _each_window(r, WINDOWS, tps_stats)
-
-    for metric_id, w, span in (
-        ("tps_load_low5", "load", 4.5),
-        ("tps_load_low15", "load", 14.5),
-    ):
-        bounds = r.bounds(w)
-        if bounds is not None:
-            out.value(
-                metric_id,
-                tps.lowest(probe, *bounds, span),
-                f"no stretch of {span:g} s inside the window",
-                n=tps.count(probe, *bounds),
-            )
+        latency = tps.latency_ms(probe, *steady)
+        out.value(
+            "probe_latency_ms_steady",
+            distribution(latency, ("p50", "p99", "max")),
+            "no probe replies in the window",
+            n=len(latency),
+        )
 
     load_bounds = r.bounds("load")
     if load_bounds is not None:
-        n = tps.count(probe, *load_bounds)
-        lost = tps.ticks_lost(probe, *load_bounds)
-        span = tps.covered(probe, *load_bounds)
-        out.value("ticks_lost_load", lost, "fewer than two probe replies in load", n=n)
-        deficit = lost / (tps.TARGET_TPS * span) if lost is not None and span else None
-        out.value("tick_deficit_frac_load", deficit, "fewer than two probe replies in load", n=n)
         out.value(
-            "time_below_19_5_load_s",
-            tps.time_below(probe, *load_bounds),
-            "no probe samples in load",
-            n=len(tps.samples_in(probe, *load_bounds)),
-        )
-        end = r.marks.get("steady1") or r.marks["settled"]
-        recovery = tps.recovery_s(probe, load_bounds[0], float(end))
-        if recovery is None:
-            out.missing("recovery_s", Availability.UNAVAILABLE, "no probe samples after bots_start")
-        elif isinstance(recovery, Censored):
-            out.measured("recovery_s", recovery.bound, censored=True)
-        else:
-            out.measured("recovery_s", recovery)
-
-    def latency(w: str, t0: float, t1: float) -> None:
-        values = tps.latency_ms(probe, t0, t1)
-        out.value(
-            f"probe_latency_ms_{w}",
-            distribution(values, ("p50", "p99", "max")),
-            "no probe replies in the window",
-            n=len(values),
+            "tps_load_low5",
+            tps.lowest(probe, *load_bounds, 4.5),
+            "no stretch of 4.5 s inside the window",
+            n=tps.count(probe, *load_bounds),
         )
 
     def gap(w: str, t0: float, t1: float) -> None:
         out.measured(f"probe_max_gap_s_{w}", tps.max_gap(probe, t0, t1), n=tps.count(probe, t0, t1))
 
-    _each_window(r, ("load", "steady"), latency)
     _each_window(r, registry.MEASURED, gap)
 
     out.value("probe_tick_decreases", tps.decreases(probe) if probe else None, "no probe replies", n=len(probe))
@@ -276,82 +199,38 @@ def _tps_section(out: _Out, r: _Run) -> None:
 
 
 def _tick_section(out: _Out, r: _Run) -> None:
-    tsc_hz = (r.meta.get("machine") or {}).get("tsc_hz_calibrated")
-    names = (
-        "tick_ms_per_s",
-        "tick_busy_frac",
-        "tick_cpu_ms_per_tick",
-        "tick_util_frac",
-        "tick_saturated_frac",
-        "tick_cycles_ms_per_s",
-    )
-
-    def fill(w: str, t0: float, t1: float) -> None:
-        if not r.tick and r.traits.tick_thread_rule == "none":
-            for name in names:
-                out.missing(f"{name}_{w}", Availability.NOT_APPLICABLE, "the server has no single tick thread")
-            return
-        result = cpu.tick(r.tick, r.probe, t0, t1, tsc_hz=tsc_hz)
-        if result is None:
-            for name in names:
-                out.missing(f"{name}_{w}", Availability.UNAVAILABLE, "fewer than two tick-thread samples in the window")
-            return
-        out.measured(f"tick_ms_per_s_{w}", result.ms_per_s, n=result.samples)
-        out.measured(f"tick_busy_frac_{w}", result.busy_frac, n=result.samples)
-        out.value(
-            f"tick_cpu_ms_per_tick_{w}",
-            result.ms_per_tick,
-            "no executed ticks between probe replies covered by tick samples",
-            n=result.ticks,
+    steady = r.bounds("steady")
+    if steady is None:
+        return
+    if not r.tick and r.traits.tick_thread_rule == "none":
+        out.missing("tick_cpu_ms_per_tick_steady", Availability.NOT_APPLICABLE, "the server has no single tick thread")
+        return
+    result = cpu.tick(r.tick, r.probe, *steady)
+    if result is None:
+        out.missing(
+            "tick_cpu_ms_per_tick_steady", Availability.UNAVAILABLE, "fewer than two tick-thread samples in the window"
         )
-        short = "the window is shorter than one second"
-        out.value(f"tick_util_frac_{w}", distribution(result.util, ("p50", "p99")), short, n=len(result.util))
-        out.value(f"tick_saturated_frac_{w}", result.saturated_frac, short, n=len(result.util))
-        if result.cycles_ms_per_s is None:
-            out.missing(
-                f"tick_cycles_ms_per_s_{w}",
-                Availability.NOT_APPLICABLE,
-                "no cycle counts or no calibrated TSC frequency",
-            )
-        else:
-            out.measured(f"tick_cycles_ms_per_s_{w}", result.cycles_ms_per_s, n=result.samples)
-
-    def mspt(w: str, t0: float, t1: float) -> None:
-        rate = tps.window(r.probe, t0, t1)
-        if rate is None:
-            out.missing(f"mspt_saturated_{w}", Availability.UNAVAILABLE, "no window TPS")
-        elif rate >= tps.HEALTHY_TPS or rate <= 0:
-            out.missing(
-                f"mspt_saturated_{w}", Availability.NOT_APPLICABLE, "tps_window >= 19.5: ticks are not back to back"
-            )
-        else:
-            out.measured(f"mspt_saturated_{w}", 1000.0 / rate, n=tps.count(r.probe, t0, t1))
-
-    _each_window(r, registry.CPU_WINDOWS, fill)
-    _each_window(r, registry.MEASURED, mspt)
+        return
+    out.value(
+        "tick_cpu_ms_per_tick_steady",
+        result.ms_per_tick,
+        "no executed ticks between probe replies covered by tick samples",
+        n=result.ticks,
+    )
 
 
 def _cpu_section(out: _Out, r: _Run) -> None:
     bot_cpus = list((r.meta.get("placement") or {}).get("bot_cpus") or ())
-    recorded = (r.meta.get("interference") or {}).get("windows") or {}
-
-    def fill(w: str, t0: float, t1: float) -> None:
-        n_proc, n_machine = r.process_n(t0, t1), r.machine_n(t0, t1)
+    steady = r.bounds("steady")
+    if steady is not None:
+        process = cpu.process_cores(r.process, *steady)
         short = "fewer than two process samples in the window"
-        process = cpu.process_cores(r.process, t0, t1)
-        aux = cpu.aux_cores(r.process, t0, t1)
-        out.value(f"process_cores_{w}", process, short, n=n_proc)
-        if aux is None and process is not None:
-            out.missing(f"aux_cores_{w}", Availability.NOT_APPLICABLE, "the server has no launcher process")
-            out.measured(f"total_cores_{w}", process, n=n_proc)
-        else:
-            out.value(f"aux_cores_{w}", aux, short, n=n_proc)
-            total = process + aux if process is not None and aux is not None else None
-            out.value(f"total_cores_{w}", total, short, n=n_proc)
+        out.value("process_cores_steady", process, short, n=r.process_n(*steady))
 
+    def interference(w: str, t0: float, t1: float) -> None:
+        n_machine = r.machine_n(t0, t1)
         busy = cpu.cpu_set_busy(r.machine, bot_cpus, t0, t1)
         reason = "no machine samples in the window" if bot_cpus else "no bot CPUs in run.json placement"
-        out.value(f"bot_cores_{w}", busy, reason, n=n_machine)
         out.value(f"bot_cpu_frac_{w}", busy / len(bot_cpus) if busy is not None else None, reason, n=n_machine)
         foreign = cpu.foreign(r.machine, t0, t1)
         for metric_id, attr in (
@@ -363,77 +242,30 @@ def _cpu_section(out: _Out, r: _Run) -> None:
                 metric_id, getattr(foreign, attr) if foreign else None, "no machine samples in the window", n=n_machine
             )
 
-    def harness(w: str, t0: float, t1: float) -> None:
-        value = (recorded.get(w) or {}).get("harness_cores")
-        out.value(f"harness_cores_{w}", None if value is None else float(value), "not recorded in run.json")
-
-    def threads(w: str, t0: float, t1: float) -> None:
-        rows = cpu.thread_rows(r.threads, t0, t1)
-        out.table(f"threads_top_{w}", cpu.top_threads(rows))
-        out.table(f"thread_groups_{w}", cpu.group_threads(rows, r.traits.thread_groups) if rows else [])
-
-    _each_window(r, registry.CPU_WINDOWS, fill)
-    _each_window(r, registry.MEASURED, harness)
-    _each_window(r, registry.MEASURED, threads)
-    _each_window(
-        r,
-        ("idle",),
-        lambda w, t0, t1: out.table("thread_census_idle", [[k, v] for k, v in cpu.census(r.threads, t1).items()]),
-    )
+    _each_window(r, registry.MEASURED, interference)
 
 
 def _memory_section(out: _Out, r: _Run) -> None:
-    names = ("private_mib", "private_mib_max", "resident_mib", "resident_mib_max", "threads_max", "handles_max")
-
-    def fill(w: str, t0: float, t1: float) -> None:
-        mem = memory.window(r.process, t0, t1)
-        if mem is None:
-            for name in names:
-                out.missing(f"{name}_{w}", Availability.UNAVAILABLE, "no process samples in the window")
-            return
-        out.measured(f"private_mib_{w}", mem.private_mean, n=mem.samples)
-        out.measured(f"private_mib_max_{w}", mem.private_max, n=mem.samples)
-        out.measured(f"resident_mib_{w}", mem.resident_mean, n=mem.samples)
-        out.measured(f"resident_mib_max_{w}", mem.resident_max, n=mem.samples)
-        out.measured(f"threads_max_{w}", mem.threads_max, n=mem.samples)
-        if mem.handles_max is None:
-            out.missing(f"handles_max_{w}", Availability.NOT_APPLICABLE, "handle counts exist on Windows only")
-        else:
-            out.measured(f"handles_max_{w}", mem.handles_max, n=mem.samples)
-
-    _each_window(r, registry.CPU_WINDOWS, fill)
+    steady = r.bounds("steady")
+    if steady is None:
+        return
+    mem = memory.window(r.process, *steady)
+    if mem is None:
+        out.missing("private_mib_steady", Availability.UNAVAILABLE, "no process samples in the window")
+    else:
+        out.measured("private_mib_steady", mem.private_mean, n=mem.samples)
 
 
 def _load_section(out: _Out, r: _Run) -> None:
-    bots = r.bots
-    if r.marks.get("bots_start") is not None:
-        joins = load.join(bots)
-        out.value(
-            "join_ms", distribution(joins.join_ms, ("median", "p90", "max")), "no bot spawned", n=len(joins.join_ms)
-        )
-        out.measured("join_failed", joins.failed)
-        out.value("view_radius_chunks", load.granted_radius(bots), "no spawned events with a radius")
-
-    settle = (r.meta.get("settle") or {}).get("settle_s")
-    settle_bounds = r.bounds("settle")
-    if settle is None and settle_bounds is not None:
-        settle = settle_bounds[1] - settle_bounds[0]
-    if settle is not None:
-        out.measured("settle_s", float(settle))
-
     bounds = r.bounds("load")
     if bounds is None:
         return
     bots_start, settled = bounds
-    first = load.first_chunk_ms(bots)
-    out.value("first_chunk_ms", distribution(first, ("median", "p90", "max")), "no first_chunk events", n=len(first))
-
-    view = load.view(bots, settled)
+    view = load.view(r.bots, settled)
     u = list(view.u.values())
     n = len(u)
     no_progress = "no progress snapshot before settled"
     out.value("chunks_per_bot", distribution(u, ("min", "median", "max")), no_progress, n=n)
-    out.value("chunks_zero_bots", sum(1 for v in u if v == 0) if u else None, no_progress, n=n)
     out.value(
         "view_t90_own_s",
         distribution(view.t90_own.values(), ("median", "p90", "max")),
@@ -441,97 +273,29 @@ def _load_section(out: _Out, r: _Run) -> None:
         n=len(view.t90_own),
     )
 
-    censored = sum(1 for v in view.t_n if isinstance(v, Censored))
     t_n = censored_median(view.t_n)
     if not view.t_n:
         out.missing("view_t_n_s", Availability.UNAVAILABLE, "no teleported bots with progress")
-        out.missing("view_t_n_censored", Availability.UNAVAILABLE, "no teleported bots with progress")
+    elif t_n is None:
+        censored = sum(1 for v in view.t_n if isinstance(v, Censored))
+        out.missing(
+            "view_t_n_s",
+            Availability.UNAVAILABLE,
+            f"median censored: {censored} of {len(view.t_n)} bots never reached {view.n_target} chunks",
+        )
     else:
-        if t_n is None:
-            out.missing(
-                "view_t_n_s",
-                Availability.UNAVAILABLE,
-                f"median censored: {censored} of {len(view.t_n)} bots never reached {view.n_target} chunks",
-            )
-        else:
-            out.measured("view_t_n_s", t_n, n=len(view.t_n))
-        out.measured("view_t_n_censored", censored, n=len(view.t_n))
+        out.measured("view_t_n_s", t_n, n=len(view.t_n))
 
-    start = load.first_tp(bots)
-    shares = load.delivery(bots, start, settled) if start is not None else {}
-    out.value("delivery_t50_s", shares.get(0.5), "no teleports or no in-view chunks at settled")
-    out.value("delivery_t90_s", shares.get(0.9), "no teleports or no in-view chunks at settled")
-
-    total = sum(u)
     out.value(
-        "chunks_per_s_load", total / (settled - bots_start) if u and settled > bots_start else None, no_progress, n=n
+        "chunks_per_s_load", sum(u) / (settled - bots_start) if u and settled > bots_start else None, no_progress, n=n
     )
-    cpu_s = cpu.process_cpu_s(r.process, bots_start, settled)
-    out.value(
-        "chunks_per_cpu_s_load",
-        total / cpu_s if u and cpu_s else None,
-        "no progress snapshot or no process CPU over load",
-        n=n,
-    )
-    out.value("resend_ratio", load.resend_ratio(bots, settled), "no stat event with chunks before settled")
-    radius = r.workload.server.view_distance
-    med = median(u)
-    out.value("view_fill_frac", None if med is None else med / load.disc(radius), no_progress, n=n)
-    out.value("csg_effective", load.csg_effective(view.u, radius), no_progress, n=n)
-
-
-def _work_section(out: _Out, r: _Run) -> None:
-    bounds = r.bounds("steady")
-    if bounds is None:
-        return
-    online = workload.online(r.bots, *bounds)
-    players = _median_int(online)
-    out.value("players_steady", players, "no stat events in steady", n=len(online))
-    n = players or out.get("joined") or r.workload.bots.n
-    rates = workload.counters(r.bots, *bounds, n)
-    for name in ("corrections", "rx_pkts", "tx_pkts"):
-        out.value(f"{name}_per_bot_s", rates[name], "fewer than two stat events in steady")
-    out.value("rx_kib_per_bot_s", rates["rx_kib"], "fewer than two stat events in steady")
-    for name in workload.PACKET_GROUPS:
-        out.value(f"{name}_per_bot_s", rates[name], "no packet-mix interval lies wholly inside steady")
-    ys = workload.heights(r.bots, *bounds)
-    out.value(
-        "airborne_frac_steady",
-        workload.airborne_frac(ys, r.workload.grid.y),
-        "no placed bots in a progress snapshot of steady",
-        n=len(ys),
-    )
-    out.table("pkt_mix_steady", workload.mix_table(workload.packet_mix(r.bots, *bounds), n))
-    out.table("y_distribution_steady", workload.y_table(ys))
-
-
-def _efficiency_section(out: _Out, r: _Run) -> None:
-    if r.bounds("steady") is None:
-        return
-    cores = out.get("process_cores_steady")
-    rate = out.get("tps_window_steady")
-    players = out.get("players_steady")
-    per_player = 1000.0 * cores / (players * rate) if cores is not None and rate and players else None
-    out.value("cpu_ms_per_player_tick_steady", per_player, "needs process_cores, tps_window and players in steady")
-    out.value(
-        "ticks_per_cpu_s_steady",
-        rate / cores if rate is not None and cores else None,
-        "needs tps_window and process_cores in steady",
-    )
+    out.value("csg_effective", load.csg_effective(view.u, r.workload.server.view_distance), no_progress, n=n)
 
 
 def _health_section(out: _Out, r: _Run) -> None:
     recorded = r.meta.get("health") or {}
     out.value("server_exit_code", recorded.get("server_exit"), "not recorded in run.json")
     out.value("died_during_run", recorded.get("died"), "not recorded in run.json")
-    crash = recorded.get("crash_files")
-    out.value("crash_files", None if crash is None else len(crash), "not recorded in run.json")
-
-    log = r.data.log
-    out.measured("log_warn_lines", sum(1 for line in log if line.level == "warn"), n=len(log))
-    for level in ("error", "fatal"):
-        out.measured(f"log_{level}_lines", sum(1 for line in r.errors if line.level == level), n=len(log))
-    out.table("log_errors_first", [[r.seconds(e.t_ns), e.level, e.text] for e in r.errors[:20]])
 
     bots = r.bots
     totals = [int(e.data.get("decode_errors", 0)) for e in bots if e.ev == "stat"]
@@ -540,7 +304,7 @@ def _health_section(out: _Out, r: _Run) -> None:
         totals.append(int(recorded["decode_errors"]))
     out.value("decode_errors", max(totals, default=None), "no bot events")
     if bots:
-        out.measured("joined", load.join(bots).joined)
+        out.measured("joined", load.joined(bots))
     else:
         out.value("joined", recorded.get("joined"), "no bot events")
     end = r.marks.get("steady1") or r.marks.get("stop")
@@ -549,8 +313,6 @@ def _health_section(out: _Out, r: _Run) -> None:
     out.value("dropped", dropped, "no stat event before the end of steady")
 
     interventions = r.meta.get("interventions") or {}
-    for key in ("nudges", "retp"):
-        out.value(key, interventions.get(key), "not recorded in run.json")
     steady = r.bounds("steady")
     if steady is not None:
         sent = sum(
@@ -570,8 +332,6 @@ _SECTIONS = (
     _cpu_section,
     _memory_section,
     _load_section,
-    _work_section,
-    _efficiency_section,
 )
 
 
@@ -623,7 +383,6 @@ def compute(run: RunData, adapter: Any = None) -> dict[str, Any]:
         if entry is None:
             entry = {"value": None, "n": None, "availability": availability.value, "reason": reason}
         metrics[metric.id] = {"unit": metric.unit, "window": metric.window, **_round(entry)}
-    tables = {t.id: {"columns": list(t.columns), "rows": _round(out.tables.get(t.id, []))} for t in registry.TABLES}
 
     status, reasons, flags = health.evaluate(run, metrics, r.workload, traits)
     return {
@@ -635,7 +394,6 @@ def compute(run: RunData, adapter: Any = None) -> dict[str, Any]:
         "status_reasons": reasons,
         "flags": flags,
         "metrics": metrics,
-        "tables": tables,
     }
 
 

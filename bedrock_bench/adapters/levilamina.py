@@ -2,17 +2,17 @@
 """LeviLamina, a mod loader for BDS on Windows.
 
 Fetch assembles one install per package set. It starts from the BDS build the release depends on
-(``configs/bds/server.toml``, verified exactly as for vanilla BDS), adds the packages pinned in
-``configs/levilamina/server.toml``, each placed where its own tooth.json puts it, and then runs
+(``servers/bds/server.toml``, verified exactly as for vanilla BDS), adds the packages pinned in
+``servers/levilamina/server.toml``, each placed where its own tooth.json puts it, and then runs
 ``PeEditor.exe -mb`` as ``lip install`` does: PeEditor writes ``bedrock_server_mod.exe``, a copy of the server binary
 that loads PreLoader and through it LeviLamina, and renames the original to ``bedrock_server.exe.bak``. PeEditor runs
 once, while the install is staged, so the install's tree hash covers the executable every run starts.
 
-Prepare writes the pinned PreLoader and LeviLamina configs from ``configs/levilamina`` into every run, with crash
+Prepare writes the pinned PreLoader and LeviLamina configs from ``servers/levilamina`` into every run, with crash
 report upload and usage statistics switched off. LeviLamina merges an older config over its defaults when its config
 version changes, so a file left from another install could carry other values.
 
-Launch runs ``bedrock_server_mod.exe``; it is the measured process. See configs/levilamina/README.md.
+Launch runs ``bedrock_server_mod.exe``; it is the measured process. See servers/levilamina/README.md.
 """
 
 from __future__ import annotations
@@ -54,7 +54,7 @@ MOD_EXE = "bedrock_server_mod.exe"
 PEEDITOR = "PeEditor.exe"
 #: ``-m`` writes bedrock_server_mod.exe, ``-b`` keeps the original as bedrock_server.exe.bak (LeviLamina's tooth.json).
 PEEDITOR_ARGS = ("-mb",)
-TEMPLATES_DIR = "configs/levilamina"
+TEMPLATES_DIR = "servers/levilamina"
 UNPACK_DIR = ".unpack"
 
 PRELOADER_CONFIG = "PreLoaderConfig.json"
@@ -129,7 +129,7 @@ LEVILAMINA_CHANGES: tuple[JsonChange, ...] = (
 
 @dataclass(frozen=True)
 class Package:
-    """One package pinned in ``configs/levilamina/server.toml``: its asset and where its files go."""
+    """One package pinned in ``servers/levilamina/server.toml``: its asset and where its files go."""
 
     name: str
     release: str
@@ -240,11 +240,6 @@ class LeviLaminaAdapter(BdsFamily):
     name: ClassVar[str] = "levilamina"
     platforms: ClassVar[frozenset[str]] = frozenset({"windows"})
     dialect: ClassVar[Dialect] = LEVILAMINA_DIALECT
-    thread_groups: ClassVar[Mapping[str, str]] = {
-        **BdsFamily.thread_groups,
-        "levilamina_pool": r"^ll_default_thread_pool\[",
-        "levilamina_logger": r"^logger\[",
-    }
     crash_paths: ClassVar[tuple[str, ...]] = ("logs/crash", "%LOCALAPPDATA%/CrashDumps")
 
     @property
@@ -404,7 +399,7 @@ class LeviLaminaAdapter(BdsFamily):
 
 
 def load_template(name: str) -> Any:
-    """A JSON file from configs/levilamina."""
+    """A JSON file from servers/levilamina."""
     path = config.project_root() / TEMPLATES_DIR / name
     try:
         with open(path, encoding="utf-8") as fh:

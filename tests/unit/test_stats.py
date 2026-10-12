@@ -11,8 +11,6 @@ from bedrock_bench.metrics.stats import (
     median,
     pct,
     rank,
-    separated,
-    slope,
     stat,
 )
 
@@ -52,16 +50,14 @@ def test_median_and_mean() -> None:
 
 
 class TestDistribution:
-    def test_p5_is_left_out_below_twenty_samples(self) -> None:
-        small = distribution(TEN, ("min", "p5", "median", "max"))
-        assert small == {"min": 1.0, "median": 5.5, "max": 10.0, "n": 10}
-
-    def test_p5_with_twenty_samples(self) -> None:
-        values = [float(v) for v in range(20)]
-        result = distribution(values, ("min", "p5", "median", "max"))
-        assert result is not None
-        assert result["p5"] == 1.0  # 0.05 * 19 = 0.95 -> index 1
-        assert result["n"] == 20
+    def test_named_statistics(self) -> None:
+        assert distribution(TEN, ("min", "median", "p90", "max")) == {
+            "min": 1.0,
+            "median": 5.5,
+            "p90": 9.0,
+            "max": 10.0,
+            "n": 10,
+        }
 
     def test_empty(self) -> None:
         assert distribution([], ("median",)) is None
@@ -89,23 +85,3 @@ class TestCensoredMedian:
 
     def test_empty(self) -> None:
         assert censored_median([]) is None
-
-
-class TestSeparation:
-    def test_complete_separation_only(self) -> None:
-        assert separated([19.5, 19.6, 19.7], [12.0, 14.0, 19.0], higher_is_better=True)
-        assert not separated([19.5, 19.6, 19.7], [12.0, 14.0, 19.6], higher_is_better=True)
-
-    def test_lower_is_better(self) -> None:
-        assert separated([40.0, 41.0, 42.0], [50.0, 55.0, 60.0], higher_is_better=False)
-        assert not separated([40.0, 51.0], [50.0, 55.0], higher_is_better=False)
-
-    def test_ties_and_empty_are_not_separated(self) -> None:
-        assert not separated([20.0], [20.0], higher_is_better=True)
-        assert not separated([], [1.0], higher_is_better=True)
-
-
-def test_slope() -> None:
-    assert slope([(0.0, 1.0), (1.0, 3.0), (2.0, 5.0)]) == pytest.approx(2.0)
-    assert slope([(1.0, 1.0)]) is None
-    assert slope([(1.0, 1.0), (1.0, 2.0)]) is None

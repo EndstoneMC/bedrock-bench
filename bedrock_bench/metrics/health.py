@@ -14,7 +14,7 @@ from __future__ import annotations
 import dataclasses
 import re
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from bedrock_bench.model import Flag, Gate, Gates, RunData, Status
@@ -78,8 +78,6 @@ class ServerTraits:
     tick_monotonic: bool = True
     supports_csg: bool = False
     tick_thread_rule: str = "none"
-    thread_groups: Mapping[str, str] = field(default_factory=dict)
-    benign: tuple[re.Pattern[str], ...] = ()
 
     @classmethod
     def of(cls, adapter: Any) -> ServerTraits:
@@ -93,8 +91,6 @@ class ServerTraits:
             tick_monotonic=bool(getattr(dialect, "tick_monotonic", True)),
             supports_csg=bool(getattr(adapter, "supports_csg", False)),
             tick_thread_rule=str(getattr(adapter, "tick_thread_rule", "none")),
-            thread_groups=dict(getattr(adapter, "thread_groups", {}) or {}),
-            benign=tuple(getattr(dialect, "benign", ()) or ()),
         )
 
     @classmethod
@@ -109,9 +105,6 @@ class ServerTraits:
             return cls.of(adapters.get(server))
         except ConfigError:  # not installed on this host (a third-party adapter, or a fixture)
             return cls()
-
-    def is_benign(self, text: str) -> bool:
-        return any(p.search(text) for p in self.benign)
 
 
 def gates_of(run: Mapping[str, Any]) -> Gates:

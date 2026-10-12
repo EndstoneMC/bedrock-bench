@@ -5,7 +5,7 @@ These servers bring their own world generator, their own config files and a runt
 are mostly data; this module holds the machinery they share.
 
 - **Artifacts.** The server's own release (a phar or a jar) is pinned in ``configs/<server>/server.toml`` and
-  its runtime in ``configs/runtimes.toml``; both are verified by sha256. An install has two parts:
+  its runtime in ``servers/runtimes.toml``; both are verified by sha256. An install has two parts:
   ``server/``, copied into every run's fresh server directory, and ``defaults/``, the config files the server would
   write on its first start, extracted from the release itself so they always match the pinned version. Runtimes are
   unpacked once into the cache and used in place, read-only.
@@ -486,7 +486,7 @@ def extract_archive(archive: Path, dest: Path, *, executables: Iterable[str] = (
 class Runtime:
     """A verified runtime (a JDK or a PHP build) unpacked in the cache."""
 
-    key: str  # version key in configs/runtimes.toml
+    key: str  # version key in servers/runtimes.toml
     root: Path
     tree_sha256: str
     artifact: ArtifactRef
@@ -509,7 +509,7 @@ def runtime_platform() -> str:
 
 
 def fetch_runtime(cache: Cache, key: str, platform: str) -> Runtime:
-    """Verify and unpack a runtime from ``configs/runtimes.toml`` (``[artifacts.version."<key>".<platform>]``).
+    """Verify and unpack a runtime from ``servers/runtimes.toml`` (``[artifacts.version."<key>".<platform>]``).
 
     Platform tables may name paths inside the archive besides the download keys (``java = "jdk-21/bin/java"``).
     """
@@ -825,11 +825,6 @@ class JavaServer(StandaloneServer):
     """
 
     tick_thread_rule: ClassVar[str] = "java_main"
-    thread_groups: ClassVar[Mapping[str, str]] = {
-        "gc": r"^(GC Thread|G1 |VM Periodic)",
-        "jit": r"^C[12] Compiler",
-        "netty": r"(?i)netty|EventLoop",
-    }
     crash_paths: ClassVar[tuple[str, ...]] = ("logs",)
 
     def __init__(self, arm: Arm, machine: Machine) -> None:

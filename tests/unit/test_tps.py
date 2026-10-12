@@ -8,7 +8,6 @@ from collections.abc import Callable
 import pytest
 
 from bedrock_bench.metrics import tps
-from bedrock_bench.metrics.stats import Censored
 from bedrock_bench.model import ProbeSample
 
 NS = 1_000_000_000
@@ -49,19 +48,9 @@ def step_dip(t: float) -> float:
 class TestConstant20:
     samples = probe(constant(20.0))
 
-    def test_window_and_stats(self) -> None:
+    def test_window_and_lowest(self) -> None:
         assert tps.window(self.samples, 100, 190) == pytest.approx(20.0)
-        stats = tps.stats(self.samples, 0, 200)
-        assert stats is not None
-        assert stats["min"] == pytest.approx(20.0) and stats["max"] == pytest.approx(20.0)
-        assert stats["n"] == 40
-        assert stats["p5"] == pytest.approx(20.0)
-
-    def test_headroom_metrics_are_zero(self) -> None:
         assert tps.lowest(self.samples, 0, 200, 4.5) == pytest.approx(20.0)
-        assert tps.ticks_lost(self.samples, 0, 200) == pytest.approx(0.0)
-        assert tps.time_below(self.samples, 0, 200) == 0
-        assert tps.recovery_s(self.samples, 10, 200) == 0.0
 
     def test_series_is_stamped_at_the_later_reply(self) -> None:
         series = tps.series(self.samples)
@@ -78,37 +67,8 @@ class TestStepDip:
         # a 25 s stretch cannot fit inside the 20 s dip
         assert tps.lowest(self.samples, 20, 150, 24.5) == pytest.approx((5 * 20 + 20 * 10) / 25)
 
-    def test_ticks_lost_is_the_dip_area(self) -> None:
-        assert tps.ticks_lost(self.samples, 20, 150) == pytest.approx(200.0)
-
-    def test_time_below(self) -> None:
-        assert tps.time_below(self.samples, 20, 150) == pytest.approx(20.0)
-
-    def test_recovery_after_the_dip(self) -> None:
-        # first drop sample ends at 55; the first 30 s window that is healthy throughout starts at the reply at 70
-        assert tps.recovery_s(self.samples, 30, 200) == pytest.approx(40.0)
-
     def test_window_tps_over_the_dip(self) -> None:
         assert tps.window(self.samples, 45, 75) == pytest.approx((5 * 20 + 20 * 10 + 5 * 20) / 30)
-
-
-def test_recovery_is_censored_when_the_rate_never_comes_back() -> None:
-    samples = probe(lambda t: 20.0 if t < 50 else 12.0)
-    result = tps.recovery_s(samples, 30, 200)
-    assert result == Censored(200 - 30 - 30)
-
-
-def test_recovery_needs_every_sample_above_the_floor() -> None:
-    # a single 5 s sample at 18.9 inside an otherwise healthy 30 s window blocks recovery at that window
-    def rate(t: float) -> float:
-        if 50 <= t < 55:
-            return 10.0
-        if 65 <= t < 70:
-            return 18.9
-        return 20.0
-
-    samples = probe(rate)
-    assert tps.recovery_s(samples, 30, 200) == pytest.approx(70.0 - 30.0)
 
 
 def test_reply_jitter_never_exceeds_20_5_over_five_seconds() -> None:
@@ -135,15 +95,7 @@ def test_window_needs_two_replies() -> None:
     samples = probe(constant(20.0))
     assert tps.window(samples, 101, 104) is None
     assert tps.window(samples, 10, 10) is None
-    assert tps.stats(samples, 101, 104) is None
-    assert tps.ticks_lost(samples, 101, 104) is None
-    assert tps.time_below(samples, 101, 104) is None
-
-
-def test_samples_need_both_replies_in_the_window() -> None:
-    samples = probe(constant(20.0))
-    inside = tps.samples_in(samples, 12, 31)
-    assert [(a, b) for a, b, _ in inside] == [(15.0, 20.0), (20.0, 25.0), (25.0, 30.0)]
+    assert tps.lowest(samples, 101, 104, 4.5) is None
 
 
 def test_latency_gap_and_counter_checks() -> None:

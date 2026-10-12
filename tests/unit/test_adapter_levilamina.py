@@ -170,13 +170,6 @@ class TestContract:
         assert LeviLaminaAdapter.tick_thread_rule == "lowest_tid_name:MC_SERVER"
         assert "logs/crash" in LeviLaminaAdapter.crash_paths
 
-    def test_thread_groups(self) -> None:
-        groups = {label: re.compile(pattern) for label, pattern in LeviLaminaAdapter.thread_groups.items()}
-        assert groups["levilamina_pool"].match("ll_default_thread_pool[12]")
-        assert groups["levilamina_pool"].match("ll_default_thread_pool[sch]")
-        assert groups["levilamina_logger"].match("logger[0]")
-        assert groups["streaming_pool"].match("Streaming Pool(3)")
-
     def test_dialect_samples(self) -> None:
         with open(LOGS / "levilamina.toml", "rb") as fh:
             samples = tomllib.load(fh)["sample"]

@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
 """Endstone, the plugin API for BDS: installed from PyPI and started through its own launcher.
 
-Fetch builds two things. The BDS build this Endstone version supports comes from ``configs/bds/server.toml``,
+Fetch builds two things. The BDS build this Endstone version supports comes from ``servers/bds/server.toml``,
 verified exactly as for vanilla BDS. Endstone gets a virtual environment per version, Python, wheel and dependency
-lock, built with uv: the dependencies from ``configs/endstone/requirements-<version>.txt`` with
-``--require-hashes``, then the Endstone wheel pinned in ``configs/endstone/server.toml`` and verified by
+lock, built with uv: the dependencies from ``servers/endstone/requirements-<version>.txt`` with
+``--require-hashes``, then the Endstone wheel pinned in ``servers/endstone/server.toml`` and verified by
 sha256, then ``uv pip check``. The environment is read-only once built.
 
 Prepare writes the launcher's installed-BDS marker (``version.txt``), so the launcher accepts the verified copy
@@ -14,7 +14,7 @@ Endstone's defaults.
 Launch runs ``<venv python> -m endstone -y --no-interactive -s .`` with ``PYTHONSAFEPATH=1`` and without
 ``PYTHONPATH``, ``PYTHONHOME`` and ``VIRTUAL_ENV``. The launcher starts ``bedrock_server`` as its child, which is the
 measured process. It is found by executable path because Endstone renames the server's main thread (and with it the
-process name on Linux). The launcher's own CPU is reported separately. See configs/endstone/README.md.
+process name on Linux). The launcher's own CPU is reported separately. See servers/endstone/README.md.
 """
 
 from __future__ import annotations
@@ -53,8 +53,8 @@ if TYPE_CHECKING:
     from bedrock_bench.cache import Cache
 
 DEFAULT_PYTHON = "3.13"
-REQUIREMENTS = "configs/endstone/requirements-{version}.txt"
-BSTATS_TEMPLATE = "configs/endstone/bstats.toml"
+REQUIREMENTS = "servers/endstone/requirements-{version}.txt"
+BSTATS_TEMPLATE = "servers/endstone/bstats.toml"
 BSTATS_FILE = "plugins/bstats/config.toml"
 VERSION_MARKER_FILE = "version.txt"
 ENVIRONMENT = "<environment>"
@@ -80,7 +80,6 @@ class EndstoneAdapter(BdsFamily):
     name: ClassVar[str] = "endstone"
     platforms: ClassVar[frozenset[str]] = frozenset({"windows", "linux"})
     dialect: ClassVar[Dialect] = ENDSTONE_DIALECT
-    thread_groups: ClassVar[Mapping[str, str]] = {**BdsFamily.thread_groups, "crash_reporter": r"^sentry"}
     crash_paths: ClassVar[tuple[str, ...]] = ("crash_reports", ".sentry-native", "%LOCALAPPDATA%/CrashDumps")
 
     # ---- fetch ----------------------------------------------------------------------------------------------------
@@ -162,7 +161,7 @@ class EndstoneAdapter(BdsFamily):
         if self.arm.artifact is not None:
             return None
         raise ConfigError(
-            f"no dependency lock for endstone {self.arm.version}; see configs/endstone/README.md", file=path
+            f"no dependency lock for endstone {self.arm.version}; see servers/endstone/README.md", file=path
         )
 
     # ---- prepare and launch ---------------------------------------------------------------------------------------

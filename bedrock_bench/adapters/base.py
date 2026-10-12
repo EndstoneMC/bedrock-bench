@@ -207,7 +207,6 @@ class ServerAdapter(abc.ABC):
     features_file: ClassVar[str]
     dialect: ClassVar[Dialect]
     tick_thread_rule: ClassVar[str] = "none"
-    thread_groups: ClassVar[Mapping[str, str]] = {}  # group label -> thread name regex; diagnostic only
     crash_paths: ClassVar[tuple[str, ...]] = ()  # files or folders (relative to the server dir, env vars expanded)
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
@@ -246,11 +245,6 @@ class ServerAdapter(abc.ABC):
             check_tick_rule(cls.tick_thread_rule)
         except ValueError as exc:
             problems.append(str(exc))
-        for label, pattern in cls.thread_groups.items():
-            try:
-                re.compile(pattern)
-            except re.error as exc:
-                problems.append(f"thread_groups[{label!r}] does not compile: {exc}")
         return problems
 
     # ---- lifecycle ------------------------------------------------------------------------------------------------

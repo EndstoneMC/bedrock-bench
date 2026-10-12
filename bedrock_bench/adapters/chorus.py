@@ -1,13 +1,13 @@
 # SPDX-License-Identifier: Apache-2.0
 """Chorus, a Bedrock server written in Rust (https://github.com/bedrock-crustaceans/chorus), run through chorusbench.
 
-Chorus has no releases or tags. ``configs/chorus`` holds chorusbench: the Chorus server plus the console
+Chorus has no releases or tags. ``servers/chorus`` holds chorusbench: the Chorus server plus the console
 commands the harness needs. Fetch builds it with ``cargo build --release --locked`` on the Rust toolchain pinned in the
 folder's ``server.toml``, from the ``Cargo.lock`` committed next to it, which pins the Chorus commit and every
 dependency. ``chorusbench -version`` must report the pinned commit and the bots' protocol; ``chorusbench -defaults``
-is kept next to the binary. See configs/chorus/README.md.
+is kept next to the binary. See servers/chorus/README.md.
 
-- Config: ``chorus.toml`` gets only the keys of the ``[config]`` table of ``configs/chorus/server.toml``.
+- Config: ``chorus.toml`` gets only the keys of the ``[config]`` table of ``servers/chorus/server.toml``.
   Chorus fills in every other key, and each written value that differs from the build's default is an override.
 - Console: ``HH:MM:SS LEVEL text`` log lines; command replies have no prefix. chorusbench adds ``gametime``,
   ``positions``, ``tpp`` (teleport another player) and ``kick``, and logs their failures at error level.
@@ -53,8 +53,8 @@ if TYPE_CHECKING:
 
     from bedrock_bench.cache import Cache
 
-SOURCE_DIR = "configs/chorus"  # chorusbench, relative to the project root
-SETTINGS_FILE = "configs/chorus/server.toml"  # its [config] table
+SOURCE_DIR = "servers/chorus"  # chorusbench, relative to the project root
+SETTINGS_FILE = "servers/chorus/server.toml"  # its [config] table
 REPOSITORY = "https://github.com/bedrock-crustaceans/chorus"
 CONFIG = "chorus.toml"  # what Chorus reads in the server directory
 DEFAULTS = "defaults.toml"  # 'chorusbench -defaults' of the build, kept in the install
@@ -102,7 +102,7 @@ KINDS = ("str", "int", "bool")
 
 @dataclass(frozen=True)
 class Setting:
-    """One value from the ``[config]`` table of ``configs/chorus/server.toml``."""
+    """One value from the ``[config]`` table of ``servers/chorus/server.toml``."""
 
     key: str  # dotted path into chorus.toml, e.g. "server.max_players"
     template: Any  # a TOML value; a string may hold {placeholders}
@@ -250,7 +250,7 @@ def locked_commit(lock: str, package: str) -> str | None:
 
 
 def check_source(src: Path, pin: SourcePin) -> None:
-    """``configs/chorus`` must build exactly the pinned commit, from the pinned Cargo.lock, without patches."""
+    """``servers/chorus`` must build exactly the pinned commit, from the pinned Cargo.lock, without patches."""
     try:
         manifest = (src / "Cargo.toml").read_text(encoding="utf-8")
         lock = (src / "Cargo.lock").read_bytes()
@@ -380,11 +380,6 @@ class ChorusAdapter(ServerAdapter):
     protocol: ClassVar[int] = 2193
     dialect: ClassVar[Dialect] = CHORUS_DIALECT
     tick_thread_rule: ClassVar[str] = "first_created"
-    thread_groups: ClassVar[Mapping[str, str]] = {
-        "compute": r"^Compute Task",
-        "async compute": r"^Async Compute",
-        "io": r"^IO Task",
-    }
     crash_paths: ClassVar[tuple[str, ...]] = ("logs",)
 
     # ---- fetch ----------------------------------------------------------------------------------------------------

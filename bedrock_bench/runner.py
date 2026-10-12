@@ -17,14 +17,13 @@ cooldown between runs. The runs share a session id and land in ``<out>/<session>
 through :meth:`bedrock_bench.lock.MachineLock.child_env`. An ``invalid`` run is rerun up to ``--rerun-invalid`` times;
 ``server_failed`` is a result and never rerun. The session exits with the worst final status and writes the report.
 
-``smoke`` is ``run-one`` with the short smoke workload plus adapter checks: every harness command accepted
-without an error line, and movement corrections seen where the feature file declares movement validation.
+``smoke`` is ``run-one`` with the short smoke workload plus an adapter check: every harness command accepted
+without an error line.
 """
 
 from __future__ import annotations
 
 import argparse
-import json
 import logging
 import os
 import random
@@ -46,7 +45,6 @@ from bedrock_bench.lock import MachineLock, holder
 from bedrock_bench.model import (
     Arm,
     ExitCode,
-    FeatureClass,
     Flag,
     Machine,
     Placement,
@@ -59,9 +57,6 @@ from bedrock_bench.workload import SMOKE, WORKLOAD, Workload, for_run, is_builti
 log = logging.getLogger(__name__)
 
 DEFAULT_OUT = Path("runs")
-
-#: Feature whose declared parity makes ``smoke`` expect movement corrections.
-MOVEMENT_FEATURE = "player.server_authoritative_movement"
 
 
 def _say(message: str) -> None:
@@ -613,15 +608,7 @@ def smoke(args: argparse.Namespace) -> int:
 def smoke_problems(run_dir: Path, adapter: ServerAdapter) -> list[str]:
     """Adapter wiring problems a run's status does not show."""
     data = results.load_run(run_dir)
-    metrics = json.loads((run_dir / results.METRICS_FILE).read_text(encoding="utf-8"))["metrics"]
     problems: list[str] = []
-
-    declared = (data.run.get("parity") or {}).get("row", {}).get(MOVEMENT_FEATURE)
-    if declared in (FeatureClass.VANILLA, FeatureClass.PARTIAL, FeatureClass.ALTERED):
-        entry = metrics.get("corrections_per_bot_s") or {}
-        if entry.get("availability") != "measured" or not entry.get("value"):
-            problems.append(f"no movement corrections in steady, but the feature file declares {MOVEMENT_FEATURE}")
-
     errors = [
         line for line in data.log if line.level in ("error", "fatal") and not adapter.dialect.is_benign(line.text)
     ]

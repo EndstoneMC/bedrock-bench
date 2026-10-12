@@ -13,13 +13,10 @@ import statistics
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 
-#: Tail percentiles below this sample count are left out of a distribution (p5 needs n >= 20).
-P5_MIN_N = 20
-
 
 @dataclass(frozen=True, order=True)
 class Censored:
-    """A right-censored observation: the true value is larger than ``bound`` (shown as ``>bound``)."""
+    """A right-censored observation: the true value is larger than ``bound``."""
 
     bound: float
 
@@ -74,18 +71,6 @@ def censored_median(values: Iterable[float | Censored]) -> float | None:
     return math.fsum(observed) / len(observed)
 
 
-def separated(a: Sequence[float], b: Sequence[float], higher_is_better: bool) -> bool:
-    """True when every value of ``a`` beats every value of ``b`` (the "A better than B" rule).
-
-    With 3 runs each, complete separation by chance has a one-sided probability of 1/20.
-    """
-    if not a or not b:
-        return False
-    if higher_is_better:
-        return min(a) > max(b)
-    return max(a) < min(b)
-
-
 def stat(values: Sequence[float], name: str) -> float | None:
     """One named statistic: ``min``, ``max``, ``median``, ``mean`` or ``p<NN>`` (nearest rank)."""
     if name == "min":
@@ -102,32 +87,14 @@ def stat(values: Sequence[float], name: str) -> float | None:
 
 
 def distribution(values: Iterable[float], names: Sequence[str]) -> dict[str, float | int] | None:
-    """``{name: value, ..., "n": n}`` for the named statistics; None for an empty sample.
-
-    ``p5`` is left out when ``n < 20``: with fewer samples it is just the minimum again.
-    """
+    """``{name: value, ..., "n": n}`` for the named statistics; None for an empty sample."""
     data = sorted(values)
     if not data:
         return None
     out: dict[str, float | int] = {}
     for name in names:
-        if name == "p5" and len(data) < P5_MIN_N:
-            continue
         value = stat(data, name)
         if value is not None:
             out[name] = value
     out["n"] = len(data)
     return out
-
-
-def slope(points: Sequence[tuple[float, float]]) -> float | None:
-    """Least-squares slope of ``y`` over ``x``; None with fewer than two distinct ``x``."""
-    if len(points) < 2:
-        return None
-    mx = math.fsum(x for x, _ in points) / len(points)
-    my = math.fsum(y for _, y in points) / len(points)
-    sxx = math.fsum((x - mx) ** 2 for x, _ in points)
-    if sxx == 0:
-        return None
-    sxy = math.fsum((x - mx) * (y - my) for x, y in points)
-    return sxy / sxx

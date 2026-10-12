@@ -17,7 +17,6 @@ from bedrock_bench.adapters.bds import BdsAdapter
 from bedrock_bench.adapters.bdsfamily import BDS_DIALECT, Properties, load_property_pins, parse_querytarget
 from bedrock_bench.cache import Cache
 from bedrock_bench.config import ConfigError
-from bedrock_bench.metrics import registry
 from bedrock_bench.model import (
     FEATURE_KEYS,
     Arm,
@@ -150,8 +149,6 @@ class TestContract:
         threads = [ThreadInfo(900, "MC_SERVER"), ThreadInfo(120, "Main"), ThreadInfo(450, "MC_SERVER")]
         assert adapter.tick_thread(threads) == 450
         assert adapter.tick_thread([ThreadInfo(1, "Streaming Pool(0)")]) is None
-        for pattern in BdsAdapter.thread_groups.values():
-            re.compile(pattern)
 
 
 class TestCommands:
@@ -391,13 +388,6 @@ class TestDataFiles:
         assert row is not None and row.fidelity.value == "V0"
         assert set(row.cells) == FEATURE_KEYS
         assert all(cell.cls.value == "vanilla" for cell in row.cells.values())
-
-    def test_observed_counters_are_metrics(self) -> None:
-        known = set(registry.ids())
-        for server in ("bds", "endstone"):
-            for rng in config.load_features(server).ranges:
-                for cell in rng.cells.values():
-                    assert cell.observed_by is None or cell.observed_by in known, (server, cell.key)
 
     def test_methodology_lists_every_feature_key(self) -> None:
         text = (ROOT / "docs" / "methodology.md").read_text(encoding="utf-8")

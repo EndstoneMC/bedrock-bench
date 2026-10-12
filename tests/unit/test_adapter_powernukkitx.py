@@ -279,7 +279,3 @@ class TestFacts:
         assert facts["upstream_bandwidth_mbps"] == "1000" and facts["generation_queue_size"] == "-1"
         assert "leveldb_backend" not in facts, "a key the version lacks is not recorded"
         assert facts["usage_statistics"] == "off"
-
-    def test_thread_groups(self) -> None:
-        groups = PowerNukkitXAdapter.thread_groups
-        assert {"gc", "jit", "netty", "level workers", "chunk publisher"} <= set(groups)

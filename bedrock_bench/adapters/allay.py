@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """Allay, a Bedrock server written in Java, run from its release jar on the pinned JDK.
 
-Fetch: the shaded jar from ``configs/allay/server.toml`` and the JDK from ``configs/runtimes.toml``.
-The helper plugin (``plugin.json`` and ``BenchTick.java`` in ``configs/allay``) is compiled once against the
+Fetch: the shaded jar from ``servers/allay/server.toml`` and the JDK from ``servers/runtimes.toml``.
+The helper plugin (``plugin.json`` and ``BenchTick.java`` in ``servers/allay``) is compiled once against the
 pinned jar with the JDK's ``javac`` and packed into ``plugins/BenchTick.jar``. It adds ``gametime`` (the default
 world's tick counter) and ``positions``, and starts Allay's console on piped stdin, which Allay itself only does when
 the JDK reports a console.
@@ -13,7 +13,7 @@ with one flat overworld named after the level. Allay generates only flat and voi
 
 Launch: ``java -Xms<heap> -Xmx<heap> ... -Dsentry.dsn= -jar allay.jar``. The world ticks on its own thread,
 ``World Thread #<level>``, found with ``jcmd``. The 0.14 line speaks protocol 1001 (Minecraft 1.26.30), so it gets the
-``legacy1001`` bot; reports flag that. See configs/allay/README.md.
+``legacy1001`` bot; reports flag that. See servers/allay/README.md.
 """
 
 from __future__ import annotations
@@ -64,11 +64,11 @@ if TYPE_CHECKING:
     from bedrock_bench.cache import Cache
 
 JAR = "allay.jar"
-HELPER_SOURCE = "configs/allay"  # plugin.json and *.java
+HELPER_SOURCE = "servers/allay"  # plugin.json and *.java
 HELPER_DESCRIPTOR = "plugin.json"
 PLUGIN_FILE = "plugins/BenchTick.jar"
 WORLD_SETTINGS = "worlds/world-settings.yml"
-WORLD_SETTINGS_TEMPLATE = "configs/allay/world-settings.yml"
+WORLD_SETTINGS_TEMPLATE = "servers/allay/world-settings.yml"
 DEFAULT_WORLD = "world"
 DEFAULT_RUNTIME = "jdk-21.0.12.1"
 WORLD_THREAD = "World Thread #"
@@ -115,13 +115,6 @@ class AllayAdapter(JavaServer):
     generator: ClassVar[str] = "flat"
     #: Used only when jcmd fails; the workload's level is ``bench``.
     tick_thread_rule: ClassVar[str] = f"name:{WORLD_THREAD}bench"
-    thread_groups: ClassVar[Mapping[str, str]] = {
-        **JavaServer.thread_groups,
-        "server loop": r"^main$",
-        "world": rf"^{WORLD_THREAD}",
-        "light": r"^Light Calculating Thread",
-        "compute": r"^AllayComputeThread-",
-    }
 
     def __init__(self, arm: Arm, machine: Machine) -> None:
         super().__init__(arm, machine)

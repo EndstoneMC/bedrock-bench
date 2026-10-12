@@ -332,16 +332,9 @@ class TestPlacer:
 
 
 class TestSmokeProblems:
-    def run_dir(self, tmp_path: Path, *, movement: str | None = None, corrections: float | None = 2.0) -> Path:
+    def run_dir(self, tmp_path: Path) -> Path:
         path = tmp_path / "run"
         shutil.copytree(synthetic.HERE / "synthetic-steady", path)
-        run = json.loads((path / "run.json").read_text(encoding="utf-8"))
-        if movement is not None:
-            run["parity"]["row"]["player.server_authoritative_movement"] = movement
-        (path / "run.json").write_text(json.dumps(run), encoding="utf-8")
-        metrics = json.loads((path / "metrics.json").read_text(encoding="utf-8"))
-        metrics["metrics"]["corrections_per_bot_s"]["value"] = corrections
-        (path / "metrics.json").write_text(json.dumps(metrics), encoding="utf-8")
         return path
 
     @staticmethod
@@ -349,13 +342,7 @@ class TestSmokeProblems:
         return FakeBds(Arm("fake_bds@1.0.0", "fake_bds", "1.0.0"), load_machine(None))
 
     def test_a_clean_run(self, tmp_path: Path) -> None:
-        assert runner.smoke_problems(self.run_dir(tmp_path, movement="vanilla"), self.adapter()) == []
-
-    def test_declared_movement_validation_needs_corrections(self, tmp_path: Path) -> None:
-        problems = runner.smoke_problems(self.run_dir(tmp_path, movement="vanilla", corrections=0.0), self.adapter())
-        assert problems and "movement corrections" in problems[0]
-        quiet = runner.smoke_problems(self.run_dir(tmp_path / "b", movement="absent", corrections=0.0), self.adapter())
-        assert quiet == []
+        assert runner.smoke_problems(self.run_dir(tmp_path), self.adapter()) == []
 
     def test_a_command_answered_with_an_error(self, tmp_path: Path) -> None:
         path = self.run_dir(tmp_path)

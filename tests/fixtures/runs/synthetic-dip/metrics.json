@@ -1,80 +1,7 @@
 {
-  "analysis_version": 1,
+  "analysis_version": 2,
   "flags": [],
   "metrics": {
-    "actor_moves_per_bot_s": {
-      "availability": "measured",
-      "n": null,
-      "unit": "per_bot_s",
-      "value": 10.0,
-      "window": "steady"
-    },
-    "airborne_frac_steady": {
-      "availability": "measured",
-      "n": 6,
-      "unit": "frac",
-      "value": 0.0,
-      "window": "steady"
-    },
-    "aux_cores_idle": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the server has no launcher process",
-      "unit": "cores",
-      "value": null,
-      "window": "idle"
-    },
-    "aux_cores_load": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the server has no launcher process",
-      "unit": "cores",
-      "value": null,
-      "window": "load"
-    },
-    "aux_cores_steady": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "the server has no launcher process",
-      "unit": "cores",
-      "value": null,
-      "window": "steady"
-    },
-    "block_updates_per_bot_s": {
-      "availability": "measured",
-      "n": null,
-      "unit": "per_bot_s",
-      "value": 0.5,
-      "window": "steady"
-    },
-    "bot_cores_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "cores",
-      "value": 0.0857,
-      "window": "idle"
-    },
-    "bot_cores_load": {
-      "availability": "measured",
-      "n": 66,
-      "unit": "cores",
-      "value": 1.0,
-      "window": "load"
-    },
-    "bot_cores_steady": {
-      "availability": "measured",
-      "n": 91,
-      "unit": "cores",
-      "value": 1.0,
-      "window": "steady"
-    },
-    "bot_cpu_frac_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "frac",
-      "value": 0.0214,
-      "window": "idle"
-    },
     "bot_cpu_frac_load": {
       "availability": "measured",
       "n": 66,
@@ -101,47 +28,12 @@
       },
       "window": "load"
     },
-    "chunks_per_cpu_s_load": {
-      "availability": "measured",
-      "n": 6,
-      "unit": "chunks_per_cpu_s",
-      "value": 16.1978,
-      "window": "load"
-    },
     "chunks_per_s_load": {
       "availability": "measured",
       "n": 6,
       "unit": "chunks_per_s",
       "value": 27.4615,
       "window": "load"
-    },
-    "chunks_zero_bots": {
-      "availability": "measured",
-      "n": 6,
-      "unit": "count",
-      "value": 0,
-      "window": "load"
-    },
-    "corrections_per_bot_s": {
-      "availability": "measured",
-      "n": null,
-      "unit": "per_bot_s",
-      "value": 2.0,
-      "window": "steady"
-    },
-    "cpu_ms_per_player_tick_steady": {
-      "availability": "measured",
-      "n": null,
-      "unit": "ms",
-      "value": 10.8837,
-      "window": "steady"
-    },
-    "crash_files": {
-      "availability": "measured",
-      "n": null,
-      "unit": "count",
-      "value": 0,
-      "window": "run"
     },
     "csg_effective": {
       "availability": "measured",
@@ -157,20 +49,6 @@
       "value": 0,
       "window": "run"
     },
-    "delivery_t50_s": {
-      "availability": "measured",
-      "n": null,
-      "unit": "s",
-      "value": 23.7,
-      "window": "load"
-    },
-    "delivery_t90_s": {
-      "availability": "measured",
-      "n": null,
-      "unit": "s",
-      "value": 38.7,
-      "window": "load"
-    },
     "died_during_run": {
       "availability": "measured",
       "n": null,
@@ -185,38 +63,12 @@
       "value": 0,
       "window": "run"
     },
-    "first_chunk_ms": {
-      "availability": "measured",
-      "n": 6,
-      "unit": "ms",
-      "value": {
-        "max": 1500.0,
-        "median": 1250.0,
-        "n": 6,
-        "p90": 1500.0
-      },
-      "window": "load"
-    },
-    "foreign_cores_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "cores",
-      "value": 0.07,
-      "window": "idle"
-    },
     "foreign_cores_load": {
       "availability": "measured",
       "n": 66,
       "unit": "cores",
       "value": 0.07,
       "window": "load"
-    },
-    "foreign_cores_peak_10s_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "cores",
-      "value": 0.072,
-      "window": "idle"
     },
     "foreign_cores_peak_10s_load": {
       "availability": "measured",
@@ -239,13 +91,6 @@
       "value": 0.0702,
       "window": "steady"
     },
-    "foreign_server_set_cores_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "cores",
-      "value": 0.01,
-      "window": "idle"
-    },
     "foreign_server_set_cores_load": {
       "availability": "measured",
       "n": 66,
@@ -260,41 +105,6 @@
       "value": 0.01,
       "window": "steady"
     },
-    "handles_max_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "count",
-      "value": 850,
-      "window": "idle"
-    },
-    "handles_max_load": {
-      "availability": "measured",
-      "n": 66,
-      "unit": "count",
-      "value": 850,
-      "window": "load"
-    },
-    "handles_max_steady": {
-      "availability": "measured",
-      "n": 91,
-      "unit": "count",
-      "value": 850,
-      "window": "steady"
-    },
-    "harness_cores_load": {
-      "availability": "measured",
-      "n": null,
-      "unit": "cores",
-      "value": 0.08,
-      "window": "load"
-    },
-    "harness_cores_steady": {
-      "availability": "measured",
-      "n": null,
-      "unit": "cores",
-      "value": 0.08,
-      "window": "steady"
-    },
     "interventions_in_measured": {
       "availability": "measured",
       "n": null,
@@ -302,123 +112,12 @@
       "value": 0,
       "window": "steady"
     },
-    "join_failed": {
-      "availability": "measured",
-      "n": null,
-      "unit": "count",
-      "value": 0,
-      "window": "join"
-    },
-    "join_ms": {
-      "availability": "measured",
-      "n": 6,
-      "unit": "ms",
-      "value": {
-        "max": 850.0,
-        "median": 825.0,
-        "n": 6,
-        "p90": 850.0
-      },
-      "window": "join"
-    },
     "joined": {
       "availability": "measured",
       "n": null,
       "unit": "count",
       "value": 6,
       "window": "run"
-    },
-    "locator_pkts_per_bot_s": {
-      "availability": "measured",
-      "n": null,
-      "unit": "per_bot_s",
-      "value": 5.0,
-      "window": "steady"
-    },
-    "log_error_lines": {
-      "availability": "measured",
-      "n": 9,
-      "unit": "count",
-      "value": 0,
-      "window": "run"
-    },
-    "log_fatal_lines": {
-      "availability": "measured",
-      "n": 9,
-      "unit": "count",
-      "value": 0,
-      "window": "run"
-    },
-    "log_warn_lines": {
-      "availability": "measured",
-      "n": 9,
-      "unit": "count",
-      "value": 0,
-      "window": "run"
-    },
-    "mspt_saturated_load": {
-      "availability": "measured",
-      "n": 13,
-      "unit": "ms",
-      "value": 60.0,
-      "window": "load"
-    },
-    "mspt_saturated_steady": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "tps_window >= 19.5: ticks are not back to back",
-      "unit": "ms",
-      "value": null,
-      "window": "steady"
-    },
-    "nudges": {
-      "availability": "measured",
-      "n": null,
-      "unit": "count",
-      "value": 0,
-      "window": "settle"
-    },
-    "players_steady": {
-      "availability": "measured",
-      "n": 9,
-      "unit": "count",
-      "value": 6,
-      "window": "steady"
-    },
-    "private_mib_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "mib",
-      "value": 1230.0,
-      "window": "idle"
-    },
-    "private_mib_load": {
-      "availability": "measured",
-      "n": 66,
-      "unit": "mib",
-      "value": 1293.75,
-      "window": "load"
-    },
-    "private_mib_max_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "mib",
-      "value": 1245.0,
-      "window": "idle"
-    },
-    "private_mib_max_load": {
-      "availability": "measured",
-      "n": 66,
-      "unit": "mib",
-      "value": 1342.5,
-      "window": "load"
-    },
-    "private_mib_max_steady": {
-      "availability": "measured",
-      "n": 91,
-      "unit": "mib",
-      "value": 1500.0,
-      "window": "steady"
     },
     "private_mib_steady": {
       "availability": "measured",
@@ -433,18 +132,6 @@
       "unit": "ticks",
       "value": 300,
       "window": "idle"
-    },
-    "probe_latency_ms_load": {
-      "availability": "measured",
-      "n": 13,
-      "unit": "ms",
-      "value": {
-        "max": 28.0,
-        "n": 13,
-        "p50": 24.0,
-        "p99": 28.0
-      },
-      "window": "load"
     },
     "probe_latency_ms_steady": {
       "availability": "measured",
@@ -479,102 +166,11 @@
       "value": 0,
       "window": "run"
     },
-    "process_cores_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "cores",
-      "value": 0.3,
-      "window": "idle"
-    },
-    "process_cores_load": {
-      "availability": "measured",
-      "n": 66,
-      "unit": "cores",
-      "value": 1.6954,
-      "window": "load"
-    },
     "process_cores_steady": {
       "availability": "measured",
       "n": 91,
       "unit": "cores",
       "value": 1.3061,
-      "window": "steady"
-    },
-    "recovery_s": {
-      "availability": "measured",
-      "n": null,
-      "unit": "s",
-      "value": 36.024,
-      "window": "load"
-    },
-    "resend_ratio": {
-      "availability": "measured",
-      "n": null,
-      "unit": "ratio",
-      "value": 1.0496,
-      "window": "load"
-    },
-    "resident_mib_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "mib",
-      "value": 1540.0,
-      "window": "idle"
-    },
-    "resident_mib_load": {
-      "availability": "measured",
-      "n": 66,
-      "unit": "mib",
-      "value": 1625.0,
-      "window": "load"
-    },
-    "resident_mib_max_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "mib",
-      "value": 1560.0,
-      "window": "idle"
-    },
-    "resident_mib_max_load": {
-      "availability": "measured",
-      "n": 66,
-      "unit": "mib",
-      "value": 1690.0,
-      "window": "load"
-    },
-    "resident_mib_max_steady": {
-      "availability": "measured",
-      "n": 91,
-      "unit": "mib",
-      "value": 1900.0,
-      "window": "steady"
-    },
-    "resident_mib_steady": {
-      "availability": "measured",
-      "n": 91,
-      "unit": "mib",
-      "value": 1810.0,
-      "window": "steady"
-    },
-    "retp": {
-      "availability": "measured",
-      "n": null,
-      "unit": "count",
-      "value": 0,
-      "window": "settle"
-    },
-    "rx_kib_per_bot_s": {
-      "availability": "measured",
-      "n": null,
-      "unit": "kib_per_bot_s",
-      "value": 390.625,
-      "window": "steady"
-    },
-    "rx_pkts_per_bot_s": {
-      "availability": "measured",
-      "n": null,
-      "unit": "per_bot_s",
-      "value": 500.0,
       "window": "steady"
     },
     "server_exit_code": {
@@ -584,230 +180,12 @@
       "value": 0,
       "window": "run"
     },
-    "settle_s": {
-      "availability": "measured",
-      "n": null,
-      "unit": "s",
-      "value": 62.5,
-      "window": "settle"
-    },
-    "threads_max_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "count",
-      "value": 36,
-      "window": "idle"
-    },
-    "threads_max_load": {
-      "availability": "measured",
-      "n": 66,
-      "unit": "count",
-      "value": 37,
-      "window": "load"
-    },
-    "threads_max_steady": {
-      "availability": "measured",
-      "n": 91,
-      "unit": "count",
-      "value": 37,
-      "window": "steady"
-    },
-    "tick_busy_frac_idle": {
-      "availability": "measured",
-      "n": 201,
-      "unit": "frac",
-      "value": 0.05,
-      "window": "idle"
-    },
-    "tick_busy_frac_load": {
-      "availability": "measured",
-      "n": 651,
-      "unit": "frac",
-      "value": 0.7231,
-      "window": "load"
-    },
-    "tick_busy_frac_steady": {
-      "availability": "measured",
-      "n": 901,
-      "unit": "frac",
-      "value": 0.4,
-      "window": "steady"
-    },
-    "tick_cpu_ms_per_tick_idle": {
-      "availability": "measured",
-      "n": 300,
-      "unit": "ms_per_tick",
-      "value": 2.5,
-      "window": "idle"
-    },
-    "tick_cpu_ms_per_tick_load": {
-      "availability": "measured",
-      "n": 1000,
-      "unit": "ms_per_tick",
-      "value": 44.0,
-      "window": "load"
-    },
     "tick_cpu_ms_per_tick_steady": {
       "availability": "measured",
       "n": 1700,
       "unit": "ms_per_tick",
       "value": 19.9991,
       "window": "steady"
-    },
-    "tick_cycles_ms_per_s_idle": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "no cycle counts or no calibrated TSC frequency",
-      "unit": "ms_per_s",
-      "value": null,
-      "window": "idle"
-    },
-    "tick_cycles_ms_per_s_load": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "no cycle counts or no calibrated TSC frequency",
-      "unit": "ms_per_s",
-      "value": null,
-      "window": "load"
-    },
-    "tick_cycles_ms_per_s_steady": {
-      "availability": "not_applicable",
-      "n": null,
-      "reason": "no cycle counts or no calibrated TSC frequency",
-      "unit": "ms_per_s",
-      "value": null,
-      "window": "steady"
-    },
-    "tick_deficit_frac_load": {
-      "availability": "measured",
-      "n": 13,
-      "unit": "frac",
-      "value": 0.1667,
-      "window": "load"
-    },
-    "tick_ms_per_s_idle": {
-      "availability": "measured",
-      "n": 201,
-      "unit": "ms_per_s",
-      "value": 50.0,
-      "window": "idle"
-    },
-    "tick_ms_per_s_load": {
-      "availability": "measured",
-      "n": 651,
-      "unit": "ms_per_s",
-      "value": 723.0769,
-      "window": "load"
-    },
-    "tick_ms_per_s_steady": {
-      "availability": "measured",
-      "n": 901,
-      "unit": "ms_per_s",
-      "value": 400.0,
-      "window": "steady"
-    },
-    "tick_saturated_frac_idle": {
-      "availability": "measured",
-      "n": 20,
-      "unit": "frac",
-      "value": 0.0,
-      "window": "idle"
-    },
-    "tick_saturated_frac_load": {
-      "availability": "measured",
-      "n": 65,
-      "unit": "frac",
-      "value": 0.3077,
-      "window": "load"
-    },
-    "tick_saturated_frac_steady": {
-      "availability": "measured",
-      "n": 90,
-      "unit": "frac",
-      "value": 0.0,
-      "window": "steady"
-    },
-    "tick_util_frac_idle": {
-      "availability": "measured",
-      "n": 20,
-      "unit": "frac",
-      "value": {
-        "n": 20,
-        "p50": 0.05,
-        "p99": 0.05
-      },
-      "window": "idle"
-    },
-    "tick_util_frac_load": {
-      "availability": "measured",
-      "n": 65,
-      "unit": "frac",
-      "value": {
-        "n": 65,
-        "p50": 0.6,
-        "p99": 1.0
-      },
-      "window": "load"
-    },
-    "tick_util_frac_steady": {
-      "availability": "measured",
-      "n": 90,
-      "unit": "frac",
-      "value": {
-        "n": 90,
-        "p50": 0.4,
-        "p99": 0.4
-      },
-      "window": "steady"
-    },
-    "ticks_lost_load": {
-      "availability": "measured",
-      "n": 13,
-      "unit": "ticks",
-      "value": 200.0,
-      "window": "load"
-    },
-    "ticks_per_cpu_s_steady": {
-      "availability": "measured",
-      "n": null,
-      "unit": "ticks_per_cpu_s",
-      "value": 15.3134,
-      "window": "steady"
-    },
-    "time_below_19_5_load_s": {
-      "availability": "measured",
-      "n": 12,
-      "unit": "s",
-      "value": 24.996,
-      "window": "load"
-    },
-    "total_cores_idle": {
-      "availability": "measured",
-      "n": 21,
-      "unit": "cores",
-      "value": 0.3,
-      "window": "idle"
-    },
-    "total_cores_load": {
-      "availability": "measured",
-      "n": 66,
-      "unit": "cores",
-      "value": 1.6954,
-      "window": "load"
-    },
-    "total_cores_steady": {
-      "availability": "measured",
-      "n": 91,
-      "unit": "cores",
-      "value": 1.3061,
-      "window": "steady"
-    },
-    "tps_load_low15": {
-      "availability": "measured",
-      "n": 13,
-      "unit": "tps",
-      "value": 10.0,
-      "window": "load"
     },
     "tps_load_low5": {
       "availability": "measured",
@@ -816,96 +194,12 @@
       "value": 9.992,
       "window": "load"
     },
-    "tps_stats_idle": {
-      "availability": "measured",
-      "n": 3,
-      "unit": "tps",
-      "value": {
-        "max": 20.0321,
-        "median": 19.984,
-        "min": 19.984,
-        "n": 3
-      },
-      "window": "idle"
-    },
-    "tps_stats_join": {
-      "availability": "unavailable",
-      "n": null,
-      "reason": "fewer than two probe replies in the window",
-      "unit": "tps",
-      "value": null,
-      "window": "join"
-    },
-    "tps_stats_load": {
-      "availability": "measured",
-      "n": 12,
-      "unit": "tps",
-      "value": {
-        "max": 20.0321,
-        "median": 19.984,
-        "min": 9.992,
-        "n": 12
-      },
-      "window": "load"
-    },
-    "tps_stats_settle": {
-      "availability": "measured",
-      "n": 11,
-      "unit": "tps",
-      "value": {
-        "max": 20.0321,
-        "median": 19.984,
-        "min": 9.992,
-        "n": 11
-      },
-      "window": "settle"
-    },
-    "tps_stats_steady": {
-      "availability": "measured",
-      "n": 17,
-      "unit": "tps",
-      "value": {
-        "max": 20.0321,
-        "median": 19.984,
-        "min": 19.984,
-        "n": 17
-      },
-      "window": "steady"
-    },
-    "tps_window_load": {
-      "availability": "measured",
-      "n": 13,
-      "unit": "tps",
-      "value": 16.6667,
-      "window": "load"
-    },
     "tps_window_steady": {
       "availability": "measured",
       "n": 18,
       "unit": "tps",
       "value": 20.0009,
       "window": "steady"
-    },
-    "tx_pkts_per_bot_s": {
-      "availability": "measured",
-      "n": null,
-      "unit": "per_bot_s",
-      "value": 25.0,
-      "window": "steady"
-    },
-    "view_fill_frac": {
-      "availability": "measured",
-      "n": 6,
-      "unit": "frac",
-      "value": 0.9385,
-      "window": "load"
-    },
-    "view_radius_chunks": {
-      "availability": "measured",
-      "n": null,
-      "unit": "chunks",
-      "value": 10.0,
-      "window": "join"
     },
     "view_t90_own_s": {
       "availability": "measured",
@@ -917,13 +211,6 @@
         "n": 6,
         "p90": 37.434
       },
-      "window": "load"
-    },
-    "view_t_n_censored": {
-      "availability": "measured",
-      "n": 6,
-      "unit": "count",
-      "value": 0,
       "window": "load"
     },
     "view_t_n_s": {
@@ -938,175 +225,5 @@
   "schema": "bedrock-bench/metrics/1",
   "schema_minor": 0,
   "status": "ok",
-  "status_reasons": [],
-  "tables": {
-    "log_errors_first": {
-      "columns": [
-        "t_s",
-        "level",
-        "text"
-      ],
-      "rows": []
-    },
-    "pkt_mix_steady": {
-      "columns": [
-        "packet",
-        "per_bot_s"
-      ],
-      "rows": [
-        [
-          "MoveActorDelta",
-          10.0
-        ],
-        [
-          "PlayerLocation",
-          5.0
-        ],
-        [
-          "CorrectPlayerMovePrediction",
-          2.0
-        ],
-        [
-          "UpdateBlock",
-          0.5
-        ],
-        [
-          "LevelChunk",
-          0.0
-        ]
-      ]
-    },
-    "thread_census_idle": {
-      "columns": [
-        "name",
-        "threads"
-      ],
-      "rows": [
-        [
-          "io",
-          1
-        ],
-        [
-          "job(#)",
-          1
-        ],
-        [
-          "tick",
-          1
-        ],
-        [
-          "worker(#)",
-          3
-        ]
-      ]
-    },
-    "thread_groups_load": {
-      "columns": [
-        "group",
-        "threads",
-        "sum_ms_per_s",
-        "max_ms_per_s"
-      ],
-      "rows": []
-    },
-    "thread_groups_steady": {
-      "columns": [
-        "group",
-        "threads",
-        "sum_ms_per_s",
-        "max_ms_per_s"
-      ],
-      "rows": []
-    },
-    "threads_top_load": {
-      "columns": [
-        "name",
-        "threads",
-        "sum_ms_per_s",
-        "max_ms_per_s",
-        "busy"
-      ],
-      "rows": [
-        [
-          "worker(#)",
-          4,
-          782.3077,
-          200.0,
-          4
-        ],
-        [
-          "tick",
-          1,
-          723.0769,
-          723.0769,
-          1
-        ],
-        [
-          "job(#)",
-          1,
-          69.2308,
-          69.2308,
-          0
-        ],
-        [
-          "io",
-          1,
-          20.0,
-          20.0,
-          0
-        ]
-      ]
-    },
-    "threads_top_steady": {
-      "columns": [
-        "name",
-        "threads",
-        "sum_ms_per_s",
-        "max_ms_per_s",
-        "busy"
-      ],
-      "rows": [
-        [
-          "worker(#)",
-          4,
-          716.6667,
-          200.0,
-          4
-        ],
-        [
-          "tick",
-          1,
-          400.0,
-          400.0,
-          1
-        ],
-        [
-          "job(#)",
-          1,
-          67.2222,
-          67.2222,
-          0
-        ],
-        [
-          "io",
-          1,
-          20.0,
-          20.0,
-          0
-        ]
-      ]
-    },
-    "y_distribution_steady": {
-      "columns": [
-        "y_from",
-        "bots"
-      ],
-      "rows": [
-        [
-          64,
-          6
-        ]
-      ]
-    }
-  }
+  "status_reasons": []
 }

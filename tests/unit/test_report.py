@@ -11,7 +11,7 @@ from typing import Any
 
 import pytest
 
-from bedrock_bench import cli
+from bedrock_bench import ANALYSIS_VERSION, cli
 from bedrock_bench.config import project_root
 from bedrock_bench.report import REPORT_FILE, SUMMARY_FILE, build, write
 from bedrock_bench.report.markdown import (
@@ -76,7 +76,7 @@ def write_run(
         run["machine"]["profile_sha256"] = profile
     doc = {
         "schema": "bedrock-bench/metrics/1",
-        "analysis_version": 1,
+        "analysis_version": ANALYSIS_VERSION,
         "run_id": run_id,
         "status": status,
         "status_reasons": list(reasons),

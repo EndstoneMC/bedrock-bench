@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Join and view-load latency, chunk work.
+"""View-load latency and chunks in view.
 
 Bot events are first put on the run's timebase with :func:`timed_events`. A bot process stamps every line with its
 own monotonic clock (``mono_ms``) and the harness adds its receive time (``rx_ns``); since both clocks are monotonic,
@@ -90,57 +90,15 @@ def last_at(bots: Sequence[BotEvent], kind: str, at: float) -> BotEvent | None:
     return found
 
 
-def first_tp(bots: Sequence[BotEvent]) -> float | None:
-    """Time of the first teleport of any bot."""
-    return next((e.t for e in bots if e.ev == "tp"), None)
-
-
 def disc(radius: int) -> int:
     """Chunk columns within ``radius`` of a centre chunk (``dx^2 + dz^2 <= r^2``); ``disc(10) = 317``."""
     span = range(-radius, radius + 1)
     return sum(1 for dx in span for dz in span if dx * dx + dz * dz <= radius * radius)
 
 
-# --------------------------------------------------------------------------------------------------------------------
-# Join
-# --------------------------------------------------------------------------------------------------------------------
-
-
-@dataclass(frozen=True)
-class JoinStats:
-    join_ms: tuple[float, ...]  # bot clock, dial -> spawned, first session of each bot
-    joined: int  # bots that spawned at least once
-    failed: int  # bots that never spawned and reported join_failed
-
-
-def join(bots: Sequence[BotEvent]) -> JoinStats:
-    dials = first_per_bot(bots, "dial")
-    spawned: dict[str, BotEvent] = {}
-    failed: set[str] = set()
-    for event in bots:
-        name = event.bot
-        if name is None:
-            continue
-        if event.ev == "spawned":
-            spawned.setdefault(name, event)
-        elif event.ev == "join_failed" and name not in spawned:
-            failed.add(name)
-    times = []
-    for name, event in spawned.items():
-        if event.data.get("join_ms") is not None:
-            times.append(float(event.data["join_ms"]))
-        elif name in dials and event.data.get("mono_ms") is not None and dials[name].data.get("mono_ms") is not None:
-            times.append(float(event.data["mono_ms"]) - float(dials[name].data["mono_ms"]))
-    return JoinStats(
-        join_ms=tuple(times),
-        joined=len(spawned),
-        failed=len(failed - set(spawned)),
-    )
-
-
-def first_chunk_ms(bots: Sequence[BotEvent]) -> list[float]:
-    """Per bot, ms from its first teleport to its first in-view LevelChunk."""
-    return [float(e.data["dt_ms"]) for e in first_per_bot(bots, "first_chunk").values() if "dt_ms" in e.data]
+def joined(bots: Sequence[BotEvent]) -> int:
+    """Bots that spawned at least once."""
+    return len(first_per_bot(bots, "spawned"))
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -256,35 +214,6 @@ def view(bots: Sequence[BotEvent], settled: float, n_target: int = VIEW_N) -> Vi
         else:
             t_n.append(Censored(max(0.0, last_seen(name) - tp[name].t)))
     return ViewStats(u=u, t90_own=t90, t90_fallback=fallback, t_n=tuple(t_n), n_target=n_target)
-
-
-def delivery(
-    bots: Sequence[BotEvent], t_from: float, settled: float, fractions: Sequence[float] = (0.5, 0.9)
-) -> dict[float, float | None]:
-    """Seconds from ``t_from`` until the summed in-view chunks of all bots reach each fraction of their value at
-    ``settled`` (5 s progress snapshots)."""
-    totals = [(t, sum(row.in_view for row in rows.values())) for t, rows in progress(bots) if t <= settled]
-    if not totals or totals[-1][1] <= 0:
-        return {q: None for q in fractions}
-    final = totals[-1][1]
-    out: dict[float, float | None] = {}
-    for q in fractions:
-        hit = next((t for t, total in totals if total >= q * final - 1e-9), None)
-        out[q] = hit - t_from if hit is not None else None
-    return out
-
-
-def resend_ratio(bots: Sequence[BotEvent], at: float) -> float | None:
-    """LevelChunk packets received per unique chunk, from the last ``stat`` at or before ``at``."""
-    stat = last_at(bots, "stat", at)
-    if stat is None or not stat.data.get("uniq"):
-        return None
-    return stat.data["level_chunks"] / stat.data["uniq"]
-
-
-def granted_radius(bots: Sequence[BotEvent]) -> float | None:
-    """Median chunk radius the server granted at spawn."""
-    return median(float(e.data["radius"]) for e in first_per_bot(bots, "spawned").values() if "radius" in e.data)
 
 
 def csg_effective(u: Mapping[str, int], radius: int) -> bool | None:

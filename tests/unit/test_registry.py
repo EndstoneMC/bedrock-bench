@@ -2,13 +2,15 @@
 from __future__ import annotations
 
 import argparse
+import inspect
 import re
 from pathlib import Path
 
 import pytest
 
-from bedrock_bench.metrics import compute, registry
-from bedrock_bench.metrics.registry import METRICS, TABLES, UNITS, render_docs, render_markdown
+from bedrock_bench.config import load_report_metrics
+from bedrock_bench.metrics import compute, health, registry
+from bedrock_bench.metrics.registry import METRICS, UNITS, render_docs, render_markdown
 from fixtures.runs import synthetic
 
 
@@ -29,11 +31,11 @@ def test_every_id_carries_its_unit() -> None:
 @pytest.mark.parametrize(
     ("metric_id", "token", "expected"),
     [
-        ("tick_ms_per_s_steady", "ms_per_s", True),
-        ("recovery_s", "s", True),
-        ("process_cores_load", "cores", True),
-        ("tick_cpu_ms_per_tick_load", "ms_per_s", False),
-        ("settle_s", "ms", False),
+        ("view_t90_own_s", "s", True),
+        ("process_cores_steady", "cores", True),
+        ("tick_cpu_ms_per_tick_steady", "ms_per_tick", True),
+        ("tick_cpu_ms_per_tick_steady", "ms_per_s", False),
+        ("chunks_per_s_load", "ms", False),
         ("tps_window_steady", "tps", True),
     ],
 )
@@ -47,15 +49,23 @@ def test_ids_are_valid_json_keys_and_windowed_templates_expand() -> None:
         if "<W>" in metric.template:
             assert metric.id == metric.template.replace("<W>", metric.window or "")
     assert registry.get("tps_window_steady").direction == "higher"
-    assert registry.table("pkt_mix_steady").columns == ("packet", "per_bot_s")
     assert len(registry.ids()) == len(set(registry.ids()))
+
+
+def test_every_metric_is_read_by_the_report_or_a_gate() -> None:
+    report = {m.metric for m in load_report_metrics()}
+    gates = inspect.getsource(health).replace('f"', '"')
+    for metric in METRICS:
+        key = '"' + metric.template.replace("<W>", "{window}") + '"'
+        assert metric.id in report or key in gates, f"nothing reads {metric.id}"
+    assert report <= set(registry.ids())
 
 
 @pytest.mark.parametrize("name", synthetic.NAMES)
 def test_compute_emits_exactly_the_declared_ids(name: str) -> None:
     doc = compute(synthetic.build(name))
     assert list(doc["metrics"]) == registry.ids()
-    assert list(doc["tables"]) == [t.id for t in TABLES]
+    assert "tables" not in doc
     for metric_id, entry in doc["metrics"].items():
         declared = registry.get(metric_id)
         assert entry["unit"] == declared.unit
@@ -63,11 +73,6 @@ def test_compute_emits_exactly_the_declared_ids(name: str) -> None:
         assert entry.get("reason") != "not computed", metric_id
         if entry["availability"] == "measured" and declared.stats:
             assert set(entry["value"]) <= {*declared.stats, "n"}, metric_id
-        if entry.get("censored"):
-            assert declared.censorable, metric_id
-    for table_id, table in doc["tables"].items():
-        assert table["columns"] == list(registry.table(table_id).columns)
-        assert all(len(row) == len(table["columns"]) for row in table["rows"]), table_id
 
 
 def test_metrics_md_is_current(project_root: Path) -> None:
@@ -90,6 +95,4 @@ def test_markdown_lists_every_template_and_gate() -> None:
     text = render_markdown()
     for metric in METRICS:
         assert f"`{metric.template}`" in text
-    for tbl in TABLES:
-        assert f"`{tbl.template}`" in text
     assert "`probe_monotonic`" in text and "`joined_all` | server_failed" in text

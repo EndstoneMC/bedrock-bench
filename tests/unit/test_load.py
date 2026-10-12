@@ -71,11 +71,7 @@ def test_join() -> None:
         ev(3.2, "spawned", bot="a01", session=1, mono_ms=2200, radius=8),
         ev(4.0, "join_failed", bot="a02", stage="spawn"),
     ]
-    stats = load.join(bots)
-    assert stats.join_ms == (800.0, 1200.0)
-    assert stats.joined == 2
-    assert stats.failed == 1
-    assert load.granted_radius(bots) == 9.0
+    assert load.joined(bots) == 2
 
 
 def progress(t: float, *rows: tuple[str, int, int, float | None]) -> BotEvent:
@@ -124,24 +120,8 @@ class TestView:
         view = load.view(self.bots(), settled=22.0, n_target=150)
         assert view.t_n[0] == Censored(30.0)
 
-    def test_delivery_curve(self) -> None:
-        shares = load.delivery(self.bots(), t_from=10.0, settled=22.0, fractions=(0.4, 0.5, 1.0))
-        # totals: 60 at 15 s, 140 at 20 s; 40% of 140 = 56 -> 15 s; 50% = 70 -> 20 s
-        assert shares == {0.4: 5.0, 0.5: 10.0, 1.0: 10.0}
-        assert load.delivery([], 0.0, 22.0) == {0.5: None, 0.9: None}
 
-    def test_first_tp_and_first_chunk(self) -> None:
-        assert load.first_tp(self.bots()) == 10.0
-        assert sorted(load.first_chunk_ms(self.bots())) == [1000.0, 2000.0]
-
-
-def test_resend_ratio_and_csg() -> None:
-    bots = [
-        ev(10.0, "stat", level_chunks=1050, uniq=1000),
-        ev(30.0, "stat", level_chunks=5000, uniq=1000),
-    ]
-    assert load.resend_ratio(bots, 20.0) == pytest.approx(1.05)
-    assert load.resend_ratio(bots, 5.0) is None
+def test_csg_effective() -> None:
     assert load.csg_effective({"a": 70, "b": 80, "c": 90}, 10) is True
     assert load.csg_effective({"a": 300, "b": 310}, 10) is False
     assert load.csg_effective({}, 10) is None

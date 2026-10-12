@@ -2,8 +2,9 @@
 
 # Metrics
 
-Every metric in `metrics.json` (schema `bedrock-bench/metrics/1`), analysis version 1. `bbench analyze` recomputes the
-file byte for byte from a run's raw files; any change to a formula bumps the analysis version.
+Every metric in `metrics.json` (schema `bedrock-bench/metrics/1`), analysis version 2: what the report and the CSV
+files show, and what the validity gates read. `bbench analyze` recomputes the file byte for byte from a run's raw
+files; any change to a formula bumps the analysis version.
 
 ## Conventions
 
@@ -14,18 +15,16 @@ file byte for byte from a run's raw files; any change to a formula bumps the ana
   `load` = [bots_start, settled], `steady` = [steady0, steady1]. A window whose end mark is missing was not reached;
   its metrics are `unavailable`. A window the workload does not have is `not_applicable`.
 - **Probe notation.** Replies `(s_i, t_i, g_i)` = send time, receive time, tick counter. In a window `[t0, t1]`,
-  `a = min{i: t_i >= t0}` and `b = max{i: t_i <= t1}`. A series sample, the rate between two consecutive
-  replies, belongs to a window when both replies do.
+  `a = min{i: t_i >= t0}` and `b = max{i: t_i <= t1}`.
 - **Rates over samples** use the span the samples cover inside the window: first sample at or after `t0` to last
   at or before `t1`.
 - **Percentiles** are nearest rank, `sorted[round(q (n - 1))]` with halves rounded up; medians are conventional.
-  Every statistic reports its `n`. p5 is left out when n < 20.
-- **Units.** Each id carries its unit (`_s`, `_ms`, `_mib`, `_cores`, `_ms_per_s`, `_frac`, `_per_bot_s`, ...).
-  MiB = 2^20 bytes; reports show GiB = MiB / 1024. Counts and booleans carry no suffix.
+  Every statistic reports its `n`.
+- **Units.** Each id carries its unit (`_s`, `_ms`, `_mib`, `_cores`, `_ms_per_tick`, `_frac`, ...). MiB = 2^20
+  bytes. Counts and booleans carry no suffix.
 - **Availability.** `measured`, `not_applicable` (the server or workload has no such quantity) or `unavailable`
-  (should exist but could not be computed; `reason` says why). A censored value is a lower bound (`censored: true`,
-  shown as `>value`).
-- **Direction.** `higher` or `lower` is better; `-` marks work counters and diagnostics, which are never ranked.
+  (should exist but could not be computed; `reason` says why).
+- **Direction.** `higher` or `lower` is better; `-` marks gate inputs, which are never ranked.
 - Floats are rounded to 4 decimals.
 
 ## Inputs
@@ -34,46 +33,32 @@ file byte for byte from a run's raw files; any change to a formula bumps the ana
 |---|---|
 | `probe` | `series/probe.csv` |
 | `tick` | `series/tick.csv.gz` |
-| `threads` | `series/threads.csv.gz` |
 | `process` | `series/process.csv.gz` |
 | `machine` | `series/machine.csv.gz` |
 | `bots` | `bots.jsonl.gz` |
-| `log` | `server.log.gz` |
 | `commands` | `commands.jsonl.gz` |
 | `run` | `run.json` |
 
-## Tick rate and headroom
+## Tick rate
 
-TPS comes only from a counter that advances once per executed tick, read through the console's priority lane every 5 s. Values above 20 in a single sample are reply jitter: kept, never clamped, never published alone.
+TPS comes only from a counter that advances once per executed tick, read through the console's priority lane every 5 s.
 
 | Metric | Windows | Unit | Value | Better | Inputs | Formula |
 |---|---|---|---|---|---|---|
-| `tps_window_<W>` | load, steady | ticks per second | scalar | higher | probe | (g_b - g_a) / (t_b - t_a) over the replies inside W; unavailable when t_b - t_a < 0.9 (t1 - t0). The published steady TPS is tps_window_steady. Short phases (idle, join) have only tps_stats: a 5 s probe cannot cover 90% of them. |
-| `tps_stats_<W>` | idle, join, settle, load, steady | ticks per second | min, p5, median, max, n | higher | probe | series samples (g_{i+1} - g_i) / (t_{i+1} - t_i) whose two replies lie in W. p5 is left out when n < 20. |
+| `tps_window_steady` | steady | ticks per second | scalar | higher | probe | (g_b - g_a) / (t_b - t_a) over the replies inside steady; unavailable when t_b - t_a < 0.9 (t1 - t0) |
 | `tps_load_low5` | load | ticks per second | scalar | higher | probe | min over replies i in load of (g_j - g_i) / (t_j - t_i), j the first reply in load with t_j - t_i >= 4.5 s. Lowest 5 s TPS while views load. |
-| `tps_load_low15` | load | ticks per second | scalar | higher | probe | as tps_load_low5 with t_j - t_i >= 14.5 s. Lowest 15 s TPS while views load. |
-| `ticks_lost_load` | load | ticks | scalar | lower | probe | 20 (t_b - t_a) - (g_b - g_a) over load. Area of the TPS dip. Reply jitter can make a dip-free window slightly negative; not clamped. |
-| `tick_deficit_frac_load` | load | fraction (0 to 1) | scalar | lower | probe | ticks_lost_load / (20 (t_b - t_a)) |
-| `time_below_19_5_load_s` | load | seconds | scalar | lower | probe | sum of (t_{i+1} - t_i) over the load series samples below 19.5 |
-| `recovery_s` | load | seconds | scalar, censorable | lower | probe | first reply time t* at or after the end of the first series sample below 19.5 (after bots_start) such that the window rate over [t*, t* + 30 s] is >= 19.5 and every series sample in it is >= 19.0, minus bots_start; 0 if the rate never drops below 19.5; censored at steady1 - 30 s - bots_start if it never recovers. Searched from bots_start to the end of steady. |
-| `probe_latency_ms_<W>` | load, steady | milliseconds | p50, p99, max, n | lower | probe | t_i - s_i (receive - send) of the replies received in W. probe_lagging gate: p99 above 1000 ms in steady. |
+| `probe_latency_ms_steady` | steady | milliseconds | p50, p99, max, n | lower | probe | t_i - s_i (receive - send) of the replies received in steady. probe_lagging gate: p99 above 1000 ms. |
 | `probe_max_gap_s_<W>` | load, steady | seconds | scalar | - | probe | longest stretch of W without a reply, counting from t0 and up to t1. probe_coverage gate: above 15 s. |
 | `probe_tick_decreases` | run | count | scalar | - | probe | consecutive replies whose counter went down. probe_monotonic gate: must be 0. |
 | `probe_idle_ticks` | idle | ticks | scalar | - | probe | g_b - g_a over idle (over the whole run when the workload has no idle phase). probe_monotonic gate: must be positive, so the counter advances with nobody online. |
 
 ## Tick thread CPU
 
-Tick-thread CPU is CPU time, not wall time, so it is not MSPT. It leaves out the time the thread is blocked on a lock, I/O or a worker: a tick that waits 20 ms for a worker and computes for 30 ms takes 50 ms of wall time and 30 ms of CPU. Below saturation it is a lower bound on MSPT, and tick_busy_frac shows how close the thread is to full. Wall time per tick needs a hook or the server's own readout, so it is reported only where it is exact without one: mspt_saturated, below 19.5 TPS, when ticks run back to back. Servers whose adapter declares no tick thread report these as not_applicable; compare process_cores across servers instead.
+Tick-thread CPU is CPU time, not wall time, so it is not MSPT. It leaves out the time the thread is blocked on a lock, I/O or a worker: a tick that waits 20 ms for a worker and computes for 30 ms takes 50 ms of wall time and 30 ms of CPU. Servers whose adapter declares no tick thread report it as not_applicable; compare process_cores across servers instead.
 
 | Metric | Windows | Unit | Value | Better | Inputs | Formula |
 |---|---|---|---|---|---|---|
-| `tick_ms_per_s_<W>` | idle, load, steady | CPU ms per second | scalar | lower | tick | 1000 dCPU_tick / dt between the first and last 10 Hz tick-thread sample inside W. CPU_tick: GetThreadTimes on Windows, schedstat (fallback stat / SC_CLK_TCK) on Linux. |
-| `tick_busy_frac_<W>` | idle, load, steady | fraction (0 to 1) | scalar | lower | tick | tick_ms_per_s / 1000. Share of wall time the tick thread was on a CPU; blocked time is not counted. |
-| `tick_cpu_ms_per_tick_<W>` | idle, load, steady | CPU ms per tick | scalar | lower | tick, probe | 1000 dCPU_tick / dG, with CPU interpolated at the replies a and b bounding W and dG = g_b - g_a. Tick-thread CPU per executed tick. Not MSPT. |
-| `tick_util_frac_<W>` | idle, load, steady | fraction (0 to 1) | p50, p99, n | - | tick | per-second dCPU_tick from the 10 Hz samples, interpolated on a 1 s grid starting at the first sample in W |
-| `tick_saturated_frac_<W>` | idle, load, steady | fraction (0 to 1) | scalar | lower | tick | share of the seconds of tick_util_frac_<W> with utilisation >= 0.95. A saturated tick thread runs ticks back to back; its TPS then hides how much more work it has. |
-| `tick_cycles_ms_per_s_<W>` | idle, load, steady | CPU ms per second | scalar | - | tick, run | 1000 dcycles / tsc_hz / dt with the calibrated TSC frequency from run.json. Secondary column, Windows only; not_applicable where cycle counts or the TSC calibration are missing. |
-| `mspt_saturated_<W>` | load, steady | milliseconds | scalar | lower | probe | 1000 / tps_window_<W> when tps_window_<W> < 19.5; not_applicable otherwise. Wall-clock ms per tick, exact only when the server runs ticks back to back. |
+| `tick_cpu_ms_per_tick_steady` | steady | CPU ms per tick | scalar | lower | tick, probe | 1000 dCPU_tick / dG, with CPU interpolated at the replies a and b bounding steady and dG = g_b - g_a. CPU_tick: GetThreadTimes on Windows, schedstat (fallback stat / SC_CLK_TCK) on Linux. Not MSPT. |
 
 ## Process, bot and machine CPU
 
@@ -81,117 +66,42 @@ process_cores is the cross-server CPU metric. Bot and foreign load are interfere
 
 | Metric | Windows | Unit | Value | Better | Inputs | Formula |
 |---|---|---|---|---|---|---|
-| `process_cores_<W>` | idle, load, steady | CPU seconds per second | scalar | lower | process | d(server process user + system CPU s) / dt between the first and last 1 Hz sample inside W. The cross-server CPU metric. Includes threads that exited. |
-| `aux_cores_<W>` | idle, load, steady | CPU seconds per second | scalar | lower | process | d(launcher tree CPU s, excluding the server process) / dt. A launcher that stays running next to the server (Endstone's Python CLI); not_applicable without one. |
-| `total_cores_<W>` | idle, load, steady | CPU seconds per second | scalar | lower | process | process_cores_<W> + aux_cores_<W> (process_cores_<W> without a launcher) |
-| `bot_cores_<W>` | idle, load, steady | CPU seconds per second | scalar | - | machine, run | mean over the 1 Hz machine samples in W of the summed busy fraction of the bot CPUs (placement.bot_cpus). Everything that ran on the bot CPUs: the bots, the harness when it shares them, and any foreign load. |
-| `bot_cpu_frac_<W>` | idle, load, steady | fraction (0 to 1) | scalar | - | machine, run | bot_cores_<W> / number of bot CPUs. bot_saturated gate: above the machine profile's bot_cpu_frac_max (0.85) in a measured window. |
-| `harness_cores_<W>` | load, steady | CPU seconds per second | scalar | - | run | harness process tree CPU per second over W, as recorded by the runner (run.json interference.windows) |
-| `foreign_cores_<W>` | idle, load, steady | CPU seconds per second | scalar | - | machine | mean over W of machine busy cores minus the server, bot and harness trees. foreign_load gate: machine profile foreign_cores_mean (0.25) in a measured window. |
-| `foreign_cores_peak_10s_<W>` | idle, load, steady | CPU seconds per second | scalar | - | machine | highest mean of the foreign busy cores over 10 consecutive 1 s machine samples in W. foreign_load gate: machine profile foreign_cores_peak_10s (1.5). |
-| `foreign_server_set_cores_<W>` | idle, load, steady | CPU seconds per second | scalar | - | machine | mean over W of the foreign busy cores on the server CPUs. foreign_load gate: machine profile foreign_server_set_cores_mean (0.25). |
-
-Tables:
-
-| Table | Windows | Columns | Content |
-|---|---|---|---|
-| `threads_top_<W>` | load, steady | name, threads, sum_ms_per_s, max_ms_per_s, busy | Threads grouped by name with digits replaced by #: count, summed and highest CPU ms/s, and how many exceed 100 ms/s. Threads created inside W count from 0; threads that exited count up to their last sample. |
-| `thread_groups_<W>` | load, steady | group, threads, sum_ms_per_s, max_ms_per_s | The adapter's diagnostic thread groups (thread name regexes). Diagnostic only, never a headline. |
-| `thread_census_idle` | idle | name, threads | Threads alive at the end of idle, by name with digits replaced by #: the pool sizes the server chose. |
+| `process_cores_steady` | steady | CPU seconds per second | scalar | lower | process | d(server process user + system CPU s) / dt between the first and last 1 Hz sample inside steady. Includes threads that exited. |
+| `bot_cpu_frac_<W>` | load, steady | fraction (0 to 1) | scalar | - | machine, run | mean over the 1 Hz machine samples in W of the summed busy fraction of the bot CPUs (placement.bot_cpus), divided by the number of bot CPUs. bot_saturated gate: above the machine profile's bot_cpu_frac_max (0.85). |
+| `foreign_cores_<W>` | load, steady | CPU seconds per second | scalar | - | machine | mean over W of machine busy cores minus the server, bot and harness trees. foreign_load gate: machine profile foreign_cores_mean (0.25). |
+| `foreign_cores_peak_10s_<W>` | load, steady | CPU seconds per second | scalar | - | machine | highest mean of the foreign busy cores over 10 consecutive 1 s machine samples in W. foreign_load gate: machine profile foreign_cores_peak_10s (1.5). |
+| `foreign_server_set_cores_<W>` | load, steady | CPU seconds per second | scalar | - | machine | mean over W of the foreign busy cores on the server CPUs. foreign_load gate: machine profile foreign_server_set_cores_mean (0.25). |
 
 ## Memory
 
-resident_mib is the working set on Windows and VmRSS on Linux; private_mib is PrivateUsage on Windows and RssAnon + VmSwap on Linux. Never compared across operating systems or runtimes; JVM servers run with a fixed heap.
+private_mib is PrivateUsage on Windows and RssAnon + VmSwap on Linux. Never compared across operating systems; JVM servers run with a fixed heap.
 
 | Metric | Windows | Unit | Value | Better | Inputs | Formula |
 |---|---|---|---|---|---|---|
-| `private_mib_<W>` | idle, load, steady | MiB (2^20 bytes) | scalar | lower | process | mean of private_mib over the 1 Hz process samples in W |
-| `private_mib_max_<W>` | idle, load, steady | MiB (2^20 bytes) | scalar | lower | process | maximum of private_mib over the process samples in W |
-| `resident_mib_<W>` | idle, load, steady | MiB (2^20 bytes) | scalar | lower | process | mean of resident_mib over the 1 Hz process samples in W |
-| `resident_mib_max_<W>` | idle, load, steady | MiB (2^20 bytes) | scalar | lower | process | maximum of resident_mib over the process samples in W |
-| `threads_max_<W>` | idle, load, steady | count | scalar | - | process | maximum thread count of the server process over W |
-| `handles_max_<W>` | idle, load, steady | count | scalar | - | process | maximum handle count of the server process over W. Windows only. |
+| `private_mib_steady` | steady | MiB (2^20 bytes) | scalar | lower | process | mean of private_mib over the 1 Hz process samples in steady |
 
-## Join, view load and chunk work
+## View load and chunks
 
 U_b is a bot's in-view unique chunk count at settled: chunks within view radius + 1 of the bot's current chunk, keyed by dimension, so chunks streamed for an earlier position do not count.
 
 | Metric | Windows | Unit | Value | Better | Inputs | Formula |
 |---|---|---|---|---|---|---|
-| `join_ms` | join | milliseconds | median, p90, max, n | - | bots | bot clock, spawned - dial of each bot's first session. Not a headline: the bot does not acknowledge chunk blobs before it spawns. |
-| `join_failed` | join | count | scalar | lower | bots | bots that reported join_failed and never spawned |
-| `first_chunk_ms` | load | milliseconds | median, p90, max, n | lower | bots | per bot, its first teleport to its first in-view LevelChunk (bot clock) |
 | `chunks_per_bot` | load | chunk columns | min, median, max, n | - | bots | U_b from the last 5 s progress snapshot at or before settled |
-| `chunks_zero_bots` | load | count | scalar | - | bots | bots with U_b = 0 |
 | `view_t90_own_s` | load | seconds | median, p90, max, n | lower | bots | per bot, first teleport to ceil(0.9 U_b) in-view chunks, from the bot's chunk arrival times (first 5 s progress snapshot reaching the count as fallback). Relative to each bot's own final view: a server that sends fewer chunks finishes sooner. |
-| `view_t_n_s` | load | seconds | scalar | lower | bots | censored median over bots of first teleport to the 80th in-view chunk; a bot that never reaches 80 is censored at the last time it was observed; null when the median is censored. The same chunk count for every server. A null value sets the views_incomplete flag. |
-| `view_t_n_censored` | load | count | scalar | - | bots | bots that never reached 80 in-view chunks |
-| `delivery_t50_s` | load | seconds | scalar | lower | bots | first teleport of any bot to the summed in-view chunks of all bots (5 s progress) reaching 50% of their value at settled |
-| `delivery_t90_s` | load | seconds | scalar | lower | bots | as delivery_t50_s for 90% |
+| `view_t_n_s` | load | seconds | scalar | lower | bots | censored median over bots of first teleport to the 80th in-view chunk; a bot that never reaches 80 is censored at the last time it was observed; null when the median is censored. A null value sets the views_incomplete flag. |
 | `chunks_per_s_load` | load | chunk columns per second | scalar | - | bots | sum of U_b / (settled - bots_start) |
-| `chunks_per_cpu_s_load` | load | chunk columns per server CPU second | scalar | higher | bots, process | sum of U_b / server process CPU seconds over load. Efficiency: shown only next to parity. |
-| `resend_ratio` | load | ratio | scalar | - | bots | LevelChunk packets / unique chunks, from the last stat event at or before settled |
-| `view_fill_frac` | load | fraction (0 to 1) | scalar | - | bots, run | median U_b / disc(r), r the workload view distance, disc(r) the chunk columns with dx^2 + dz^2 <= r^2 (disc(10) = 317) |
-| `view_radius_chunks` | join | chunk columns | scalar | - | bots | median chunk radius the server granted at spawn |
-| `csg_effective` | load | true or false | scalar | - | bots, run | median U_b < 0.5 disc(r). csg_matches gate: must equal the workload's CSG setting on servers that support client-side generation. |
-| `settle_s` | settle | seconds | scalar | - | run | settled - alljoined, as recorded by the settle rule. Not a load-speed metric: settle is floor-bound by its minimum duration. |
-
-## Work counters
-
-Per bot per second over steady. Packet counts use only the bots' packet-mix intervals that lie wholly inside the window.
-
-| Metric | Windows | Unit | Value | Better | Inputs | Formula |
-|---|---|---|---|---|---|---|
-| `corrections_per_bot_s` | steady | per bot per second | scalar | - | bots | d(stat corrections) / (bots * dt). Movement validation; a cost real clients cause less. |
-| `rx_pkts_per_bot_s` | steady | per bot per second | scalar | - | bots | d(stat rx_pkts) / (bots * dt) |
-| `tx_pkts_per_bot_s` | steady | per bot per second | scalar | - | bots | d(stat tx_pkts) / (bots * dt) |
-| `actor_moves_per_bot_s` | steady | per bot per second | scalar | - | bots | (MoveActorDelta + MoveActorAbsolute) / (bots * dt) |
-| `block_updates_per_bot_s` | steady | per bot per second | scalar | - | bots | (UpdateBlock + UpdateSubChunkBlocks + BlockEvent) / (bots * dt) |
-| `locator_pkts_per_bot_s` | steady | per bot per second | scalar | - | bots | PlayerLocation / (bots * dt) |
-| `rx_kib_per_bot_s` | steady | KiB per bot per second | scalar | - | bots | d(stat rx_bytes) / 1024 / (bots * dt) |
-| `players_steady` | steady | count | scalar | - | bots | median of stat online over steady. The bots divisor of the per-bot rates and efficiency metrics. |
-| `airborne_frac_steady` | steady | fraction (0 to 1) | scalar | - | bots, run | share of bots at or above the teleport height - 10 in the last progress snapshot of steady. Bots the server never pulled down: no player physics. |
-
-Tables:
-
-| Table | Windows | Columns | Content |
-|---|---|---|---|
-| `pkt_mix_steady` | steady | packet, per_bot_s | Packets received per bot per second over the packet-mix intervals inside steady, highest first. |
-| `y_distribution_steady` | steady | y_from, bots | Bot heights in the last progress snapshot of steady, in 32-block bins. |
-
-## Efficiency
-
-Comparable only between arms with equal parity on the scenario's required features; reports show them next to the parity rows.
-
-| Metric | Windows | Unit | Value | Better | Inputs | Formula |
-|---|---|---|---|---|---|---|
-| `cpu_ms_per_player_tick_steady` | steady | milliseconds | scalar | lower | process, probe, bots | 1000 process_cores_steady / (players_steady * tps_window_steady) |
-| `ticks_per_cpu_s_steady` | steady | ticks per server CPU second | scalar | higher | process, probe | tps_window_steady / process_cores_steady |
+| `csg_effective` | load | true or false | scalar | - | bots, run | median U_b < 0.5 disc(r), r the workload view distance, disc(r) the chunk columns with dx^2 + dz^2 <= r^2. csg_matches gate: must equal the workload's CSG setting on servers that support client-side generation. |
 
 ## Health
-
-Log counts follow each adapter's level map and benign list and are never compared across servers.
 
 | Metric | Windows | Unit | Value | Better | Inputs | Formula |
 |---|---|---|---|---|---|---|
 | `server_exit_code` | run | process exit code | scalar | - | run | the server's exit code after teardown |
 | `died_during_run` | run | true or false | scalar | - | run | the server process exited before teardown |
-| `crash_files` | run | count | scalar | - | run | crash files collected into crash/ |
-| `log_warn_lines` | run | count | scalar | - | log | server log lines at level warn after the adapter's level map |
-| `log_error_lines` | run | count | scalar | - | log | server log lines at level error after the adapter's level map; lines on the adapter's benign list are not counted |
-| `log_fatal_lines` | run | count | scalar | - | log | server log lines at level fatal after the adapter's level map; lines on the adapter's benign list are not counted |
 | `decode_errors` | run | count | scalar | - | bots | highest decode_errors total reported by the bots (stat and decode_error events). decode_errors gate: must be 0. |
 | `joined` | run | count | scalar | - | bots | bots that spawned at least once |
 | `dropped` | run | count | scalar | - | bots | stat dropped at the end of steady. Warning when nonzero. |
-| `nudges` | settle | count | scalar | - | run | settle nudges (run.json interventions) |
-| `retp` | settle | count | scalar | - | run | settle re-teleports (run.json interventions) |
 | `interventions_in_measured` | steady | count | scalar | - | run, commands | the larger of the runner's count and the console commands with an origin other than the probe sent inside steady. interventions_in_measured gate: must be 0. |
-
-Tables:
-
-| Table | Windows | Columns | Content |
-|---|---|---|---|
-| `log_errors_first` | run | t_s, level, text | The first 20 error and fatal lines that are not on the adapter's benign list. |
 
 ## Validity gates
 
