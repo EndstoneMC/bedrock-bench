@@ -1,0 +1,72 @@
+# Console lines captured from Altay 5.44.7 on Windows, one per dialect role (roles as in bds.toml). Log lines are
+# `[HH:MM:SS.mmm] [<thread>/<LEVEL>]: text`; replies to console commands are `Command output | text` with no level.
+# The fatal lines come from boots with a plugin that throws. altay-session.log is a four-bot session, trimmed.
+adapter = "altay"
+
+[[sample]]
+role = "ready"
+line = "[17:44:09.158] [Server thread/INFO]: Done (0.875s)! For help, type \"help\" or \"?\""
+
+[[sample]]
+role = "version"
+line = "[17:44:08.445] [Server thread/INFO]: This server is running Altay version 5.44.7"
+value = "5.44.7"
+
+[[sample]]
+role = "player_in_world"
+line = "[17:44:21.147] [Server thread/INFO]: a00 joined the game"
+value = "a00"
+
+[[sample]]
+role = "tick"
+line = "Command output | Gametime is 520"
+value = 520
+
+[[sample]]
+role = "level"
+line = "[17:44:09.116] [Server thread/WARNING]: The RakNet transport is deprecated and may be removed in a future release."
+value = "warn"
+
+[[sample]]
+role = "level"
+line = "[17:44:20.226] [Server thread/WARNING]: [NetworkSession: 127.0.0.1 56985] OpenID JWT body: Unexpected JSON property for SelfSignedJwtBody: ipt"
+value = "warn"
+
+[[sample]]
+role = "level"
+line = "[17:44:09.094] [Server thread/NOTICE]: Spawn terrain for world \"bench\" is being generated in the background"
+value = "info"
+
+[[sample]]
+role = "level"
+line = "[17:40:52.022] [Transport thread/NOTICE]: Blocked 127.0.0.1 for 300 seconds"
+value = "info"
+
+[[sample]]
+role = "level"
+line = "[17:47:47.271] [Server thread/CRITICAL]: Could not enable plugin 'Broken': RuntimeException: thrown on purpose"
+value = "fatal"
+
+[[sample]]
+role = "level"
+line = "[17:50:29.726] [Server thread/EMERGENCY]: An unrecoverable error has occurred and the server has crashed. Creating a crash dump"
+value = "fatal"
+
+[[sample]]
+role = "strip"
+line = "Command output | position: a00 1240.98 300.00 1287.11 0"
+value = "position: a00 1240.98 300.00 1287.11 0"
+
+[[sample]]
+role = "strip"
+line = "[17:44:10.123] [Server thread/INFO]: [BenchHelper] RakNet per-IP packet limit lifted"
+value = "[BenchHelper] RakNet per-IP packet limit lifted"
+
+[[sample]]
+role = "strip"
+line = "[17:40:52.022] [Transport thread/NOTICE]: Blocked 127.0.0.1 for 300 seconds"
+value = "Blocked 127.0.0.1 for 300 seconds"
+
+[[sample]]
+role = "not_benign"
+line = "[17:50:29.726] [Server thread/CRITICAL]: RuntimeException: \"thrown on purpose\" (EXCEPTION) in \"plugins/Crash\" at line 17"

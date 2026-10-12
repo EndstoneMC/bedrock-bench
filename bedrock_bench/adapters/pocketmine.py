@@ -98,6 +98,11 @@ class PocketMineAdapter(StandaloneServer):
     tick_thread_rule: ClassVar[str] = "first_created"
     crash_paths: ClassVar[tuple[str, ...]] = ("crashdumps",)
     server_file: ClassVar[str] = PHAR
+    #: The helper plugin, relative to the project root.
+    helper_source: ClassVar[str] = HELPER_SOURCE
+    #: The network layer whose per-IP packet limit the helper lifts, and the limit it sets.
+    packet_limiter: ClassVar[str] = "RakLib"
+    packet_limit: ClassVar[str] = "unlimited"
     variants: ClassVar[Mapping[str, str]] = {
         STOCK: "PocketMine-MP's shipped memory limits, including the 1024 MB hard limit of the main thread",
     }
@@ -108,7 +113,7 @@ class PocketMineAdapter(StandaloneServer):
         phar, phar_ref, entry = fetch_release(cache, self.name, self.arm.version, artifact=self.arm.artifact)
         meta = dict(entry.meta) if entry is not None else {}
         runtime = fetch_runtime(cache, str(meta.get("runtime", DEFAULT_RUNTIME)), runtime_platform())
-        helper = config.project_root() / HELPER_SOURCE
+        helper = config.project_root() / self.helper_source
 
         def build(tmp: Path) -> None:
             (tmp / DEFAULTS_PART / "pocketmine.yml").write_bytes(read_phar_member(phar, SHIPPED_CONFIG))
@@ -131,15 +136,16 @@ class PocketMineAdapter(StandaloneServer):
         self, server_dir: Path, install: Install, ctx: RunContext, world: WorldInfo
     ) -> tuple[Sequence[Override], Sequence[ConfigFile], Mapping[str, Any]]:
         harness = OverrideCategory.HARNESS
+        limiter = self.packet_limiter
         overrides = [
             Override(harness, HELPER_FILE, "plugin", None, "installed", "prints the tick counter and player positions"),
             Override(
                 harness,
                 HELPER_FILE,
-                "RakLib per-IP packet limit",
-                "200 packets per RakLib tick",
-                "unlimited",
-                "every bot connects from 127.0.0.1; at the default limit RakLib blocks the address for 300 s",
+                f"{limiter} per-IP packet limit",
+                f"200 packets per {limiter} tick",
+                self.packet_limit,
+                f"every bot connects from 127.0.0.1; at the default limit {limiter} blocks the address for 300 s",
             ),
         ]
         return overrides, [], {}
@@ -165,7 +171,7 @@ class PocketMineAdapter(StandaloneServer):
         return overrides
 
     def launch(self, layout: Layout) -> LaunchSpec:
-        args = (PHAR, "--no-wizard", "--disable-ansi")
+        args = (self.server_file, "--no-wizard", "--disable-ansi")
         php = str(self.runtime_path(layout, "php"))
         options: tuple[str, ...] = ()
         if "extension_dir" in layout.extra.get("runtime_paths", {}):
