@@ -1,0 +1,71 @@
+# Console lines of Allay 0.14.0, one per dialect role (roles as in bds.toml), after the harness strips the colour
+# codes. Log lines are `[HH:MM:SS LEVEL] [<thread>] [<logger>] text`; replies to console commands add `[Server] `, and
+# log4j's own start-up warning has an ISO time stamp and the thread name.
+#
+# Every line here and in allay-session.log comes from boots through the adapter on Windows, without bots, except the
+# `a00 joined the game` lines: no bot has joined Allay yet, so those are written in the format the source prints and
+# must be replaced from the first smoke. The ERROR line comes from a boot with an unknown world generator.
+adapter = "allay"
+
+[[sample]]
+role = "ready"
+line = "[19:00:47 INFO] [main] [AllayServer] Network interface started at 0.0.0.0:19940 (3821 ms)"
+
+[[sample]]
+role = "version"
+line = "[19:00:44 INFO] [main] [Allay] This server is running allay 0.14.0 with allay-api 0.29.0. Supports version 1.21.90 - 1.26.30 (protocol version 818 - 1001)"
+value = "0.14.0"
+
+[[sample]]
+role = "version"
+line = "[19:00:47 INFO] [Console Thread] [AllayServer] [Server] This server is running allay 0.14.0 with allay-api 0.29.0. Supports version 1.21.90 - 1.26.30 (protocol version 818 - 1001)"
+value = "0.14.0"
+
+[[sample]]
+role = "player_in_world"
+line = "[19:01:26 INFO] [Netty Server IO #0] [AllayServer] a00 joined the game"
+value = "a00"
+
+[[sample]]
+role = "tick"
+line = "[19:01:00 INFO] [Console Thread] [AllayServer] Gametime is 271"
+value = 271
+
+[[sample]]
+role = "level"
+line = "2026-10-12T18:00:43.726818300Z main WARN Advanced terminal features are not available in this environment"
+value = "warn"
+
+[[sample]]
+role = "level"
+line = "[19:06:17 ERROR] [main] [AllayWorldPool] Cannot find world generator NOPE, fallback to the VOID generator"
+value = "error"
+
+[[sample]]
+role = "level"
+line = "[19:00:47 INFO] [World Thread #bench] [AllayWorld] Spawn point for world bench is set to -14, 5, 11"
+value = "info"
+
+[[sample]]
+role = "strip"
+line = "[19:01:15 INFO] [Console Thread] [AllayServer] [Server] Game rule randomTickSpeed has been updated to 3"
+value = "Game rule randomTickSpeed has been updated to 3"
+
+[[sample]]
+role = "strip"
+line = "[19:00:47 INFO] [World Thread #bench] [AllayWorld] Spawn point for world bench is set to -14, 5, 11"
+value = "Spawn point for world bench is set to -14, 5, 11"
+
+[[sample]]
+role = "strip"
+line = "2026-10-12T18:00:43.726818300Z main WARN Advanced terminal features are not available in this environment"
+value = "Advanced terminal features are not available in this environment"
+
+[[sample]]
+role = "strip"
+line = "[19:01:02 INFO] [Console Thread] [AllayServer] positions: 0"
+value = "positions: 0"
+
+[[sample]]
+role = "not_benign"
+line = "[19:06:17 ERROR] [main] [AllayWorldPool] Cannot find world generator NOPE, fallback to the VOID generator"

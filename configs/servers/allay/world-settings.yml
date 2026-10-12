@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: Apache-2.0
+# worlds/world-settings.yml as Allay 0.14.0 writes it on its first start, with the world named {level_name}.
+# Height settings shared by the built-in dimensions in all worlds
+built-in-dimensions:
+  minecraft:overworld:
+    min-height: -64
+    max-height: 319
+  minecraft:nether:
+    min-height: 0
+    max-height: 127
+  minecraft:the_end:
+    min-height: 0
+    max-height: 255
+worlds:
+  {level_name}:
+    storage-type: LEVELDB
+    use-virtual-thread: false
+    dimensions:
+      minecraft:overworld:
+        generator-type: FLAT
+        generator-preset: ''
+        enable-light-calculation: true
+    overworld: null
+    nether: null
+    the-end: null
+# The default world is the world that newly joined players will be in
+default-world: {level_name}

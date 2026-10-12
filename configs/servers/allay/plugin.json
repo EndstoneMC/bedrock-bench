@@ -1,0 +1,7 @@
+{
+  "name": "BenchTick",
+  "entrance": "bench.BenchTick",
+  "version": "1.0",
+  "authors": ["bedrock-bench"],
+  "description": "Console commands for bedrock-bench"
+}

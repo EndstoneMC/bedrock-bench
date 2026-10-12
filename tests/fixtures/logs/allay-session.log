@@ -1,0 +1,33 @@
+2026-10-12T18:00:43.726818300Z main WARN Advanced terminal features are not available in this environment
+[19:00:44 INFO] [main] [AllayAPI] Server language was set to English (United States)
+[19:00:44 INFO] [main] [Allay] Starting up Minecraft: Bedrock Edition server
+[19:00:44 INFO] [main] [Allay] This server is running allay 0.14.0 with allay-api 0.29.0. Supports version 1.21.90 - 1.26.30 (protocol version 818 - 1001)
+[19:00:46 INFO] [main] [PackRegistryLoader] Loading packs...
+[19:00:46 INFO] [main] [PackRegistryLoader] Loaded 0 packs
+[19:00:47 INFO] [main] [AllayPluginManager] Loading plugin BenchTick
+[19:00:47 INFO] [main] [AllayWorldPool] Loading world bench
+[19:00:47 INFO] [main] [AllayWorldPool] World bench is loaded
+[19:00:47 INFO] [main] [AllayPluginManager] Enabling plugin BenchTick
+[19:00:47 INFO] [main] [AllayServer] Starting up network interface...
+[19:00:47 INFO] [main] [AllayServer] Network interface started at 0.0.0.0:19940 (3821 ms)
+[19:00:47 INFO] [World Thread #bench] [AllayWorld] Spawn point for world bench is set to -14, 5, 11
+[19:00:47 INFO] [Console Thread] [AllayServer] [Server] This server is running allay 0.14.0 with allay-api 0.29.0. Supports version 1.21.90 - 1.26.30 (protocol version 818 - 1001)
+[19:00:49 INFO] [Console Thread] [AllayServer] Gametime is 41
+[19:01:00 INFO] [Console Thread] [AllayServer] Gametime is 271
+[19:01:02 INFO] [Console Thread] [AllayServer] positions: 0
+[19:01:12 INFO] [Console Thread] [AllayServer] There are 0/200 players online:
+[19:01:13 INFO] [Console Thread] [AllayServer] [Server] Changing to clear weather
+[19:01:15 INFO] [Console Thread] [AllayServer] [Server] Game rule randomTickSpeed has been updated to 3
+[19:01:17 INFO] [Console Thread] [AllayServer] [Server] No targets matched selector
+[19:01:18 INFO] [Console Thread] [AllayServer] [Server] No targets matched selector
+[19:01:19 INFO] [Console Thread] [AllayServer] [Server] No targets matched selector
+[19:01:21 INFO] [Console Thread] [AllayServer] [Server] No targets matched selector
+[19:01:22 INFO] [Console Thread] [AllayServer] [Server] No targets matched selector
+[19:01:24 INFO] [Console Thread] [AllayServer] [Server] No targets matched selector
+[19:01:25 INFO] [Console Thread] [AllayServer] [Server] No targets matched selector
+[19:01:26 INFO] [Netty Server IO #0] [AllayServer] a00 joined the game
+[19:01:27 INFO] [Console Thread] [AllayServer] Stopping the server
+[19:01:27 INFO] [main] [AllayPluginManager] Disabling plugin BenchTick
+[19:01:27 INFO] [World Thread #bench] [AllayWorld] Unloading world bench
+[19:01:27 INFO] [World Thread #bench] [AllayWorld] World bench is unloaded
+[19:01:27 INFO] [main] [Allay] Server stopped

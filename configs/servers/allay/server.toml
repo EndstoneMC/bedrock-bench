@@ -1,0 +1,82 @@
+# SPDX-License-Identifier: Apache-2.0
+
+schema = 1
+server = "allay"
+
+# Allay release jars from GitHub, verified against the sha256 GitHub publishes for each release asset. `commit` is the
+# commit the release tag points at; the jar's file name carries its first nine characters. The 0.14 line accepts
+# protocols 818 to 1001; the bots use 1001. `runtime` names the JDK in configs/servers/runtimes.toml.
+[artifacts]
+source = "github"
+
+[artifacts.version."0.14.0"]
+commit = "058fef8332cbd40214e1cf992a1fc0a7b9eea3a9"
+protocol = 1001
+minecraft = "1.26.30"
+runtime = "jdk-21.0.12.1"
+
+[artifacts.version."0.14.0".any]
+url = "https://github.com/AllayMC/Allay/releases/download/0.14.0/allay-server-0.14.0-058fef833-shaded.jar"
+sha256 = "fc944c56be559a1a9df3097b7f7974ea7d644677d7a6c14b2b86d25c070f9c03"
+size = 43956861
+
+# Allay is an independent implementation of the game in Java: no Mojang code and no deliberate shortcuts, but its own
+# implementation of each system (fidelity V1). It generates only flat and void worlds. Systems it has are `partial`:
+# implemented, without evidence of identical behaviour. Links point at the 0.14.0 commit. The rows observed by a
+# counter are declared from the source; no bot has joined Allay yet.
+[features]
+
+[features.range."0.14"]
+fidelity = "V1"
+"terrain.vanilla_generator" = { class = "absent", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/registry/loader/WorldGeneratorFactoryRegistryLoader.java#L18-L19", note = "flat and void worlds only" }
+"terrain.any_generator" = { class = "absent", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/registry/loader/WorldGeneratorFactoryRegistryLoader.java#L18-L19", note = "the only generators are flat and void" }
+"terrain.structures" = { class = "absent", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/registry/loader/WorldGeneratorFactoryRegistryLoader.java#L18-L19" }
+"chunks.client_side_generation" = { class = "absent", observed_by = "csg_effective" }
+"chunks.subchunk_requests" = { class = "absent", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/ServerSettings.java#L210-L211", note = "use-sub-chunk-sending-system is off by default and left off: whole columns in LevelChunk packets" }
+"entity.mob_spawning" = { class = "absent", evidence = "https://github.com/AllayMC/Allay/tree/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/world", note = "no natural spawner; the doMobSpawning game rule is declared but not read" }
+"entity.mob_ai" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/entity/type/EntityTypeInitializer.java#L194", note = "chicken, cow, pig, sheep and zombie only" }
+"entity.collision_push" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/world/physics/AllayEntityPhysicsEngine.java#L258", note = "own physics engine; players are moved by their clients" }
+"entity.item_entities" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/entity/component/item/EntityItemBaseComponentImpl.java#L48", note = "items merge; own physics engine" }
+"player.server_authoritative_movement" = { class = "absent", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/network/processor/ingame/PlayerAuthInputPacketProcessor.java#L392-L420", observed_by = "corrections_per_bot_s", note = "client positions are accepted as sent" }
+"player.physics" = { class = "absent", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/entity/component/player/EntityPlayerPhysicsComponentImpl.java#L30", observed_by = "airborne_frac_steady", note = "player movement is computed by the client" }
+"player.hunger_damage" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/entity/component/player/EntityPlayerBaseComponentImpl.java#L136-L138", note = "hunger and damage exist; fall damage follows client-reported movement" }
+"player.locator_bar" = { class = "absent", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/api/src/main/java/org/allaymc/api/world/gamerule/GameRule.java#L49", observed_by = "locator_pkts_per_bot_s", note = "the locatorBar game rule only reaches the client" }
+"block.redstone" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/tree/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/block/component/redstone" }
+"block.random_ticks" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/world/chunk/AllayUnsafeChunk.java#L180", note = "randomTickSpeed game rule" }
+"block.fluids" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/block/component/liquid/BlockLiquidBaseComponentImpl.java" }
+"block.falling" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/block/component/fallable/BlockFallableComponentImpl.java" }
+"world.lighting" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/world/light/AllayLightEngine.java", note = "computed on light threads of its own" }
+"world.dimensions" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/world/AllayWorldPool.java#L406", note = "a Nether or End can only be flat or void; the benchmark world has only an overworld" }
+"world.autosave" = { class = "vanilla", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/world/chunk/AllayUnsafeChunk.java#L139-L145", note = "each loaded chunk is written every chunk-auto-save-cycle ticks on its own timer" }
+"commands.vanilla_set" = { class = "partial", evidence = "https://github.com/AllayMC/Allay/tree/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/command/defaults", note = "no querytarget, loot or tickingarea; kill, summon, setblock and difficulty run only for an entity" }
+"net.encryption" = { class = "vanilla", evidence = "https://github.com/AllayMC/Allay/blob/058fef8332cbd40214e1cf992a1fc0a7b9eea3a9/server/src/main/java/org/allaymc/server/ServerSettings.java#L114-L115", note = "not exercised: benchmarks run offline" }
+
+# Values the harness writes into Allay's server-settings.yml, one table per override category
+# (docs/methodology.md#fairness-and-feature-parity).
+#
+# server-settings.yml starts empty: Allay fills in every other key with its built-in default and rewrites the file on
+# start and stop, and `default` gives that built-in value for the keys written here. The world is not in this file:
+# worlds/world-settings.yml (world-settings.yml next to this file) names it and makes it flat, Allay's default
+# generator.
+[config]
+
+[config.file."server-settings.yml"]
+format = "yaml"
+
+[config.file."server-settings.yml".harness]
+"network-settings.port" = { value = "{port}", type = "int", default = "19132", reason = "machine profile port, away from 19132 so a local game cannot collide" }
+"network-settings.enablev6" = { value = "false", type = "bool", default = "true", reason = "the bots use IPv4; with IPv6 on, the server also binds 19133" }
+"network-settings.xbox-auth" = { value = "false", type = "bool", default = "true", reason = "the bots log in offline with self-signed identities" }
+"network-settings.raknet-packet-limit" = { value = "2147483647", type = "int", default = "120", reason = "every bot connects from 127.0.0.1; the per-address limit of 120 datagrams per 10 ms is sized for one player" }
+"generic-settings.enable-gui" = { value = "false", type = "bool", default = "true", reason = "no dashboard window" }
+"bstats-settings.enable" = { value = "false", type = "bool", default = "true", reason = "no usage statistics upload" }
+"bstats-settings.server-uuid" = { value = "00000000-0000-0000-0000-000000000000", default = "(random, generated on first start)", reason = "no generated identifier in the run's archived configs" }
+
+[config.file."server-settings.yml".parity]
+"generic-settings.max-player-count" = { value = "{max_players}", type = "int", default = "20", reason = "room for every bot, plus rejoins in chaos scenarios" }
+"generic-settings.default-game-mode" = { value = "{gamemode_upper}", default = "CREATIVE", reason = "the same game mode on every server; it applies to a world when it is created" }
+"generic-settings.default-difficulty" = { value = "{difficulty_upper}", default = "NORMAL", reason = "the same difficulty on every server; it applies to a world when it is created" }
+"world-settings.view-distance" = { value = "{view_distance}", type = "int", default = "8", reason = "the same view distance on every server" }
+"world-settings.tick-radius" = { value = "{tick_distance}", type = "int", default = "4", reason = "the same simulation distance on every server" }
+"storage-settings.chunk-auto-save-cycle" = { value = "{autosave_ticks}", type = "int", default = "6000", reason = "the same autosave interval on every server" }
+"storage-settings.save-player-data" = { value = "{save_player_data}", type = "bool", default = "true", reason = "player data is saved, as on every server" }
