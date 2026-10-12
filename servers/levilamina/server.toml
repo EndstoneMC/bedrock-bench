@@ -17,7 +17,7 @@ version = "26.51.6"
 #   allocator  the allocator LeviLamina installs in the server; it is linked into LeviLamina.dll, so it is declared
 #
 # One sub-table per package (windows-<package>) pins its asset and says where its files go, as the package's own
-# tooth.json places them:
+# tooth.json places them. Every package listed is installed, in this order:
 #
 #   release    the package's own version (dependency versions as resolved for this LeviLamina release)
 #   place      archive path -> server path; a path ending in "/" copies a directory

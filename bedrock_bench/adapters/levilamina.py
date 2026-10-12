@@ -60,9 +60,6 @@ UNPACK_DIR = ".unpack"
 PRELOADER_CONFIG = "PreLoaderConfig.json"
 LEVILAMINA_CONFIG = "plugins/LeviLamina/config/Config.json"
 
-#: Packages every install gets, in placement order.
-BASE_PACKAGES = ("levilamina", "preloader", "peeditor", "crashlogger", "runtime-data")
-
 # --------------------------------------------------------------------------------------------------------------------
 # Console dialect
 # --------------------------------------------------------------------------------------------------------------------
@@ -260,16 +257,13 @@ class LeviLaminaAdapter(BdsFamily):
         meta = dict(entry.meta)
         bds_version = self._bds_version(meta)
         packages = packages_of(entry, catalog.path)
-        wanted = list(BASE_PACKAGES)
-        missing = [name for name in wanted if name not in packages]
-        if missing:
-            raise ConfigError(f"levilamina {self.arm.version}: no windows-{missing[0]} table", file=catalog.path)
+        if "levilamina" not in packages:
+            raise ConfigError(f"levilamina {self.arm.version}: no windows-levilamina table", file=catalog.path)
 
         bds = fetch_bds(cache, bds_version, self.platform)
         obtained: list[tuple[Package, Path, ArtifactRef]] = []
         releases: dict[str, str] = {}
-        for name in wanted:
-            package = packages[name]
+        for name, package in packages.items():
             if name == "levilamina" and self.arm.artifact is not None:
                 archive, ref = fetch.adopt_local(self.arm.artifact, cache)
                 releases[name] = "local"

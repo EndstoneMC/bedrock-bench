@@ -18,7 +18,6 @@ from bedrock_bench import adapters, config, fetch
 from bedrock_bench.adapters import levilamina as levilamina_module
 from bedrock_bench.adapters.bdsfamily import Properties, fetch_bds
 from bedrock_bench.adapters.levilamina import (
-    BASE_PACKAGES,
     LEVILAMINA_CHANGES,
     LEVILAMINA_CONFIG,
     LEVILAMINA_DIALECT,
@@ -228,7 +227,7 @@ class TestPins:
         assert entry.meta["bds"] == BDS_VERSION and entry.meta["allocator"] == "mimalloc"
         assert BDS_VERSION in config.load_artifacts("bds").versions
         packages = packages_of(entry, catalog.path)
-        assert set(packages) == set(BASE_PACKAGES)
+        assert "levilamina" in packages
         for package in packages.values():
             spec = package.spec
             assert spec.sha256 and spec.size and spec.source == "github", package.name
@@ -371,13 +370,13 @@ class TestFetch:
         assert not (root / "bedrock_server.exe").exists(), "PeEditor keeps the original only as .bak"
         assert not (root / "README.md").exists() and not (root / ".unpack").exists()
         assert not (root / MOD_EXE).stat().st_mode & 0o222, "the install is read-only"
-        assert downloads.obtained == list(BASE_PACKAGES)
+        assert downloads.obtained == list(pinned_packages())
         assert len(downloads.peeditor_runs) == 1
 
         assert install.extra["exe"] == MOD_EXE and install.extra["exe_sha256"] == sha256_file(root / MOD_EXE)
         assert install.extra["bds_version"] == BDS_VERSION and install.extra["allocator"] == "mimalloc"
-        assert install.extra["packages"] == {name: pinned_packages()[name].release for name in BASE_PACKAGES}
-        assert [a.source for a in install.artifacts] == ["local", *["github"] * len(BASE_PACKAGES)]
+        assert install.extra["packages"] == {name: p.release for name, p in pinned_packages().items()}
+        assert [a.source for a in install.artifacts] == ["local", *["github"] * len(pinned_packages())]
 
         assert adapter.fetch(cache) == install and len(downloads.peeditor_runs) == 1, "a second fetch reuses it"
 

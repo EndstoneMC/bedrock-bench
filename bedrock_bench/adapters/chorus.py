@@ -55,7 +55,6 @@ if TYPE_CHECKING:
 
 SOURCE_DIR = "servers/chorus"  # chorusbench, relative to the project root
 SETTINGS_FILE = "servers/chorus/server.toml"  # its [config] table
-REPOSITORY = "https://github.com/bedrock-crustaceans/chorus"
 CONFIG = "chorus.toml"  # what Chorus reads in the server directory
 DEFAULTS = "defaults.toml"  # 'chorusbench -defaults' of the build, kept in the install
 BUILD_INFO = "build.json"  # 'chorusbench -version' of the build, kept in the install
@@ -212,6 +211,7 @@ class SourcePin:
     """The Chorus commit behind one server tag, and what the build of it must use."""
 
     commit: str
+    repository: str  # the git URL Cargo.toml must name
     protocol: int
     minecraft: str
     rust: str  # toolchain version, e.g. "1.95.0"
@@ -225,13 +225,15 @@ class SourcePin:
             pinned = ", ".join(sorted(catalog.versions))
             raise ConfigError(f"chorus {version} is not pinned (pinned: {pinned})", file=catalog.path)
         meta = entry.meta
-        kinds = {"commit": str, "protocol": int, "minecraft": str, "rust": str, "cargo_lock": str}
+        kinds = {"commit": str, "repository": str, "protocol": int, "minecraft": str, "rust": str, "cargo_lock": str}
         wrong = [key for key, kind in kinds.items() if not isinstance(meta.get(key), kind)]
         if wrong:
             raise ConfigError(f"version {version} needs {', '.join(wrong)}", file=catalog.path)
         if not re.fullmatch(r"[0-9a-f]{40}", meta["commit"]) or not meta["commit"].startswith(version):
             raise ConfigError(f"version {version}: commit must be the full hash that starts with it", file=catalog.path)
-        return cls(meta["commit"], meta["protocol"], meta["minecraft"], meta["rust"], meta["cargo_lock"])
+        return cls(
+            meta["commit"], meta["repository"], meta["protocol"], meta["minecraft"], meta["rust"], meta["cargo_lock"]
+        )
 
 
 def lock_sha256(lock: bytes) -> str:
@@ -256,7 +258,7 @@ def check_source(src: Path, pin: SourcePin) -> None:
         lock = (src / "Cargo.lock").read_bytes()
     except OSError as exc:
         raise ConfigError(f"cannot read chorusbench's manifest: {exc}") from None
-    revs = set(re.findall(rf'git\s*=\s*"{re.escape(REPOSITORY)}"\s*,\s*rev\s*=\s*"([^"]*)"', manifest))
+    revs = set(re.findall(rf'git\s*=\s*"{re.escape(pin.repository)}"\s*,\s*rev\s*=\s*"([^"]*)"', manifest))
     if revs != {pin.commit}:
         found = ", ".join(sorted(revs)) or "no rev"
         raise ConfigError(f"{SOURCE_DIR}/Cargo.toml names Chorus {found}, but {SETTINGS_FILE} pins {pin.commit}")

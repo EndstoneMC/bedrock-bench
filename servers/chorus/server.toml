@@ -22,6 +22,7 @@ source = "github"
 # endings.
 [artifacts.version."95ca835"]
 commit = "95ca8355f5961619ff2949b01ef85a5c6f13e492"
+repository = "https://github.com/bedrock-crustaceans/chorus"
 protocol = 2193
 minecraft = "1.26.50"
 rust = "1.95.0"
