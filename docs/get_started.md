@@ -161,7 +161,7 @@ uv run bbench smoke bds@1.26.52.3
   [Minecraft End User License Agreement](https://www.minecraft.net/eula). Nothing from Mojang is stored in this
   repository. `--artifact-dir DIR` takes files with their pinned names from DIR instead of downloading them, for
   example an archive Mojang no longer serves.
-- `smoke` runs the [`smoke`](../configs/scenarios/smoke.toml) scenario: 4 bots, view distance 4, short phases. It
+- `smoke` runs the [`smoke`](../configs/smoke.toml) scenario: 4 bots, view distance 4, short phases. It
   passes when the run is `ok`, the server accepts every command the harness sends, and the bots see movement
   corrections where its `server.toml` declares server-authoritative movement. It prints
   `smoke bds@1.26.52.3: passed` and writes the run under `runs/smoke/`.
@@ -170,7 +170,7 @@ Any other server is checked the same way, with `uv run bbench smoke <server>@<ve
 
 ## Running an experiment
 
-An experiment is a matrix in [`configs/matrices/`](../configs/matrices/): which server builds run (the arms), which
+An experiment is a matrix in [`configs/`](../configs/): which server builds run (the arms), which
 scenarios, how many repeats and in which order. [README.md#experiments](../README.md#experiments) lists E1 to E5, what
 each answers and how long it takes. For E1:
 
@@ -189,7 +189,7 @@ uv run bbench report runs/endstone-0.11.14
   `server_failed` is a result that is never rerun. At the end `run` writes the report. `bbench report` rebuilds it from
   the run directories at any time.
 - A `spread100` run takes about 10 to 20 minutes, most of it waiting for the views to settle. The phase lengths are in
-  [`configs/scenarios/spread100.toml`](../configs/scenarios/spread100.toml).
+  [`configs/spread.toml`](../configs/spread.toml).
 - An experiment runs on one machine and one OS; it is not repeated per platform. The repeats (3, rotated) all run on
   that machine.
 - LeviLamina runs on Windows only, so E3 and E4 are Windows experiments. On Linux, `--only` can run the other arms of

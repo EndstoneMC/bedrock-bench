@@ -75,16 +75,16 @@ stored in this repository. The smoke run is written to `runs/smoke/`, and
 
 ## Experiments
 
-An experiment is a matrix file in [`configs/matrices/`](configs/matrices/): the server builds (arms), the scenarios they
+An experiment is a matrix file in [`configs/`](configs/): the server builds (arms), the scenarios they
 run, three repeats of each in rotated order and a 60 s cooldown between runs. Within a matrix, every arm gets the same
 scenario files, bot flags and CPU placement.
 
 | | Question | Matrix | Servers | Scenario | Runs | Time |
 |---|---|---|---|---|---|---|
-| E1 | Endstone against the BDS build it hosts, client-side generation off | [`endstone-0.11.14.toml`](configs/matrices/endstone-0.11.14.toml) | `bds@1.26.52.3`, `endstone@0.11.13`, `endstone@0.11.14` | [`spread100`](configs/scenarios/spread100.toml) | 3 × 3 | 1.5–3 h |
-| E2 | E1 with client-side generation on, the setting of the blog's figures | [`endstone-0.11.14-csg.toml`](configs/matrices/endstone-0.11.14-csg.toml) | as E1 | [`spread100-csg`](configs/scenarios/spread100-csg.toml) | 3 × 3 | 1.5–3 h |
-| E3 | Every server on the same workload | [`cross-server.toml`](configs/matrices/cross-server.toml) | every server but Chorus, 14 arms | [`spread100`](configs/scenarios/spread100.toml) | 14 × 3 | 8–15 h |
-| E4 | LeviLamina and LeviOptimize against the BDS build they host | [`levilamina-26.51.toml`](configs/matrices/levilamina-26.51.toml) | `bds@1.26.51.1`, `levilamina@26.51.6` and its 2 variants | [`spread100`](configs/scenarios/spread100.toml) | 4 × 3 | 2–4 h |
+| E1 | Endstone against the BDS build it hosts, client-side generation off | [`endstone-0.11.14.toml`](configs/spread-100.toml) | `bds@1.26.52.3`, `endstone@0.11.13`, `endstone@0.11.14` | [`spread100`](configs/spread-100.toml) | 3 × 3 | 1.5–3 h |
+| E2 | E1 with client-side generation on, the setting of the blog's figures | [`endstone-0.11.14-csg.toml`](configs/spread-100.toml) | as E1 | [`spread100-csg`](configs/spread-100.toml) | 3 × 3 | 1.5–3 h |
+| E3 | Every server on the same workload | [`cross-server.toml`](configs/spread-100.toml) | every server but Chorus, 14 arms | [`spread100`](configs/spread-100.toml) | 14 × 3 | 8–15 h |
+| E4 | LeviLamina and LeviOptimize against the BDS build they host | [`levilamina-26.51.toml`](configs/spread-100.toml) | `bds@1.26.51.1`, `levilamina@26.51.6` and its 2 variants | [`spread100`](configs/spread-100.toml) | 4 × 3 | 2–4 h |
 
 Runs are cells (arm and scenario) times repeats. Times follow from the phase lengths in the scenario files: a spread100
 run takes 10 to 20 minutes, most of it waiting for the views to settle. The cooldowns are included; downloads and

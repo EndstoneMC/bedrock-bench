@@ -13,7 +13,7 @@ from urllib.parse import unquote
 import pytest
 
 from bedrock_bench import adapters
-from bedrock_bench.config import project_root
+from bedrock_bench.config import project_root, server_dir
 
 ROOT = project_root()
 
@@ -108,7 +108,7 @@ def test_relative_links_resolve(path: str) -> None:
 
 def test_markdown_set() -> None:
     built_in = [name for name, cls in adapters.all_adapters().items() if cls.__module__.startswith(adapters.__name__)]
-    allowed = FIXED_DOCS | {f"configs/{name}/README.md" for name in built_in}
+    allowed = FIXED_DOCS | {(server_dir(name) / "README.md").relative_to(ROOT).as_posix() for name in built_in}
     docs = {path for path in markdown() if not path.startswith("tests/")}
     blog = {path for path in docs if path.startswith(BLOG) and "/" not in path[len(BLOG) :]}
     assert f"{BLOG}README.md" in blog

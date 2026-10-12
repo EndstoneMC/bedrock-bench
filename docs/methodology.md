@@ -23,7 +23,7 @@ Code and error messages cite these rules by number.
 
 ## Workload
 
-A workload is a scenario file in [`configs/scenarios/`](../configs/scenarios/). One scenario drives every arm of a
+A workload is a scenario file in [`configs/`](../configs/). One scenario drives every arm of a
 matrix (R1). Its sha256 covers the fully resolved content, after `extends` and defaults, and every run stores both the
 hash and the resolved content, so runs of different scenario versions are never mixed. Phase defaults are `PHASE_DEFS`
 in `bedrock_bench/config.py`.
