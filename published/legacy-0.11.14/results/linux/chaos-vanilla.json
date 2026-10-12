@@ -1,0 +1,95 @@
+{
+ "tag": "chaos-vanilla",
+ "vanilla": true,
+ "version": "Version: 1.26.52.3",
+ "wheel": "endstone-0.11.14.dev4-cp314-cp314-manylinux_2_31_x86_64.whl",
+ "chaos_s": 900,
+ "crash": false,
+ "server_exit": 0,
+ "crash_report": false,
+ "mon10_all": 12.7,
+ "mon10_normal": 14.84,
+ "mon10_100_1000": 4.73,
+ "mon10_per_regime": {
+  "0": 13.61,
+  "1": 14.84,
+  "3": 15.79,
+  "100": 9.56,
+  "1000": 2.53
+ },
+ "mon10_n": {
+  "0": 13,
+  "1": 31,
+  "3": 17,
+  "100": 15,
+  "1000": 13
+ },
+ "tps5_all": 12.36,
+ "tps5_normal": 14.49,
+ "tps5_100_1000": 4.11,
+ "tps5_min": 1.0,
+ "seconds_per_regime": {
+  "0": 134,
+  "1": 323,
+  "3": 155,
+  "100": 160,
+  "1000": 128
+ },
+ "tickspeed_changes": {
+  "queued": 30,
+  "applied": 30
+ },
+ "proc_cores_chaos_median": 3.33,
+ "tps_min": 1.05,
+ "rss_start_mb": 4649,
+ "rss_end_mb": 5057,
+ "rss_peak_mb": 5057,
+ "threads": [
+  19,
+  19
+ ],
+ "severe_lines": 0,
+ "error_lines": 0,
+ "cmd_errors": 3371,
+ "actions": {
+  "gamerule_playerwaypoints": 30,
+  "list_status": 92,
+  "far_tp": 62,
+  "blocks": 47,
+  "churn": 45,
+  "kill": 30,
+  "summon": 31,
+  "kick": 23,
+  "spectator": 42,
+  "group_tp": 38,
+  "dim_hop": 92,
+  "load_disconnect": 20,
+  "rejoin": 31,
+  "randomtickspeed": 30,
+  "weather": 18,
+  "tickingarea_add": 11,
+  "survival": 142,
+  "dim_back": 87,
+  "quick_disconnect": 125,
+  "cleanup": 3,
+  "tickingarea_remove": 11
+ },
+ "bot_events": {
+  "respawned": 77,
+  "read_failed": 46,
+  "dim_acks": 168,
+  "rejoined": 642
+ },
+ "waypoint_gamerule_responses": {
+  "ok playerwaypoints off": 15,
+  "ok playerwaypoints everyone": 15
+ },
+ "verify": {
+  "verify_lines": 0,
+  "clean": null,
+  "divergences_per_hook": {},
+  "detail_lines": {},
+  "first_details": [],
+  "latest_summaries": []
+ }
+}

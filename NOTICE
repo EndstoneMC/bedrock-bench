@@ -1,0 +1,101 @@
+bedrock-bench
+Copyright 2026 The bedrock-bench contributors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+bedrock-bench is not affiliated with, endorsed by or sponsored by Mojang Studios or Microsoft. "Minecraft" and
+"Minecraft: Bedrock Edition" are trademarks of Mojang Studios and Microsoft. This repository contains no Mojang
+software, worlds or other Mojang content; `bbench fetch` downloads Bedrock Dedicated Server from Mojang only after the
+user accepts the Minecraft End User License Agreement.
+
+Published result datasets under published/ are licensed under Creative Commons Attribution 4.0 International
+(CC BY 4.0), https://creativecommons.org/licenses/by/4.0/.
+
+--------------------------------------------------------------------------------------------------------------------
+Third-party software
+--------------------------------------------------------------------------------------------------------------------
+
+The load bots (bots/) are built against gophertunnel and go-raknet. Patches to gophertunnel in bots/patches/ are
+derived from gophertunnel and remain under its MIT license. The Dragonfly helper (servers/dragonfly/) is built against
+Dragonfly. Release binaries of the bots and the helper contain code from these projects and from their own module
+dependencies; `go version -m <binary>` lists every module compiled into a binary.
+
+gophertunnel - https://github.com/Sandertv/gophertunnel
+
+    MIT License
+
+    Copyright (c) 2019 Sandertv
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+go-raknet - https://github.com/Sandertv/go-raknet
+
+    MIT License
+
+    Copyright (c) 2019 Sander ten Veldhuis
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+Dragonfly - https://github.com/df-mc/dragonfly
+
+    MIT License
+
+    Copyright (c) 2019 Dragonfly Tech
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+psutil - https://github.com/giampaolo/psutil
+
+    A runtime dependency of the Python package, installed from PyPI and not distributed with this repository.
+    BSD 3-Clause License, Copyright (c) 2009, Jay Loden, Dave Daeschler, Giampaolo Rodola.
+
+The helper plugins under servers/pocketmine/ and servers/nukkit/ are Apache-2.0 source files. They are compiled or
+loaded locally against PocketMine-MP (LGPL-3.0) and Nukkit (GPL-3.0), which this repository does not contain.

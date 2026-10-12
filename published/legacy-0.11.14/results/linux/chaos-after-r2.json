@@ -1,0 +1,91 @@
+{
+ "tag": "chaos-after-r2",
+ "vanilla": false,
+ "version": "This server is running Endstone version: 0.11.14.dev4 (Minecraft: 26.52)",
+ "wheel": "endstone-0.11.14.dev4-cp314-cp314-manylinux_2_31_x86_64.whl",
+ "chaos_s": 900,
+ "crash": false,
+ "server_exit": 0,
+ "crash_report": false,
+ "mon10_all": 19.1,
+ "mon10_normal": 19.3,
+ "mon10_100_1000": 10.78,
+ "mon10_per_regime": {
+  "0": 19.45,
+  "1": 19.28,
+  "3": 19.28,
+  "100": 15.49,
+  "1000": 2.85
+ },
+ "mon10_n": {
+  "0": 12,
+  "1": 37,
+  "3": 17,
+  "100": 11,
+  "1000": 12
+ },
+ "seconds_per_regime": {
+  "0": 116,
+  "1": 384,
+  "3": 168,
+  "100": 113,
+  "1000": 119
+ },
+ "tickspeed_changes": {
+  "queued": 30,
+  "applied": 29
+ },
+ "proc_cores_chaos_median": null,
+ "tps_min": 0.79,
+ "rss_start_mb": 5396,
+ "rss_end_mb": 4932,
+ "rss_peak_mb": 5423,
+ "threads": [
+  23,
+  23
+ ],
+ "severe_lines": 0,
+ "error_lines": 3,
+ "cmd_errors": 1274,
+ "actions": {
+  "gamerule_playerwaypoints": 31,
+  "list_status": 87,
+  "far_tp": 63,
+  "blocks": 45,
+  "churn": 47,
+  "kill": 30,
+  "summon": 32,
+  "kick": 22,
+  "spectator": 46,
+  "group_tp": 34,
+  "quick_disconnect": 137,
+  "dim_hop": 89,
+  "load_disconnect": 21,
+  "rejoin": 32,
+  "randomtickspeed": 31,
+  "weather": 19,
+  "tickingarea_add": 13,
+  "survival": 154,
+  "dim_back": 85,
+  "cleanup": 3,
+  "tickingarea_remove": 9
+ },
+ "bot_events": {
+  "respawned": 116,
+  "rejoined": 690,
+  "read_failed": 51,
+  "dim_acks": 165
+ },
+ "waypoint_gamerule_responses": {
+  "ok playerwaypoints off": 16,
+  "ok playerwaypoints everyone": 15
+ },
+ "verify": {
+  "verify_lines": 0,
+  "clean": null,
+  "divergences_per_hook": {},
+  "detail_lines": {},
+  "first_details": [],
+  "latest_summaries": []
+ }
+}

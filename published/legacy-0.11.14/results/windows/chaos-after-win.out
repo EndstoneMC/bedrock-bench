@@ -1,0 +1,801 @@
+23:15:32 arm dll-after {'endstone_runtime.dll': 'ed43d5e170ccb982', 'endstone_runtime.pdb': 'd82d29d00917ee18', '_python.cp313-win_amd64.pyd': '9f49226f485f8be3 (pypi)', '_python.pdb': '5cb59c7d518d00c1 (pypi)'}
+23:15:42 server 24080 0x7ff7605e0000 ['[23:15:34 INFO]: Version: 1.26.52.3', '[23:15:34 INFO]: This server is running Endstone version: 0.11.13 (Minecraft: 26.52)']
+23:15:46 devtools tid 38324 0 ms/s suspended None
+23:15:56 mark idle0
+23:16:16 mark idle1
+23:16:16 thread names ['Gameface Layout(0)', 'IO Thread(0)', 'LevelDB(0)', 'LevelDBCompaction(0)', 'MC_SERVER', 'Main', 'REST Thread(0)', 'Streaming Pool(0)', 'Streaming Pool(1)', 'Streaming Pool(2)', 'Streaming Pool(3)', 'Streaming Pool(4)', 'Streaming Pool(5)', 'Streaming Pool(6)', 'sentry-http']
+23:16:16 WARNING foreign BDS/bots running [(30244, 'loadbot-1001.exe'), (49028, 'loadbot-chaos.exe')]
+23:16:17 window idle tps 20.055850145564193 [('MC_SERVER', 11), ('22320@ucrtbase.dll', 1), ('21548@ucrtbase.dll', 1), ('Main', 0), ('18612@nvoglv64.dll', 0), ('sentry-http', 0), ('51544@CRYPT32.dll', 0), ('37168@ntdll.dll', 0)] other 579 devtools 0
+23:16:17 mark prof_start
+23:16:29 mark bots_start
+23:17:03 mark alljoined
+23:17:03 mark storm_prof_end
+23:17:03 WARNING foreign BDS/bots running [(30244, 'loadbot-1001.exe')]
+23:17:06 window storm_prof tps 19.98519805118281 [('Streaming Pool(0)', 895), ('Streaming Pool(1)', 894), ('MC_SERVER', 613), ('Streaming Pool(2)', 609), ('Streaming Pool(4)', 431), ('REST Thread(0)', 399), ('Streaming Pool(3)', 185), ('Streaming Pool(6)', 69)] other 4326 devtools 0
+23:17:36 settle 33s uniq=2376 uniq/s=33.8 (0.34/bot) tps30=20.033165810505672 view_min=0 view_med=0 below=0 airborne=0 deaths=0 nudged=0
+23:18:06 settle 63s uniq=5048 uniq/s=66.9 (0.67/bot) tps30=19.988603369743043 view_min=5 view_med=51 below=0 airborne=41 deaths=0 nudged=41
+23:18:36 settle 93s uniq=8670 uniq/s=104.9 (1.05/bot) tps30=19.971940723625742 view_min=5 view_med=51 below=0 airborne=41 deaths=0 nudged=41
+23:19:06 settle 123s uniq=10080 uniq/s=83.9 (0.84/bot) tps30=20.004945382270986 view_min=67 view_med=101 below=0 airborne=0 deaths=0 nudged=0
+23:19:36 settle 153s uniq=10382 uniq/s=28.5 (0.29/bot) tps30=19.999644872975036 view_min=67 view_med=101 below=0 airborne=0 deaths=0 nudged=0
+23:20:06 settle 183s uniq=10594 uniq/s=8.6 (0.09/bot) tps30=19.955790848640742 view_min=67 view_med=105 below=0 airborne=0 deaths=0 nudged=0
+23:20:06 mark settled
+23:20:06 WARNING foreign BDS/bots running [(17964, 'loadbot-1001.exe'), (27916, 'loadbot-chaos.exe')]
+23:20:09 window storm_full tps 19.991303468692077 [('MC_SERVER', 793), ('Streaming Pool(0)', 648), ('Streaming Pool(1)', 571), ('Streaming Pool(2)', 186), ('REST Thread(0)', 124), ('Streaming Pool(4)', 68), ('21548@ucrtbase.dll', 53), ('Streaming Pool(3)', 29)] other 2969 devtools 0
+23:20:24 spread {'players': 100, 'cells_occupied': 100, 'max_per_cell': 1, 'worst_offset_blocks': 97.7}
+23:20:24 mark chaos0
+23:20:24 chaos start 10.0 min, 16 actions
+23:20:28 CHAOS kick ['a14', 'a79']
+23:20:28 CHAOS view_disconnect ['a29']
+23:20:31 CHAOS churn_one a29 (view loading, 2.1s after far tp)
+23:20:31 CHAOS stack 5 bots on 3200.5 300 8320.5 ['a02', 'a92', 'a96', 'a91', 'a57']
+23:20:31 CHAOS weather thunder
+23:20:33 CHAOS gamemode spectator ['a36', 'a70', 'a71']
+23:20:34 CHAOS far_tp ['a97', 'a13', 'a12']
+23:20:35 MON t=10s tps10=17.71 mc=1000ms/s ws=4077.7MB priv=4828.0MB handles=634 threads=55 online=97/100 errors=0 (+0) backlog=0 cmd_errors=0 harness_errors=0 ev={'LEFT': 1, 'RADIUS': 54, 'READ_FAILED': 2, 'TP': 7}
+23:20:36 CHAOS cleanup kill @e[type=!player]
+23:20:36 CHAOS blocks ['a73']
+23:20:37 CHAOS tickingarea_add chaos1 at -40416 -20897
+23:20:39 CHAOS churn 10 reconnects ['a17', 'a93', 'a67', 'a89', 'a51', 'a62', 'a82', 'a77', 'a98', 'a27'] flash=['a17', 'a62', 'a98']
+23:20:42 CHAOS randomtickspeed 0
+23:20:43 CHAOS gamemode creative ['a36']
+23:20:44 CHAOS dimension a59 -> nether
+23:20:44 CHAOS dimension a57 -> nether
+23:20:44 CHAOS dimension a31 -> the_end
+23:20:45 MON t=20s tps10=12.33 mc=966ms/s ws=4097.4MB priv=4843.7MB handles=634 threads=55 online=90/100 errors=0 (+0) backlog=0 cmd_errors=0 harness_errors=0 ev={'DIM': 3, 'JOINED': 3, 'LEFT': 11, 'RADIUS': 99, 'READ_FAILED': 2, 'TP': 12}
+23:20:50 CHAOS flash_leave a62 1.0s after rejoin
+23:20:50 CHAOS flash_leave a17 1.0s after rejoin
+23:20:51 CHAOS flash_leave a98 1.2s after rejoin
+23:20:52 CHAOS far_tp ['a16', 'a84', 'a47', 'a93', 'a45']
+23:20:53 CHAOS stack 6 bots on 1280.5 300 17280.5 ['a27', 'a14', 'a04', 'a39', 'a56', 'a67']
+23:20:53 CHAOS unstack 5 bots home
+23:20:54 CHAOS gamemode spectator ['a60', 'a63', 'a24']
+23:20:54 CHAOS kill ['a32', 'a28']
+23:20:54 CHAOS summon 43 mobs + loot near ['a24', 'a27']
+23:20:55 CHAOS gamemode survival ['a36']
+23:20:55 MON t=31s tps10=15.84 mc=988ms/s ws=4148.1MB priv=4893.1MB handles=635 threads=55 online=97/100 errors=0 (+0) backlog=70 cmd_errors=15 harness_errors=0 ev={'DIM': 3, 'DIMDONE': 3, 'JOINED': 13, 'LEFT': 14, 'RADIUS': 145, 'READ_FAILED': 2, 'TP': 19}
+23:20:55 VERIFY (no verify lines yet)
+23:20:56 CHAOS churn 10 reconnects ['a40', 'a99', 'a53', 'a33', 'a95', 'a60', 'a34', 'a49', 'a06', 'a97'] flash=['a33', 'a60']
+23:20:57 CHAOS gamemode survival ['a36', 'a70', 'a71']
+23:20:57 CHAOS dimension a00 -> the_end
+23:20:58 CHAOS view_disconnect ['a66']
+23:21:00 CHAOS dimension a59 -> overworld
+23:21:00 CHAOS waypoints_off playerwaypoints off, locatorbar false
+23:21:01 CHAOS churn_one a27 (near mobs)
+23:21:02 CHAOS churn_one a66 (view loading, 2.9s after far tp)
+23:21:03 CHAOS dimension a31 -> overworld
+23:21:03 CHAOS gamemode spectator ['a88', 'a94', 'a44']
+23:21:03 CHAOS blocks ['a78']
+23:21:05 MON t=40s tps10=13.27 mc=896ms/s ws=4021.2MB priv=4793.4MB handles=637 threads=55 online=88/100 errors=34 (+34) backlog=35 cmd_errors=25 harness_errors=0 ev={'DIED': 2, 'DIM': 4, 'DIMDONE': 4, 'JOINED': 16, 'LEFT': 26, 'RADIUS': 184, 'READ_FAILED': 2, 'RESPAWNED': 2, 'TP': 34}
+23:21:05   ERRLINE [23:20:57 ERROR]: Unable to summon object
+23:21:05   ERRLINE [23:20:57 ERROR]: Failed to execute 'summon' as [Null]
+23:21:05   ERRLINE [23:20:57 ERROR]: Unable to summon object
+23:21:05   ERRLINE [23:20:57 ERROR]: Failed to execute 'summon' as [Null]
+23:21:05   ERRLINE [23:20:58 ERROR]: Unable to summon object
+23:21:05 CHAOS tickingarea_remove chaos1
+23:21:05 CHAOS kick ['a25', 'a22']
+23:21:06 CHAOS far_tp ['a05', 'a59', 'a93']
+23:21:08 CHAOS flash_leave a60 1.3s after rejoin
+23:21:08 CHAOS flash_leave a33 1.5s after rejoin
+23:21:12 CHAOS dimension a75 -> the_end
+23:21:12 CHAOS dimension a11 -> nether
+23:21:13 CHAOS dimension a57 -> overworld
+23:21:13 CHAOS dimension a00 -> overworld
+23:21:13 CHAOS stack 10 bots on 2560.5 300 10240.5 ['a34', 'a65', 'a37', 'a26', 'a97', 'a13', 'a20', 'a59', 'a94', 'a95']
+23:21:14 CHAOS gamemode survival ['a60', 'a63', 'a24']
+23:21:15 MON t=50s tps10=17.93 mc=876ms/s ws=4067.8MB priv=4834.9MB handles=634 threads=54 online=96/100 errors=34 (+0) backlog=33 cmd_errors=46 harness_errors=0 ev={'DIED': 2, 'DIM': 7, 'DIMDONE': 7, 'JOINED': 28, 'LEFT': 28, 'RADIUS': 226, 'READ_FAILED': 4, 'RESPAWNED': 2, 'TP': 47}
+23:21:16 CHAOS kill ['a86', 'a10']
+23:21:17 CHAOS waypoints_on playerwaypoints everyone, locatorbar true
+23:21:17 CHAOS tickingarea_add chaos2 at 39450 -24160
+23:21:18 CHAOS randomtickspeed 1
+23:21:19 CHAOS far_tp ['a13', 'a47', 'a97', 'a35', 'a09']
+23:21:21 CHAOS summon 23 mobs + loot near ['a72', 'a38', 'a46']
+23:21:21 CHAOS unstack 6 bots home
+23:21:21 CHAOS blocks ['a63']
+23:21:22 CHAOS gamemode survival ['a88', 'a94', 'a44']
+23:21:23 CHAOS churn 10 reconnects ['a68', 'a33', 'a65', 'a07', 'a94', 'a82', 'a87', 'a04', 'a43', 'a80'] flash=['a65', 'a07', 'a87', 'a04']
+23:21:23 CHAOS weather clear
+23:21:24 CHAOS churn_one a38 (near mobs)
+23:21:24 CHAOS gamemode adventure ['a70', 'a14', 'a76']
+23:21:24 MON t=60s tps10=16.91 mc=876ms/s ws=4092.2MB priv=4867.5MB handles=633 threads=54 online=89/100 errors=34 (+0) backlog=37 cmd_errors=47 harness_errors=0 ev={'DIED': 4, 'DIM': 10, 'DIMDONE': 10, 'JOINED': 32, 'LEFT': 39, 'RADIUS': 280, 'READ_FAILED': 4, 'RESPAWNED': 4, 'TP': 70}
+23:21:25 VERIFY (no verify lines yet)
+23:21:28 CHAOS churn_one a72 (near mobs)
+23:21:30 CHAOS kick ['a36', 'a71']
+23:21:30 CHAOS dimension a75 -> overworld
+23:21:32 CHAOS stack 6 bots on 1280.5 300 26880.5 ['a25', 'a06', 'a22', 'a66', 'a64', 'a84']
+23:21:33 CHAOS far_tp ['a70', 'a56', 'a16', 'a17']
+23:21:35 CHAOS flash_leave a65 1.7s after rejoin
+23:21:35 CHAOS flash_leave a04 1.2s after rejoin
+23:21:35 MON t=71s tps10=17.49 mc=914ms/s ws=4109.5MB priv=4874.3MB handles=640 threads=54 online=95/100 errors=34 (+0) backlog=39 cmd_errors=63 harness_errors=0 ev={'DIED': 4, 'DIM': 11, 'DIMDONE': 11, 'JOINED': 43, 'LEFT': 42, 'RADIUS': 322, 'READ_FAILED': 6, 'RESPAWNED': 4, 'TP': 84}
+23:21:36 CHAOS flash_leave a07 1.7s after rejoin
+23:21:36 CHAOS flash_leave a87 2.0s after rejoin
+23:21:36 CHAOS churn 10 reconnects ['a97', 'a35', 'a48', 'a18', 'a85', 'a00', 'a60', 'a94', 'a84', 'a92'] flash=['a18', 'a00', 'a94', 'a84']
+23:21:37 CHAOS gamemode creative ['a55', 'a88', 'a32']
+23:21:40 CHAOS unstack 10 bots home
+23:21:40 CHAOS tickingarea_remove chaos2
+23:21:40 CHAOS view_disconnect ['a73']
+23:21:40 CHAOS dimension a37 -> nether
+23:21:40 CHAOS dimension a79 -> the_end
+23:21:40 CHAOS dimension a03 -> the_end
+23:21:41 CHAOS gamemode survival ['a70', 'a14', 'a76']
+23:21:42 CHAOS dimension a11 -> overworld
+23:21:42 CHAOS churn_one a73 (view loading, 2.1s after far tp)
+23:21:43 CHAOS summon 48 mobs + loot near ['a75', 'a86']
+23:21:45 MON t=80s tps10=12.33 mc=893ms/s ws=3858.9MB priv=4655.9MB handles=641 threads=54 online=85/100 errors=42 (+8) backlog=51 cmd_errors=81 harness_errors=0 ev={'DIED': 4, 'DIM': 15, 'DIMDONE': 14, 'JOINED': 46, 'LEFT': 55, 'RADIUS': 362, 'READ_FAILED': 6, 'RESPAWNED': 4, 'TP': 104}
+23:21:45   ERRLINE [23:21:44 ERROR]: Unable to summon object
+23:21:45   ERRLINE [23:21:44 ERROR]: Failed to execute 'summon' as [Null]
+23:21:45   ERRLINE [23:21:44 ERROR]: Unable to summon object
+23:21:45   ERRLINE [23:21:44 ERROR]: Failed to execute 'summon' as [Null]
+23:21:45   ERRLINE [23:21:44 ERROR]: Unable to summon object
+23:21:45 CHAOS waypoints_off playerwaypoints off, locatorbar false
+23:21:46 CHAOS kill ['a63', 'a52']
+23:21:47 CHAOS flash_leave a00 1.1s after rejoin
+23:21:47 CHAOS flash_leave a18 1.1s after rejoin
+23:21:47 CHAOS gamemode creative ['a35']
+23:21:48 CHAOS flash_leave a94 1.6s after rejoin
+23:21:48 CHAOS flash_leave a84 1.6s after rejoin
+23:21:49 CHAOS blocks ['a38']
+23:21:50 CHAOS far_tp ['a58', 'a54', 'a36']
+23:21:51 CHAOS churn 10 reconnects ['a36', 'a19', 'a81', 'a27', 'a68', 'a80', 'a28', 'a01', 'a07', 'a50'] flash=['a36']
+23:21:52 CHAOS tickingarea_add chaos3 at 29932 -35692
+23:21:52 CHAOS cleanup kill @e[type=!player]
+23:21:54 MON t=90s tps10=19.2 mc=962ms/s ws=3904.7MB priv=4716.3MB handles=641 threads=54 online=86/100 errors=86 (+44) backlog=51 cmd_errors=119 harness_errors=0 ev={'DIED': 4, 'DIM': 15, 'DIMDONE': 15, 'JOINED': 61, 'LEFT': 69, 'RADIUS': 399, 'READ_FAILED': 6, 'RESPAWNED': 4, 'TP': 109}
+23:21:54   ERRLINE [23:21:45 ERROR]: Unable to summon object
+23:21:54   ERRLINE [23:21:45 ERROR]: Failed to execute 'summon' as [Null]
+23:21:54   ERRLINE [23:21:45 ERROR]: Unable to summon object
+23:21:54   ERRLINE [23:21:45 ERROR]: Failed to execute 'summon' as [Null]
+23:21:54   ERRLINE [23:21:45 ERROR]: Unable to summon object
+23:21:54 VERIFY (no verify lines yet)
+23:21:57 CHAOS dimension a37 -> overworld
+23:21:57 CHAOS randomtickspeed 3
+23:21:57 CHAOS kick ['a66']
+23:21:58 CHAOS waypoints_on playerwaypoints everyone, locatorbar true
+23:21:59 CHAOS gamemode creative ['a73']
+23:21:59 CHAOS stack 6 bots on 2560.5 300 16640.5 ['a87', 'a48', 'a56', 'a63', 'a79', 'a98']
+23:21:59 CHAOS weather rain
+23:22:00 CHAOS gamemode survival ['a55', 'a88', 'a32']
+23:22:02 CHAOS dimension a79 -> overworld
+23:22:02 CHAOS flash_leave a36 1.3s after rejoin
+23:22:02 CHAOS unstack 6 bots home
+23:22:02 CHAOS view_disconnect ['a02']
+23:22:04 CHAOS churn_one a02 (view loading, 1.6s after far tp)
+23:22:05 MON t=100s tps10=20.21 mc=900ms/s ws=3936.3MB priv=4737.3MB handles=636 threads=53 online=98/100 errors=89 (+3) backlog=67 cmd_errors=134 harness_errors=0 ev={'DIED': 6, 'DIM': 16, 'DIMDONE': 16, 'JOINED': 75, 'LEFT': 70, 'RADIUS': 436, 'READ_FAILED': 7, 'RESPAWNED': 6, 'TP': 122}
+23:22:05   ERRLINE [23:21:59 ERROR]: Failed to execute 'setblock' as [Null]
+23:22:05   ERRLINE [23:21:59 ERROR]: Failed to execute 'fill' as [Null]
+23:22:05   ERRLINE [23:21:59 ERROR]: Failed to execute 'fill' as [Null]
+23:22:05 CHAOS dimension a03 -> overworld
+23:22:06 CHAOS dimension a98 -> the_end
+23:22:06 CHAOS gamemode survival ['a35']
+23:22:07 CHAOS churn 10 reconnects ['a45', 'a89', 'a67', 'a12', 'a28', 'a10', 'a33', 'a94', 'a64', 'a42'] flash=['a45', 'a89', 'a42']
+23:22:09 CHAOS far_tp ['a53', 'a22', 'a13']
+23:22:14 CHAOS tickingarea_remove chaos3
+23:22:14 CHAOS summon 33 mobs + loot near ['a17']
+23:22:15 MON t=110s tps10=16.55 mc=939ms/s ws=3951.2MB priv=4755.1MB handles=630 threads=53 online=91/100 errors=95 (+6) backlog=40 cmd_errors=155 harness_errors=0 ev={'DIED': 6, 'DIM': 19, 'DIMDONE': 19, 'JOINED': 79, 'LEFT': 81, 'RADIUS': 488, 'READ_FAILED': 7, 'RESPAWNED': 6, 'TP': 145}
+23:22:15   ERRLINE [23:22:14 ERROR]: Unable to summon object
+23:22:15   ERRLINE [23:22:14 ERROR]: Failed to execute 'summon' as [Null]
+23:22:15   ERRLINE [23:22:14 ERROR]: Unable to summon object
+23:22:15   ERRLINE [23:22:14 ERROR]: Failed to execute 'summon' as [Null]
+23:22:15   ERRLINE [23:22:15 ERROR]: Unable to summon object
+23:22:15 CHAOS blocks ['a32']
+23:22:16 CHAOS gamemode spectator ['a17']
+23:22:18 CHAOS flash_leave a42 1.2s after rejoin
+23:22:18 CHAOS flash_leave a89 1.5s after rejoin
+23:22:18 CHAOS kill ['a08', 'a98']
+23:22:19 CHAOS flash_leave a45 1.5s after rejoin
+23:22:20 CHAOS dimension a93 -> nether
+23:22:20 CHAOS dimension a25 -> the_end
+23:22:20 CHAOS dimension a53 -> nether
+23:22:21 CHAOS randomtickspeed 100
+23:22:22 CHAOS far_tp ['a25', 'a28', 'a47', 'a95']
+23:22:23 CHAOS gamemode survival ['a73']
+23:22:24 MON t=120s tps10=20.08 mc=916ms/s ws=4002.0MB priv=4794.5MB handles=631 threads=52 online=97/100 errors=159 (+64) backlog=8 cmd_errors=177 harness_errors=0 ev={'DIED': 8, 'DIM': 19, 'DIMDONE': 19, 'JOINED': 88, 'LEFT': 84, 'RADIUS': 533, 'READ_FAILED': 7, 'RESPAWNED': 6, 'TP': 152}
+23:22:24   ERRLINE [23:22:15 ERROR]: Unable to summon object
+23:22:24   ERRLINE [23:22:15 ERROR]: Failed to execute 'summon' as [Null]
+23:22:24   ERRLINE [23:22:15 ERROR]: Unable to summon object
+23:22:24   ERRLINE [23:22:15 ERROR]: Failed to execute 'summon' as [Null]
+23:22:25   ERRLINE [23:22:15 ERROR]: Unable to summon object
+23:22:25 VERIFY (no verify lines yet)
+23:22:26 CHAOS unstack 6 bots home
+23:22:26 CHAOS dimension a98 -> overworld
+23:22:28 CHAOS churn 10 reconnects ['a75', 'a60', 'a58', 'a82', 'a09', 'a73', 'a97', 'a37', 'a99', 'a02'] flash=['a97', 'a37', 'a99']
+23:22:30 CHAOS blocks ['a17']
+23:22:31 CHAOS stack 5 bots on 7680.5 300 17280.5 ['a15', 'a68', 'a69', 'a32', 'a80']
+23:22:33 CHAOS summon 27 mobs + loot near ['a67']
+23:22:33 CHAOS far_tp ['a92', 'a53', 'a16']
+23:22:34 CHAOS kick ['a53', 'a70']
+23:22:35 CHAOS gamemode spectator ['a78', 'a19']
+23:22:35 MON t=130s tps10=6.68 mc=1000ms/s ws=4022.8MB priv=4819.1MB handles=631 threads=52 online=89/100 errors=183 (+24) backlog=28 cmd_errors=194 harness_errors=0 ev={'DIED': 8, 'DIM': 24, 'DIMDONE': 24, 'JOINED': 91, 'LEFT': 94, 'RADIUS': 574, 'READ_FAILED': 8, 'RESPAWNED': 8, 'TP': 166}
+23:22:35   ERRLINE [23:22:27 ERROR]: Failed to execute 'teleport' as [Null]
+23:22:35   ERRLINE [23:22:30 ERROR]: Failed to execute 'fill' as [Null]
+23:22:35   ERRLINE [23:22:31 ERROR]: Failed to execute 'fill' as [Null]
+23:22:35   ERRLINE [23:22:31 ERROR]: Failed to execute 'fill' as [Null]
+23:22:35   ERRLINE [23:22:33 ERROR]: Unable to summon object
+23:22:36 CHAOS dimension a93 -> overworld
+23:22:36 CHAOS gamemode survival ['a17']
+23:22:36 CHAOS view_disconnect ['a62']
+23:22:38 CHAOS churn_one a62 (view loading, 1.4s after far tp)
+23:22:41 CHAOS churn 10 reconnects ['a95', 'a26', 'a96', 'a47', 'a78', 'a12', 'a79', 'a61', 'a15', 'a17'] flash=['a47', 'a12', 'a15', 'a17']
+23:22:43 CHAOS dimension a53 -> overworld
+23:22:44 CHAOS dimension a25 -> overworld
+23:22:45 MON t=140s tps10=7.21 mc=1010ms/s ws=4028.6MB priv=4820.4MB handles=631 threads=52 online=77/100 errors=222 (+39) backlog=0 cmd_errors=200 harness_errors=0 ev={'DIED': 8, 'DIM': 26, 'DIMDONE': 26, 'JOINED': 92, 'LEFT': 105, 'RADIUS': 615, 'READ_FAILED': 10, 'RESPAWNED': 8, 'TP': 168}
+23:22:45   ERRLINE [23:22:35 ERROR]: Unable to summon object
+23:22:45   ERRLINE [23:22:35 ERROR]: Failed to execute 'summon' as [Null]
+23:22:45   ERRLINE [23:22:35 ERROR]: Unable to summon object
+23:22:45   ERRLINE [23:22:35 ERROR]: Failed to execute 'summon' as [Null]
+23:22:45   ERRLINE [23:22:35 ERROR]: Unable to summon object
+23:22:45 CHAOS randomtickspeed 1000
+23:22:46 CHAOS dimension a24 -> the_end
+23:22:46 CHAOS dimension a76 -> the_end
+23:22:47 CHAOS tickingarea_add chaos4 at -29857 55282
+23:22:48 CHAOS gamemode survival ['a78', 'a19']
+23:22:49 CHAOS unstack 5 bots home
+23:22:49 CHAOS blocks ['a77', 'a56']
+23:22:50 CHAOS gamemode spectator ['a84', 'a90']
+23:22:51 CHAOS flash_leave a37 1.1s after rejoin
+23:22:54 CHAOS far_tp ['a91', 'a03', 'a57']
+23:22:54 CHAOS weather clear
+23:22:55 CHAOS flash_leave a99 1.1s after rejoin
+23:22:55 MON t=150s tps10=1.08 mc=954ms/s ws=4038.6MB priv=4826.4MB handles=632 threads=52 online=81/100 errors=227 (+5) backlog=26 cmd_errors=208 harness_errors=0 ev={'DIED': 8, 'DIM': 28, 'DIMDONE': 28, 'JOINED': 97, 'LEFT': 106, 'RADIUS': 656, 'READ_FAILED': 10, 'RESPAWNED': 8, 'TP': 174}
+23:22:55   ERRLINE [23:22:53 ERROR]: Failed to execute 'fill' as [Null]
+23:22:55   ERRLINE [23:22:53 ERROR]: Failed to execute 'fill' as [Null]
+23:22:55   ERRLINE [23:22:53 ERROR]: Failed to execute 'fill' as [Null]
+23:22:55   ERRLINE [23:22:53 ERROR]: Failed to execute 'fill' as [Null]
+23:22:55   ERRLINE [23:22:53 ERROR]: Failed to execute 'fill' as [Null]
+23:22:55 VERIFY (no verify lines yet)
+23:22:55 CHAOS churn 10 reconnects ['a45', 'a16', 'a87', 'a89', 'a64', 'a65', 'a88', 'a33', 'a49', 'a13'] flash=['a45', 'a65', 'a49', 'a13']
+23:22:56 CHAOS kill ['a86', 'a29']
+23:22:58 CHAOS flash_leave a97 1.6s after rejoin
+23:22:58 CHAOS stack 9 bots on 4480.5 300 12800.5 ['a76', 'a50', 'a82', 'a34', 'a93', 'a23', 'a83', 'a69', 'a42']
+23:23:00 CHAOS gamemode creative ['a21', 'a57']
+23:23:01 CHAOS view_disconnect ['a86']
+23:23:02 CHAOS waypoints_off playerwaypoints off, locatorbar false
+23:23:03 CHAOS churn_one a86 (view loading, 2.2s after far tp)
+23:23:03 CHAOS summon 39 mobs + loot near ['a60', 'a63']
+23:23:04 CHAOS dimension a24 -> overworld
+23:23:05 MON t=160s tps10=1.34 mc=982ms/s ws=4045.3MB priv=4831.0MB handles=636 threads=53 online=73/100 errors=228 (+1) backlog=106 cmd_errors=214 harness_errors=0 ev={'DIED': 8, 'DIM': 28, 'DIMDONE': 28, 'JOINED': 102, 'LEFT': 119, 'RADIUS': 687, 'READ_FAILED': 10, 'RESPAWNED': 8, 'TP': 174}
+23:23:05   ERRLINE [23:22:55 ERROR]: Failed to execute 'setblock' as [Null]
+23:23:07 CHAOS churn_one a60 (near mobs)
+23:23:08 CHAOS churn_one a63 (near mobs)
+23:23:08 CHAOS dimension a09 -> nether
+23:23:08 CHAOS dimension a38 -> the_end
+23:23:08 CHAOS dimension a24 -> nether
+23:23:09 CHAOS cleanup kill @e[type=!player]
+23:23:09 CHAOS blocks ['a81', 'a22']
+23:23:11 CHAOS gamemode survival ['a84', 'a90']
+23:23:11 CHAOS tickingarea_add chaos5 at 57983 49632
+23:23:12 CHAOS dimension a76 -> overworld
+23:23:13 CHAOS tickingarea_remove chaos4
+23:23:13 CHAOS far_tp ['a83', 'a85', 'a39']
+23:23:14 MON t=170s tps10=1.4 mc=997ms/s ws=4051.8MB priv=4830.6MB handles=634 threads=53 online=71/100 errors=228 (+0) backlog=116 cmd_errors=219 harness_errors=0 ev={'DIED': 8, 'DIM': 28, 'DIMDONE': 28, 'JOINED': 102, 'LEFT': 121, 'RADIUS': 733, 'READ_FAILED': 10, 'RESPAWNED': 8, 'TP': 175}
+23:23:16 CHAOS stack 10 bots on 3200.5 300 21120.5 ['a22', 'a01', 'a57', 'a66', 'a80', 'a24', 'a09', 'a41', 'a92', 'a75']
+23:23:16 CHAOS kick ['a92']
+23:23:17 CHAOS waypoints_on playerwaypoints everyone, locatorbar true
+23:23:17 CHAOS unstack 9 bots home
+23:23:17 CHAOS gamemode spectator ['a00', 'a69', 'a11']
+23:23:22 CHAOS churn 10 reconnects ['a04', 'a38', 'a56', 'a07', 'a03', 'a22', 'a34', 'a08', 'a67', 'a52'] flash=['a56', 'a07', 'a34', 'a52']
+23:23:22 CHAOS dimension a44 -> nether
+23:23:23 CHAOS gamemode survival ['a21', 'a57']
+23:23:24 CHAOS dimension a09 -> overworld
+23:23:24 MON t=180s tps10=1.52 mc=947ms/s ws=3650.9MB priv=4402.5MB handles=635 threads=53 online=61/100 errors=228 (+0) backlog=137 cmd_errors=223 harness_errors=0 ev={'DIED': 8, 'DIM': 28, 'DIMDONE': 28, 'JOINED': 102, 'LEFT': 131, 'RADIUS': 760, 'READ_FAILED': 10, 'RESPAWNED': 8, 'TP': 178}
+23:23:24 VERIFY (no verify lines yet)
+23:23:27 CHAOS kill ['a59', 'a35']
+23:23:27 CHAOS randomtickspeed 1
+23:23:29 CHAOS far_tp ['a11', 'a41', 'a98', 'a51']
+23:23:30 CHAOS dimension a38 -> overworld
+23:23:30 CHAOS dimension a24 -> overworld
+23:23:30 CHAOS summon 35 mobs + loot near ['a18', 'a06']
+23:23:34 MON t=190s tps10=1.78 mc=989ms/s ws=3718.6MB priv=4489.5MB handles=635 threads=53 online=61/100 errors=228 (+0) backlog=180 cmd_errors=228 harness_errors=0 ev={'DIED': 9, 'DIM': 28, 'DIMDONE': 28, 'JOINED': 102, 'LEFT': 131, 'RADIUS': 792, 'READ_FAILED': 10, 'RESPAWNED': 9, 'TP': 179}
+23:23:36 CHAOS unstack 10 bots home
+23:23:38 CHAOS gamemode survival ['a00', 'a69', 'a11']
+23:23:41 CHAOS dimension a44 -> overworld
+23:23:43 CHAOS tickingarea_remove chaos5
+23:23:44 MON t=200s tps10=1.8 mc=1003ms/s ws=3730.1MB priv=4529.6MB handles=635 threads=53 online=61/100 errors=228 (+0) backlog=185 cmd_errors=229 harness_errors=0 ev={'DIED': 9, 'DIM': 29, 'DIMDONE': 29, 'JOINED': 102, 'LEFT': 131, 'RADIUS': 824, 'READ_FAILED': 10, 'REJOIN_FAILED': 13, 'RESPAWNED': 9, 'TP': 187}
+23:23:54 MON t=210s tps10=1.72 mc=956ms/s ws=3741.0MB priv=4542.3MB handles=644 threads=53 online=61/100 errors=228 (+0) backlog=171 cmd_errors=234 harness_errors=0 ev={'DIED': 9, 'DIM': 29, 'DIMDONE': 29, 'JOINED': 102, 'LEFT': 131, 'RADIUS': 855, 'READ_FAILED': 10, 'REJOIN_FAILED': 39, 'RESPAWNED': 9, 'TP': 189}
+23:23:54 VERIFY (no verify lines yet)
+23:24:05 MON t=220s tps10=1.51 mc=973ms/s ws=3758.8MB priv=4559.7MB handles=635 threads=53 online=61/100 errors=228 (+0) backlog=159 cmd_errors=248 harness_errors=0 ev={'DIED': 9, 'DIM': 29, 'DIMDONE': 29, 'JOINED': 102, 'LEFT': 131, 'RADIUS': 884, 'READ_FAILED': 10, 'REJOIN_FAILED': 85, 'REJOIN_GAVE': 13, 'RESPAWNED': 9, 'TP': 189} NOT_RESPAWNED=['a86']
+23:24:15 MON t=230s tps10=1.57 mc=997ms/s ws=3765.7MB priv=4569.1MB handles=635 threads=53 online=61/100 errors=228 (+0) backlog=151 cmd_errors=260 harness_errors=0 ev={'DIED': 9, 'DIM': 29, 'DIMDONE': 29, 'JOINED': 102, 'LEFT': 131, 'RADIUS': 910, 'READ_FAILED': 10, 'REJOIN_FAILED': 120, 'REJOIN_GAVE': 13, 'RESPAWNED': 9, 'TP': 189} NOT_RESPAWNED=['a86']
+23:24:15 CHAOS view_disconnect ['a75']
+23:24:16 CHAOS stack 6 bots on 7040.5 300 12160.5 ['a02', 'a93', 'a98', 'a28', 'a39', 'a48']
+23:24:18 CHAOS churn_one a75 (view loading, 2.3s after far tp)
+23:24:21 CHAOS gamemode creative ['a25', 'a81']
+23:24:25 MON t=240s tps10=1.42 mc=983ms/s ws=3772.4MB priv=4580.1MB handles=635 threads=53 online=60/100 errors=228 (+0) backlog=148 cmd_errors=265 harness_errors=0 ev={'DIED': 9, 'DIM': 29, 'DIMDONE': 29, 'JOINED': 102, 'LEFT': 132, 'RADIUS': 948, 'READ_FAILED': 10, 'REJOIN_FAILED': 150, 'REJOIN_GAVE': 26, 'RESPAWNED': 9, 'TP': 189} NOT_RESPAWNED=['a86']
+23:24:25 VERIFY (no verify lines yet)
+23:24:28 CHAOS tickingarea_add chaos6 at -20923 20735
+23:24:29 CHAOS churn 10 reconnects ['a10', 'a36', 'a59', 'a00', 'a25', 'a19', 'a43', 'a93', 'a32', 'a05'] flash=['a36', 'a93', 'a05']
+23:24:32 CHAOS kill ['a72', 'a85']
+23:24:33 CHAOS kick ['a92', 'a51']
+23:24:34 CHAOS gamemode survival ['a25', 'a81']
+23:24:34 CHAOS far_tp ['a06', 'a50', 'a27', 'a73', 'a77']
+23:24:34 CHAOS blocks ['a27']
+23:24:35 MON t=250s tps10=1.43 mc=959ms/s ws=3770.9MB priv=4588.9MB handles=627 threads=52 online=50/100 errors=229 (+1) backlog=156 cmd_errors=266 harness_errors=0 ev={'DIED': 9, 'DIM': 32, 'DIMDONE': 31, 'JOINED': 102, 'LEFT': 142, 'RADIUS': 970, 'READ_FAILED': 10, 'REJOIN_FAILED': 165, 'REJOIN_GAVE': 29, 'RESPAWNED': 9, 'TP': 189} NOT_RESPAWNED=['a86', 'a59', 'a35']
+23:24:35   ERRLINE [23:24:31 ERROR]: Failed to execute 'teleport' as [Null]
+23:24:38 CHAOS unstack 6 bots home
+23:24:44 MON t=260s tps10=1.29 mc=988ms/s ws=3782.1MB priv=4592.8MB handles=627 threads=52 online=50/100 errors=232 (+3) backlog=154 cmd_errors=269 harness_errors=0 ev={'DIED': 9, 'DIM': 32, 'DIMDONE': 32, 'JOINED': 102, 'LEFT': 142, 'RADIUS': 995, 'READ_FAILED': 10, 'REJOIN_FAILED': 185, 'REJOIN_GAVE': 29, 'RESPAWNED': 9, 'TP': 189} NOT_RESPAWNED=['a86', 'a59', 'a35']
+23:24:44   ERRLINE [23:24:35 ERROR]: Failed to execute 'fill' as [Null]
+23:24:44   ERRLINE [23:24:35 ERROR]: Failed to execute 'setblock' as [Null]
+23:24:44   ERRLINE [23:24:37 ERROR]: Failed to execute 'fill' as [Null]
+23:24:50 CHAOS randomtickspeed 0
+23:24:51 CHAOS view_disconnect ['a18']
+23:24:53 CHAOS churn_one a18 (view loading, 1.3s after far tp)
+23:24:54 CHAOS gamemode spectator ['a54', 'a46']
+23:24:55 MON t=270s tps10=1.44 mc=1017ms/s ws=3438.6MB priv=4170.8MB handles=627 threads=53 online=49/100 errors=232 (+0) backlog=149 cmd_errors=269 harness_errors=0 ev={'DIED': 9, 'DIM': 32, 'DIMDONE': 32, 'JOINED': 102, 'LEFT': 143, 'RADIUS': 1016, 'READ_FAILED': 10, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 9, 'TP': 196} NOT_RESPAWNED=['a86', 'a59', 'a35']
+23:24:55 VERIFY (no verify lines yet)
+23:24:57 CHAOS dimension a90 -> the_end
+23:24:57 CHAOS dimension a44 -> nether
+23:24:57 CHAOS dimension a27 -> nether
+23:24:58 CHAOS tickingarea_remove chaos6
+23:24:58 CHAOS kill ['a28', 'a58']
+23:25:01 CHAOS stack 10 bots on 2560.5 300 7680.5 ['a24', 'a57', 'a54', 'a73', 'a84', 'a58', 'a90', 'a28', 'a42', 'a20']
+23:25:04 MON t=280s tps10=1.63 mc=985ms/s ws=3467.8MB priv=4236.0MB handles=627 threads=53 online=48/100 errors=232 (+0) backlog=157 cmd_errors=271 harness_errors=0 ev={'DIED': 9, 'DIM': 34, 'DIMDONE': 34, 'JOINED': 102, 'LEFT': 143, 'RADIUS': 1039, 'READ_FAILED': 11, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 9, 'TP': 201} NOT_RESPAWNED=['a86', 'a59', 'a35']
+23:25:11 CHAOS gamemode adventure ['a69']
+23:25:13 CHAOS kick ['a30']
+23:25:14 MON t=290s tps10=2.02 mc=980ms/s ws=3488.0MB priv=4280.7MB handles=627 threads=53 online=48/100 errors=232 (+0) backlog=146 cmd_errors=275 harness_errors=0 ev={'DIED': 9, 'DIM': 35, 'DIMDONE': 35, 'JOINED': 102, 'LEFT': 143, 'RADIUS': 1072, 'READ_FAILED': 11, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 9, 'TP': 207} NOT_RESPAWNED=['a86', 'a59', 'a35']
+23:25:15 CHAOS randomtickspeed 1
+23:25:15 CHAOS blocks ['a83']
+23:25:15 CHAOS gamemode survival ['a54', 'a46']
+23:25:15 CHAOS waypoints_off playerwaypoints off, locatorbar false
+23:25:19 CHAOS flash_leave a93 1.0s after rejoin
+23:25:20 CHAOS flash_leave a05 1.2s after rejoin
+23:25:20 CHAOS flash_leave a36 1.5s after rejoin
+23:25:22 CHAOS dimension a90 -> overworld
+23:25:23 CHAOS dimension a27 -> overworld
+23:25:23 CHAOS dimension a44 -> overworld
+23:25:24 CHAOS unstack 10 bots home
+23:25:24 MON t=300s tps10=15.02 mc=1002ms/s ws=3586.6MB priv=4386.7MB handles=628 threads=53 online=58/100 errors=252 (+20) backlog=185 cmd_errors=283 harness_errors=0 ev={'DIED': 10, 'DIM': 35, 'DIMDONE': 35, 'JOINED': 115, 'LEFT': 146, 'RADIUS': 1092, 'READ_FAILED': 11, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 10, 'TP': 212} NOT_RESPAWNED=['a86', 'a59']
+23:25:24   ERRLINE [23:25:20 ERROR]: Unable to summon object
+23:25:24   ERRLINE [23:25:20 ERROR]: Failed to execute 'summon' as [Null]
+23:25:24   ERRLINE [23:25:20 ERROR]: Unable to summon object
+23:25:24   ERRLINE [23:25:20 ERROR]: Failed to execute 'summon' as [Null]
+23:25:24   ERRLINE [23:25:21 ERROR]: Unable to summon object
+23:25:24 VERIFY (no verify lines yet)
+23:25:26 CHAOS waypoints_on playerwaypoints everyone, locatorbar true
+23:25:30 CHAOS gamemode survival ['a69']
+23:25:34 MON t=310s tps10=18.83 mc=870ms/s ws=3305.5MB priv=4092.7MB handles=628 threads=53 online=58/100 errors=257 (+5) backlog=120 cmd_errors=291 harness_errors=0 ev={'DIED': 14, 'DIM': 40, 'DIMDONE': 40, 'JOINED': 118, 'LEFT': 146, 'RADIUS': 1116, 'READ_FAILED': 14, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 14, 'TP': 246} NOT_RESPAWNED=['a86', 'a59']
+23:25:34   ERRLINE [23:25:24 ERROR]: Failed to execute 'loot' as [Null]
+23:25:34   ERRLINE [23:25:25 ERROR]: Failed to execute 'loot' as [Null]
+23:25:34   ERRLINE [23:25:29 ERROR]: Failed to execute 'setblock' as [Null]
+23:25:34   ERRLINE [23:25:30 ERROR]: Failed to execute 'fill' as [Null]
+23:25:34   ERRLINE [23:25:30 ERROR]: Failed to execute 'fill' as [Null]
+23:25:38 CHAOS far_tp ['a76', 'a41', 'a93', 'a00']
+23:25:40 CHAOS churn 10 reconnects ['a02', 'a40', 'a21', 'a41', 'a31', 'a39', 'a10', 'a98', 'a80', 'a84'] flash=['a39', 'a10']
+23:25:41 CHAOS dimension a36 -> nether
+23:25:42 CHAOS dimension a54 -> the_end
+23:25:42 CHAOS blocks ['a35']
+23:25:43 CHAOS gamemode spectator ['a92', 'a27']
+23:25:44 CHAOS summon 31 mobs + loot near ['a46', 'a30', 'a36']
+23:25:45 CHAOS weather thunder
+23:25:45 MON t=320s tps10=20.23 mc=746ms/s ws=3155.6MB priv=3945.5MB handles=633 threads=53 online=51/100 errors=260 (+3) backlog=105 cmd_errors=303 harness_errors=0 ev={'DIED': 14, 'DIM': 42, 'DIMDONE': 40, 'JOINED': 121, 'LEFT': 156, 'RADIUS': 1150, 'READ_FAILED': 14, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 14, 'TP': 266} NOT_RESPAWNED=['a86', 'a59']
+23:25:45   ERRLINE [23:25:34 ERROR]: Failed to execute 'setblock' as [Null]
+23:25:45   ERRLINE [23:25:34 ERROR]: Failed to execute 'fill' as [Null]
+23:25:45   ERRLINE [23:25:34 ERROR]: Failed to execute 'fill' as [Null]
+23:25:47 CHAOS randomtickspeed 3
+23:25:47 CHAOS churn_one a46 (near mobs)
+23:25:48 CHAOS kill ['a75', 'a19']
+23:25:48 CHAOS churn_one a30 (near mobs)
+23:25:49 CHAOS churn_one a36 (near mobs)
+23:25:49 CHAOS view_disconnect ['a71']
+23:25:50 CHAOS flash_leave a10 1.4s after rejoin
+23:25:52 CHAOS flash_leave a39 1.5s after rejoin
+23:25:52 CHAOS churn_one a71 (view loading, 2.5s after far tp)
+23:25:52 CHAOS far_tp ['a82', 'a01', 'a73', 'a40', 'a35']
+23:25:53 CHAOS gamemode creative ['a94', 'a14']
+23:25:54 MON t=330s tps10=17.69 mc=814ms/s ws=3254.3MB priv=4094.6MB handles=630 threads=53 online=55/100 errors=261 (+1) backlog=83 cmd_errors=361 harness_errors=0 ev={'DIED': 14, 'DIM': 43, 'DIMDONE': 43, 'JOINED': 131, 'LEFT': 162, 'RADIUS': 1171, 'READ_FAILED': 14, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 14, 'TP': 274} NOT_RESPAWNED=['a86', 'a59']
+23:25:54   ERRLINE [23:25:50 ERROR]: Failed to execute 'teleport' as [Null]
+23:25:55 VERIFY (no verify lines yet)
+23:25:55 CHAOS churn 10 reconnects ['a69', 'a48', 'a73', 'a14', 'a41', 'a05', 'a31', 'a54', 'a19', 'a68'] flash=['a69', 'a41', 'a05', 'a19']
+23:25:56 CHAOS stack 8 bots on 6400.5 300 26240.5 ['a43', 'a35', 'a01', 'a76', 'a44', 'a09', 'a02', 'a83']
+23:25:58 CHAOS dimension a36 -> overworld
+23:25:59 CHAOS kick ['a35']
+23:26:03 CHAOS gamemode creative ['a42', 'a39', 'a29']
+23:26:05 MON t=340s tps10=18.86 mc=817ms/s ws=3284.3MB priv=4156.9MB handles=629 threads=53 online=51/100 errors=261 (+0) backlog=38 cmd_errors=393 harness_errors=0 ev={'DIED': 15, 'DIM': 43, 'DIMDONE': 43, 'JOINED': 137, 'LEFT': 172, 'RADIUS': 1191, 'READ_FAILED': 14, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 15, 'TP': 284} NOT_RESPAWNED=['a86', 'a59']
+23:26:06 CHAOS blocks ['a75']
+23:26:07 CHAOS flash_leave a69 1.1s after rejoin
+23:26:07 CHAOS dimension a90 -> the_end
+23:26:07 CHAOS dimension a69 -> the_end
+23:26:07 CHAOS flash_leave a41 1.3s after rejoin
+23:26:07 CHAOS flash_leave a05 1.5s after rejoin
+23:26:08 CHAOS gamemode survival ['a92', 'a27']
+23:26:08 CHAOS flash_leave a19 1.8s after rejoin
+23:26:09 CHAOS dimension a54 -> overworld
+23:26:10 CHAOS randomtickspeed 100
+23:26:10 CHAOS waypoints_off playerwaypoints off, locatorbar false
+23:26:12 CHAOS far_tp ['a44', 'a29', 'a82', 'a24', 'a72']
+23:26:14 CHAOS stack 8 bots on 5120.5 300 9600.5 ['a90', 'a54', 'a72', 'a27', 'a92', 'a18', 'a50', 'a31']
+23:26:15 MON t=350s tps10=20.16 mc=747ms/s ws=3323.9MB priv=4200.1MB handles=632 threads=53 online=56/100 errors=262 (+1) backlog=17 cmd_errors=424 harness_errors=0 ev={'DIED': 15, 'DIM': 44, 'DIMDONE': 43, 'JOINED': 147, 'LEFT': 176, 'RADIUS': 1216, 'READ_FAILED': 15, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 15, 'TP': 305} NOT_RESPAWNED=['a86', 'a59']
+23:26:15   ERRLINE [23:26:14 ERROR]: Failed to execute 'teleport' as [Null]
+23:26:15 CHAOS tickingarea_add chaos7 at -30619 21527
+23:26:16 CHAOS gamemode survival ['a94', 'a14']
+23:26:16 CHAOS gamemode adventure ['a02', 'a27']
+23:26:19 CHAOS gamemode survival ['a42', 'a39', 'a29']
+23:26:20 CHAOS kill ['a57', 'a66']
+23:26:22 CHAOS waypoints_on playerwaypoints everyone, locatorbar true
+23:26:23 CHAOS dimension a90 -> overworld
+23:26:23 CHAOS unstack 8 bots home
+23:26:24 CHAOS churn 10 reconnects ['a44', 'a50', 'a55', 'a25', 'a54', 'a01', 'a29', 'a28', 'a69', 'a80'] flash=['a50', 'a69']
+23:26:24 CHAOS summon 27 mobs + loot near ['a75']
+23:26:24 MON t=360s tps10=18.01 mc=994ms/s ws=2939.9MB priv=3728.5MB handles=631 threads=53 online=51/100 errors=262 (+0) backlog=38 cmd_errors=430 harness_errors=0 ev={'DIED': 17, 'DIM': 45, 'DIMDONE': 45, 'JOINED': 152, 'LEFT': 186, 'RADIUS': 1245, 'READ_FAILED': 15, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 17, 'TP': 327} NOT_RESPAWNED=['a86', 'a59']
+23:26:24 VERIFY (no verify lines yet)
+23:26:29 CHAOS view_disconnect ['a32']
+23:26:29 CHAOS weather clear
+23:26:29 CHAOS dimension a69 -> overworld
+23:26:29 CHAOS stack 5 bots on 3200.5 300 16000.5 ['a30', 'a11', 'a05', 'a85', 'a00']
+23:26:30 CHAOS blocks ['a82']
+23:26:31 CHAOS churn_one a32 (view loading, 2.0s after far tp)
+23:26:31 CHAOS far_tp ['a31', 'a66', 'a20', 'a83']
+23:26:32 CHAOS cleanup kill @e[type=!player]
+23:26:33 CHAOS dimension a11 -> nether
+23:26:33 CHAOS dimension a91 -> the_end
+23:26:34 CHAOS gamemode adventure ['a71']
+23:26:34 MON t=370s tps10=17.75 mc=936ms/s ws=3063.8MB priv=3881.1MB handles=630 threads=53 online=60/100 errors=266 (+4) backlog=38 cmd_errors=475 harness_errors=0 ev={'DIED': 17, 'DIM': 46, 'DIMDONE': 45, 'JOINED': 162, 'LEFT': 187, 'RADIUS': 1271, 'READ_FAILED': 15, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 17, 'TP': 337} NOT_RESPAWNED=['a86', 'a59']
+23:26:34   ERRLINE [23:26:29 ERROR]: Failed to execute 'teleport' as [Null]
+23:26:34   ERRLINE [23:26:30 ERROR]: Failed to execute 'setblock' as [Null]
+23:26:34   ERRLINE [23:26:30 ERROR]: Failed to execute 'fill' as [Null]
+23:26:34   ERRLINE [23:26:30 ERROR]: Failed to execute 'fill' as [Null]
+23:26:35 CHAOS flash_leave a69 1.4s after rejoin
+23:26:36 CHAOS flash_leave a50 2.0s after rejoin
+23:26:36 CHAOS unstack 8 bots home
+23:26:36 CHAOS gamemode survival ['a02', 'a27']
+23:26:37 CHAOS randomtickspeed 1000
+23:26:40 CHAOS tickingarea_remove chaos7
+23:26:44 MON t=380s tps10=14.27 mc=966ms/s ws=3120.5MB priv=3938.5MB handles=632 threads=52 online=59/100 errors=266 (+0) backlog=1 cmd_errors=482 harness_errors=0 ev={'DIED': 17, 'DIM': 47, 'DIMDONE': 47, 'JOINED': 163, 'LEFT': 189, 'RADIUS': 1299, 'READ_FAILED': 15, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 17, 'TP': 350} NOT_RESPAWNED=['a86', 'a59']
+23:26:45 CHAOS kick ['a28', 'a44']
+23:26:47 CHAOS churn 10 reconnects ['a83', 'a30', 'a84', 'a01', 'a55', 'a18', 'a43', 'a59', 'a31', 'a27'] flash=['a01', 'a18', 'a27']
+23:26:47 CHAOS gamemode spectator ['a80', 'a71', 'a58']
+23:26:48 CHAOS dimension a91 -> overworld
+23:26:50 CHAOS unstack 5 bots home
+23:26:52 CHAOS far_tp ['a93', 'a02', 'a54']
+23:26:53 CHAOS kill ['a35', 'a23']
+23:26:53 CHAOS dimension a24 -> nether
+23:26:53 CHAOS dimension a19 -> nether
+23:26:54 CHAOS gamemode survival ['a71']
+23:26:54 CHAOS view_disconnect ['a11']
+23:26:54 MON t=390s tps10=4.18 mc=954ms/s ws=3146.2MB priv=3969.6MB handles=631 threads=52 online=47/100 errors=266 (+0) backlog=3 cmd_errors=485 harness_errors=0 ev={'DIED': 18, 'DIM': 49, 'DIMDONE': 49, 'JOINED': 163, 'LEFT': 199, 'RADIUS': 1319, 'READ_FAILED': 17, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 17, 'TP': 356} NOT_RESPAWNED=['a86', 'a59', 'a19']
+23:26:54 VERIFY (no verify lines yet)
+23:26:55 CHAOS blocks ['a21']
+23:26:58 CHAOS churn_one a11 (view loading, 2.8s after far tp)
+23:26:59 CHAOS dimension a11 -> overworld
+23:26:59 CHAOS summon 33 mobs + loot near ['a05']
+23:27:00 CHAOS waypoints_off playerwaypoints off, locatorbar false
+23:27:01 CHAOS gamemode survival ['a80', 'a71', 'a58']
+23:27:04 CHAOS stack 10 bots on 5760.5 300 17920.5 ['a23', 'a32', 'a72', 'a51', 'a94', 'a85', 'a75', 'a57', 'a25', 'a93']
+23:27:04 MON t=400s tps10=4.36 mc=998ms/s ws=3152.2MB priv=3975.5MB handles=631 threads=52 online=48/100 errors=285 (+19) backlog=50 cmd_errors=499 harness_errors=0 ev={'DIED': 19, 'DIM': 51, 'DIMDONE': 51, 'JOINED': 165, 'LEFT': 200, 'RADIUS': 1344, 'READ_FAILED': 17, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 19, 'TP': 358} NOT_RESPAWNED=['a86', 'a59', 'a19']
+23:27:04   ERRLINE [23:26:56 ERROR]: Failed to execute 'fill' as [Null]
+23:27:04   ERRLINE [23:26:56 ERROR]: Failed to execute 'fill' as [Null]
+23:27:04   ERRLINE [23:26:56 ERROR]: Failed to execute 'fill' as [Null]
+23:27:04   ERRLINE [23:27:02 ERROR]: Failed to execute 'teleport' as [Null]
+23:27:04   ERRLINE [23:27:02 ERROR]: Unable to summon object
+23:27:06 CHAOS dimension a72 -> the_end
+23:27:06 CHAOS dimension a51 -> the_end
+23:27:08 CHAOS gamemode adventure ['a91', 'a71', 'a93']
+23:27:08 CHAOS churn 10 reconnects ['a68', 'a02', 'a73', 'a05', 'a54', 'a94', 'a10', 'a21', 'a69', 'a93'] flash=[]
+23:27:09 CHAOS far_tp ['a29', 'a72', 'a91', 'a25', 'a39']
+23:27:10 CHAOS randomtickspeed 1
+23:27:11 CHAOS tickingarea_add chaos8 at -26950 -44885
+23:27:12 CHAOS blocks ['a09']
+23:27:12 CHAOS dimension a19 -> overworld
+23:27:14 CHAOS dimension a24 -> overworld
+23:27:14 MON t=410s tps10=3.91 mc=1002ms/s ws=3166.2MB priv=4008.1MB handles=631 threads=52 online=38/100 errors=310 (+25) backlog=40 cmd_errors=514 harness_errors=0 ev={'DIED': 19, 'DIM': 51, 'DIMDONE': 51, 'JOINED': 165, 'LEFT': 210, 'RADIUS': 1360, 'READ_FAILED': 17, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 19, 'TP': 358} NOT_RESPAWNED=['a86', 'a59', 'a19']
+23:27:14   ERRLINE [23:27:04 ERROR]: Failed to execute 'summon' as [Null]
+23:27:14   ERRLINE [23:27:05 ERROR]: Unable to summon object
+23:27:14   ERRLINE [23:27:05 ERROR]: Failed to execute 'summon' as [Null]
+23:27:14   ERRLINE [23:27:05 ERROR]: Unable to summon object
+23:27:14   ERRLINE [23:27:05 ERROR]: Failed to execute 'summon' as [Null]
+23:27:15 CHAOS waypoints_on playerwaypoints everyone, locatorbar true
+23:27:16 CHAOS kick ['a58']
+23:27:17 CHAOS gamemode adventure ['a81', 'a29']
+23:27:18 CHAOS kill ['a91', 'a19']
+23:27:20 CHAOS unstack 10 bots home
+23:27:20 CHAOS flash_leave a01 1.7s after rejoin
+23:27:20 CHAOS flash_leave a27 1.8s after rejoin
+23:27:21 CHAOS flash_leave a18 1.8s after rejoin
+23:27:24 CHAOS gamemode survival ['a91', 'a71', 'a93']
+23:27:24 MON t=420s tps10=3.71 mc=1007ms/s ws=3188.0MB priv=4025.8MB handles=631 threads=52 online=47/100 errors=311 (+1) backlog=94 cmd_errors=526 harness_errors=0 ev={'DIED': 19, 'DIM': 52, 'DIMDONE': 52, 'JOINED': 177, 'LEFT': 213, 'RADIUS': 1381, 'READ_FAILED': 17, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 19, 'TP': 362} NOT_RESPAWNED=['a86', 'a59']
+23:27:24   ERRLINE [23:27:21 ERROR]: Failed to execute 'teleport' as [Null]
+23:27:24 VERIFY (no verify lines yet)
+23:27:27 CHAOS far_tp ['a85', 'a32', 'a36', 'a80']
+23:27:28 CHAOS dimension a48 -> the_end
+23:27:28 CHAOS dimension a50 -> nether
+23:27:28 CHAOS gamemode survival ['a81', 'a29']
+23:27:28 CHAOS dimension a72 -> overworld
+23:27:30 CHAOS churn 10 reconnects ['a21', 'a43', 'a74', 'a42', 'a44', 'a81', 'a36', 'a25', 'a83', 'a75'] flash=['a21', 'a83', 'a75']
+23:27:30 CHAOS summon 41 mobs + loot near ['a85', 'a06']
+23:27:32 CHAOS dimension a51 -> overworld
+23:27:34 CHAOS churn_one a06 (near mobs)
+23:27:34 MON t=430s tps10=14.81 mc=836ms/s ws=2790.4MB priv=3569.4MB handles=631 threads=52 online=49/100 errors=314 (+3) backlog=168 cmd_errors=537 harness_errors=0 ev={'DIED': 19, 'DIM': 54, 'DIMDONE': 54, 'JOINED': 191, 'LEFT': 224, 'RADIUS': 1403, 'READ_FAILED': 18, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 19, 'TP': 371} NOT_RESPAWNED=['a86', 'a59']
+23:27:34   ERRLINE [23:27:26 ERROR]: Failed to execute 'setblock' as [Null]
+23:27:34   ERRLINE [23:27:26 ERROR]: Failed to execute 'fill' as [Null]
+23:27:34   ERRLINE [23:27:27 ERROR]: Failed to execute 'fill' as [Null]
+23:27:35 CHAOS churn_one a85 (near mobs)
+23:27:37 CHAOS gamemode creative ['a98', 'a27', 'a00']
+23:27:40 CHAOS flash_leave a21 1.0s after rejoin
+23:27:41 CHAOS flash_leave a83 1.2s after rejoin
+23:27:42 CHAOS flash_leave a75 1.7s after rejoin
+23:27:44 MON t=440s tps10=19.09 mc=695ms/s ws=2876.8MB priv=3685.9MB handles=634 threads=52 online=57/100 errors=315 (+1) backlog=159 cmd_errors=553 harness_errors=0 ev={'DIED': 22, 'DIM': 57, 'DIMDONE': 57, 'JOINED': 204, 'LEFT': 228, 'RADIUS': 1425, 'READ_FAILED': 19, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 22, 'TP': 388} NOT_RESPAWNED=['a86', 'a59']
+23:27:44   ERRLINE [23:27:40 ERROR]: Failed to execute 'teleport' as [Null]
+23:27:45 CHAOS dimension a50 -> overworld
+23:27:45 CHAOS tickingarea_remove chaos8
+23:27:46 CHAOS far_tp ['a36', 'a44', 'a32', 'a82']
+23:27:48 CHAOS dimension a48 -> overworld
+23:27:49 CHAOS summon 24 mobs + loot near ['a23', 'a30', 'a41']
+23:27:50 CHAOS gamemode survival ['a98', 'a27', 'a00']
+23:27:53 CHAOS churn 10 reconnects ['a71', 'a66', 'a23', 'a98', 'a29', 'a58', 'a80', 'a19', 'a68', 'a39'] flash=['a66', 'a29', 'a39']
+23:27:53 CHAOS blocks ['a05']
+23:27:54 MON t=450s tps10=20.01 mc=728ms/s ws=2915.9MB priv=3741.0MB handles=630 threads=52 online=50/100 errors=315 (+0) backlog=133 cmd_errors=553 harness_errors=0 ev={'DIED': 23, 'DIM': 58, 'DIMDONE': 58, 'JOINED': 208, 'LEFT': 238, 'RADIUS': 1448, 'READ_FAILED': 20, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 23, 'TP': 399} NOT_RESPAWNED=['a86', 'a59']
+23:27:55 VERIFY (no verify lines yet)
+23:27:56 CHAOS dimension a84 -> the_end
+23:27:56 CHAOS dimension a06 -> the_end
+23:27:56 CHAOS stack 7 bots on 2560.5 300 28800.5 ['a44', 'a83', 'a25', 'a00', 'a02', 'a92', 'a10']
+23:27:57 CHAOS churn_one a30 (near mobs)
+23:28:00 CHAOS waypoints_off playerwaypoints off, locatorbar false
+23:28:00 CHAOS weather rain
+23:28:03 CHAOS flash_leave a66 1.3s after rejoin
+23:28:03 CHAOS far_tp ['a57', 'a31', 'a76', 'a81', 'a90']
+23:28:04 CHAOS flash_leave a29 1.2s after rejoin
+23:28:04 MON t=460s tps10=18.95 mc=834ms/s ws=2937.9MB priv=3775.0MB handles=630 threads=52 online=58/100 errors=325 (+10) backlog=108 cmd_errors=568 harness_errors=0 ev={'DIED': 23, 'DIM': 59, 'DIMDONE': 59, 'JOINED': 218, 'LEFT': 240, 'RADIUS': 1474, 'READ_FAILED': 20, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 23, 'TP': 416} NOT_RESPAWNED=['a86', 'a59']
+23:28:04   ERRLINE [23:28:03 ERROR]: Unable to summon object
+23:28:04   ERRLINE [23:28:03 ERROR]: Failed to execute 'summon' as [Null]
+23:28:04   ERRLINE [23:28:03 ERROR]: Unable to summon object
+23:28:04   ERRLINE [23:28:03 ERROR]: Failed to execute 'summon' as [Null]
+23:28:04   ERRLINE [23:28:03 ERROR]: Unable to summon object
+23:28:05 CHAOS flash_leave a39 1.9s after rejoin
+23:28:05 CHAOS tickingarea_add chaos9 at -50651 -55565
+23:28:06 CHAOS view_disconnect ['a27']
+23:28:08 CHAOS churn_one a27 (view loading, 1.6s after far tp)
+23:28:08 CHAOS churn 10 reconnects ['a00', 'a92', 'a81', 'a69', 'a82', 'a85', 'a76', 'a21', 'a98', 'a54'] flash=['a00', 'a81', 'a82', 'a76', 'a54']
+23:28:09 CHAOS gamemode spectator ['a74', 'a06']
+23:28:09 CHAOS kick ['a73']
+23:28:11 CHAOS waypoints_on playerwaypoints everyone, locatorbar true
+23:28:14 CHAOS dimension a06 -> overworld
+23:28:14 CHAOS blocks ['a41', 'a23']
+23:28:14 MON t=470s tps10=19.13 mc=658ms/s ws=2630.2MB priv=3349.8MB handles=633 threads=52 online=49/100 errors=336 (+11) backlog=46 cmd_errors=599 harness_errors=0 ev={'DIED': 23, 'DIM': 61, 'DIMDONE': 61, 'JOINED': 222, 'LEFT': 253, 'RADIUS': 1497, 'READ_FAILED': 20, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 23, 'TP': 430} NOT_RESPAWNED=['a86', 'a59']
+23:28:14   ERRLINE [23:28:04 ERROR]: Unable to summon object
+23:28:14   ERRLINE [23:28:04 ERROR]: Failed to execute 'summon' as [Null]
+23:28:14   ERRLINE [23:28:05 ERROR]: Unable to summon object
+23:28:14   ERRLINE [23:28:05 ERROR]: Failed to execute 'summon' as [Null]
+23:28:14   ERRLINE [23:28:05 ERROR]: Unable to summon object
+23:28:15 CHAOS dimension a91 -> nether
+23:28:15 CHAOS dimension a59 -> nether
+23:28:15 CHAOS dimension a77 -> nether
+23:28:16 CHAOS unstack 7 bots home
+23:28:17 CHAOS stack 10 bots on 5120.5 300 15360.5 ['a02', 'a24', 'a71', 'a31', 'a29', 'a74', 'a32', 'a19', 'a28', 'a09']
+23:28:17 CHAOS randomtickspeed 0
+23:28:19 CHAOS flash_leave a82 1.0s after rejoin
+23:28:19 CHAOS flash_leave a81 1.2s after rejoin
+23:28:19 CHAOS flash_leave a00 1.7s after rejoin
+23:28:19 CHAOS flash_leave a54 1.8s after rejoin
+23:28:19 CHAOS kill ['a10', 'a20']
+23:28:20 CHAOS flash_leave a76 2.0s after rejoin
+23:28:20 CHAOS cleanup kill @e[type=!player]
+23:28:23 CHAOS churn 10 reconnects ['a98', 'a84', 'a46', 'a05', 'a25', 'a20', 'a14', 'a58', 'a48', 'a35'] flash=['a84', 'a46', 'a25', 'a14', 'a35']
+23:28:23 CHAOS far_tp ['a28', 'a91', 'a10', 'a90']
+23:28:25 MON t=480s tps10=20.04 mc=679ms/s ws=2740.8MB priv=3540.1MB handles=629 threads=52 online=45/100 errors=343 (+7) backlog=44 cmd_errors=615 harness_errors=0 ev={'DIED': 23, 'DIM': 64, 'DIMDONE': 64, 'JOINED': 234, 'LEFT': 268, 'RADIUS': 1525, 'READ_FAILED': 21, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 23, 'TP': 457} NOT_RESPAWNED=['a86', 'a59']
+23:28:25   ERRLINE [23:28:19 ERROR]: Failed to execute 'fill' as [Null]
+23:28:25   ERRLINE [23:28:19 ERROR]: Failed to execute 'fill' as [Null]
+23:28:25   ERRLINE [23:28:19 ERROR]: Failed to execute 'fill' as [Null]
+23:28:25   ERRLINE [23:28:19 ERROR]: Failed to execute 'fill' as [Null]
+23:28:25   ERRLINE [23:28:19 ERROR]: Failed to execute 'setblock' as [Null]
+23:28:25 VERIFY (no verify lines yet)
+23:28:25 CHAOS dimension a84 -> overworld
+23:28:25 CHAOS gamemode spectator ['a85']
+23:28:28 CHAOS gamemode survival ['a74', 'a06']
+23:28:29 CHAOS summon 42 mobs + loot near ['a02']
+23:28:31 CHAOS dimension a40 -> nether
+23:28:31 CHAOS blocks ['a41']
+23:28:32 CHAOS churn_one a02 (near mobs)
+23:28:34 CHAOS tickingarea_remove chaos9
+23:28:34 CHAOS flash_leave a46 1.6s after rejoin
+23:28:34 CHAOS flash_leave a84 1.7s after rejoin
+23:28:34 MON t=490s tps10=19.02 mc=548ms/s ws=2788.8MB priv=3584.0MB handles=630 threads=52 online=58/100 errors=358 (+15) backlog=87 cmd_errors=663 harness_errors=0 ev={'DIED': 24, 'DIM': 64, 'DIMDONE': 64, 'JOINED': 250, 'LEFT': 271, 'RADIUS': 1541, 'READ_FAILED': 21, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 24, 'TP': 466} NOT_RESPAWNED=['a86', 'a59']
+23:28:34   ERRLINE [23:28:29 ERROR]: Failed to execute 'teleport' as [Null]
+23:28:34   ERRLINE [23:28:32 ERROR]: Unable to summon object
+23:28:34   ERRLINE [23:28:32 ERROR]: Failed to execute 'summon' as [Null]
+23:28:34   ERRLINE [23:28:32 ERROR]: Unable to summon object
+23:28:34   ERRLINE [23:28:32 ERROR]: Failed to execute 'summon' as [Null]
+23:28:35 CHAOS flash_leave a14 1.1s after rejoin
+23:28:35 CHAOS flash_leave a25 1.9s after rejoin
+23:28:35 CHAOS dimension a59 -> overworld
+23:28:35 CHAOS flash_leave a35 1.8s after rejoin
+23:28:36 CHAOS churn 10 reconnects ['a44', 'a42', 'a94', 'a80', 'a29', 'a66', 'a73', 'a48', 'a43', 'a00'] flash=['a44', 'a80', 'a66', 'a73']
+23:28:37 CHAOS view_disconnect ['a20']
+23:28:39 CHAOS gamemode adventure ['a74']
+23:28:39 CHAOS kill ['a06', 'a81']
+23:28:39 CHAOS dimension a91 -> overworld
+23:28:40 CHAOS churn_one a20 (view loading, 3.0s after far tp)
+23:28:40 CHAOS stack 9 bots on 3840.5 300 13440.5 ['a59', 'a74', 'a91', 'a36', 'a05', 'a24', 'a69', 'a71', 'a09']
+23:28:41 CHAOS gamemode survival ['a85']
+23:28:42 CHAOS tickingarea_add chaos10 at 26965 -43668
+23:28:43 CHAOS dimension a77 -> overworld
+23:28:43 CHAOS far_tp ['a57', 'a01', 'a54', 'a19']
+23:28:44 CHAOS kick ['a85']
+23:28:45 MON t=500s tps10=19.55 mc=637ms/s ws=2816.0MB priv=3625.6MB handles=630 threads=52 online=50/100 errors=361 (+3) backlog=50 cmd_errors=723 harness_errors=0 ev={'DIED': 25, 'DIM': 66, 'DIMDONE': 65, 'JOINED': 256, 'LEFT': 285, 'RADIUS': 1567, 'READ_FAILED': 21, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 24, 'TP': 470} NOT_RESPAWNED=['a86', 'a59']
+23:28:45   ERRLINE [23:28:38 ERROR]: Failed to execute 'fill' as [Null]
+23:28:45   ERRLINE [23:28:38 ERROR]: Failed to execute 'setblock' as [Null]
+23:28:45   ERRLINE [23:28:38 ERROR]: Failed to execute 'fill' as [Null]
+23:28:45 CHAOS unstack 10 bots home
+23:28:46 CHAOS flash_leave a44 1.2s after rejoin
+23:28:47 CHAOS flash_leave a80 1.6s after rejoin
+23:28:47 CHAOS flash_leave a66 1.4s after rejoin
+23:28:48 CHAOS flash_leave a73 1.5s after rejoin
+23:28:48 CHAOS summon 38 mobs + loot near ['a10', 'a94']
+23:28:50 CHAOS gamemode survival ['a74']
+23:28:50 CHAOS gamemode spectator ['a94', 'a20']
+23:28:53 CHAOS churn_one a94 (near mobs)
+23:28:53 CHAOS dimension a40 -> overworld
+23:28:54 CHAOS blocks ['a05', 'a41']
+23:28:54 MON t=510s tps10=20.09 mc=510ms/s ws=2834.3MB priv=3646.8MB handles=630 threads=52 online=55/100 errors=362 (+1) backlog=83 cmd_errors=736 harness_errors=0 ev={'DIED': 26, 'DIM': 67, 'DIMDONE': 67, 'JOINED': 267, 'LEFT': 290, 'RADIUS': 1583, 'READ_FAILED': 22, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 26, 'TP': 502} NOT_RESPAWNED=['a86', 'a59']
+23:28:54   ERRLINE [23:28:45 ERROR]: Failed to execute 'teleport' as [Null]
+23:28:54 VERIFY (no verify lines yet)
+23:28:55 CHAOS churn_one a10 (near mobs)
+23:28:55 CHAOS dimension a54 -> the_end
+23:28:55 CHAOS randomtickspeed 1
+23:28:56 CHAOS churn 10 reconnects ['a20', 'a44', 'a66', 'a59', 'a19', 'a42', 'a46', 'a02', 'a27', 'a81'] flash=['a59', 'a02']
+23:28:56 CHAOS view_disconnect ['a69']
+23:28:58 CHAOS churn_one a69 (view loading, 1.3s after far tp)
+23:29:01 CHAOS gamemode creative ['a58']
+23:29:01 CHAOS weather clear
+23:29:03 CHAOS gamemode survival ['a94', 'a20']
+23:29:04 CHAOS far_tp ['a05', 'a23', 'a32', 'a18', 'a57']
+23:29:05 MON t=520s tps10=19.39 mc=466ms/s ws=2844.1MB priv=3655.6MB handles=630 threads=52 online=49/100 errors=368 (+6) backlog=21 cmd_errors=823 harness_errors=0 ev={'DIED': 26, 'DIM': 69, 'DIMDONE': 69, 'JOINED': 273, 'LEFT': 302, 'RADIUS': 1608, 'READ_FAILED': 22, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 26, 'TP': 504} NOT_RESPAWNED=['a86', 'a59']
+23:29:05   ERRLINE [23:29:02 ERROR]: Failed to execute 'fill' as [Null]
+23:29:05   ERRLINE [23:29:02 ERROR]: Failed to execute 'fill' as [Null]
+23:29:05   ERRLINE [23:29:02 ERROR]: Failed to execute 'fill' as [Null]
+23:29:05   ERRLINE [23:29:02 ERROR]: Failed to execute 'fill' as [Null]
+23:29:05   ERRLINE [23:29:02 ERROR]: Failed to execute 'fill' as [Null]
+23:29:06 CHAOS unstack 9 bots home
+23:29:07 CHAOS flash_leave a59 1.1s after rejoin
+23:29:07 CHAOS waypoints_off playerwaypoints off, locatorbar false
+23:29:07 CHAOS flash_leave a02 1.7s after rejoin
+23:29:07 CHAOS stack 8 bots on 6400.5 300 24320.5 ['a80', 'a20', 'a98', 'a01', 'a40', 'a68', 'a69', 'a66']
+23:29:10 CHAOS gamemode creative ['a01']
+23:29:14 CHAOS gamemode survival ['a58']
+23:29:14 CHAOS dimension a48 -> nether
+23:29:14 CHAOS blocks ['a73', 'a01']
+23:29:15 MON t=530s tps10=19.95 mc=399ms/s ws=2861.7MB priv=3672.2MB handles=632 threads=52 online=59/100 errors=368 (+0) backlog=7 cmd_errors=838 harness_errors=0 ev={'DIED': 26, 'DIM': 69, 'DIMDONE': 69, 'JOINED': 285, 'LEFT': 304, 'RADIUS': 1634, 'READ_FAILED': 22, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 26, 'TP': 536} NOT_RESPAWNED=['a86', 'a59']
+23:29:17 CHAOS churn 10 reconnects ['a35', 'a51', 'a18', 'a55', 'a58', 'a01', 'a85', 'a93', 'a20', 'a76'] flash=['a35', 'a76']
+23:29:17 CHAOS tickingarea_remove chaos10
+23:29:17 CHAOS far_tp ['a43', 'a73', 'a69']
+23:29:20 CHAOS dimension a54 -> overworld
+23:29:20 CHAOS summon 24 mobs + loot near ['a54', 'a42', 'a72']
+23:29:20 CHAOS kill ['a54', 'a59']
+23:29:22 CHAOS gamemode creative ['a36', 'a39', 'a06']
+23:29:23 CHAOS unstack 8 bots home
+23:29:23 CHAOS view_disconnect ['a05']
+23:29:23 CHAOS churn_one a72 (near mobs)
+23:29:24 CHAOS churn_one a42 (near mobs)
+23:29:24 CHAOS churn_one a05 (view loading, 1.6s after far tp)
+23:29:24 MON t=540s tps10=19.09 mc=397ms/s ws=2866.2MB priv=3730.9MB handles=631 threads=52 online=50/100 errors=411 (+43) backlog=8 cmd_errors=862 harness_errors=0 ev={'DIED': 28, 'DIM': 71, 'DIMDONE': 71, 'JOINED': 289, 'LEFT': 317, 'RADIUS': 1661, 'READ_FAILED': 22, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 28, 'TP': 548} NOT_RESPAWNED=['a86', 'a20']
+23:29:24   ERRLINE [23:29:15 ERROR]: Failed to execute 'fill' as [Null]
+23:29:25   ERRLINE [23:29:15 ERROR]: Failed to execute 'fill' as [Null]
+23:29:25   ERRLINE [23:29:15 ERROR]: Failed to execute 'fill' as [Null]
+23:29:25   ERRLINE [23:29:15 ERROR]: Failed to execute 'setblock' as [Null]
+23:29:25   ERRLINE [23:29:15 ERROR]: Failed to execute 'fill' as [Null]
+23:29:25 VERIFY (no verify lines yet)
+23:29:26 CHAOS gamemode survival ['a01']
+23:29:26 CHAOS flash_leave a35 1.1s after rejoin
+23:29:27 CHAOS waypoints_on playerwaypoints everyone, locatorbar true
+23:29:27 CHAOS flash_leave a76 1.3s after rejoin
+23:29:28 CHAOS kick ['a00', 'a24']
+23:29:31 CHAOS randomtickspeed 3
+23:29:32 CHAOS dimension a48 -> overworld
+23:29:32 CHAOS dimension a81 -> the_end
+23:29:32 CHAOS dimension a50 -> the_end
+23:29:33 CHAOS stack 7 bots on 3840.5 300 19200.5 ['a83', 'a27', 'a85', 'a92', 'a77', 'a59', 'a42']
+23:29:34 CHAOS gamemode survival ['a36', 'a39', 'a06']
+23:29:34 CHAOS tickingarea_add chaos11 at 58966 31783
+23:29:35 MON t=550s tps10=19.96 mc=395ms/s ws=2883.2MB priv=3743.6MB handles=631 threads=52 online=57/100 errors=411 (+0) backlog=5 cmd_errors=878 harness_errors=0 ev={'DIED': 28, 'DIM': 74, 'DIMDONE': 74, 'JOINED': 300, 'LEFT': 319, 'RADIUS': 1683, 'READ_FAILED': 24, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 28, 'TP': 565} NOT_RESPAWNED=['a86', 'a20']
+23:29:36 CHAOS far_tp ['a32', 'a40', 'a85']
+23:29:39 CHAOS gamemode creative ['a54', 'a83', 'a51']
+23:29:40 CHAOS summon 49 mobs + loot near ['a18', 'a27', 'a06']
+23:29:41 CHAOS blocks ['a72']
+23:29:42 CHAOS view_disconnect ['a93']
+23:29:42 CHAOS churn_one a27 (near mobs)
+23:29:44 CHAOS churn 10 reconnects ['a00', 'a31', 'a46', 'a50', 'a90', 'a57', 'a92', 'a10', 'a55', 'a85'] flash=['a00']
+23:29:45 CHAOS churn_one a06 (near mobs)
+23:29:45 MON t=560s tps10=19.9 mc=363ms/s ws=2888.2MB priv=3757.8MB handles=631 threads=52 online=49/100 errors=457 (+46) backlog=19 cmd_errors=902 harness_errors=0 ev={'DIED': 28, 'DIM': 74, 'DIMDONE': 74, 'JOINED': 304, 'LEFT': 331, 'RADIUS': 1710, 'READ_FAILED': 24, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 28, 'TP': 573} NOT_RESPAWNED=['a86', 'a20']
+23:29:45   ERRLINE [23:29:40 ERROR]: Unable to summon object
+23:29:45   ERRLINE [23:29:40 ERROR]: Failed to execute 'summon' as [Null]
+23:29:45   ERRLINE [23:29:40 ERROR]: Unable to summon object
+23:29:45   ERRLINE [23:29:40 ERROR]: Failed to execute 'summon' as [Null]
+23:29:45   ERRLINE [23:29:41 ERROR]: Unable to summon object
+23:29:45 CHAOS churn_one a93 (view loading, 2.9s after far tp)
+23:29:47 CHAOS dimension a94 -> nether
+23:29:49 CHAOS unstack 7 bots home
+23:29:53 CHAOS stack 6 bots on 2560.5 300 20480.5 ['a68', 'a43', 'a24', 'a02', 'a66', 'a11']
+23:29:53 CHAOS gamemode spectator ['a84', 'a83']
+23:29:54 CHAOS flash_leave a00 1.3s after rejoin
+23:29:54 CHAOS blocks ['a82', 'a58']
+23:29:54 MON t=570s tps10=19.52 mc=474ms/s ws=2622.5MB priv=3409.8MB handles=631 threads=52 online=60/100 errors=468 (+11) backlog=58 cmd_errors=922 harness_errors=0 ev={'DIED': 28, 'DIM': 75, 'DIMDONE': 75, 'JOINED': 317, 'LEFT': 333, 'RADIUS': 1737, 'READ_FAILED': 24, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 28, 'TP': 584} NOT_RESPAWNED=['a86', 'a20']
+23:29:54   ERRLINE [23:29:45 ERROR]: Unable to summon object
+23:29:54   ERRLINE [23:29:45 ERROR]: Failed to execute 'summon' as [Null]
+23:29:54   ERRLINE [23:29:45 ERROR]: Unable to summon object
+23:29:54   ERRLINE [23:29:45 ERROR]: Failed to execute 'summon' as [Null]
+23:29:54   ERRLINE [23:29:45 ERROR]: Failed to execute 'loot' as [Null]
+23:29:54 VERIFY (no verify lines yet)
+23:29:56 CHAOS kill ['a11', 'a40']
+23:29:56 CHAOS gamemode survival ['a54', 'a83', 'a51']
+23:29:56 CHAOS dimension a81 -> overworld
+23:29:57 CHAOS far_tp ['a73', 'a66', 'a54', 'a75']
+23:29:59 CHAOS tickingarea_remove chaos11
+23:30:01 CHAOS summon 50 mobs + loot near ['a58', 'a02']
+23:30:01 CHAOS dimension a50 -> overworld
+23:30:03 CHAOS weather thunder
+23:30:04 MON t=580s tps10=20.12 mc=403ms/s ws=2649.7MB priv=3450.8MB handles=631 threads=52 online=61/100 errors=518 (+50) backlog=54 cmd_errors=930 harness_errors=0 ev={'DIED': 30, 'DIM': 76, 'DIMDONE': 76, 'JOINED': 318, 'LEFT': 333, 'RADIUS': 1754, 'READ_FAILED': 24, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 30, 'TP': 598} NOT_RESPAWNED=['a86', 'a20']
+23:30:04   ERRLINE [23:30:00 ERROR]: Failed to execute 'fill' as [Null]
+23:30:04   ERRLINE [23:30:00 ERROR]: Failed to execute 'fill' as [Null]
+23:30:04   ERRLINE [23:30:00 ERROR]: Failed to execute 'fill' as [Null]
+23:30:04   ERRLINE [23:30:00 ERROR]: Failed to execute 'fill' as [Null]
+23:30:04   ERRLINE [23:30:00 ERROR]: Failed to execute 'setblock' as [Null]
+23:30:05 CHAOS gamemode spectator ['a29']
+23:30:07 CHAOS gamemode survival ['a84', 'a83']
+23:30:08 CHAOS churn 10 reconnects ['a06', 'a76', 'a14', 'a35', 'a51', 'a58', 'a59', 'a57', 'a54', 'a50'] flash=['a06']
+23:30:08 CHAOS dimension a36 -> nether
+23:30:08 CHAOS dimension a69 -> nether
+23:30:08 CHAOS dimension a66 -> the_end
+23:30:12 CHAOS randomtickspeed 100
+23:30:12 CHAOS blocks ['a27', 'a18']
+23:30:13 CHAOS far_tp ['a27', 'a40', 'a10', 'a82']
+23:30:14 CHAOS waypoints_off playerwaypoints off, locatorbar false
+23:30:14 CHAOS kick ['a74', 'a01']
+23:30:15 CHAOS dimension a94 -> overworld
+23:30:15 MON t=590s tps10=19.37 mc=646ms/s ws=2663.2MB priv=3474.0MB handles=631 threads=52 online=49/100 errors=585 (+67) backlog=0 cmd_errors=957 harness_errors=0 ev={'DIED': 30, 'DIM': 79, 'DIMDONE': 79, 'JOINED': 318, 'LEFT': 343, 'RADIUS': 1789, 'READ_FAILED': 26, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 30, 'TP': 602} NOT_RESPAWNED=['a86', 'a20']
+23:30:15   ERRLINE [23:30:04 ERROR]: Unable to summon object
+23:30:15   ERRLINE [23:30:04 ERROR]: Failed to execute 'summon' as [Null]
+23:30:15   ERRLINE [23:30:04 ERROR]: Unable to summon object
+23:30:15   ERRLINE [23:30:04 ERROR]: Failed to execute 'summon' as [Null]
+23:30:15   ERRLINE [23:30:05 ERROR]: Unable to summon object
+23:30:18 CHAOS flash_leave a06 1.7s after rejoin
+23:30:19 CHAOS gamemode spectator ['a44']
+23:30:20 CHAOS churn 10 reconnects ['a54', 'a85', 'a44', 'a48', 'a35', 'a31', 'a82', 'a28', 'a43', 'a29'] flash=['a85', 'a35', 'a28']
+23:30:20 CHAOS stack 8 bots on 7040.5 300 27520.5 ['a40', 'a72', 'a84', 'a68', 'a93', 'a10', 'a69', 'a05']
+23:30:20 CHAOS dimension a59 -> nether
+23:30:20 CHAOS dimension a75 -> nether
+23:30:21 CHAOS cleanup kill @e[type=!player]
+23:30:21 CHAOS gamemode survival ['a29']
+23:30:22 CHAOS unstack 6 bots home
+23:30:23 CHAOS view_disconnect ['a14']
+23:30:24 CHAOS dimension a69 -> overworld
+23:30:25 MON t=600s tps10=20.14 mc=841ms/s ws=2468.2MB priv=3210.1MB handles=641 threads=53 online=50/100 errors=585 (+0) backlog=0 cmd_errors=965 harness_errors=0 ev={'DIED': 30, 'DIM': 84, 'DIMDONE': 83, 'JOINED': 330, 'LEFT': 354, 'RADIUS': 1814, 'READ_FAILED': 26, 'REJOIN_FAILED': 195, 'REJOIN_GAVE': 39, 'RESPAWNED': 30, 'TP': 623} NOT_RESPAWNED=['a86', 'a20']
+23:30:25 VERIFY (no verify lines yet)
+23:30:25 mark chaos1
+23:30:25 WARNING foreign BDS/bots running [(39400, 'loadbot-2193x.exe'), (45948, 'loadbot-2193x.exe')]
+on_event failed: ValueError('I/O operation on closed file.')
+on_event failed: ValueError('I/O operation on closed file.')
+on_event failed: ValueError('I/O operation on closed file.')
+on_event failed: ValueError('I/O operation on closed file.')
+on_event failed: ValueError('I/O operation on closed file.')
+on_event failed: ValueError('I/O operation on closed file.')
+on_event failed: ValueError('I/O operation on closed file.')
+on_event failed: ValueError('I/O operation on closed file.')
+on_event failed: ValueError('I/O operation on closed file.')
+on_event failed: ValueError('I/O operation on closed file.')
+on_event failed: ValueError('I/O operation on closed file.')
+23:30:31 window chaos tps 12.738976825674934 [('MC_SERVER', 840), ('Streaming Pool(0)', 653), ('Streaming Pool(1)', 647), ('Streaming Pool(2)', 538), ('REST Thread(0)', 252), ('Streaming Pool(3)', 165), ('LevelDB(0)', 145), ('21548@ucrtbase.dll', 57)] other 4582 devtools 0
+23:30:31 chaos summary {"minutes": 10.0, "tps_min": 1.08, "tps_p5": 1.4, "tps_median": 17.2, "mc_ms_s_median": 926.0, "private_mb_start_end": [4828.0, 3210.1], "private_mb_per_h": -9991.774723948765, "ws_mb_per_h": -10288.110041205193, "handles_start_end": [634, 641], "handles_per_h": -29.37474895177671, "error_lines": 585, "command_feedback_errors": 965, "harness_errors": [], "crash": false, "actions": {"blocks": 23, "churn": 26, "churn_one": 34, "cleanup": 6, "dimension": 96, "far_tp": 29, "flash_leave": 60, "gamemode": 71, "kick": 15, "kill": 16, "list_status": 58, "randomtickspeed": 16, "skipped_backlog": 55, "stack": 21, "summon": 17, "tickingarea_add": 11, "tickingarea_remove": 11, "unstack": 20, "view_disconnect": 17, "waypoints_off": 9, "waypoints_on": 8, "weather": 9}, "bot_events": {"DIED": 30, "DIM": 84, "DIMDONE": 84, "JOINED": 330, "LEFT": 354, "RADIUS": 1814, "READ_FAILED": 26, "REJOIN_FAILED": 195, "REJOIN_GAVE": 39, "RESPAWNED": 30, "TP": 623}, "not_respawned": ["a20", "a86"]}
+23:30:31   ERRLINE [23:20:57 ERROR]: Unable to summon object
+23:30:31   ERRLINE [23:20:57 ERROR]: Failed to execute 'summon' as [Null]
+23:30:31   ERRLINE [23:20:57 ERROR]: Unable to summon object
+23:30:31   ERRLINE [23:20:57 ERROR]: Failed to execute 'summon' as [Null]
+23:30:31   ERRLINE [23:20:58 ERROR]: Unable to summon object
+23:30:31   ERRLINE [23:20:58 ERROR]: Failed to execute 'summon' as [Null]
+23:30:31   ERRLINE [23:20:58 ERROR]: Unable to summon object
+23:30:31   ERRLINE [23:20:58 ERROR]: Failed to execute 'summon' as [Null]
+23:30:31   ERRLINE [23:20:58 ERROR]: Unable to summon object
+23:30:31   ERRLINE [23:20:58 ERROR]: Failed to execute 'summon' as [Null]
+23:30:34 server exit 0
+23:30:35 restored dll-pypi
+== chaos-after-win
+  tps join    {'min': 19.84, 'p5': 19.84, 'median': 20.05, 'max': 20.12, 'n': 7}
+  tps settle  {'min': 19.65, 'p5': 19.86, 'median': 20.0, 'max': 20.17, 'n': 36}
+  tps steady  {'min': None, 'p5': None, 'median': None, 'max': None, 'n': 0}
+  settle_s 182.9  join_s {'median': 3.83, 'p90': 4.58, 'max': 4.67, 'n': 100}
+  t90_after_tp_s {'median': 143.04, 'p90': 590.79, 'max': 837.09, 'n': 76}  last_bot_90pct_after_first_connect_s 841.8  (BOT lines every 60 s)
+  server_exit 0  died_during_run False  log_errors 1550
+    23:20:51.349 [23:20:51 ERROR]: No targets matched selector
+    23:20:51.411 [23:20:51 ERROR]: No targets matched selector
+    23:20:51.507 [23:20:51 ERROR]: No targets matched selector
+    23:20:51.633 [23:20:51 ERROR]: No targets matched selector
+    23:20:51.645 [23:20:51 ERROR]: No targets matched selector
+    23:20:52.345 [23:20:52 ERROR]: No targets matched selector
+    23:20:52.449 [23:20:52 ERROR]: No targets matched selector
+    23:20:52.681 [23:20:52 ERROR]: No targets matched selector
+    23:20:52.824 [23:20:52 ERROR]: No targets matched selector
+    23:20:53.059 [23:20:53 ERROR]: No targets matched selector
