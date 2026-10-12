@@ -48,7 +48,7 @@ ENV_ARTIFACT_DIR = "BBENCH_ARTIFACT_DIR"
 #: Licences an artifact's ``eula`` key can name: key -> (name, where to read it).
 EULAS = {"minecraft": ("Minecraft End User License Agreement", "https://www.minecraft.net/eula")}
 
-USER_AGENT = f"Mozilla/5.0 (compatible; bedrock-bench/{__version__}; +https://github.com/EndstoneMC/bedrock-bench)"
+USER_AGENT = f"Mozilla/5.0 (compatible; bedrock-bench/{__version__})"  # minecraft.net stalls agents that carry a URL
 
 #: Longest path Windows APIs accept without long-path support (MAX_PATH minus the terminating NUL). Servers are not
 #: necessarily long-path aware, so installs and run copies must stay below it.
