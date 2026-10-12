@@ -62,7 +62,7 @@ jobs:
       - name: Build the Dragonfly helper
         run: uv run bbench fetch "$DRAGONFLY"
       - name: Smoke
-        run: uv run bbench smoke "$DRAGONFLY" --machine .github/ci-machine.toml --out runs
+        run: uv run bbench smoke configs/smoke.toml "$DRAGONFLY" --machine .github/ci-machine.toml --out runs
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
