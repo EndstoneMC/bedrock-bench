@@ -1,25 +1,23 @@
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["matplotlib>=3.10"]
+# dependencies = ["matplotlib==3.11.2"]
 # ///
 # SPDX-License-Identifier: Apache-2.0
 """Draw the figures of one benchmark session from the CSV files ``bbench report`` writes next to report.md.
 
-    uv run scripts/plot_results.py runs/<session> [--out DIR] [--format png,svg] [--scenario NAME]
+    uv run scripts/plot_results.py runs/<session> [--out DIR] [--format png,svg]
 
 Input files, all with a header row. ``server`` is the server id, ``server@version`` the tag, and an empty cell means
 not measured:
 
 ``summary.csv``
-    ``scenario,server,version,runs_ok,runs_total``, then ``<metric>_median,<metric>_min,<metric>_max`` across the ok
-    runs for each core metric: ``tps``, ``tick_cpu_ms_per_tick``, ``process_cpu_cores``, ``memory_mib``,
-    ``view_load_lowest_tps``, ``view_load_p50_s``, ``view_load_p90_s``, ``view_load_max_s``,
-    ``view_load_chunks_per_s``, ``chunks_per_player``.
+    ``server,version,runs_ok,runs_total``, then ``<metric>_median,<metric>_min,<metric>_max`` across the ok runs for
+    each core metric in configs/benchmark.toml ``[report]``.
 ``tps.csv``
-    ``run_id,scenario,server,version,t_s,tps``: one row per probe sample, ``t_s`` in seconds since all bots joined.
+    ``run_id,server,version,t_s,tps``: one row per probe sample, ``t_s`` in seconds since all bots joined.
 ``view_load.csv``
-    ``run_id,scenario,server,version,player,view_load_s``: one row per player per run, ``view_load_s`` in seconds
-    from the player's teleport until it holds 90% of its view.
+    ``run_id,server,version,player,view_load_s``: one row per teleported player per ok run, ``view_load_s`` in
+    seconds from the player's teleport until it holds 90% of its view, empty when it never got there.
 
 Figures, written to ``--out`` (default ``results/``) in each format:
 
@@ -39,27 +37,15 @@ import math
 import random
 import statistics
 import sys
-from collections import defaultdict
+import tomllib
+from collections import Counter, defaultdict
 from collections.abc import Sequence
 from pathlib import Path
 
 import matplotlib
 from matplotlib.figure import Figure
 
-#: Every server in a fixed order; a server keeps its colour in every figure. New servers go at the end.
-SERVERS = (
-    "bds",
-    "endstone",
-    "levilamina",
-    "pocketmine",
-    "altay",
-    "nukkit",
-    "nukkitmot",
-    "powernukkitx",
-    "allay",
-    "dragonfly",
-    "chorus",
-)
+ROOT = Path(__file__).resolve().parent.parent
 
 #: Colour-blind-safe colours in a fixed order; neighbours stay apart under protanopia and deuteranopia.
 PALETTE = (
@@ -76,19 +62,6 @@ PALETTE = (
     "#a347c2",
     "#8c9a1a",
 )
-
-METRICS = {
-    "tps": "TPS",
-    "tick_cpu_ms_per_tick": "Tick-thread CPU per tick (ms)",
-    "process_cpu_cores": "Server CPU (cores)",
-    "memory_mib": "Memory (MiB)",
-    "view_load_lowest_tps": "Lowest TPS while views load",
-    "view_load_p50_s": "View load time, median player (s)",
-    "view_load_p90_s": "View load time, p90 player (s)",
-    "view_load_max_s": "View load time, slowest player (s)",
-    "view_load_chunks_per_s": "Chunks per second while views load",
-    "chunks_per_player": "Chunks sent per player",
-}
 
 INK = "#0b0b0b"
 SECONDARY = "#52514e"
@@ -119,10 +92,9 @@ STYLE = {
 }
 
 
-def read_csv(path: Path, scenario: str | None) -> list[dict[str, str]]:
+def read_csv(path: Path) -> list[dict[str, str]]:
     with path.open(newline="", encoding="utf-8") as f:
-        rows = list(csv.DictReader(f))
-    return [row for row in rows if scenario is None or row["scenario"] == scenario]
+        return list(csv.DictReader(f))
 
 
 def number(value: str | None) -> float | None:
@@ -133,25 +105,33 @@ def tag(row: dict[str, str]) -> str:
     return f"{row['server']}@{row['version']}"
 
 
-def rank(server: str) -> tuple[int, str]:
-    return (SERVERS.index(server) if server in SERVERS else len(SERVERS), server)
+def titles() -> dict[str, str]:
+    """Chart title of each core metric, from configs/benchmark.toml."""
+    path = ROOT / "configs" / "benchmark.toml"
+    if not path.is_file():
+        return {}
+    with path.open("rb") as f:
+        return {m["column"]: m["title"] for m in tomllib.load(f).get("report", {}).get("metrics", ())}
 
 
 def colours(servers: set[str]) -> dict[str, str]:
-    slots = {s: i for i, s in enumerate((*SERVERS, *sorted(servers - set(SERVERS))))}
-    return {s: PALETTE[slots[s] % len(PALETTE)] for s in servers}
+    """A colour per server, in the order of the configs/ folders; servers without a folder follow alphabetically."""
+    known = sorted(p.parent.name for p in (ROOT / "configs").glob("*/server.toml"))
+    order = [*known, *sorted(servers - set(known))]
+    return {s: PALETTE[i % len(PALETTE)] for i, s in enumerate(order)}
 
 
-def order_tags(rows: list[dict[str, str]]) -> list[tuple[str, str]]:
-    """``(tag, server)`` pairs in the fixed server order; versions keep their order in the file."""
-    seen: dict[str, str] = {}
-    for row in sorted(rows, key=lambda row: rank(row["server"])):
-        seen.setdefault(tag(row), row["server"])
-    return list(seen.items())
+def order_tags(summary: list[dict[str, str]], colour: dict[str, str]) -> list[tuple[str, str]]:
+    """``(tag, server)`` of every summary row in server order; versions keep their order in the file."""
+    order = list(colour)
+    return [(tag(row), row["server"]) for row in sorted(summary, key=lambda row: order.index(row["server"]))]
 
 
-def label(value: float) -> str:
-    return f"{value:.0f}" if abs(value) >= 100 else f"{value:.2f}"
+def label(row: dict[str, str], *notes: str) -> str:
+    """The tag, with the share of ok runs when some failed and any other notes."""
+    ok, total = row["runs_ok"], row["runs_total"]
+    notes = (f"{ok} of {total} runs ok",) * (ok != total) + notes
+    return tag(row) + (f"  ({', '.join(notes)})" if notes else "")
 
 
 def save(fig: Figure, out: Path, name: str, formats: Sequence[str]) -> list[Path]:
@@ -163,28 +143,32 @@ def save(fig: Figure, out: Path, name: str, formats: Sequence[str]) -> list[Path
     return paths
 
 
-def plot_tps(rows: list[dict[str, str]], colour: dict[str, str]) -> Figure:
+def plot_tps(summary: list[dict[str, str]], rows: list[dict[str, str]], colour: dict[str, str]) -> Figure:
     runs: dict[str, dict[str, list[tuple[float, float]]]] = defaultdict(lambda: defaultdict(list))
     for row in rows:
         t, tps = number(row["t_s"]), number(row["tps"])
         if t is not None and tps is not None:
             runs[tag(row)][row["run_id"]].append((t, tps))
-    tags = [(t, s) for t, s in order_tags(rows) if t in runs]
+    by_tag = {tag(row): row for row in summary}
+    tags = order_tags(summary, colour)
 
     ncols = 1 if len(tags) <= 4 else 2
     nrows = math.ceil(len(tags) / ncols)
     fig = Figure(figsize=(7.2, 0.9 + 1.1 * nrows), layout="constrained")
     axes = fig.subplots(nrows, ncols, sharex=True, sharey=True, squeeze=False).flatten()
-    top = max(20.0, max(tps for series in runs.values() for run in series.values() for _, tps in run))
+    top = max([20.0, *(tps for series in runs.values() for run in series.values() for _, tps in run)])
     for ax, (name, server) in zip(axes, tags, strict=False):
+        ax.set_title(label(by_tag[name]), fontsize=8, pad=3)
+        ax.set_ylim(0, top * 1.05)
+        ax.set_yticks([0, 10, 20])
+        ax.grid(axis="y")
+        if name not in runs:
+            ax.text(0.5, 0.5, "no ok run", transform=ax.transAxes, ha="center", va="center", color=MUTED)
+            continue
         means = sorted((statistics.fmean(v for _, v in run), run_id) for run_id, run in runs[name].items())
         median_run = means[(len(means) - 1) // 2][1]
         t, tps = zip(*sorted(runs[name][median_run]), strict=True)
         ax.plot(t, tps, color=colour[server], linewidth=1.2)
-        ax.set_title(name, fontsize=8, pad=3)
-        ax.set_ylim(0, top * 1.05)
-        ax.set_yticks([0, 10, 20])
-        ax.grid(axis="y")
     for ax in axes[len(tags) :]:
         ax.set_visible(False)
     for ax in axes[len(tags) - ncols : len(tags)]:
@@ -194,61 +178,61 @@ def plot_tps(rows: list[dict[str, str]], colour: dict[str, str]) -> Figure:
     return fig
 
 
-def plot_metric(rows: list[dict[str, str]], metric: str, colour: dict[str, str]) -> Figure:
-    by_tag = {tag(row): row for row in rows}
-    tags = order_tags(rows)
+def plot_metric(summary: list[dict[str, str]], metric: str, title: str, colour: dict[str, str]) -> Figure:
+    by_tag = {tag(row): row for row in summary}
+    tags = order_tags(summary, colour)
 
     fig = Figure(figsize=(6.4, 0.85 + 0.3 * len(tags)), layout="constrained")
     ax = fig.subplots()
-    labels, right = [], 0.0
+    right = 0.0
     for i, (name, server) in enumerate(tags):
         row = by_tag[name]
-        ok, total = row["runs_ok"], row["runs_total"]
-        labels.append(name if ok == total else f"{name}  ({ok} of {total} runs ok)")
         median = number(row[f"{metric}_median"])
         if median is None:
-            ax.text(0, i, "  not measured", va="center", color=MUTED)
+            ax.text(0, i, "  no ok run" if row["runs_ok"] == "0" else "  not measured", va="center", color=MUTED)
             continue
         low, high = (number(row[f"{metric}_{stat}"]) for stat in ("min", "max"))
         low, high = median if low is None else low, median if high is None else high
         right = max(right, high, median)
         ax.hlines(i, low, high, color=colour[server], linewidth=1.5)
         ax.plot(median, i, "o", color=colour[server], markersize=6, markeredgecolor="white", markeredgewidth=1)
-        ax.annotate(
-            label(median),
-            (max(high, median), i),
-            xytext=(6, 0),
-            textcoords="offset points",
-            va="center",
-            color=SECONDARY,
-        )
-    ax.set_yticks(range(len(tags)), labels)
+    ax.set_yticks(range(len(tags)), [label(by_tag[name]) for name, _ in tags])
     ax.tick_params(axis="y", length=0)
     ax.set_ylim(len(tags) - 0.5, -0.5)
     ax.set_xlim(0, (right or 1.0) * 1.15)
     ax.grid(axis="x")
     ax.set_axisbelow(True)
-    ax.set_title(METRICS.get(metric, metric.replace("_", " ").capitalize()))
+    ax.set_title(title)
     ax.set_xlabel("dot: median of the ok runs, line: lowest to highest run")
     return fig
 
 
-def plot_view_load(rows: list[dict[str, str]], colour: dict[str, str]) -> Figure:
+def plot_view_load(summary: list[dict[str, str]], rows: list[dict[str, str]], colour: dict[str, str]) -> Figure:
     times: dict[str, list[float]] = defaultdict(list)
+    never: Counter[str] = Counter()
     for row in rows:
-        if (seconds := number(row["view_load_s"])) is not None:
+        if (seconds := number(row["view_load_s"])) is None:
+            never[tag(row)] += 1
+        else:
             times[tag(row)].append(seconds)
-    tags = [(t, s) for t, s in order_tags(rows) if t in times]
+    by_tag = {tag(row): row for row in summary}
+    tags = order_tags(summary, colour)
 
     fig = Figure(figsize=(6.4, 0.85 + 0.42 * len(tags)), layout="constrained")
     ax = fig.subplots()
     jitter = random.Random(0)
+    labels = []
     for i, (name, server) in enumerate(tags):
+        n = never[name]
+        labels.append(label(by_tag[name], *([f"{n} player{'s' * (n != 1)} never loaded"] if n else [])))
+        if by_tag[name]["runs_ok"] == "0":
+            ax.text(0, i, "  no ok run", va="center", color=MUTED)
         ys = [i + jitter.uniform(-0.25, 0.25) for _ in times[name]]
         ax.scatter(times[name], ys, s=5, color=colour[server], alpha=0.5, linewidths=0)
+    drawn = [i for i, (name, _) in enumerate(tags) if times[name]]
     ax.boxplot(
-        [times[name] for name, _ in tags],
-        positions=range(len(tags)),
+        [times[tags[i][0]] for i in drawn],
+        positions=drawn,
         orientation="horizontal",
         whis=(0, 100),
         widths=0.6,
@@ -258,10 +242,10 @@ def plot_view_load(rows: list[dict[str, str]], colour: dict[str, str]) -> Figure
         capprops={"color": INK, "linewidth": 0.8},
         medianprops={"color": INK, "linewidth": 1.6},
     )
-    ax.set_yticks(range(len(tags)), [name for name, _ in tags])
+    ax.set_yticks(range(len(tags)), labels)
     ax.tick_params(axis="y", length=0)
     ax.set_ylim(len(tags) - 0.5, -0.5)
-    ax.set_xlim(0, max(max(v) for v in times.values()) * 1.05)
+    ax.set_xlim(0, max([1.0, *(max(v) for v in times.values() if v)]) * 1.05)
     ax.grid(axis="x")
     ax.set_axisbelow(True)
     ax.set_title("View load time per player (s)")
@@ -272,37 +256,33 @@ def plot_view_load(rows: list[dict[str, str]], colour: dict[str, str]) -> Figure
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Draw the figures of one bbench session from its CSV files.")
     parser.add_argument("session", type=Path, help="directory with summary.csv, tps.csv and view_load.csv")
-    parser.add_argument("--out", type=Path, default=Path(__file__).resolve().parent.parent / "results")
+    parser.add_argument("--out", type=Path, default=ROOT / "results")
     parser.add_argument("--format", default="png,svg", help="comma-separated file formats (default: png,svg)")
-    parser.add_argument("--scenario", help="the scenario to plot when the files hold more than one")
     args = parser.parse_args(argv)
 
     summary_path = args.session / "summary.csv"
     if not summary_path.is_file():
         parser.error(f"{summary_path} not found; run `bbench report {args.session}` first")
-    scenarios = {row["scenario"] for row in read_csv(summary_path, None)}
-    if args.scenario is None and len(scenarios) > 1:
-        parser.error(f"the files hold several scenarios ({', '.join(sorted(scenarios))}); pick one with --scenario")
     formats = [f.strip() for f in args.format.split(",") if f.strip()]
     args.out.mkdir(parents=True, exist_ok=True)
 
-    summary = read_csv(summary_path, args.scenario)
-    tps = read_csv(args.session / "tps.csv", args.scenario) if (args.session / "tps.csv").is_file() else []
-    views = (
-        read_csv(args.session / "view_load.csv", args.scenario) if (args.session / "view_load.csv").is_file() else []
-    )
-    colour = colours({row["server"] for row in (*summary, *tps, *views)})
-    metrics = [c.removesuffix("_median") for c in summary[0] if c.endswith("_median")] if summary else []
+    summary = read_csv(summary_path)
+    if not summary:
+        parser.error(f"{summary_path} has no rows")
+    tps = read_csv(args.session / "tps.csv") if (args.session / "tps.csv").is_file() else []
+    views = read_csv(args.session / "view_load.csv") if (args.session / "view_load.csv").is_file() else []
+    colour = colours({row["server"] for row in summary})
+    title = titles()
+    metrics = [c.removesuffix("_median") for c in summary[0] if c.endswith("_median")]
 
     written: list[Path] = []
     with matplotlib.rc_context(STYLE):
-        if tps:
-            written += save(plot_tps(tps, colour), args.out, "tps_over_time", formats)
+        written += save(plot_tps(summary, tps, colour), args.out, "tps_over_time", formats)
         for metric in metrics:
             if f"{metric}_min" in summary[0] and f"{metric}_max" in summary[0]:
-                written += save(plot_metric(summary, metric, colour), args.out, metric, formats)
-        if views:
-            written += save(plot_view_load(views, colour), args.out, "view_load", formats)
+                fig = plot_metric(summary, metric, title.get(metric, metric.replace("_", " ").capitalize()), colour)
+                written += save(fig, args.out, metric, formats)
+        written += save(plot_view_load(summary, views, colour), args.out, "view_load", formats)
     for path in written:
         print(path)
     return 0

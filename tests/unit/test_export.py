@@ -42,7 +42,7 @@ def test_summary_has_one_row_per_tag_with_median_min_max_over_ok_runs(report_dir
     assert tuple(columns) == export.SUMMARY_COLUMNS
     assert len(rows) == 1
     row = rows[0]
-    assert (row["scenario"], row["server"], row["version"]) == ("synthetic", "synthetic", "1.0")
+    assert (row["server"], row["version"]) == ("synthetic", "1.0")
     assert (row["runs_ok"], row["runs_total"]) == ("3", "4")
     assert float(row["tps_median"]) == pytest.approx(20.0009)
     assert float(row["memory_mib_median"]) == pytest.approx(1432.5)

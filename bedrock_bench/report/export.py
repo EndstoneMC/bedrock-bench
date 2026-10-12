@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 """CSV files for the figures, written next to report.md.
 
-- ``summary.csv``: one row per scenario and server tag, with the core metrics as median, min and max over the ok runs.
+- ``summary.csv``: one row per server tag, with the core metrics as median, min and max over the ok runs.
 - ``tps.csv``: the TPS of every probe sample, against seconds since all bots joined.
-- ``view_load.csv``: seconds from each player's teleport until it holds 90% of its view.
+- ``view_load.csv``: seconds from each player's teleport until it holds 90% of its view, empty if it never did.
 
 Only ``ok`` runs enter the numbers, as in the report. ``scripts/plot_results.py`` reads these files.
 """
@@ -41,7 +41,7 @@ CORE_METRICS: dict[str, tuple[str, str | None]] = {
     "chunks_per_player": ("chunks_per_bot", "median"),
 }
 
-KEY_COLUMNS = ("scenario", "server", "version")
+KEY_COLUMNS = ("server", "version")
 SUMMARY_COLUMNS = (
     *KEY_COLUMNS,
     "runs_ok",
@@ -63,10 +63,9 @@ class Run:
         return str(self.run.get("run_id") or self.path.name)
 
     @property
-    def key(self) -> tuple[str, str, str]:
+    def key(self) -> tuple[str, str]:
         arm = self.run.get("arm") or {}
-        scenario = (self.run.get("scenario") or {}).get("name")
-        return str(scenario or ""), str(arm.get("server") or ""), str(arm.get("version") or "")
+        return str(arm.get("server") or ""), str(arm.get("version") or "")
 
     @property
     def ok(self) -> bool:
@@ -88,7 +87,7 @@ def find_runs(report_dir: Path) -> list[Run]:
 
 
 def summary_rows(runs: list[Run]) -> list[list[Any]]:
-    groups: dict[tuple[str, str, str], list[Run]] = {}
+    groups: dict[tuple[str, str], list[Run]] = {}
     for run in runs:
         groups.setdefault(run.key, []).append(run)
     rows = []
@@ -133,8 +132,8 @@ def view_load_rows(run: Run) -> list[list[Any]]:
         int(time_info.get("origin_mono_ns", 0)),
         int(time_info.get("origin_epoch_ms", 0)),
     )
-    per_player = load.view(events, bounds[1]).t90_own
-    return [[run.run_id, *run.key, player, seconds] for player, seconds in sorted(per_player.items())]
+    t90 = load.view(events, bounds[1]).t90_own
+    return [[run.run_id, *run.key, player, t90.get(player)] for player in sorted(load.first_per_bot(events, "tp"))]
 
 
 def write(report_dir: Path) -> list[Path]:

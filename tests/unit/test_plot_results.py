@@ -1,32 +1,25 @@
 # SPDX-License-Identifier: Apache-2.0
-"""scripts/plot_results.py on made-up CSV files; skipped where matplotlib is not installed."""
+"""scripts/plot_results.py on the CSV files the export writes for the synthetic fixture runs.
+
+Skipped where matplotlib is not installed; CI runs it with the version the script pins.
+"""
 
 from __future__ import annotations
 
 import csv
 import importlib.util
-import random
+import json
+import shutil
+from collections.abc import Sequence
 from pathlib import Path
 
 import pytest
 
-from bedrock_bench.config import project_root
+from bedrock_bench.config import available, project_root
+from bedrock_bench.report import export
+from fixtures.runs import synthetic
 
 pytest.importorskip("matplotlib")
-
-METRICS = (
-    "tps",
-    "tick_cpu_ms_per_tick",
-    "process_cpu_cores",
-    "memory_mib",
-    "view_load_lowest_tps",
-    "view_load_p50_s",
-    "view_load_p90_s",
-    "view_load_max_s",
-    "view_load_chunks_per_s",
-    "chunks_per_player",
-)
-SERVERS = (("bds", "1.0.0"), ("endstone", "1.0.0"), ("dragonfly", "abc1234"), ("someserver", "2.0"))
 
 
 def load_script():
@@ -36,58 +29,47 @@ def load_script():
     return module
 
 
-def write(path: Path, header: list[str], rows: list[list[object]]) -> None:
-    with path.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f, lineterminator="\n")
-        writer.writerow(header)
-        writer.writerows(rows)
+def session(directory: Path, servers: Sequence[str], names: Sequence[str] = synthetic.NAMES) -> Path:
+    """The fixture runs, copied once per server with the server swapped in run.json, and their CSV files."""
+    for server in servers:
+        for name in names:
+            run_dir = shutil.copytree(synthetic.HERE / name, directory / f"{server}-{name}")
+            run = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
+            run["arm"]["server"] = server
+            (run_dir / "run.json").write_text(json.dumps(run), encoding="utf-8")
+    export.write(directory)
+    return directory
 
 
-def write_session(directory: Path, servers=SERVERS, scenarios=("spread100",), players: int = 10) -> None:
-    rng = random.Random(1)
-    summary, tps, views = [], [], []
-    for scenario in scenarios:
-        for i, (server, version) in enumerate(servers):
-            runs_ok = 2 if server == "dragonfly" else 3
-            row: list[object] = [scenario, server, version, runs_ok, 3]
-            for metric in METRICS:
-                if server == "dragonfly" and metric == "tick_cpu_ms_per_tick":
-                    row += ["", "", ""]
-                else:
-                    median = rng.uniform(1, 40)
-                    row += [round(median, 4), round(median * 0.9, 4), round(median * 1.1, 4)]
-            summary.append(row)
-            for run in range(runs_ok):
-                run_id = f"{server}-{run}"
-                for t in range(-30, 600, 5):
-                    tps.append([run_id, scenario, server, version, t, round(20 - rng.uniform(0, 2 + i), 4)])
-                for player in range(players):
-                    views.append([run_id, scenario, server, version, f"bot{player}", round(rng.uniform(5, 60), 4)])
-    write(
-        directory / "summary.csv",
-        ["scenario", "server", "version", "runs_ok", "runs_total"]
-        + [f"{m}_{s}" for m in METRICS for s in ("median", "min", "max")],
-        summary,
-    )
-    write(directory / "tps.csv", ["run_id", "scenario", "server", "version", "t_s", "tps"], tps)
-    write(directory / "view_load.csv", ["run_id", "scenario", "server", "version", "player", "view_load_s"], views)
+def read_csv(path: Path) -> list[dict[str, str]]:
+    with path.open(newline="", encoding="utf-8") as f:
+        return list(csv.DictReader(f))
 
 
 def test_writes_every_figure(tmp_path: Path) -> None:
-    write_session(tmp_path)
+    directory = session(tmp_path / "session", [*available("servers")[:5], "synthetic"])
     out = tmp_path / "figures"
-    assert load_script().main([str(tmp_path), "--out", str(out)]) == 0
-    names = ["tps_over_time", "view_load", *METRICS]
-    expected = sorted(f"{name}.{fmt}" for name in names for fmt in ("png", "svg"))
-    assert sorted(p.name for p in out.iterdir()) == expected
+    assert load_script().main([str(directory), "--out", str(out)]) == 0
+    with (directory / export.SUMMARY_CSV).open(encoding="utf-8") as f:
+        metrics = [c.removesuffix("_median") for c in next(csv.reader(f)) if c.endswith("_median")]
+    names = ["tps_over_time", "view_load", *metrics]
+    assert sorted(p.name for p in out.iterdir()) == sorted(f"{n}.{fmt}" for n in names for fmt in ("png", "svg"))
     assert all(p.stat().st_size > 0 for p in out.iterdir())
 
 
-def test_several_scenarios_need_a_choice(tmp_path: Path) -> None:
-    write_session(tmp_path, scenarios=("smoke", "spread100"))
+def test_a_tag_without_an_ok_run_keeps_its_place(tmp_path: Path) -> None:
+    directory = session(tmp_path / "session", ["crashed"], names=("synthetic-death",))
+    session(directory, ["fine"], names=("synthetic-steady",))
     script = load_script()
-    args = [str(tmp_path), "--out", str(tmp_path / "figures"), "--format", "png"]
-    with pytest.raises(SystemExit):
-        script.main(args)
-    assert script.main([*args, "--scenario", "smoke"]) == 0
-    assert (tmp_path / "figures" / "tps.png").is_file()
+    summary = read_csv(directory / export.SUMMARY_CSV)
+    colour = script.colours({row["server"] for row in summary})
+
+    tps = script.plot_tps(summary, read_csv(directory / export.TPS_CSV), colour)
+    panels = {ax.get_title(): [t.get_text() for t in ax.texts] for ax in tps.axes if ax.get_visible()}
+    assert panels == {"crashed@1.0  (0 of 1 runs ok)": ["no ok run"], "fine@1.0": []}
+
+    rows = read_csv(directory / export.VIEW_LOAD_CSV)
+    rows.append({**rows[-1], "player": "never", "view_load_s": ""})
+    views = script.plot_view_load(summary, rows, colour)
+    labels = [t.get_text() for t in views.axes[0].get_yticklabels()]
+    assert labels == ["crashed@1.0  (0 of 1 runs ok)", "fine@1.0  (1 player never loaded)"]

@@ -69,3 +69,5 @@ jobs:
           java-version: "21"
       - name: Unit, contract and fake-server integration tests
         run: uv run pytest
+      - name: Figure script, with the matplotlib it pins
+        run: uv run --with matplotlib==3.11.2 pytest tests/unit/test_plot_results.py
