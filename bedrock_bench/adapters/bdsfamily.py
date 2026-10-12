@@ -35,7 +35,6 @@ from bedrock_bench.model import (
     Layout,
     LogLine,
     Machine,
-    Override,
     PlayerPos,
     RunContext,
     WorldInfo,
@@ -328,20 +327,19 @@ class BdsFamily(ServerAdapter):
 
         world = self._prepare_world(server_dir, ctx)
         properties = self.write_config(server_dir, PROPERTIES, ctx)
-        extra_overrides, extra_files, extra = self.prepare_extra(server_dir, install, ctx)
+        extra_files, extra = self.prepare_extra(server_dir, install, ctx)
         return Layout(
             server_dir=server_dir,
             config_files=(properties, *extra_files),
             world=world,
             extra={"exe": exe_rel, "exe_sha256": exe_sha256, "bds_version": install.extra.get("bds_version"), **extra},
-            overrides=tuple(extra_overrides),
         )
 
     def prepare_extra(
         self, server_dir: Path, install: Install, ctx: RunContext
-    ) -> tuple[Sequence[Override], Sequence[ConfigFile], Mapping[str, Any]]:
-        """Hook for files beyond server.properties: ``(overrides, config files, layout extra)``."""
-        return (), (), {}
+    ) -> tuple[Sequence[ConfigFile], Mapping[str, Any]]:
+        """Hook for files beyond server.properties: ``(config files, layout extra)``."""
+        return (), {}
 
     def _prepare_world(self, server_dir: Path, ctx: RunContext) -> WorldInfo:
         level_dir = server_dir / "worlds" / ctx.workload.world.level_name

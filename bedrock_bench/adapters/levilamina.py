@@ -8,16 +8,14 @@ Fetch assembles one install per package set. It starts from the BDS build the re
 that loads PreLoader and through it LeviLamina, and renames the original to ``bedrock_server.exe.bak``. PeEditor runs
 once, while the install is staged, so the install's tree hash covers the executable every run starts.
 
-Prepare writes the pinned PreLoader and LeviLamina configs from ``servers/levilamina`` into every run, with crash
-report upload and usage statistics switched off. LeviLamina merges an older config over its defaults when its config
-version changes, so a file left from another install could carry other values.
+Prepare renders ``Config.json`` onto ``plugins/LeviLamina/config/Config.json`` to switch crash report upload and usage
+statistics off. LeviLamina fills in the rest of the file on its first start.
 
 Launch runs ``bedrock_server_mod.exe``; it is the measured process. See servers/levilamina/README.md.
 """
 
 from __future__ import annotations
 
-import json
 import re
 import shutil
 import subprocess
@@ -39,8 +37,6 @@ from bedrock_bench.model import (
     Install,
     LaunchSpec,
     Layout,
-    Override,
-    OverrideCategory,
     RunContext,
 )
 from bedrock_bench.provenance import sha256_file
@@ -54,10 +50,9 @@ MOD_EXE = "bedrock_server_mod.exe"
 PEEDITOR = "PeEditor.exe"
 #: ``-m`` writes bedrock_server_mod.exe, ``-b`` keeps the original as bedrock_server.exe.bak (LeviLamina's tooth.json).
 PEEDITOR_ARGS = ("-mb",)
-TEMPLATES_DIR = "servers/levilamina"
 UNPACK_DIR = ".unpack"
 
-PRELOADER_CONFIG = "PreLoaderConfig.json"
+LEVILAMINA_TEMPLATE = "Config.json"
 LEVILAMINA_CONFIG = "plugins/LeviLamina/config/Config.json"
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -86,37 +81,6 @@ LEVILAMINA_DIALECT = bds_dialect(
     prefix=LEVILAMINA_PREFIX,
     level_map=LEVILAMINA_LEVELS,
     version=re.compile(r"^Version: .* with LeviLamina-(?P<version>[0-9A-Za-z][0-9A-Za-z.+_-]*)\s*$"),
-)
-
-# --------------------------------------------------------------------------------------------------------------------
-# Config changes
-# --------------------------------------------------------------------------------------------------------------------
-
-
-@dataclass(frozen=True)
-class JsonChange:
-    """One value written over a generated JSON config. ``path`` is the dotted key."""
-
-    path: str
-    value: Any
-    category: OverrideCategory
-    reason: str
-
-
-#: Changes to LeviLamina's generated config in every run.
-LEVILAMINA_CHANGES: tuple[JsonChange, ...] = (
-    JsonChange(
-        "modules.crashLogger.uploadToSentry",
-        False,
-        OverrideCategory.HARNESS,
-        "no crash report upload during measurement; reports stay in logs/crash",
-    ),
-    JsonChange(
-        "targeted.enableStatistics",
-        False,
-        OverrideCategory.HARNESS,
-        "no usage statistics upload during measurement",
-    ),
 )
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -307,67 +271,18 @@ class LeviLaminaAdapter(BdsFamily):
 
     def prepare_extra(
         self, server_dir: Path, install: Install, ctx: RunContext
-    ) -> tuple[Sequence[Override], Sequence[ConfigFile], Mapping[str, Any]]:
-        overrides: list[Override] = []
-        files: list[ConfigFile] = []
-        written: dict[str, Any] = {}
-
-        def write(relative: str, doc: Any) -> None:
-            path = server_dir / relative
-            path.parent.mkdir(parents=True, exist_ok=True)
-            with open(path, "w", encoding="utf-8", newline="\n") as fh:
-                fh.write(json.dumps(doc, indent=4, ensure_ascii=False) + "\n")
-            files.append(ConfigFile(relative, sha256_file(path)))
-            written[relative] = doc
-
-        write(PRELOADER_CONFIG, load_template("PreLoaderConfig.json"))
-
-        levilamina = load_template("LeviLamina.Config.json")
-        for change in LEVILAMINA_CHANGES:
-            default = get_path(levilamina, change.path)
-            set_path(levilamina, change.path, change.value)
-            overrides.append(
-                Override(
-                    change.category,
-                    LEVILAMINA_CONFIG,
-                    change.path,
-                    json_text(default),
-                    json_text(change.value),
-                    change.reason,
-                )
-            )
-        write(LEVILAMINA_CONFIG, levilamina)
-
+    ) -> tuple[Sequence[ConfigFile], Mapping[str, Any]]:
+        files = [self.write_config(server_dir, LEVILAMINA_TEMPLATE, ctx, target=LEVILAMINA_CONFIG)]
         extra = {
-            "json_configs": written,
             "levilamina_version": install.extra.get("levilamina_version"),
             "packages": dict(install.extra.get("packages", {})),
             "allocator": install.extra.get("allocator"),
         }
-        return overrides, files, extra
+        return files, extra
 
     def launch(self, layout: Layout) -> LaunchSpec:
         self._server_exe = self.executable(layout)
         return LaunchSpec(argv=(str(self._server_exe),), cwd=layout.server_dir)
-
-    def readback(self, layout: Layout) -> list[str]:
-        """server.properties as for every BDS-hosted server, plus every JSON config written at prepare."""
-        problems = super().readback(layout)
-        for relative, written in (layout.extra.get("json_configs") or {}).items():
-            path = layout.server_dir / relative
-            try:
-                found = json.loads(path.read_text(encoding="utf-8-sig"))
-            except FileNotFoundError:
-                problems.append(f"{relative} is missing after the run")
-                continue
-            except (OSError, ValueError) as exc:
-                problems.append(f"{relative} could not be read after the run: {exc}")
-                continue
-            changed = sorted(json_diff(written, found))
-            if changed:
-                more = f" and {len(changed) - 5} more" if len(changed) > 5 else ""
-                problems.append(f"{relative}: {', '.join(changed[:5])}{more} changed while the server ran")
-        return problems
 
     # ---- facts ----------------------------------------------------------------------------------------------------
 
@@ -387,70 +302,11 @@ class LeviLaminaAdapter(BdsFamily):
         return facts
 
 
-# --------------------------------------------------------------------------------------------------------------------
-# JSON helpers
-# --------------------------------------------------------------------------------------------------------------------
-
-
-def load_template(name: str) -> Any:
-    """A JSON file from servers/levilamina."""
-    path = config.project_root() / TEMPLATES_DIR / name
-    try:
-        with open(path, encoding="utf-8") as fh:
-            return json.load(fh)
-    except (OSError, ValueError) as exc:
-        raise ConfigError(f"cannot read {TEMPLATES_DIR}/{name}: {exc}") from None
-
-
-def flatten(doc: Any, prefix: str = "") -> dict[str, Any]:
-    """The leaves of a JSON document by dotted key. Lists and empty objects are leaves."""
-    if isinstance(doc, dict) and doc:
-        leaves: dict[str, Any] = {}
-        for key, value in doc.items():
-            leaves.update(flatten(value, f"{prefix}{key}."))
-        return leaves
-    return {prefix.removesuffix("."): doc}
-
-
-def json_diff(old: Any, new: Any) -> dict[str, tuple[str | None, str | None]]:
-    """Dotted keys whose value differs between two documents: ``key -> (old, new)`` as JSON text, None if absent."""
-    a, b = flatten(old), flatten(new)
-    out = {}
-    for key in sorted(a.keys() | b.keys()):
-        before = json_text(a[key]) if key in a else None
-        after = json_text(b[key]) if key in b else None
-        if before != after:
-            out[key] = (before, after)
-    return out
-
-
-def json_text(value: Any) -> str:
-    return json.dumps(value, sort_keys=True, ensure_ascii=False)
-
-
-def get_path(doc: Any, dotted: str) -> Any:
-    node = doc
-    for part in dotted.split("."):
-        if not isinstance(node, dict) or part not in node:
-            raise ConfigError(f"the LeviLamina config has no key {dotted}")
-        node = node[part]
-    return node
-
-
-def set_path(doc: Any, dotted: str, value: Any) -> None:
-    *parents, last = dotted.split(".")
-    node = doc
-    for part in parents:
-        node = node[part]
-    node[last] = value
-
-
 __all__ = [
     "LEVILAMINA_DIALECT",
     "LeviLaminaAdapter",
     "Package",
     "build_install",
-    "json_diff",
     "packages_of",
     "place_package",
     "run_peeditor",

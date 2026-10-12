@@ -18,15 +18,11 @@ from bedrock_bench import adapters, config, fetch
 from bedrock_bench.adapters import levilamina as levilamina_module
 from bedrock_bench.adapters.bdsfamily import Properties, fetch_bds
 from bedrock_bench.adapters.levilamina import (
-    LEVILAMINA_CHANGES,
     LEVILAMINA_CONFIG,
     LEVILAMINA_DIALECT,
     MOD_EXE,
-    PRELOADER_CONFIG,
     LeviLaminaAdapter,
     Package,
-    flatten,
-    load_template,
     packages_of,
     place_package,
     run_peeditor,
@@ -41,7 +37,6 @@ from bedrock_bench.model import (
     ArtifactVersion,
     Install,
     Layout,
-    OverrideCategory,
     Placement,
     RunContext,
 )
@@ -242,13 +237,6 @@ class TestPins:
         with pytest.raises(fetch.EulaNotAccepted, match="levimc"):
             fetch.obtain(spec, Cache(tmp_path / "cache"), fetch.FetchOptions(accept_eula=False))
 
-    def test_templates(self) -> None:
-        levilamina = load_template("LeviLamina.Config.json")
-        for change in LEVILAMINA_CHANGES:
-            assert flatten(levilamina)[change.path] is True, f"{change.path} is on in LeviLamina's defaults"
-            assert change.value is False and change.category is OverrideCategory.HARNESS
-        assert load_template("PreLoaderConfig.json")["modsPath"] == "./plugins/"
-
 
 def _version(**tables: dict[str, Any]) -> ArtifactVersion:
     def spec(extra: dict[str, Any]) -> ArtifactSpec:
@@ -393,36 +381,37 @@ class TestPrepareAndLaunch:
     def test_prepare(self, tmp_path: Path, downloads: FakeDownloads) -> None:
         adapter, _, layout = fetch_and_prepare(tmp_path)
         server = layout.server_dir
-        assert [c.path for c in layout.config_files] == ["server.properties", PRELOADER_CONFIG, LEVILAMINA_CONFIG]
+        assert [c.path for c in layout.config_files] == ["server.properties", LEVILAMINA_CONFIG]
         assert Properties.load(server / "server.properties").get("online-mode") == "false"
         written = json.loads((server / LEVILAMINA_CONFIG).read_text(encoding="utf-8"))
-        assert written["modules"]["crashLogger"]["uploadToSentry"] is False
-        assert written["targeted"]["enableStatistics"] is False
-        assert written["targeted"]["vulnerabilityFixes"]["limitIPFrequency"] is True, "left at LeviLamina's default"
-        assert json.loads((server / PRELOADER_CONFIG).read_text(encoding="utf-8")) == load_template(PRELOADER_CONFIG)
-
-        json_overrides = {o.key: o for o in layout.overrides if o.file == LEVILAMINA_CONFIG}
-        assert set(json_overrides) == {change.path for change in LEVILAMINA_CHANGES}
-        for override in json_overrides.values():
-            assert (override.category, override.default, override.value) == (OverrideCategory.HARNESS, "true", "false")
-        assert not [o for o in layout.overrides if o.category is OverrideCategory.NONVANILLA]
+        assert written == {
+            "modules": {"crashLogger": {"uploadToSentry": False}},
+            "targeted": {"enableStatistics": False},
+        }
+        config_file = layout.config_files[1]
+        assert (config_file.template, config_file.created) == ("Config.json", True)
+        assert {k.key: (k.before, k.after) for k in config_file.keys} == {
+            "modules.crashLogger.uploadToSentry": (None, False),
+            "targeted.enableStatistics": (None, False),
+        }
         assert adapter.readback(layout) == []
 
     def test_readback(self, tmp_path: Path, downloads: FakeDownloads) -> None:
         adapter, _, layout = fetch_and_prepare(tmp_path)
-        server = layout.server_dir
-        saved = server / LEVILAMINA_CONFIG
-        saved.write_text(json.dumps(json.loads(saved.read_text(encoding="utf-8")), indent=2), encoding="utf-8")
-        assert adapter.readback(layout) == [], "a server that saves the same values in another layout is fine"
-
-        config_path = server / LEVILAMINA_CONFIG
+        config_path = layout.server_dir / LEVILAMINA_CONFIG
         doc = json.loads(config_path.read_text(encoding="utf-8"))
+        doc["version"] = 42
+        doc["targeted"]["vulnerabilityFixes"] = {"limitIPFrequency": True}
+        config_path.write_text(json.dumps(doc, indent=2), encoding="utf-8")
+        assert adapter.readback(layout) == [], "LeviLamina filling in its defaults is fine"
+
         doc["targeted"]["enableStatistics"] = True
         config_path.write_text(json.dumps(doc), encoding="utf-8")
-        (server / PRELOADER_CONFIG).unlink()
-        problems = adapter.readback(layout)
-        assert f"{PRELOADER_CONFIG} is missing after the run" in problems
-        assert any(p.startswith(f"{LEVILAMINA_CONFIG}: targeted.enableStatistics changed") for p in problems)
+        assert adapter.readback(layout) == [
+            f"{LEVILAMINA_CONFIG}: targeted.enableStatistics was written as False and read back as True"
+        ]
+        config_path.unlink()
+        assert adapter.readback(layout) == [f"{LEVILAMINA_CONFIG} is missing after the run"]
 
     def test_launch(self, tmp_path: Path, downloads: FakeDownloads) -> None:
         adapter, _, layout = fetch_and_prepare(tmp_path)

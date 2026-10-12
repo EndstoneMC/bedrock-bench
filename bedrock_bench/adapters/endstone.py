@@ -8,8 +8,8 @@ lock, built with uv: the dependencies from ``servers/endstone/requirements-<vers
 sha256, then ``uv pip check``. The environment is read-only once built.
 
 Prepare writes the launcher's installed-BDS marker (``version.txt``), so the launcher accepts the verified copy
-instead of downloading BDS again, and switches bStats off. ``endstone.toml`` is created by the launcher with
-Endstone's defaults.
+instead of downloading BDS again, and renders ``bstats.toml`` onto ``plugins/bstats/config.toml`` to switch bStats off.
+``endstone.toml`` is created by the launcher with Endstone's defaults.
 
 Launch runs ``<venv python> -m endstone -y --no-interactive -s .`` with ``PYTHONSAFEPATH=1`` and without
 ``PYTHONPATH``, ``PYTHONHOME`` and ``VIRTUAL_ENV``. The launcher starts ``bedrock_server`` as its child, which is the
@@ -34,17 +34,7 @@ from bedrock_bench.adapters.base import Dialect, host_os
 from bedrock_bench.adapters.bdsfamily import BdsFamily, bds_dialect, fetch_bds, same_path
 from bedrock_bench.cache import short_key
 from bedrock_bench.config import ConfigError
-from bedrock_bench.model import (
-    ArtifactVersion,
-    ConfigFile,
-    Install,
-    LaunchSpec,
-    Layout,
-    Override,
-    OverrideCategory,
-    RunContext,
-    sha256_json,
-)
+from bedrock_bench.model import ArtifactVersion, ConfigFile, Install, LaunchSpec, Layout, RunContext, sha256_json
 from bedrock_bench.provenance import sha256_file
 
 if TYPE_CHECKING:
@@ -53,10 +43,9 @@ if TYPE_CHECKING:
     from bedrock_bench.cache import Cache
 
 REQUIREMENTS = "requirements-{version}.txt"
-BSTATS_TEMPLATE = "servers/endstone/bstats.toml"
+BSTATS_TEMPLATE = "bstats.toml"
 BSTATS_FILE = "plugins/bstats/config.toml"
 VERSION_MARKER_FILE = "version.txt"
-ENVIRONMENT = "<environment>"
 
 #: ``[12:00:00 INFO]: text`` or ``[12:00:00 INFO]: [logger] text``, the same for the launcher and the server.
 ENDSTONE_PREFIX = re.compile(r"^\s*\[\d{2}:\d{2}:\d{2} (?P<level>[A-Z]+)\]:(?: |$)(?:\[(?P<logger>[^\]\s][^\]]*)\] )?")
@@ -166,31 +155,13 @@ class EndstoneAdapter(BdsFamily):
 
     def prepare_extra(
         self, server_dir: Path, install: Install, ctx: RunContext
-    ) -> tuple[Sequence[Override], Sequence[ConfigFile], Mapping[str, Any]]:
-        harness = OverrideCategory.HARNESS
+    ) -> tuple[Sequence[ConfigFile], Mapping[str, Any]]:
         marker = install.extra["version_marker"]
         marker_path = server_dir / VERSION_MARKER_FILE
         marker_path.write_text(marker, encoding="utf-8")
-
-        bstats_path = server_dir / BSTATS_FILE
-        bstats_path.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(config.project_root() / BSTATS_TEMPLATE, bstats_path)
-
-        overrides = [
-            Override(
-                harness,
-                VERSION_MARKER_FILE,
-                "contents",
-                None,
-                marker,
-                "the launcher's installed-BDS marker; without it the launcher downloads BDS over the verified copy",
-            ),
-            Override(harness, BSTATS_FILE, "enabled", "true", "false", "no usage statistics upload during measurement"),
-            *self._environment()[2],
-        ]
         files = [
             ConfigFile(VERSION_MARKER_FILE, sha256_file(marker_path)),
-            ConfigFile(BSTATS_FILE, sha256_file(bstats_path)),
+            self.write_config(server_dir, BSTATS_TEMPLATE, ctx, target=BSTATS_FILE),
         ]
         extra = {
             "python": install.extra.get("python"),
@@ -198,40 +169,23 @@ class EndstoneAdapter(BdsFamily):
             "endstone_version": install.extra.get("endstone_version"),
             "version_marker": marker,
         }
-        return overrides, files, extra
+        return files, extra
 
-    def _environment(self) -> tuple[dict[str, str], tuple[str, ...], list[Override]]:
-        """Variables set and removed for the launcher, and the matching overrides."""
-        harness = OverrideCategory.HARNESS
+    def _environment(self) -> tuple[dict[str, str], tuple[str, ...]]:
+        """Variables set and removed for the launcher."""
         env_set = {
             "PYTHONSAFEPATH": "1",
             "PYTHONIOENCODING": "utf-8",
             "PYTHONUNBUFFERED": "1",
             "PYTHONDONTWRITEBYTECODE": "1",
         }
-        reasons_set = {
-            "PYTHONSAFEPATH": "the working directory can never shadow an installed package",
-            "PYTHONIOENCODING": "console text is UTF-8 on every platform",
-            "PYTHONUNBUFFERED": "launcher output reaches the console as it is written",
-            "PYTHONDONTWRITEBYTECODE": "the installed environment is read-only and already compiled",
-        }
         removed = ["PYTHONPATH", "PYTHONHOME", "VIRTUAL_ENV"]
-        overrides = [
-            Override(harness, ENVIRONMENT, key, None, value, reasons_set[key]) for key, value in env_set.items()
-        ]
-        overrides += [
-            Override(harness, ENVIRONMENT, key, None, "(unset)", "the virtual environment runs exactly as installed")
-            for key in removed
-        ]
         if self.platform == "linux":
             removed.append("LD_PRELOAD")
-            overrides.append(
-                Override(harness, ENVIRONMENT, "LD_PRELOAD", None, "(unset)", "no allocator preloaded by accident")
-            )
-        return env_set, tuple(removed), overrides
+        return env_set, tuple(removed)
 
     def launch(self, layout: Layout) -> LaunchSpec:
-        env_set, env_remove, _ = self._environment()
+        env_set, env_remove = self._environment()
         self._server_exe = self.executable(layout)
         return LaunchSpec(
             argv=(str(layout.extra["python"]), "-m", "endstone", "-y", "--no-interactive", "-s", "."),

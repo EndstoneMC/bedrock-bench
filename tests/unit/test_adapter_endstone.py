@@ -25,7 +25,7 @@ from bedrock_bench.adapters.endstone import (
 )
 from bedrock_bench.cache import Cache
 from bedrock_bench.config import ConfigError
-from bedrock_bench.model import Arm, Install, OverrideCategory, Placement, RunContext
+from bedrock_bench.model import Arm, Install, Placement, RunContext
 from workloads import WORKLOAD, with_overrides
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -264,13 +264,22 @@ class TestPrepareAndLaunch:
             "version.txt",
             "plugins/bstats/config.toml",
         ]
-        by_file_key = {(o.file, o.key): o for o in layout.overrides}
-        assert by_file_key[("version.txt", "contents")].category is OverrideCategory.HARNESS
-        assert by_file_key[("plugins/bstats/config.toml", "enabled")].value == "false"
-        assert by_file_key[("<environment>", "PYTHONSAFEPATH")].value == "1"
-        assert by_file_key[("<environment>", "PYTHONPATH")].value == "(unset)"
+        bstats_file = layout.config_files[2]
+        assert (bstats_file.template, bstats_file.created) == ("bstats.toml", True)
+        assert {k.key: (k.before, k.after) for k in bstats_file.keys} == {
+            "enabled": (None, False),
+            "server-uuid": (None, bstats["server-uuid"]),
+        }
         assert layout.extra["endstone_version"] == "0.11.14"
         assert adapter.readback(layout) == []
+
+    def test_readback_catches_bstats_turned_back_on(self, adapter: EndstoneAdapter, tmp_path: Path) -> None:
+        layout = adapter.prepare(fake_install(tmp_path, adapter), make_ctx(tmp_path))
+        path = layout.server_dir / "plugins" / "bstats" / "config.toml"
+        path.write_text(path.read_text(encoding="utf-8").replace("enabled = false", "enabled = true"), encoding="utf-8")
+        assert adapter.readback(layout) == [
+            "plugins/bstats/config.toml: enabled was written as False and read back as True"
+        ]
 
     @pytest.mark.parametrize("system", ["windows", "linux"])
     def test_launch(self, system: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
