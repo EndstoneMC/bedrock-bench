@@ -91,14 +91,23 @@ class TestGit:
         git("config", "user.email", "bench@example.org")
         git("config", "user.name", "bench")
         git("config", "commit.gpgsign", "false")
-        (tmp_path / "f.txt").write_text("1", encoding="utf-8")
-        git("add", "f.txt")
+        for folder in ("configs", "results"):
+            (tmp_path / folder).mkdir()
+            (tmp_path / folder / "f.txt").write_text("1", encoding="utf-8")
+        (tmp_path / "README.md").write_text("1", encoding="utf-8")
+        git("add", ".")
         git("commit", "-q", "-m", "first")
         git("tag", "-a", "v0.1.0", "-m", "v0.1.0")
         describe, dirty = provenance.git_describe(tmp_path)
         assert describe is not None and describe.startswith("v0.1.0-0-g")
         assert dirty is False
-        (tmp_path / "f.txt").write_text("2", encoding="utf-8")
+        (tmp_path / "configs" / "mine.toml").write_text("1", encoding="utf-8")
+        (tmp_path / "results" / "f.txt").write_text("2", encoding="utf-8")
+        (tmp_path / "README.md").write_text("2", encoding="utf-8")
+        (tmp_path / "runs").mkdir()
+        (tmp_path / "runs" / "run.json").write_text("{}", encoding="utf-8")
+        assert provenance.git_describe(tmp_path)[1] is False, "untracked files and changes outside the harness"
+        (tmp_path / "configs" / "f.txt").write_text("2", encoding="utf-8")
         assert provenance.git_describe(tmp_path)[1] is True
 
     def test_harness_info(self, tmp_path: Path) -> None:

@@ -111,11 +111,15 @@ def tree_sha256(root: Path | str, *, exclude_dirs: Iterable[str] = DEFAULT_TREE_
 # --------------------------------------------------------------------------------------------------------------------
 
 
+#: The folders whose tracked files decide a run's harness: a change to one of them marks the run dirty.
+DIRTY_PATHS = ("bedrock_bench", "bots", "configs", "servers")
+
+
 def git_describe(repo: Path | str | None = None) -> tuple[str | None, bool | None]:
     """``(describe, dirty)`` of a git checkout, e.g. ``("v0.1.0-3-g1a2b3c4", False)``.
 
-    Both are None when ``repo`` is not a checkout (an installed wheel) or git is not available. Untracked files count
-    as dirty unless .gitignore covers them.
+    Both are None when ``repo`` is not a checkout (an installed wheel) or git is not available. Only changes to tracked
+    files under :data:`DIRTY_PATHS` count as dirty; untracked files, ``runs/`` and ``results/`` never do.
     """
     if repo is None:
         from bedrock_bench.config import project_root
@@ -127,7 +131,7 @@ def git_describe(repo: Path | str | None = None) -> tuple[str | None, bool | Non
         return None, None
     try:
         describe = _git(git, root, "describe", "--tags", "--long", "--always", "--abbrev=7")
-        status = _git(git, root, "status", "--porcelain", "--untracked-files=normal")
+        status = _git(git, root, "status", "--porcelain", "--untracked-files=no", "--", *DIRTY_PATHS)
     except (OSError, subprocess.SubprocessError):
         return None, None
     return describe or None, bool(status)
