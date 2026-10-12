@@ -12,7 +12,7 @@ from typing import Any
 
 import pytest
 
-from bedrock_bench import adapters, bots, config, fetch
+from bedrock_bench import adapters, bots, chaos, config, fetch
 from bedrock_bench.adapters import dragonfly
 from bedrock_bench.adapters.base import UnsupportedAction
 from bedrock_bench.adapters.dragonfly import DRAGONFLY_DIALECT, DragonflyAdapter
@@ -231,9 +231,6 @@ class TestCommands:
                 dialect.render(command)
 
     def test_chaos_catalogue(self) -> None:
-        chaos = pytest.importorskip("bedrock_bench.chaos")
-        if not (ROOT / "configs" / "scenarios" / "chaos-actions.toml").is_file():
-            pytest.skip("no chaos catalogue")
         dialect = make_adapter().chaos_dialect()
         assert chaos.check_dialect(dialect) == []
         portable = ("churn", "stack", "gamemode", "kill", "kick", "far_tp", "view_disconnect", "weather")
@@ -293,20 +290,29 @@ class TestSettings:
                 dragonfly.render_settings([dragonfly.Setting(key, value, OverrideCategory.HARNESS, "x")], defaults, {})
 
     @pytest.mark.parametrize(
-        "body",
+        ("schema", "fmt", "body"),
         [
-            'schema = 2\n[config.harness]\n"Server.Name" = { value = "x", reason = "y" }\n',
-            'schema = 1\n[config.tuning]\n"Server.Name" = { value = "x", reason = "y" }\n',
-            'schema = 1\n[config.harness]\n"Server.Name" = { value = "x" }\n',
-            'schema = 1\n[config.harness]\nName = { value = "x", reason = "y" }\n',
-            'schema = 1\n[config.harness]\n"Server.Name" = { value = "x", reason = "y" }\n'
-            '[config.parity]\n"Server.Name" = { value = "z", reason = "y" }\n',
-            "schema = 1\n[artifacts]\n",
+            (2, "toml", '[config.file."config.toml".harness]\n"Server.Name" = { value = "x", reason = "y" }\n'),
+            (1, "toml", '[config.file."config.toml".tuning]\n"Server.Name" = { value = "x", reason = "y" }\n'),
+            (1, "toml", '[config.file."config.toml".harness]\n"Server.Name" = { value = "x" }\n'),
+            (1, "toml", '[config.file."config.toml".harness]\nName = { value = "x", reason = "y" }\n'),
+            (1, "yaml", '[config.file."config.toml".harness]\n"Server.Name" = { value = "x", reason = "y" }\n'),
+            (
+                1,
+                "toml",
+                '[config.file."config.toml".harness]\n"Server.Name" = { value = "x", reason = "y" }\n'
+                '[config.file."config.toml".parity]\n"Server.Name" = { value = "z", reason = "y" }\n',
+            ),
         ],
     )
-    def test_settings_file_is_checked(self, write_file: Any, body: str) -> None:
+    def test_settings_file_is_checked(self, write_file: Any, schema: int, fmt: str, body: str) -> None:
+        text = f'schema = {schema}\n[config.file."config.toml"]\nformat = "{fmt}"\n{body}'
         with pytest.raises(ConfigError):
-            dragonfly.load_settings(write_file("config.toml", body))
+            dragonfly.load_settings(write_file("config.toml", text))
+
+    def test_settings_file_needs_a_config_table(self, write_file: Any) -> None:
+        with pytest.raises(ConfigError):
+            dragonfly.load_settings(write_file("config.toml", "schema = 1\n[artifacts]\n"))
 
     def test_dump_toml_round_trips(self) -> None:
         values = {
@@ -385,7 +391,7 @@ def project(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
         f'url = "https://proxy.golang.org/{MODULE}/@v/{MODULE_VERSION}.zip"\n'
         f'sha256 = "{hashlib.sha256(b"module zip").hexdigest()}"\nsize = {len(b"module zip")}\n'
         f'module = "{MODULE}"\nmodule_version = "{MODULE_VERSION}"\ngo_sum = "{go_sum}"\n\n'
-        + settings[settings.index("\n[config]\n") :]
+        + settings[settings.index('\n[config.file."config.toml"]\n') :]
     )
     monkeypatch.setenv("BBENCH_ROOT", str(root))
     fake = FakeGo(zip_path, go_sum)

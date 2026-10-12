@@ -259,20 +259,20 @@ class TestSettings:
     @pytest.mark.parametrize(
         ("file", "body"),
         [
-            ("config.toml", '[config.harness]\n"server.name" = { value = "x", reason = "y" }\n'),
-            ("chorus.toml", '[config.tuning]\n"server.name" = { value = "x", reason = "y" }\n'),
-            ("chorus.toml", '[config.harness]\n"server.name" = { value = "x" }\n'),
-            ("chorus.toml", '[config.harness]\n"server.name" = { value = "x", reason = "y", type = "f" }\n'),
-            ("chorus.toml", '[config.harness]\nname = { value = "x", reason = "y" }\n'),
+            ("config.toml", 'harness]\n"server.name" = { value = "x", reason = "y" }\n'),
+            ("chorus.toml", 'tuning]\n"server.name" = { value = "x", reason = "y" }\n'),
+            ("chorus.toml", 'harness]\n"server.name" = { value = "x" }\n'),
+            ("chorus.toml", 'harness]\n"server.name" = { value = "x", reason = "y", type = "f" }\n'),
+            ("chorus.toml", 'harness]\nname = { value = "x", reason = "y" }\n'),
             (
                 "chorus.toml",
-                '[config.harness]\n"server.name" = { value = "x", reason = "y" }\n'
-                '[config.parity]\n"server.name" = { value = "z", reason = "y" }\n',
+                'harness]\n"server.name" = { value = "x", reason = "y" }\n'
+                '[config.file."chorus.toml".parity]\n"server.name" = { value = "z", reason = "y" }\n',
             ),
         ],
     )
     def test_settings_file_is_checked(self, write_file: Any, file: str, body: str) -> None:
-        text = f'schema = 1\n[config]\nfile = "{file}"\n{body}'
+        text = f'schema = 1\n[config.file."{file}"]\nformat = "toml"\n[config.file."{file}".{body}'
         with pytest.raises(ConfigError):
             chorus.load_settings(write_file("chorus/server.toml", text))
 

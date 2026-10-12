@@ -298,40 +298,12 @@ def load_config_plan(path: Path, *, variants: Iterable[str] = ()) -> ConfigPlan:
     hold ``key = { value, reason, default?, type?, variants?, skip_variants? }`` entries.
     """
     known_variants = frozenset(variants)
-    _, data = config.load_server_table(path, "config")
-    unknown = sorted(set(data) - {"file"})
-    if unknown:
-        raise ConfigError(f"unknown keys {unknown}", file=path, key="config")
-    files = data.get("file")
-    if not isinstance(files, dict) or not files:
-        raise ConfigError('needs at least one [config.file."<path>"] table', file=path, key="config.file")
-    formats: dict[str, str] = {}
-    pins: list[ConfigPin] = []
-    for name, table in files.items():
-        where = f'config.file."{name}"'
-        if not isinstance(table, dict):
-            raise ConfigError("must be a table", file=path, key=where)
-        if not name or name.startswith(("/", "\\")) or ".." in PurePosixPath(name).parts:
-            raise ConfigError("must be a relative path inside the server directory", file=path, key=where)
-        fmt = table.get("format")
+    path, formats, entries = config.load_config_table(path)
+    for name, fmt in formats.items():
         if fmt not in FORMATS:
-            raise ConfigError(f"format must be one of {', '.join(FORMATS)}", file=path, key=f"{where}.format")
-        formats[name] = fmt
-        for section, entries in table.items():
-            if section == "format":
-                continue
-            try:
-                category = OverrideCategory(section)
-            except ValueError:
-                raise ConfigError(
-                    f"unknown table; use format or one of {', '.join(c.value for c in OverrideCategory)}",
-                    file=path,
-                    key=f"{where}.{section}",
-                ) from None
-            if not isinstance(entries, dict):
-                raise ConfigError("must be a table", file=path, key=f"{where}.{section}")
-            for key, entry in entries.items():
-                pins.append(_read_pin(path, f"{where}.{section}.{key}", name, key, category, entry, known_variants))
+            where = f'config.file."{name}".format'
+            raise ConfigError(f"format must be one of {', '.join(FORMATS)}", file=path, key=where)
+    pins = [_read_pin(path, e.where, e.file, e.key, e.category, e.entry, known_variants) for e in entries]
     seen: set[tuple[str, str]] = set()
     for pin in pins:
         if (pin.file, pin.key) in seen and not (pin.variants or pin.skip_variants):

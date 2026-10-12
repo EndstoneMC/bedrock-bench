@@ -57,24 +57,18 @@ fidelity = "V1"
 "commands.vanilla_set" = { class = "absent", evidence = "https://github.com/bedrock-crustaceans/chorus/tree/95ca8355f5961619ff2949b01ef85a5c6f13e492/src/command/impl", note = "17 own commands; chorusbench adds the console commands the harness sends" }
 "net.encryption" = { class = "vanilla", evidence = "https://github.com/bedrock-crustaceans/chorus/blob/95ca8355f5961619ff2949b01ef85a5c6f13e492/crates/core/src/config.rs#L185-L189", note = "not exercised: benchmarks run offline" }
 
-# Settings the benchmark gives Chorus, written into chorus.toml in the run's fresh server directory, one table per
-# override category (docs/methodology.md#fairness-and-feature-parity).
-#
-# Keys are dotted paths into chorus.toml. A key not listed here is not written and keeps the default of the pinned
-# build, as printed by 'chorusbench -defaults'; Chorus refuses unknown keys. A written value that differs from that
-# default is an override; one equal to it is written anyway and checked after the run. Placeholders in braces come
-# from the scenario, the machine profile and the placement. Each value takes the type of the default it replaces,
-# unless `type` names another.
-[config]
-file = "chorus.toml"
+# chorus.toml, by override category (.github/CONTRIBUTING.md#servertoml). Unlisted keys keep the defaults
+# 'chorusbench -defaults' prints, and `type` overrides the type of the default a value replaces.
+[config.file."chorus.toml"]
+format = "toml"
 
-[config.harness]
+[config.file."chorus.toml".harness]
 "network.ip" = { value = "127.0.0.1", reason = "the bots connect over loopback; a loopback-only listener never triggers a firewall prompt for the newly built binary" }
 "network.port" = { value = "{port}", reason = "machine profile port, away from 19132 so a local game cannot collide" }
 "network.transport" = { value = "RakNet", reason = "the bots speak RakNet" }
 "server.authentication" = { value = false, reason = "the bots log in offline with self-signed identities" }
 
-[config.parity]
+[config.file."chorus.toml".parity]
 "server.max_players" = { value = "{max_players}", reason = "room for every bot, plus rejoins in chaos scenarios" }
 "server.threads" = { value = "{server_cpu_count}", type = "int", reason = "task pools sized to the server CPUs; on Windows auto counts every CPU of the machine, not the server's CPU set" }
 "level.name" = { value = "{level_name}", reason = "a fixed world folder, checked absent before launch" }

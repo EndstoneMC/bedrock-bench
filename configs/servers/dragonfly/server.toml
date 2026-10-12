@@ -59,27 +59,19 @@ fidelity = "V1"
 "commands.vanilla_set" = { class = "absent", evidence = "https://github.com/df-mc/dragonfly/blob/1793369709ceed934675d69e86ff6c828e4216c8/server/cmd/doc.go", note = "a command framework without vanilla commands; dfbench adds the console commands the harness sends" }
 "net.encryption" = { class = "vanilla", evidence = "https://github.com/df-mc/dragonfly/blob/1793369709ceed934675d69e86ff6c828e4216c8/server/conf.go#L255-L257", note = "not exercised: benchmarks run offline" }
 
-# Settings the benchmark gives Dragonfly, written into config.toml in the run's fresh server directory.
-#
-# Keys are dotted paths into the file dfbench reads: Dragonfly's own sections (Network, Server, World, Players,
-# Resources) and the [Bench] table dfbench adds for settings Dragonfly only exposes through its Go API. Each key sits in
-# the table of its override category (docs/methodology.md#fairness-and-feature-parity). A key not listed here is not
-# written and keeps the default of the pinned build, as printed by 'dfbench -defaults'. When a written value differs
-# from that default, run.json records the change with its category and reason; a value equal to the default is
-# written anyway and checked after the run, but is not an override. Placeholders in braces come from the scenario
-# ([server] and [world]) and the machine profile ([runtime]); each value is converted to the type of the default it
-# replaces.
-[config]
-file = "config.toml"
+# config.toml for dfbench, by override category (.github/CONTRIBUTING.md#servertoml). Unlisted keys keep the
+# defaults 'dfbench -defaults' prints; [Bench] holds settings Dragonfly only exposes through its Go API.
+[config.file."config.toml"]
+format = "toml"
 
-[config.harness]
+[config.file."config.toml".harness]
 "Network.Address" = { value = "127.0.0.1:{port}", reason = "the bots connect over loopback to the machine profile's port; a loopback-only listener also never triggers a firewall prompt for the newly built binary" }
 "Server.Name" = { value = "{server_name}", reason = "names the benchmark server in the server list" }
 "Server.AuthEnabled" = { value = false, reason = "the bots log in offline with self-signed identities" }
 "Bench.LogLevel" = { value = "info", reason = "at the example server's debug level, Dragonfly logs every packet it does not handle" }
 "Bench.IdleTicking" = { value = true, reason = "Dragonfly skips the ticks of a world nobody is in, which stops the tick counter the probe reads during idle; an idle loader keeps the overworld ticking and loads nothing" }
 
-[config.parity]
+[config.file."config.toml".parity]
 "Players.MaximumChunkRadius" = { value = "{view_distance}", reason = "the same view distance on every server" }
 "Players.MaxCount" = { value = "{max_players}", reason = "room for every bot, plus rejoins in chaos scenarios" }
 "Players.SaveData" = { value = "{save_player_data}", reason = "player data saved as on every server" }

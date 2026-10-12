@@ -27,7 +27,7 @@ import types
 import typing
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from bedrock_bench.model import (
@@ -54,6 +54,7 @@ from bedrock_bench.model import (
     Grid,
     Machine,
     Matrix,
+    OverrideCategory,
     PhaseSpec,
     ProbeParams,
     Scenario,
@@ -932,6 +933,81 @@ def load_server_table(ref: str | Path, table: str) -> tuple[Path, dict[str, Any]
     tables = {key: top.table(key, required=key == table) for key in SERVER_TABLES}
     top.finish()
     return path, tables[table].data
+
+
+# --------------------------------------------------------------------------------------------------------------------
+# Config values
+# --------------------------------------------------------------------------------------------------------------------
+
+#: File formats a ``[config.file."<path>"]`` table may name; each adapter family accepts a subset.
+CONFIG_FORMATS = ("properties", "yaml", "toml")
+
+
+@dataclass(frozen=True)
+class ConfigEntry:
+    """One ``key = { value, reason, ... }`` entry of a server file's ``[config]`` table, checked by the adapter."""
+
+    file: str
+    category: OverrideCategory
+    key: str
+    entry: Any
+    where: str
+
+
+def load_config_table(ref: str | Path) -> tuple[Path, dict[str, str], tuple[ConfigEntry, ...]]:
+    """The ``[config]`` table of a server file: the format of each file and every entry, in file order."""
+    path, data = load_server_table(ref, "config")
+    formats, entries = parse_config_table(data, file=path)
+    return path, formats, entries
+
+
+def parse_config_table(
+    data: Mapping[str, Any], *, file: Path | None = None
+) -> tuple[dict[str, str], tuple[ConfigEntry, ...]]:
+    """``[config.file."<path>"]`` tables, each with a ``format`` and one sub-table per override category."""
+    unknown = sorted(set(data) - {"file"})
+    if unknown:
+        raise ConfigError(f"unknown keys {unknown}", file=file, key="config")
+    files = data.get("file")
+    if not isinstance(files, dict) or not files:
+        raise ConfigError('needs at least one [config.file."<path>"] table', file=file, key="config.file")
+    formats: dict[str, str] = {}
+    entries: list[ConfigEntry] = []
+    for name, table in files.items():
+        where = f'config.file."{name}"'
+        if not isinstance(table, dict):
+            raise ConfigError("must be a table", file=file, key=where)
+        if not name or name.startswith(("/", "\\")) or ".." in PurePosixPath(name).parts:
+            raise ConfigError("must be a relative path inside the server directory", file=file, key=where)
+        fmt = table.get("format")
+        if fmt not in CONFIG_FORMATS:
+            raise ConfigError(f"format must be one of {', '.join(CONFIG_FORMATS)}", file=file, key=f"{where}.format")
+        formats[name] = fmt
+        for section, keys in table.items():
+            if section == "format":
+                continue
+            try:
+                category = OverrideCategory(section)
+            except ValueError:
+                raise ConfigError(
+                    f"unknown table; use format or one of {', '.join(c.value for c in OverrideCategory)}",
+                    file=file,
+                    key=f"{where}.{section}",
+                ) from None
+            if not isinstance(keys, dict):
+                raise ConfigError("must be a table", file=file, key=f"{where}.{section}")
+            entries.extend(
+                ConfigEntry(name, category, key, entry, f"{where}.{section}.{key}") for key, entry in keys.items()
+            )
+    return formats, tuple(entries)
+
+
+def single_config_file(path: Path, formats: Mapping[str, str], name: str, fmt: str) -> None:
+    """Refuse a ``[config]`` table that names any file but ``name`` in format ``fmt``."""
+    if dict(formats) != {name: fmt}:
+        raise ConfigError(
+            f'needs exactly one [config.file."{name}"] table, with format = "{fmt}"', file=path, key="config.file"
+        )
 
 
 # --------------------------------------------------------------------------------------------------------------------

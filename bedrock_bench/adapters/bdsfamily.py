@@ -181,32 +181,21 @@ class PropertyPin:
 
 
 def load_property_pins(path: Path) -> tuple[PropertyPin, ...]:
-    """Read the ``[config]`` table of a server file: one table per override category, ``key = {value, reason}``."""
-    _, data = config.load_server_table(path, "config")
-    if data.get("file", PROPERTIES) != PROPERTIES:
-        raise ConfigError(f"must be {PROPERTIES!r}", file=path, key="config.file")
+    """Read the ``[config.file."server.properties"]`` table of a server file: ``key = {value, reason}`` entries."""
+    path, formats, entries = config.load_config_table(path)
+    config.single_config_file(path, formats, PROPERTIES, "properties")
     pins: list[PropertyPin] = []
     seen: set[str] = set()
-    for section, table in data.items():
-        if section == "file":
-            continue
-        try:
-            category = OverrideCategory(section)
-        except ValueError:
-            known = ", ".join(c.value for c in OverrideCategory)
-            raise ConfigError(f"unknown table; use one of {known}", file=path, key=f"config.{section}") from None
-        if not isinstance(table, dict):
-            raise ConfigError("must be a table", file=path, key=f"config.{section}")
-        for key, entry in table.items():
-            where = f"config.{section}.{key}"
-            if not isinstance(entry, dict) or set(entry) != {"value", "reason"}:
-                raise ConfigError('must be { value = "...", reason = "..." }', file=path, key=where)
-            if not isinstance(entry["value"], str) or not isinstance(entry["reason"], str) or not entry["reason"]:
-                raise ConfigError("value and reason must be strings, reason non-empty", file=path, key=where)
-            if key in seen:
-                raise ConfigError("key appears in two categories", file=path, key=where)
-            seen.add(key)
-            pins.append(PropertyPin(key, entry["value"], category, entry["reason"]))
+    for e in entries:
+        if not isinstance(e.entry, dict) or set(e.entry) != {"value", "reason"}:
+            raise ConfigError('must be { value = "...", reason = "..." }', file=path, key=e.where)
+        value, reason = e.entry["value"], e.entry["reason"]
+        if not isinstance(value, str) or not isinstance(reason, str) or not reason:
+            raise ConfigError("value and reason must be strings, reason non-empty", file=path, key=e.where)
+        if e.key in seen:
+            raise ConfigError("key appears in two categories", file=path, key=e.where)
+        seen.add(e.key)
+        pins.append(PropertyPin(e.key, value, e.category, reason))
     return tuple(pins)
 
 

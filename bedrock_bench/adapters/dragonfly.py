@@ -132,37 +132,22 @@ class Setting:
 
 
 def load_settings(path: Path) -> tuple[Setting, ...]:
-    """Read the ``[config]`` table of the settings file.
-
-    One table per override category, ``"Section.Key" = {value, reason}`` entries.
-    """
-    _, data = config.load_server_table(path, "config")
-    if data.get("file", CONFIG) != CONFIG:
-        raise ConfigError(f"must be {CONFIG!r}", file=path, key="config.file")
+    """Read the ``[config.file."config.toml"]`` table of the server file: ``"Section.Key" = {value, reason}``."""
+    path, formats, entries = config.load_config_table(path)
+    config.single_config_file(path, formats, CONFIG, "toml")
     settings: list[Setting] = []
     seen: set[str] = set()
-    for section, table in data.items():
-        if section == "file":
-            continue
-        try:
-            category = OverrideCategory(section)
-        except ValueError:
-            known = ", ".join(c.value for c in OverrideCategory)
-            raise ConfigError(f"unknown table; use one of {known}", file=path, key=f"config.{section}") from None
-        if not isinstance(table, dict):
-            raise ConfigError("must be a table", file=path, key=f"config.{section}")
-        for key, entry in table.items():
-            where = f"config.{section}.{key}"
-            if not isinstance(entry, dict) or set(entry) != {"value", "reason"}:
-                raise ConfigError('must be { value = ..., reason = "..." }', file=path, key=where)
-            if not isinstance(entry["reason"], str) or not entry["reason"]:
-                raise ConfigError("reason must be a non-empty string", file=path, key=where)
-            if not re.fullmatch(r"[A-Za-z]\w*(?:\.[A-Za-z]\w*)+", key):
-                raise ConfigError("must be a dotted path such as Players.MaxCount", file=path, key=where)
-            if key in seen:
-                raise ConfigError("key appears in two categories", file=path, key=where)
-            seen.add(key)
-            settings.append(Setting(key, entry["value"], category, entry["reason"]))
+    for e in entries:
+        if not isinstance(e.entry, dict) or set(e.entry) != {"value", "reason"}:
+            raise ConfigError('must be { value = ..., reason = "..." }', file=path, key=e.where)
+        if not isinstance(e.entry["reason"], str) or not e.entry["reason"]:
+            raise ConfigError("reason must be a non-empty string", file=path, key=e.where)
+        if not re.fullmatch(r"[A-Za-z]\w*(?:\.[A-Za-z]\w*)+", e.key):
+            raise ConfigError("must be a dotted path such as Players.MaxCount", file=path, key=e.where)
+        if e.key in seen:
+            raise ConfigError("key appears in two categories", file=path, key=e.where)
+        seen.add(e.key)
+        settings.append(Setting(e.key, e.entry["value"], e.category, e.entry["reason"]))
     return tuple(settings)
 
 

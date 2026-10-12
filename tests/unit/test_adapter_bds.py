@@ -18,6 +18,7 @@ from bedrock_bench.adapters.bds import BdsAdapter
 from bedrock_bench.adapters.bdsfamily import BDS_DIALECT, Properties, load_property_pins, parse_querytarget
 from bedrock_bench.cache import Cache
 from bedrock_bench.config import ConfigError
+from bedrock_bench.metrics import registry
 from bedrock_bench.model import (
     FEATURE_KEYS,
     Arm,
@@ -297,11 +298,15 @@ class TestProperties:
 
     def test_template_validation(self, tmp_path: Path) -> None:
         bad = tmp_path / "p.toml"
-        bad.write_text('schema = 1\n[config.tuning]\nx = { value = "1", reason = "r" }\n', encoding="utf-8")
+        head = 'schema = 1\n[config.file."server.properties"]\nformat = "properties"\n'
+        bad.write_text(head + '[config.file."server.properties".tuning]\nx = { value = "1", reason = "r" }\n')
         with pytest.raises(ConfigError, match="unknown table"):
             load_property_pins(bad)
-        bad.write_text('schema = 1\n[config.harness]\nx = { value = "1" }\n', encoding="utf-8")
+        bad.write_text(head + '[config.file."server.properties".harness]\nx = { value = "1" }\n')
         with pytest.raises(ConfigError):
+            load_property_pins(bad)
+        bad.write_text('schema = 1\n[config.file."other.properties"]\nformat = "properties"\n')
+        with pytest.raises(ConfigError, match="exactly one"):
             load_property_pins(bad)
 
 
@@ -473,7 +478,6 @@ class TestDataFiles:
         assert all(cell.cls.value == "vanilla" for cell in row.cells.values())
 
     def test_observed_counters_are_metrics(self) -> None:
-        registry = pytest.importorskip("bedrock_bench.metrics.registry")
         known = set(registry.ids())
         for server in ("bds", "endstone"):
             for rng in config.load_features(server).ranges:
