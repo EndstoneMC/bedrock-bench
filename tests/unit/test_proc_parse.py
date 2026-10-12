@@ -1,5 +1,17 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Linux /proc and /sys parsing. Pure functions and fake trees, so these run on every OS."""
+"""Linux /proc and /sys parsing. Pure functions and fake trees, so these run on every OS.
+
+``tests/fixtures/proc/`` holds synthetic files in the layout of proc(5); the values are made up. Whole-function tests
+build fake ``/proc`` and ``/sys`` trees from them in ``tmp_path``.
+
+- ``task_stat_rest_thread.txt``: ``/proc/<pid>/task/<tid>/stat`` of a thread named ``REST Thread(0)``, a name with a
+  space and parentheses
+- ``schedstat.txt``: ``/proc/<pid>/task/<tid>/schedstat``, ns on CPU, ns waiting, timeslices
+- ``status.txt``: ``/proc/<pid>/status`` with ``VmRSS``, ``RssAnon``, ``VmSwap``, ``Threads``, ``Cpus_allowed_list``
+- ``smaps_rollup.txt``: ``/proc/<pid>/smaps_rollup``
+- ``maps.txt``: ``/proc/<pid>/maps`` with anonymous, pseudo and deleted mappings
+- ``cpuinfo_vm.txt``: ``/proc/cpuinfo`` of a guest, with the ``hypervisor`` flag
+"""
 
 from __future__ import annotations
 

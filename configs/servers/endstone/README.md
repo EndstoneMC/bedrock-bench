@@ -1,69 +1,122 @@
-# Endstone configuration notes
+# Endstone (`endstone`)
 
-Endstone runs as `python -m endstone -y --no-interactive -s <server dir>` from a virtual environment that bedrock-bench
-builds from PyPI. Every run starts from a fresh copy of the verified BDS build plus the files below. This page lists
-only keys and files that exist in the pinned releases (0.11.13 and 0.11.14).
+[Endstone](https://github.com/EndstoneMC/endstone) is a plugin API for Bedrock Dedicated Server, written in C++ with
+Python bindings and licensed Apache-2.0. It runs Mojang's BDS binary of a fixed build through its own Python launcher
+(`python -m endstone`), so gameplay is BDS's own. From 0.11.14 it also replaces some server paths with faster ones that
+are meant to behave identically, so its parity rows in [`server.toml`](server.toml) are fidelity V0 for 0.11.13 and V1
+for 0.11.14. Endstone's own equivalence tests are not used as evidence. Adapter:
+[`endstone.py`](../../../bedrock_bench/adapters/endstone.py), built on the BDS behaviour in
+[`bdsfamily.py`](../../../bedrock_bench/adapters/bdsfamily.py).
 
-## Files the adapter writes
+## Setup
 
-| File | Content | Category | Why |
-|---|---|---|---|
-| `server.properties` | the `[config]` values in `configs/servers/bds/server.toml` | harness, parity | same settings as vanilla BDS |
-| `version.txt` | `26.52` (the `version_marker` in `server.toml`) | harness | the launcher compares this marker with the BDS build it supports; when it is missing or older, the launcher downloads BDS again over the verified copy |
-| `plugins/bstats/config.toml` | `bstats.toml` from this folder: `enabled = false` | harness | no usage statistics upload during measurement |
+```shell
+bbench fetch endstone@0.11.14 --accept-eula
+```
 
-The launcher's environment gets `PYTHONSAFEPATH=1`, `PYTHONIOENCODING=utf-8`, `PYTHONUNBUFFERED=1` and
-`PYTHONDONTWRITEBYTECODE=1`, and loses `PYTHONPATH`, `PYTHONHOME` and `VIRTUAL_ENV` (and `LD_PRELOAD` on Linux). Each
-of these is recorded as a harness override.
+Fetch needs [uv](https://docs.astral.sh/uv/). It does three things:
 
-## What the launcher does on every start
+1. Verifies and installs the BDS build the release hosts (`bds` in its `[artifacts]` table) exactly as for
+   [vanilla BDS](../bds/README.md#setup), under the same EULA rule.
+2. Downloads the Endstone wheel for this platform and CPython version from PyPI and checks it against its pinned sha256.
+   Wheels are pinned for CPython 3.11 to 3.14. An arm picks one with `python = "3.13"`; otherwise the release's
+   `python` applies.
+3. Builds a virtual environment in the cache: the dependencies from `requirements-<version>.txt` with
+   `--require-hashes`, then the verified wheel without dependency resolution, then `uv pip check`. The environment is
+   read-only and its tree hash is checked before every run.
 
-These happen in both pinned releases and are visible in the server directory after a run (`config/` in the run
-directory keeps the files as found after shutdown):
+An arm can point `artifact` at a local wheel. Its runs are flagged `unpublished_artifact`. When no lock exists for its
+version, its dependencies are resolved from the index.
 
-- creates `plugins/` and, if missing, `endstone.toml` with Endstone's defaults;
-- appends a rate limit for packet 115 (NetworkStackLatency: bucket of 20, drained at 5 per second) to
-  `packetlimitconfig.json` and logs `Added a rate limit for packet 115 to packetlimitconfig.json.`;
-- on Windows, checks that the Minecraft app may connect to loopback and, if not, asks for elevation to add the
-  exemption. Add it once before benchmarking so no prompt appears during a run:
-  `CheckNetIsolation LoopbackExempt -a -p=S-1-15-2-1958404141-86561845-1752920682-3514627264-368642714-62675701-733520436`
-  (from an elevated prompt).
+On Windows the launcher checks that the Minecraft app may connect to loopback, and asks for elevation to add the
+exemption if not. Add it once from an elevated prompt, so no prompt appears during a run:
 
-Because the adapter writes `server.properties` itself and the BDS copy is never downloaded by the launcher, the
-launcher's defaults for new servers (`server-name`, `view-distance`, and in releases before 0.11.14
-`client-side-chunk-generation-enabled=false`) never apply.
+```shell
+CheckNetIsolation LoopbackExempt -a -p=S-1-15-2-1958404141-86561845-1752920682-3514627264-368642714-62675701-733520436
+```
 
-## endstone.toml
+### Adding a release
 
-Left at Endstone's defaults:
-
-| Key | Default | Effect on a benchmark |
-|---|---|---|
-| `commands.log` | `true` | logs commands players run; the bots run none |
-| `settings.allow-client-packs` | `false` | none |
-| `network.ipv6` | `false` | Endstone binds IPv4 only, while vanilla BDS also binds `server-portv6`; the bots use IPv4 |
-| `network.stun-servers` | two public STUN servers | NetherNet only; the benchmark uses RakNet |
-
-## Not switchable
-
-Endstone's crash reporter uploads a report when the server crashes. The pinned releases have no switch for it; the
-adapter lists it under `facts.crash_upload` in run.json. A crash also writes `crash_reports/crash-*.txt`, which the
-harness collects.
-
-## Dependency locks
-
-`requirements-<version>.txt` pins every dependency of the Endstone wheel with hashes, for all platforms and supported
-Python versions (`uv pip compile --universal`). The wheel itself is pinned per platform and Python in
-`server.toml`. To add a release:
-
-1. Add its table and wheel pins to `[artifacts]` in `server.toml` (URL, sha256 and size from `https://pypi.org/pypi/endstone/<version>/json`).
-2. Generate its lock:
+1. Add its version table and wheel pins to `[artifacts]` in `server.toml`, with URL, sha256 and size from
+   `https://pypi.org/pypi/endstone/<version>/json`.
+2. Generate its lock, with the release's lowest supported Python as `--python-version`:
 
    ```shell
    echo "endstone==<version>" | uv pip compile --universal --generate-hashes --python-version 3.11 \
      --no-emit-package endstone --no-header - -o configs/servers/endstone/requirements-<version>.txt
    ```
 
-   Use the release's lowest supported Python for `--python-version`.
 3. Add a range for the release to `[features]` in `server.toml`.
 4. Run `bbench smoke endstone@<version>`.
+
+## How a run starts
+
+```
+<venv>/python -m endstone -y --no-interactive -s .     working directory: the run's server copy
+  └── bedrock_server(.exe)                             measured process
+```
+
+- The adapter writes `version.txt` with the release's `version_marker` (`26.52` for `bds@1.26.52.3`). The launcher
+  compares it with the BDS build it supports and uses the verified copy instead of downloading BDS again. The server
+  binary's sha256 is taken before and after the run, and a change fails the `harness_ok` gate.
+- The measured process is the launcher's `bedrock_server` child, found by its executable path. Endstone renames the
+  server's main thread to `Main`, which on Linux also renames the process, so the name is never used.
+- The runner applies the server CPU set and priority to the child again, because on Windows a child does not inherit an
+  above-normal priority class.
+- The launcher's process tree, without the server, is measured separately and reported as `aux_cores`.
+- Console: `[12:00:00 INFO]: text` or `[12:00:00 INFO]: [Logger] text` on every line, the launcher's own lines
+  included. The version banner, `This server is running Endstone version: 0.11.14 (Minecraft: 26.52)`, must equal the
+  arm's version.
+- Ready line, tick probe, in-world line, positions, tick thread and chaos commands are those of
+  [vanilla BDS](../bds/README.md#how-a-run-starts). An extra diagnostic thread group, `crash_reporter`, holds the
+  threads named `sentry*`.
+
+## Configuration changes
+
+Everything vanilla BDS gets ([`../bds/server.toml`](../bds/server.toml), summarised in
+[its README](../bds/README.md#configuration-changes)), plus these, held in the adapter:
+
+- `version.txt`: the release's `version_marker` (`harness`). Without it the launcher downloads BDS over the verified
+  copy.
+- `plugins/bstats/config.toml`: [`bstats.toml`](bstats.toml), with `enabled = false` (`harness`). No usage statistics
+  upload during measurement.
+- Launcher environment (`harness`): `PYTHONSAFEPATH=1`, `PYTHONIOENCODING=utf-8`, `PYTHONUNBUFFERED=1` and
+  `PYTHONDONTWRITEBYTECODE=1` are set. `PYTHONPATH`, `PYTHONHOME`, `VIRTUAL_ENV` and, on Linux, `LD_PRELOAD` are
+  removed, so the environment runs exactly as installed.
+
+`endstone.toml` is created by the launcher with Endstone's defaults and left alone. The adapter writes
+`server.properties` itself and the launcher never downloads BDS, so the launcher's defaults for new servers
+(`server-name`, `view-distance` and, before 0.11.14, `client-side-chunk-generation-enabled=false`) never apply.
+
+## Variants
+
+### `glibc-alloc`
+
+Linux only, 0.11.14 and later. It preloads `libc.so.6` (a `parity` override), so the launcher keeps glibc's allocator
+instead of preloading the mimalloc it bundles. It isolates the allocator's share of a Linux difference between Endstone
+and vanilla BDS. 0.11.13 already runs on glibc's allocator, so the variant is refused there, and on Windows.
+
+## Caveats
+
+- On Linux, 0.11.14 preloads the mimalloc it bundles and 0.11.13 uses glibc's allocator (`linux_allocator` in
+  `[artifacts]`). `facts.allocator` is `mimalloc` when the server maps it, `default` otherwise, and `glibc` for the
+  variant. The allocator is a disclosed confounder
+  ([fairness](../../../docs/methodology.md#fairness-and-feature-parity)).
+- At every start the launcher appends a rate limit for NetworkStackLatency (packet 115: a bucket of 20, drained at 5
+  per second) to `packetlimitconfig.json`. Vanilla BDS has no limit for that packet. The bot only answers the server's
+  latency requests unless `bots.probe_bots` is raised, so keep it at 0 when comparing with vanilla BDS.
+- Endstone binds IPv4 only (`network.ipv6 = false` in its default `endstone.toml`), while vanilla BDS also binds
+  `server-portv6`. The bots use IPv4.
+- Endstone uploads a crash report when the server crashes. The pinned releases have no switch for it, which
+  `facts.crash_upload` records.
+- Each release's known issues (`known_issues` in `[artifacts]`, from Endstone's changelog) are recorded in
+  `facts.known_issues`. For 0.11.13 these are the hidden DevTools window that keeps a core busy on Windows and the
+  scheduler's idle threads that use CPU on both platforms. Their cost stays in the measured numbers.
+- Endstone and BDS do not log the same events at the same levels, so log level counts are not compared with other
+  servers.
+
+## Crash files
+
+When the server dies, exits nonzero or never gets ready, the run's `crash/` folder gets the last console lines and the
+files written during the run under `crash_reports/` (Endstone's `crash-*.txt`), `.sentry-native/` and, on Windows,
+dumps of `bedrock_server` in `%LOCALAPPDATA%\CrashDumps`.

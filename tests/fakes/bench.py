@@ -10,7 +10,13 @@
 - ``BBENCH_BOT_CMD``, the JSON argv that replaces the loadbot binary with ``fake_bots.py``;
 - a free port and a machine profile that splits this host's CPUs between server and bots.
 
-Integration tests mark themselves with :func:`needs` so they xfail until the ``bbench`` commands they drive exist.
+The profile's gates are loose enough for a busy desktop; ``strict_gates=True`` restores the built-in defaults for the
+contamination tests. Integration tests mark themselves with :func:`needs` so they xfail until the ``bbench`` commands
+they drive exist.
+
+    bench = FakeBench.create(tmp_path)
+    run = bench.run_one("fake_bds", variant="crash-after-join")
+    assert run.exit_code == 4
 """
 
 from __future__ import annotations

@@ -8,7 +8,7 @@ server = "fake_dragonfly"
 [features.range."*"]
 fidelity = "V1"
 "player.server_authoritative_movement" = { class = "absent", observed_by = "corrections_per_bot_s" }
-"player.physics" = { class = "absent", evidence = "tests/fakes/README.md" }
+"player.physics" = { class = "absent", evidence = "tests/fakes/fake_server.py" }
 "chunks.client_side_generation" = { class = "absent", observed_by = "csg_effective" }
 "block.falling" = { class = "unknown" }
 "block.fluids" = { class = "unknown" }

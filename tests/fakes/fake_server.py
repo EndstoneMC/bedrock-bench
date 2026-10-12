@@ -5,13 +5,52 @@
 The fake prints the console output of one server family (BDS, Endstone, LeviLamina, PocketMine-MP, Nukkit,
 PowerNukkitX or Dragonfly): that family's line prefix and level names, ready line, version banner and player lines.
 It answers the console commands the harness sends (tick probe, positions, effects, teleports, kick, kill, game rules,
-list, stop) and accepts fake bots over a JSON-lines TCP protocol on the configured port (see ``README.md``). A JSON
-behaviour script sets the tick rate, delays or drops replies, rejects players and crashes on cue.
+list, stop) and accepts fake bots over a JSON-lines TCP protocol on the configured port. A JSON behaviour script sets
+the tick rate, delays or drops replies, rejects players and crashes on cue.
 
 Line shapes follow the real servers; the texts around them are synthetic. The module uses the standard library only,
 so it runs under any Python 3.11+ without the package installed, and it can be imported for its family table.
 
     python fake_server.py --family bds --version 1.26.52.3 --dir <server dir> [--script behaviour.json]
+
+Families. Each family class shows its line prefix; the commands are the harness's tick probe and positions query::
+
+    family        ready line             tick probe            positions
+    bds           Server started.        time query gametime   querytarget @a
+    endstone      Server started.        time query gametime   querytarget @a
+    levilamina    Server started in (    time query gametime   querytarget @a
+    pocketmine    Done (...s)!           gametime (helper)     positions (helper)
+    nukkit        Done (...s)!           gametime (helper)     bot-reported
+    powernukkitx  Done (...s)!           time query gametime   bot-reported
+    dragonfly     Server started.        gametime (helper)     positions (helper)
+
+Endstone runs the server as the child of a launcher, and Nukkit reads ``eng`` on stdin before its banner. BDS and
+LeviLamina print the transport banner at error level after the ready line, so their dialects treat it as benign.
+``test_fakes.py`` checks that the real bds, endstone and levilamina adapters read the fake output of their families.
+
+Behaviour scripts. A fake adapter copies ``scripts/<variant>.json`` to ``bench-script.json`` in the server directory.
+:data:`DEFAULT_SCRIPT` lists the keys and their defaults; unknown keys are errors. An event fires ``after_s`` seconds
+after its ``anchor`` (default ``ready``): ``start``, ``ready``, ``first_spawn``, ``all_spawned``, or
+``command:<regex>``, the first console command matching the regex. The actions:
+
+- ``tps`` (``value``)
+- ``crash`` (``exit_code``, ``reason``): writes ``crash_reports/crash-*.txt``, then exits
+- ``hang``: stops ticking and stops answering the console
+- ``probe_gap`` (``duration_s``): no replies to the tick probe for that long
+- ``drop_player`` (``player``)
+- ``decode_error`` (``player``): sends the bot a packet it cannot decode
+- ``kick`` (``player``, ``reason``)
+- ``error_line`` (``text``)
+
+Wire protocol. Bots connect to ``127.0.0.1:<server-port>`` over TCP and exchange one JSON object per line, named by
+its ``op`` key:
+
+- bot to server: ``login`` (``name``, ``i``, ``n``, ``xuid``, ``uuid``, ``radius``, ``csg``, ``session``), ``move``
+  (``x``, ``y``, ``z``), ``respawn``, ``radius`` (ignored), ``quit``
+- server to bot: ``spawn`` (``x``, ``y``, ``z``, ``dim``, ``radius``, ``csg``, ``rates``), ``reject`` (``reason``),
+  ``tp``, ``kick`` (``reason``), ``die``, ``respawned``, ``garbage``; the bots also accept ``dim``
+
+The server clamps the requested radius to its view distance.
 """
 
 from __future__ import annotations

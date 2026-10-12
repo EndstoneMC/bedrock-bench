@@ -8,7 +8,7 @@ server = "fake_levilamina"
 [features.range."*"]
 fidelity = "V0"
 "player.server_authoritative_movement" = { class = "vanilla", observed_by = "corrections_per_bot_s" }
-"player.physics" = { class = "vanilla", evidence = "tests/fakes/README.md" }
+"player.physics" = { class = "vanilla", evidence = "tests/fakes/fake_server.py" }
 "chunks.client_side_generation" = { class = "vanilla", observed_by = "csg_effective" }
 "block.falling" = { class = "unknown" }
 "block.fluids" = { class = "unknown" }
