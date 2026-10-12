@@ -174,6 +174,13 @@ def test_class_attributes(cls: type[ServerAdapter]) -> None:
     assert isinstance(cls.dialect, Dialect)
 
 
+@real_adapters
+def test_server_folder(cls: type[ServerAdapter]) -> None:
+    folder = ROOT / "configs" / "servers" / cls.name
+    missing = [name for name in ("README.md", "server.toml") if not (folder / name).is_file()]
+    assert not missing, f"configs/servers/{cls.name}/ needs {', '.join(missing)}"
+
+
 @every_adapter
 def test_bot_compat_flags_are_allowlisted(cls: type[ServerAdapter]) -> None:
     assert set(cls.bot_compat_flags) <= ALLOWED_COMPAT
