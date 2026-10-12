@@ -1,0 +1,57 @@
+# Console lines captured from Nukkit-MOT 9cb0aba (Jenkins build 1592), colour codes removed, one per dialect role
+# (roles as in bds.toml). Log lines are `HH:MM:SS [<thread>] [LEVEL] text`; log4j's own start-up warning has an ISO
+# time stamp and the thread name. nukkitmot-session.log is one captured session with four bots, trimmed.
+adapter = "nukkitmot"
+
+[[sample]]
+role = "ready"
+line = "18:41:10 [main] [INFO] Done (2.454s)! For help, type \"help\""
+
+[[sample]]
+role = "version"
+line = "18:41:10 [main] [INFO] Enabling Nukkit-MOT vgit-9cb0aba"
+value = "9cb0aba"
+
+[[sample]]
+role = "player_in_world"
+line = "18:41:18 [main] [INFO] a00 joined the game"
+value = "a00"
+
+[[sample]]
+role = "tick"
+line = "18:42:15 [main] [INFO] Gametime is 1295"
+value = 1295
+
+[[sample]]
+role = "level"
+line = "18:41:10 [main] [WARN] Level \"bench\" not found"
+value = "warn"
+
+[[sample]]
+role = "level"
+line = "2026-10-12T17:41:08.462244Z main WARN Advanced terminal features are not available in this environment"
+value = "warn"
+
+[[sample]]
+role = "level"
+line = "17:33:07 [main] [ERROR] Unhandled exception executing command 'summon zombie 0 70 0' in summon: java.lang.NullPointerException: Cannot invoke \"cn.nukkit.level.format.FullChunk.isLoaded()\" because the return value of \"cn.nukkit.level.Position.getChunk()\" is null"
+value = "error"
+
+[[sample]]
+role = "strip"
+line = "17:32:47 [ForkJoinPool.commonPool-worker-24] [INFO] [Nukkit-MOT] You are running the latest version."
+value = "[Nukkit-MOT] You are running the latest version."
+
+[[sample]]
+role = "strip"
+line = "18:43:34 [main] [INFO] [BenchTick] pregen: cell 0 29 29"
+value = "[BenchTick] pregen: cell 0 29 29"
+
+[[sample]]
+role = "strip"
+line = "2026-10-12T17:41:08.462244Z main WARN Advanced terminal features are not available in this environment"
+value = "Advanced terminal features are not available in this environment"
+
+[[sample]]
+role = "not_benign"
+line = "17:33:07 [main] [ERROR] Unhandled exception executing command 'summon zombie 0 70 0' in summon: java.lang.NullPointerException: Cannot invoke \"cn.nukkit.level.format.FullChunk.isLoaded()\" because the return value of \"cn.nukkit.level.Position.getChunk()\" is null"

@@ -1,0 +1,101 @@
+2026-10-12T17:41:08.462244Z main WARN Advanced terminal features are not available in this environment
+18:41:08 [main] [INFO] Loading server properties...
+18:41:08 [main] [INFO] Loading server configuration (YAML)...
+18:41:08 [main] [INFO] Server configuration loaded from nukkit-mot.yml
+18:41:08 [main] [INFO] Virtual threads for async tasks: enabled
+18:41:08 [main] [INFO] -- Nukkit MOT --
+18:41:10 [main] [INFO] Loaded 0 resource packs
+18:41:10 [main] [INFO] Opening server on 0.0.0.0:19920
+18:41:10 [main] [INFO] Enabling Nukkit-MOT vgit-9cb0aba
+18:41:10 [main] [INFO] Loading BenchTick v1.0
+18:41:10 [main] [INFO] native LevelDB provider: false
+18:41:10 [main] [WARN] Level "bench" not found
+18:41:10 [main] [INFO] Preparing level "bench"
+18:41:10 [main] [INFO] Preparing level "nether"
+18:41:10 [main] [INFO] Preparing level "the_end"
+18:41:10 [main] [INFO] Enabling BenchTick v1.0
+18:41:10 [main] [INFO] Done (2.454s)! For help, type "help"
+18:41:13 [main] [INFO] Gametime is 47
+18:41:14 [main] [INFO] positions: 0
+18:41:15 [main] [INFO] a00[/127.0.0.1:53348] [Protocol Version: 2193 (1.26.50, RakNet)] logged in
+18:41:15 [main] [INFO] a01[/127.0.0.1:53350] [Protocol Version: 2193 (1.26.50, RakNet)] logged in
+18:41:15 [main] [INFO] a02[/127.0.0.1:53352] [Protocol Version: 2193 (1.26.50, RakNet)] logged in
+18:41:16 [main] [INFO] a03[/127.0.0.1:53354] [Protocol Version: 2193 (1.26.50, RakNet)] logged in
+18:41:18 [main] [INFO] a00 joined the game
+18:41:18 [main] [INFO] a01 joined the game
+18:41:19 [main] [INFO] a02 joined the game
+18:41:19 [main] [INFO] a03 joined the game
+18:41:19 [main] [INFO] Gave Resistance * 255 to a00 for 1000000 seconds
+18:41:19 [main] [INFO] Gave Fire Resistance * 0 to a00 for 1000000 seconds
+18:41:20 [main] [INFO] Gave Water Breathing * 0 to a00 for 1000000 seconds
+18:41:20 [main] [INFO] Gave Saturation * 255 to a00 for 1000000 seconds
+18:41:20 [main] [INFO] Gave Resistance * 255 to a01 for 1000000 seconds
+18:41:20 [main] [INFO] Gave Fire Resistance * 0 to a01 for 1000000 seconds
+18:41:20 [main] [INFO] Gave Water Breathing * 0 to a01 for 1000000 seconds
+18:41:21 [main] [INFO] Gave Saturation * 255 to a01 for 1000000 seconds
+18:41:21 [main] [INFO] Gave Resistance * 255 to a02 for 1000000 seconds
+18:41:21 [main] [INFO] Gave Fire Resistance * 0 to a02 for 1000000 seconds
+18:41:21 [main] [INFO] Gave Water Breathing * 0 to a02 for 1000000 seconds
+18:41:21 [main] [INFO] Gave Saturation * 255 to a02 for 1000000 seconds
+18:41:22 [main] [INFO] Gave Resistance * 255 to a03 for 1000000 seconds
+18:41:22 [main] [INFO] Gave Fire Resistance * 0 to a03 for 1000000 seconds
+18:41:22 [main] [INFO] Gave Water Breathing * 0 to a03 for 1000000 seconds
+18:41:22 [main] [INFO] Gave Saturation * 255 to a03 for 1000000 seconds
+18:41:27 [main] [INFO] positions: 4
+18:41:27 [main] [INFO] position: a01 1924.12 300.00 1276.52 0
+18:41:27 [main] [INFO] position: a03 1278.48 300.00 1918.56 0
+18:41:27 [main] [INFO] position: a02 2560.71 300.00 1284.80 0
+18:41:27 [main] [INFO] position: a00 1273.65 300.00 1281.09 0
+18:41:27 [main] [INFO] Gametime is 338
+18:41:28 [main] [INFO] There are 4/200 players online:
+18:41:28 [main] [INFO] a01, a03, a02, a00
+18:41:29 [main] [INFO] Changing to clear weather
+18:41:30 [main] [INFO] Game rule randomtickspeed has been updated to 3
+18:41:32 [main] [INFO] Added ticking area centered at 20000,64,-30000 with a radius of 2 chunks.
+18:41:33 [main] [INFO] Removed ticking area(s)
+18:41:34 [main] [INFO] Object successfully summoned
+18:41:38 [main] [INFO] 25 blocks filled near a03
+18:41:39 [main] [INFO] 1 blocks filled near a03
+18:41:40 [main] [INFO] Killed Drowned, Fox, Fox, Squid, Squid, Squid, Salmon, Salmon, Salmon, Drowned, Cow
+18:41:41 [main] [INFO] positions: 4
+18:41:41 [main] [INFO] position: a01 1955.43 300.00 1305.84 0
+18:41:41 [main] [INFO] position: a03 1306.77 300.00 1886.31 0
+18:41:41 [main] [INFO] position: a02 2517.89 300.00 1287.34 0
+18:41:41 [main] [INFO] position: a00 1272.08 300.00 1238.22 0
+18:41:43 [main] [INFO] Moved a02 to nether
+18:41:44 [main] [INFO] positions: 4
+18:41:44 [main] [INFO] position: a01 1945.12 300.00 1313.34 0
+18:41:44 [main] [INFO] position: a03 1314.60 300.00 1896.38 0
+18:41:44 [main] [INFO] position: a02 160.00 100.00 160.00 1
+18:41:44 [main] [INFO] position: a00 1284.69 300.00 1240.16 0
+18:41:45 [main] [INFO] Moved a02 to bench
+18:41:46 [main] [INFO] Set Adventure's game mode to a01
+18:41:47 [main] [INFO] Set Survival's game mode to a01
+18:41:48 [main] [INFO] Took all effects from a01
+18:41:49 [main] [INFO] a01 died
+18:41:49 [main] [INFO] Killed a01
+18:41:54 [main] [INFO] a00 left the game
+18:41:54 [main] [INFO] a00[/127.0.0.1:53348] logged out due to Kicked! Reason: chaos
+18:41:54 [main] [INFO] Kicked a00 from the game: 'chaos'
+18:41:56 [main] [INFO] positions: 3
+18:41:56 [main] [INFO] position: a01 126.80 65.51 108.45 0
+18:41:56 [main] [INFO] position: a03 1286.66 300.00 1924.14 0
+18:41:56 [main] [INFO] position: a02 2595.87 300.00 1286.69 0
+18:42:14 [main] [INFO] positions: 3
+18:42:14 [main] [INFO] position: a01 158.17 65.51 135.12 0
+18:42:14 [main] [INFO] position: a03 1312.29 300.00 1891.92 0
+18:42:14 [main] [INFO] position: a02 2554.93 300.00 1291.10 0
+18:42:15 [main] [INFO] Gametime is 1295
+18:42:18 [main] [INFO] Gametime is 1351
+18:42:19 [main] [INFO] [CONSOLE: Stopping the server]
+18:42:19 [main] [INFO] a01 left the game
+18:42:19 [main] [INFO] a01[/127.0.0.1:53350] logged out due to Server closed
+18:42:19 [main] [INFO] a02 left the game
+18:42:19 [main] [INFO] a02[/127.0.0.1:53352] logged out due to Server closed
+18:42:19 [main] [INFO] a03 left the game
+18:42:19 [main] [INFO] a03[/127.0.0.1:53354] logged out due to Server closed
+18:42:19 [main] [INFO] Disabling BenchTick v1.0
+18:42:19 [main] [INFO] Unloading level "bench"
+18:42:19 [main] [WARN] Pending chunk writes for bench reached 128 (limit 128); chunk unloading will pause until the backlog drains
+18:42:19 [main] [INFO] Unloading level "nether"
+18:42:19 [main] [INFO] Unloading level "the_end"
