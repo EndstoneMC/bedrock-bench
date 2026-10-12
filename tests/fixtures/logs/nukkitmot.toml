@@ -44,11 +44,6 @@ value = "[Nukkit-MOT] You are running the latest version."
 
 [[sample]]
 role = "strip"
-line = "18:43:34 [main] [INFO] [BenchTick] pregen: cell 0 29 29"
-value = "[BenchTick] pregen: cell 0 29 29"
-
-[[sample]]
-role = "strip"
 line = "2026-10-12T17:41:08.462244Z main WARN Advanced terminal features are not available in this environment"
 value = "Advanced terminal features are not available in this environment"
 

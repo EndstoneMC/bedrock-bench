@@ -39,8 +39,8 @@ value = "fatal"
 
 [[sample]]
 role = "strip"
-line = "12:00:25 [INFO ] [BenchTick] pregen: cell 0 441 441"
-value = "[BenchTick] pregen: cell 0 441 441"
+line = "12:00:25 [INFO ] [BenchTick] RakNet per-IP packet limit lifted"
+value = "[BenchTick] RakNet per-IP packet limit lifted"
 
 [[sample]]
 role = "strip"
