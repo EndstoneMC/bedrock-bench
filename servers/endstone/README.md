@@ -73,14 +73,13 @@ CheckNetIsolation LoopbackExempt -a -p=S-1-15-2-1958404141-86561845-1752920682-3
 
 ## Configuration changes
 
-Everything vanilla BDS gets ([`../bds/server.toml`](../bds/server.toml), summarised in
-[its README](../bds/README.md#configuration-changes)), plus these, held in the adapter:
+[`server.properties`](server.properties) is the same file as vanilla BDS's, summarised in
+[its README](../bds/README.md#configuration-changes). Also:
 
-- `version.txt`: the release's `version_marker` (`harness`). Without it the launcher downloads BDS over the verified
-  copy.
-- `plugins/bstats/config.toml`: [`bstats.toml`](bstats.toml), with `enabled = false` (`harness`). No usage statistics
-  upload during measurement.
-- Launcher environment (`harness`): `PYTHONSAFEPATH=1`, `PYTHONIOENCODING=utf-8`, `PYTHONUNBUFFERED=1` and
+- `plugins/bstats/config.toml`, rendered from [`bstats.toml`](bstats.toml): `enabled = false`, so no usage statistics
+  are uploaded during measurement.
+- `version.txt`: the release's `version_marker`. Without it the launcher downloads BDS over the verified copy.
+- Launcher environment: `PYTHONSAFEPATH=1`, `PYTHONIOENCODING=utf-8`, `PYTHONUNBUFFERED=1` and
   `PYTHONDONTWRITEBYTECODE=1` are set. `PYTHONPATH`, `PYTHONHOME`, `VIRTUAL_ENV` and, on Linux, `LD_PRELOAD` are
   removed, so the environment runs exactly as installed.
 

@@ -37,9 +37,8 @@ bbench fetch levilamina@26.51.6 --accept-eula
 1. Add its version table to `[artifacts]` in `server.toml`: the BDS build from LeviLamina's `tooth.json`, and one
    `windows-<package>` table per package with the URL, size and sha256 from the GitHub release and the placements from
    that package's `tooth.json`.
-2. Start the release once by hand and compare the generated `PreLoaderConfig.json`,
-   `plugins/LeviLamina/config/Config.json` with the files here. If their keys or
-   config `version` changed, the files here no longer fit both releases, and the adapter needs one set per release.
+2. Start the release once by hand and check that the generated `plugins/LeviLamina/config/Config.json` still has the
+   keys [`Config.json`](Config.json) sets.
 3. Add a `[features.range."<major>.<minor>"]` to `server.toml` if parity changed, and run
    `bbench smoke configs/smoke.toml levilamina@<version>`.
 
@@ -65,26 +64,17 @@ bedrock_server_mod.exe       measured process, started directly in the run's ser
 
 ## Configuration changes
 
-Everything vanilla BDS gets ([`../bds/server.toml`](../bds/server.toml), summarised in
-[its README](../bds/README.md#configuration-changes)), plus the JSON configs here. Each is the file the pinned release
-writes on its first start (LeviLamina 26.51.6, PreLoader 1.16.3), kept verbatim.
+[`server.properties`](server.properties) is the same file as vanilla BDS's, summarised in
+[its README](../bds/README.md#configuration-changes). [`Config.json`](Config.json) is rendered onto
+`plugins/LeviLamina/config/Config.json`:
 
-| File here | Written to |
-|---|---|
-| `PreLoaderConfig.json` | `PreLoaderConfig.json` |
-| `LeviLamina.Config.json` | `plugins/LeviLamina/config/Config.json` |
+- `modules.crashLogger.uploadToSentry = false`: no crash report upload; reports stay in `logs/crash`.
+- `targeted.enableStatistics = false`: no usage statistics upload.
 
-The adapter applies these changes on top and records each as an override:
+Each run starts without that file, so it holds only these two keys and LeviLamina fills in its defaults on the first
+start. Both values are read back after the run.
 
-- `Config.json` `modules.crashLogger.uploadToSentry` = `false` (`harness`): no crash report upload; reports stay in
-  `logs/crash`.
-- `Config.json` `targeted.enableStatistics` = `false` (`harness`): no usage statistics upload.
-
-The files are written fresh for every run. LeviLamina merges an older config over its new defaults when the config
-`version` changes, so the old values win. After the run each file is read back and compared value by value, and a
-changed value fails the `config_readback` gate.
-
-Otherwise LeviLamina's generated configuration runs the benchmark as it is.
+Otherwise LeviLamina and PreLoader run with the configuration they generate.
 
 ## Caveats
 
