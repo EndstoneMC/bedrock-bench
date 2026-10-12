@@ -18,7 +18,7 @@ from bedrock_bench.adapters.dragonfly import DRAGONFLY_DIALECT, DragonflyAdapter
 from bedrock_bench.cache import Cache
 from bedrock_bench.config import ConfigError
 from bedrock_bench.model import Arm, Install, LogLine, Machine, OverrideCategory, Placement, RunContext
-from bedrock_bench.workload import WORKLOAD, with_overrides
+from workloads import WORKLOAD, with_overrides
 
 ROOT = Path(__file__).resolve().parents[2]
 LOGS = ROOT / "tests" / "fixtures" / "logs"

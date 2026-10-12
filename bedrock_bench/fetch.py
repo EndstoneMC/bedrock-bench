@@ -365,7 +365,7 @@ def fetch_cli(args: argparse.Namespace) -> int:
     machine = config.default_machine()
     cache = Cache()
     failed = 0
-    arms, skipped = runner.session_arms(args.tags)
+    arms, skipped = runner.session_arms(args.tags, machine)
     for line in skipped:
         report(f"skipping {line}")
     with using(opts):

@@ -175,14 +175,19 @@
       }
     },
     "workload": {
-      "description": "the workload the run used: benchmark, or smoke for 'bbench smoke'",
+      "description": "the config the run used: its name in configs/, the configs it inherits from and the resolved values",
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "sha256", "params"],
+      "required": ["name", "base", "sha256", "params"],
       "properties": {
         "name": { "$ref": "#/$defs/name" },
+        "base": { "description": "base chain, nearest first", "type": "array", "items": { "$ref": "#/$defs/name" } },
         "sha256": { "description": "sha256 of params in canonical JSON", "$ref": "#/$defs/sha256" },
-        "params": { "type": "object", "description": "bots, grid, world, server, probe and phases" }
+        "params": {
+          "type": "object",
+          "description": "the resolved config without base: bots, grid, world, server, probe, phases and run",
+          "required": ["bots", "grid", "world", "server", "probe", "phases", "run"]
+        }
       }
     },
     "machine": {

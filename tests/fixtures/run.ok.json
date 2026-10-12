@@ -121,8 +121,11 @@
     ]
   },
   "workload": {
-    "name": "benchmark",
-    "sha256": "0e7e4be82e73bfeb823585c8a3b6149b08f889146bdb672546f03c33fd97d24a",
+    "name": "spread-100",
+    "base": [
+      "spread"
+    ],
+    "sha256": "5d36524be28fe323e236e2bc49122fadad230c6bb1165a5ab927c1f239d54360",
     "params": {
       "bots": {
         "n": 100,
@@ -166,81 +169,55 @@
         "max_gap_s": 15.0,
         "lagging_p99_ms": 1000.0
       },
-      "phases": [
-        {
-          "name": "boot",
-          "delay_s": 0.0,
-          "duration_s": null,
-          "cap_s": 600.0,
-          "options": {}
+      "run": {
+        "repeats": 3,
+        "order": "rotate",
+        "cooldown_s": 60.0,
+        "rerun_invalid": 1
+      },
+      "phases": {
+        "boot": {
+          "cap_s": 600.0
         },
-        {
-          "name": "idle",
+        "idle": {
           "delay_s": 10.0,
-          "duration_s": 20.0,
-          "cap_s": null,
-          "options": {}
+          "duration_s": 20.0
         },
-        {
-          "name": "join",
-          "delay_s": 0.0,
-          "duration_s": null,
+        "join": {
           "cap_s": 300.0,
-          "options": {
-            "pre_bots_s": 0.0
-          }
+          "pre_bots_s": 0.0
         },
-        {
-          "name": "settle",
-          "delay_s": 0.0,
-          "duration_s": null,
+        "settle": {
           "cap_s": 900.0,
-          "options": {
-            "min_s": 300.0,
-            "rate_per_bot": 0.1,
-            "rate_window_s": 60.0,
-            "eval_interval_s": 5.0,
-            "max_data_age_s": 5.0,
-            "min_view_frac": 0.0,
-            "view_complete_frac": 0.95,
-            "view_median_frac": 0.5,
-            "retp_after_s": 20.0,
-            "retp_max": 3,
-            "nudge_after_s": 60.0,
-            "nudge_min_y": 290.0,
-            "nudge_max_uniq": 30,
-            "nudge_max": 2,
-            "nudge_step": 16.0
-          }
+          "min_s": 300.0,
+          "rate_per_bot": 0.1,
+          "rate_window_s": 60.0,
+          "eval_interval_s": 5.0,
+          "max_data_age_s": 5.0,
+          "min_view_frac": 0.0,
+          "view_complete_frac": 0.95,
+          "view_median_frac": 0.5,
+          "retp_after_s": 20.0,
+          "retp_max": 3,
+          "nudge_after_s": 60.0,
+          "nudge_min_y": 290.0,
+          "nudge_max_uniq": 30,
+          "nudge_max": 2,
+          "nudge_step": 16.0
         },
-        {
-          "name": "spread",
-          "delay_s": 0.0,
-          "duration_s": null,
-          "cap_s": null,
-          "options": {
-            "query_timeout_s": 10.0
-          }
+        "spread": {
+          "query_timeout_s": 10.0
         },
-        {
-          "name": "steady",
+        "steady": {
           "delay_s": 15.0,
-          "duration_s": 90.0,
-          "cap_s": null,
-          "options": {}
+          "duration_s": 90.0
         },
-        {
-          "name": "teardown",
-          "delay_s": 0.0,
-          "duration_s": null,
-          "cap_s": null,
-          "options": {
-            "bot_quit_timeout_s": 10.0,
-            "stop_timeout_s": 180.0,
-            "crash_log_lines": 200
-          }
+        "teardown": {
+          "bot_quit_timeout_s": 10.0,
+          "stop_timeout_s": 180.0,
+          "crash_log_lines": 200
         }
-      ]
+      }
     }
   },
   "machine": {

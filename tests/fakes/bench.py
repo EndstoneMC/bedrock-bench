@@ -5,7 +5,7 @@
 
 - ``configs/`` copies, so names resolve the same way as in a checkout; ``BBENCH_ROOT`` points at the workspace and
   ``BBENCH_CACHE`` into it;
-- ``BBENCH_TEST_WORKLOAD``, which shrinks the workload to ``fake-quick.json``: four bots, every phase in seconds;
+- ``configs/fake-quick.toml``, the config of every run against the fakes: four bots, every phase in seconds;
 - a ``.dist-info`` folder that registers ``fakes.fake_adapter`` under the ``bedrock_bench.adapters`` entry point
   group, with ``tests/`` and that folder on ``PYTHONPATH``;
 - ``BBENCH_BOT_CMD``, the JSON argv that replaces the loadbot binary with ``fake_bots.py``;
@@ -37,14 +37,15 @@ from typing import Any
 
 import psutil
 
-from bedrock_bench.workload import ENV_TEST_WORKLOAD, WORKLOAD, Workload, with_overrides
+from bedrock_bench import config
+from bedrock_bench.workload import Workload
 from fakes.fake_adapter import BOTS_SCRIPT, ENV_BEHAVIOUR, FAKE_ADAPTERS, SERVERS_DIR, interpreter
 
 #: Environment variable the bot fleet reads instead of the loadbot binary path: a JSON array, the argv prefix.
 ENV_BOT_CMD = "BBENCH_BOT_CMD"
 
 TESTS_DIR = Path(__file__).resolve().parent.parent
-FAKE_WORKLOAD = Path(__file__).resolve().parent / "fake-quick.json"
+FAKE_CONFIG = Path(__file__).resolve().parent / "fake-quick.toml"
 DIST_INFO = "bedrock_bench_fakes-0.0.0.dist-info"
 DEFAULT_VERSION = "1.0.0"
 
@@ -72,15 +73,8 @@ STRICT_GATES = {
 
 
 def fake_workload() -> Workload:
-    """The workload of runs against the fakes, as ``bbench`` builds it from ``$BBENCH_TEST_WORKLOAD``."""
-    return with_overrides(WORKLOAD, json.loads(FAKE_WORKLOAD.read_text(encoding="utf-8")))
-
-
-def _merge(base: Mapping[str, Any], override: Mapping[str, Any]) -> dict[str, Any]:
-    merged = dict(base)
-    for key, value in override.items():
-        merged[key] = _merge(merged[key], value) if isinstance(value, Mapping) and key in merged else value
-    return merged
+    """The workload of runs against the fakes."""
+    return config.load_workload(FAKE_CONFIG)
 
 
 def register_entry_point(folder: Path) -> Path:
@@ -280,6 +274,7 @@ class FakeBench:
         for adapter in FAKE_ADAPTERS:
             (root / "servers" / adapter.name).mkdir(parents=True, exist_ok=True)
             shutil.copyfile(SERVERS_DIR / adapter.name / "server.toml", root / "servers" / adapter.name / "server.toml")
+        shutil.copyfile(FAKE_CONFIG, root / "configs" / FAKE_CONFIG.name)
         entry_points = register_entry_point(root / "entry-points")
 
         cpus = host_cpus()
@@ -298,7 +293,6 @@ class FakeBench:
                 "BBENCH_ROOT": str(root),
                 "BBENCH_CACHE": str(root / "cache"),
                 ENV_BOT_CMD: json.dumps([interpreter(), "-I", "-u", str(BOTS_SCRIPT)]),
-                ENV_TEST_WORKLOAD: str(FAKE_WORKLOAD),
             }
         )
         bench = cls(root=root, port=free_port(), server_cpus=server_cpus, bot_cpus=bot_cpus, env=env)
@@ -311,11 +305,14 @@ class FakeBench:
 
     # ---- inputs ----------------------------------------------------------------------------------------------------
 
-    def workload(self, name: str, **tables: Mapping[str, Any]) -> Path:
-        """``fake-quick.json`` with ``tables`` merged in, for ``run_one(workload=...)``."""
-        data = _merge(json.loads(FAKE_WORKLOAD.read_text(encoding="utf-8")), tables)
-        path = self.root / f"workload-{name}.json"
-        path.write_text(json.dumps(data, indent=2), encoding="utf-8", newline="\n")
+    @property
+    def fake_config(self) -> Path:
+        return self.root / "configs" / FAKE_CONFIG.name
+
+    def config(self, name: str, **tables: Mapping[str, Any]) -> Path:
+        """``configs/<name>.toml``: ``fake-quick.toml`` with ``tables`` on top, for ``run_one(config=...)``."""
+        path = self.root / "configs" / f"{name}.toml"
+        path.write_text(toml_dumps({"base": FAKE_CONFIG.stem, **tables}), encoding="utf-8", newline="\n")
         return path
 
     def machine(
@@ -347,17 +344,12 @@ class FakeBench:
 
     def session_args(self, *servers: str, repeats: int = 1, order: str = "rotate", machine: str = "fake") -> list[str]:
         """``bbench run`` arguments for a session of the fake servers with no cooldown and no reruns."""
+        name = f"session-{repeats}-{order.replace(':', '-')}"
+        session_config = self.config(name, run={"repeats": repeats, "order": order})
         return [
             "run",
+            str(session_config),
             *map(server_tag, servers),
-            "--repeats",
-            str(repeats),
-            "--order",
-            order,
-            "--cooldown",
-            "0",
-            "--rerun-invalid",
-            "0",
             "--machine",
             str(self.machine_path(machine)),
             "--out",
@@ -401,7 +393,7 @@ class FakeBench:
         server: str = "fake_bds",
         *,
         behaviour: str | None = None,
-        workload: Path | None = None,
+        config: Path | None = None,
         machine: str = "fake",
         timeout: float = 300.0,
     ) -> Run:
@@ -409,6 +401,7 @@ class FakeBench:
         before = set(self.run_dirs())
         args: list[str | Path] = [
             "run-one",
+            config or self.fake_config,
             "--server",
             server_tag(server),
             "--machine",
@@ -416,7 +409,7 @@ class FakeBench:
             "--out",
             self.out,
         ]
-        env = {ENV_TEST_WORKLOAD: str(workload)} if workload is not None else {}
+        env: dict[str, str] = {}
         if behaviour is not None:
             env[ENV_BEHAVIOUR] = behaviour
         process = self.bbench(*args, timeout=timeout, env=env)

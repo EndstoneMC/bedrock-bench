@@ -91,7 +91,12 @@ def _configure_bots(p: argparse.ArgumentParser) -> None:
     )
 
 
+def _add_config(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("config", metavar="CONFIG", help="workload config, e.g. configs/spread-100.toml")
+
+
 def _configure_smoke(p: argparse.ArgumentParser) -> None:
+    _add_config(p)
     p.add_argument("server", metavar="SERVER@VERSION")
     _add_machine(p)
     p.add_argument("--artifact", type=Path, metavar="PATH", help="local artifact instead of the pinned download")
@@ -99,23 +104,17 @@ def _configure_smoke(p: argparse.ArgumentParser) -> None:
 
 
 def _configure_run(p: argparse.ArgumentParser) -> None:
+    _add_config(p)
     p.add_argument("tags", nargs="*", metavar="TAG", help="server@version (default: every server's benchmark default)")
-    p.add_argument("--repeats", type=int, default=3, metavar="N", help="runs of each server (default: 3)")
-    p.add_argument(
-        "--order",
-        type=_order,
-        default="rotate",
-        metavar="ORDER",
-        help="rotate, sequential or seeded:N (default: rotate)",
-    )
-    p.add_argument("--cooldown", type=float, default=60.0, metavar="S", help="seconds between runs (default: 60)")
-    p.add_argument("--rerun-invalid", type=int, default=1, metavar="N", help="reruns of an invalid run (default: 1)")
     _add_machine(p)
-    p.add_argument("--out", type=Path, metavar="DIR", help="results root (default: runs/)")
+    p.add_argument(
+        "--out", type=Path, metavar="DIR", help="results root; the session goes to DIR/<session> (default: runs/)"
+    )
     p.add_argument("--dry-run", action="store_true", help="print the run order and exit")
 
 
 def _configure_run_one(p: argparse.ArgumentParser) -> None:
+    _add_config(p)
     p.add_argument("--server", required=True, metavar="S@V", help="server@version to run")
     p.add_argument("--bds", metavar="V", help="BDS version a BDS-hosted server runs on")
     p.add_argument("--python", metavar="V", help="Python version for Endstone")

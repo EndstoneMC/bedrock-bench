@@ -1,0 +1,91 @@
+# SPDX-License-Identifier: Apache-2.0
+# Players spread out on a grid, one per cell, each loading its own full view, with client-side generation off.
+# The base of the spread-*.toml configs. It sets no bot count, so it cannot run on its own.
+
+[bots]
+prefix = "a"                     # bots are named <prefix><index>
+stagger_ms = 300                 # gap between join starts
+radius = 16                      # chunk radius the bots request; servers clamp it to their view distance
+loadscreen = true                # send loading screen end after spawn so the server moves the player
+walk = "circle"                  # circle or none
+spawn_timeout_s = 180.0
+join_retries = 0
+identity_seed = "bedrock-bench"  # name space of the bot UUIDs
+progress_interval_s = 5.0
+stat_interval_s = 10.0
+pkt_interval_s = 30.0
+probe_bots = 0                   # bots that send a latency probe every second
+decode_errors = "count"          # count or fail
+
+[grid]                           # bot i stands at (origin + (i % columns) * spacing, origin + (i // columns) * spacing)
+columns = 11
+spacing = 640
+origin = 1280
+y = 300.0                        # teleport height
+warn_offset_blocks = 200.0       # flag a bot that ends up further than this from its cell
+
+[world]
+seed = 20261010
+level_name = "bench"
+
+[server]
+csg = false                      # client-side chunk generation
+view_distance = 10
+tick_distance = 4                # simulation distance
+difficulty = "easy"
+gamemode = "survival"
+max_players = 200
+autosave_ticks = 6000
+save_player_data = true
+
+[probe]
+interval_s = 5.0                 # tick probe interval
+max_gap_s = 15.0                 # longest gap between probe replies before the run is invalid
+lagging_p99_ms = 1000.0          # p99 probe latency before the run is invalid
+
+[phases.boot]
+cap_s = 600.0                    # longest wait for the server to be ready
+
+[phases.idle]
+delay_s = 10.0
+duration_s = 20.0
+
+[phases.join]
+cap_s = 300.0
+pre_bots_s = 0.0
+
+[phases.settle]
+cap_s = 900.0
+min_s = 300.0                    # settle lasts at least this long after every bot joined
+rate_per_bot = 0.1               # then ends once the bots gain fewer new chunks per second each than this
+rate_window_s = 60.0
+eval_interval_s = 5.0
+max_data_age_s = 5.0
+min_view_frac = 0.0
+view_complete_frac = 0.95
+view_median_frac = 0.5
+retp_after_s = 20.0              # teleport a bot again when its teleport was not seen within this
+retp_max = 3
+nudge_after_s = 60.0             # move a bot still hovering above nudge_min_y with fewer than nudge_max_uniq chunks
+nudge_min_y = 290.0
+nudge_max_uniq = 30
+nudge_max = 2
+nudge_step = 16.0
+
+[phases.spread]
+query_timeout_s = 10.0
+
+[phases.steady]
+delay_s = 15.0
+duration_s = 90.0                # the measured window
+
+[phases.teardown]
+bot_quit_timeout_s = 10.0
+stop_timeout_s = 180.0
+crash_log_lines = 200
+
+[run]
+repeats = 3                      # runs of each server per session
+order = "rotate"                 # rotate, sequential or seeded:<n>
+cooldown_s = 60.0                # pause between runs
+rerun_invalid = 1                # reruns of an invalid run

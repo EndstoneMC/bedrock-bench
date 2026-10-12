@@ -8,14 +8,14 @@ Every phase records its marks (seconds since the run's time origin) and rewrites
 ==========  =======================  ======================  ==========================================================
 Phase       Start                    End                     Rule
 ==========  =======================  ======================  ==========================================================
-boot        launch                   ``ready``               the dialect's ready line within ``cap_s`` (600 s); the
-                                                             banner version must match the arm
-idle        ``ready`` + 10 s         + 20 s                  no bots
-join        ``bots_start``           ``alljoined``           the bot's ``alljoined`` event within ``cap_s`` (300 s);
+boot        launch                   ``ready``               the dialect's ready line within ``cap_s``; the banner
+                                                             version must match the arm
+idle        ``ready`` + delay_s      + duration_s            no bots
+join        ``bots_start``           ``alljoined``           the bot's ``alljoined`` event within ``cap_s``;
                                                              ``bots_start`` is the end of idle plus ``pre_bots_s``
 settle      ``alljoined``            ``settled``             :mod:`bedrock_bench.settle`; re-teleports and nudges
 spread      ``settled``                                      effects to every player, positions read and checked
-steady      ``settled`` + 15 s       + 90 s                  only the tick probe is sent
+steady      ``settled`` + delay_s    + duration_s            only the tick probe is sent
 teardown    any failure or the end                           bots quit, server stop command, kill after a timeout,
                                                              crash collection
 ==========  =======================  ======================  ==========================================================
@@ -451,8 +451,8 @@ class Session:
 
     def _boot(self) -> None:
         spec = self.workload.phase("boot")
-        assert self.console is not None and spec is not None and self._launched_at is not None
-        deadline = self._launched_at + (spec.cap_s or float("inf"))
+        assert self.console is not None and spec.cap_s is not None and self._launched_at is not None
+        deadline = self._launched_at + spec.cap_s
         console = self.console
         while not console.ready.is_set():
             self._check_alive()
@@ -515,13 +515,12 @@ class Session:
 
     def _idle(self) -> None:
         spec = self.workload.phase("idle")
-        if spec is not None:
-            ready = self.marks["ready"]
-            assert ready is not None
-            self.sleep_until(ready + spec.delay_s)
-            idle0 = self.mark("idle0")
-            self.sleep_until(idle0 + (spec.duration_s or 0.0))
-            self.mark("idle1")
+        ready = self.marks["ready"]
+        assert ready is not None and spec.delay_s is not None and spec.duration_s is not None
+        self.sleep_until(ready + spec.delay_s)
+        idle0 = self.mark("idle0")
+        self.sleep_until(idle0 + spec.duration_s)
+        self.mark("idle1")
         self._record_census()
         self.save()
 
@@ -536,7 +535,7 @@ class Session:
 
     def _join(self) -> None:
         spec = self.workload.phase("join")
-        assert spec is not None and self.console is not None
+        assert spec.cap_s is not None and self.console is not None
         start = self.marks["idle1"] if self.marks["idle1"] is not None else self.marks["ready"]
         assert start is not None
         self.sleep_until(start + spec["pre_bots_s"])
@@ -555,7 +554,7 @@ class Session:
         assert fleet.pid is not None and self.samplers.machine is not None
         self.samplers.machine.add_root("bot", fleet.pid)
 
-        deadline = bots_start + (spec.cap_s or float("inf"))
+        deadline = bots_start + spec.cap_s
         joined = self._wait_bot_event("alljoined", deadline, "all bots joined")
         self.mark("alljoined", self.seconds(int(joined["rx_ns"])))
         self.save()
@@ -600,7 +599,7 @@ class Session:
     def _settle_phase(self) -> None:
         spec = self.workload.phase("settle")
         alljoined = self.marks["alljoined"]
-        assert spec is not None and alljoined is not None and self.fleet is not None and self.placer is not None
+        assert alljoined is not None and self.fleet is not None and self.placer is not None
         rules = SettleRules.from_phase(spec)
         settle = self._settle = Settle(rules, n=self.workload.bots.n, start=alljoined, grid=self.workload.grid)
         history = self.fleet.events()  # replay everything since bots_start
@@ -668,7 +667,7 @@ class Session:
 
     def _spread(self) -> None:
         spec = self.workload.phase("spread")
-        assert spec is not None and self.console is not None
+        assert self.console is not None
         timeout = float(spec["query_timeout_s"])
         for command in self.adapter.cmd_effects("@a"):
             self.console.send(command, origin="phase")
@@ -725,16 +724,14 @@ class Session:
 
     def _steady(self) -> None:
         spec = self.workload.phase("steady")
-        if spec is None:
-            return
         settled = self.marks["settled"]
-        assert settled is not None
+        assert settled is not None and spec.delay_s is not None and spec.duration_s is not None
         self._drain_console()
         self.sleep_until(max(settled + spec.delay_s, self.now()))
         steady0 = self.mark("steady0")
         self._verify_placement("steady0")
         self.save()
-        self.sleep_until(steady0 + (spec.duration_s or 0.0))
+        self.sleep_until(steady0 + spec.duration_s)
         self.mark("steady1")
         self._verify_placement("steady1")
         self.save()
@@ -751,7 +748,6 @@ class Session:
 
     def _teardown(self) -> None:
         spec = self.workload.phase("teardown")
-        options: Mapping[str, Any] = spec.options if spec is not None else {}
         self.mark("stop")
         if self.placer is not None:
             self.placer.enabled = False
@@ -759,7 +755,7 @@ class Session:
             self.probe.stop()
         if self.fleet is not None:
             code = self.fleet.stop(
-                quit_timeout_s=float(options.get("bot_quit_timeout_s", 10.0)), signal_timeout_s=BOT_SIGNAL_TIMEOUT_S
+                quit_timeout_s=float(spec["bot_quit_timeout_s"]), signal_timeout_s=BOT_SIGNAL_TIMEOUT_S
             )
             if code == bots.BotExit.USAGE:
                 self.result.reasons.append("harness_ok: the bot rejected its command line")
@@ -770,7 +766,7 @@ class Session:
 
         launched = self.launched
         if launched is not None:
-            stop_timeout = float(options.get("stop_timeout_s", 180.0))
+            stop_timeout = float(spec["stop_timeout_s"])
             stopped = False
             if launched.poll() is None and not self.died.is_set() and not self._kill_on_stop:
                 assert self.console is not None
@@ -840,8 +836,7 @@ class Session:
     def _collect_crash(self) -> list[str]:
         crash_dir = self.run_dir.file(CRASH_DIR)
         crash_dir.mkdir(exist_ok=True)
-        spec = self.workload.phase("teardown")
-        lines = int(spec["crash_log_lines"]) if spec is not None else 200
+        lines = int(self.workload.phase("teardown")["crash_log_lines"])
         if self.console is not None:
             tail = "".join(line.raw + "\n" for line in self.console.tail(lines))
             (crash_dir / LOG_TAIL_FILE).write_text(tail, encoding="utf-8", newline="\n")

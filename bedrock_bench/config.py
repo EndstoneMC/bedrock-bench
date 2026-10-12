@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Load and validate the TOML inputs: server files and machine profiles.
+"""Load and validate the TOML inputs: workload configs, server files and machine profiles.
 
 Every loader rejects unknown keys, so a typo fails loudly instead of falling back to a default. Failures raise
 :class:`ConfigError` naming the file and the dotted key; the CLI turns them into exit code 2.
@@ -40,6 +40,20 @@ from bedrock_bench.model import (
     OverrideCategory,
     sha256_json,
     to_json,
+)
+from bedrock_bench.settle import SettleRules
+from bedrock_bench.workload import (
+    PHASE_KEYS,
+    PHASE_TIMINGS,
+    PHASES,
+    BotParams,
+    Grid,
+    PhaseSpec,
+    ProbeParams,
+    RunParams,
+    ServerParams,
+    Workload,
+    WorldParams,
 )
 
 ENV_ROOT = "BBENCH_ROOT"
@@ -499,6 +513,148 @@ def _cpu_spec(keywords: tuple[str, ...]) -> Callable[[str], None]:
             parse_cpu_list(value)
 
     return check
+
+
+# --------------------------------------------------------------------------------------------------------------------
+# Workload configs
+# --------------------------------------------------------------------------------------------------------------------
+
+#: One TOML per workload. ``base = "<name>"`` inherits from ``configs/<name>.toml``.
+CONFIGS_DIR = "configs"
+
+_WORKLOAD_SECTIONS: dict[str, type] = {
+    "bots": BotParams,
+    "grid": Grid,
+    "world": WorldParams,
+    "server": ServerParams,
+    "probe": ProbeParams,
+    "run": RunParams,
+}
+_WORKLOAD_RULES: dict[str, dict[str, dict[str, Any]]] = {
+    "bots": {
+        "n": {"minimum": 1},
+        "stagger_ms": {"minimum": 0},
+        "radius": {"minimum": 1},
+        "walk": {"choices": ("circle", "none")},
+        "spawn_timeout_s": {"above": 0},
+        "join_retries": {"minimum": 0},
+        "progress_interval_s": {"above": 0},
+        "stat_interval_s": {"above": 0},
+        "pkt_interval_s": {"above": 0},
+        "probe_bots": {"minimum": 0},
+        "decode_errors": {"choices": ("count", "fail")},
+    },
+    "grid": {"columns": {"minimum": 1}, "spacing": {"minimum": 1}, "warn_offset_blocks": {"minimum": 0}},
+    "world": {"level_name": {"pattern": r"^[A-Za-z0-9_-]+$"}},
+    "server": {
+        "view_distance": {"minimum": 1},
+        "tick_distance": {"minimum": 1},
+        "difficulty": {"choices": ("peaceful", "easy", "normal", "hard")},
+        "gamemode": {"choices": ("survival", "creative", "adventure")},
+        "max_players": {"minimum": 1},
+        "autosave_ticks": {"minimum": 1},
+    },
+    "probe": {"interval_s": {"above": 0}, "max_gap_s": {"above": 0}, "lagging_p99_ms": {"above": 0}},
+    "run": {
+        "repeats": {"minimum": 1},
+        "order": {"check": validate_order},
+        "cooldown_s": {"minimum": 0},
+        "rerun_invalid": {"minimum": 0},
+    },
+}
+
+
+def available_configs() -> list[str]:
+    """Names of the configs in the project's configs/ folder."""
+    return sorted(p.stem for p in (project_root() / CONFIGS_DIR).glob("*.toml"))
+
+
+def config_path(ref: str | Path) -> Path:
+    """A config given by path, or by bare name: ``spread-100`` -> ``configs/spread-100.toml``."""
+    path = Path(ref)
+    if path.suffix != ".toml" and len(path.parts) == 1:
+        path = project_root() / CONFIGS_DIR / f"{ref}.toml"
+    if not path.is_file():
+        names = available_configs()
+        hint = f" (available: {', '.join(names)})" if names else ""
+        raise ConfigError(f"no such config{hint}", file=path)
+    return path
+
+
+def load_workload(ref: str | Path) -> Workload:
+    """Load a config with its bases merged under it, and validate the resolved values."""
+    path = config_path(ref)
+    if not NAME_RE.match(path.stem):
+        raise ConfigError("a config's file name must be lowercase letters, digits, '.', '_' and '-'", file=path)
+    data, chain = _merge_bases(path)
+    return parse_workload(data, name=path.stem, base=chain, file=path)
+
+
+def _merge_bases(path: Path) -> tuple[dict[str, Any], tuple[str, ...]]:
+    """The config's values deep-merged over its base's, and the base chain, nearest first."""
+    layers = [load_toml(path)]
+    files = [path]
+    chain: list[str] = []
+    while "base" in layers[-1]:
+        base = layers[-1].pop("base")
+        if not isinstance(base, str) or not NAME_RE.match(base):
+            raise ConfigError('must name a config in configs/, e.g. base = "spread"', file=files[-1], key="base")
+        base_path = project_root() / CONFIGS_DIR / f"{base}.toml"
+        if not base_path.is_file():
+            raise ConfigError(f"unknown base {base!r}: no {CONFIGS_DIR}/{base}.toml", file=files[-1], key="base")
+        if any(base_path.resolve() == f.resolve() for f in files):
+            cycle = " -> ".join([*(f.stem for f in files), base])
+            raise ConfigError(f"base chain has a cycle: {cycle}", file=files[-1], key="base")
+        layers.append(load_toml(base_path))
+        files.append(base_path)
+        chain.append(base)
+    merged: dict[str, Any] = {}
+    for layer in reversed(layers):
+        merged = deep_merge(merged, layer)
+    return merged, tuple(chain)
+
+
+def deep_merge(base: Mapping[str, Any], over: Mapping[str, Any]) -> dict[str, Any]:
+    """``over`` on top of ``base``: tables merge key by key, every other value replaces."""
+    merged = dict(base)
+    for key, value in over.items():
+        if isinstance(value, Mapping) and isinstance(merged.get(key), Mapping):
+            merged[key] = deep_merge(merged[key], value)
+        else:
+            merged[key] = value
+    return merged
+
+
+def parse_workload(
+    data: Mapping[str, Any], *, name: str, base: tuple[str, ...] = (), file: Path | None = None
+) -> Workload:
+    """A resolved config: every key required, none unknown."""
+    top = _Table(dict(data), file=file)
+    sections = {
+        key: cls(**_read_dataclass(top.table(key, required=True), cls, _WORKLOAD_RULES.get(key, {})))
+        for key, cls in _WORKLOAD_SECTIONS.items()
+    }
+    phases_table = top.table("phases", required=True)
+    phases = tuple(_read_phase(phases_table.table(phase, required=True), phase) for phase in PHASES)
+    phases_table.finish()
+    top.finish()
+    workload = Workload(name=name, base=base, phases=phases, **sections)
+    if workload.server.max_players < workload.bots.n:
+        raise top.error("server", "max_players must be at least bots.n")
+    if workload.bots.probe_bots > workload.bots.n:
+        raise top.error("bots", "probe_bots must not exceed n")
+    return workload
+
+
+def _read_phase(table: _Table, name: str) -> PhaseSpec:
+    if name == "settle":
+        keys = typing.get_type_hints(SettleRules)
+    else:
+        keys = dict(PHASE_KEYS[name])
+    values = {key: table.get(key, kind, minimum=0) for key, kind in keys.items()}
+    table.finish()
+    timings = {key: values.pop(key) for key in PHASE_TIMINGS if key in values}
+    return PhaseSpec(name, **timings, options=values)
 
 
 # --------------------------------------------------------------------------------------------------------------------

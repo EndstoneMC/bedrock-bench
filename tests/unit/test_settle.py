@@ -3,21 +3,41 @@
 
 from __future__ import annotations
 
-import math
+import dataclasses
 from typing import Any
 
 import pytest
 
 from bedrock_bench.grid import cell
 from bedrock_bench.settle import BotView, Nudge, Reteleport, Settle, SettleRules
-from bedrock_bench.workload import WORKLOAD, PhaseSpec
+from bedrock_bench.workload import Grid
+from workloads import WORKLOAD
 
 START = 100.0  # alljoined, seconds since the run origin
 N = 4
+GRID = Grid(columns=11, spacing=640, origin=1280, y=300.0, warn_offset_blocks=200.0)
+RULES = SettleRules(
+    min_s=300.0,
+    cap_s=900.0,
+    rate_per_bot=0.1,
+    rate_window_s=60.0,
+    eval_interval_s=5.0,
+    max_data_age_s=5.0,
+    min_view_frac=0.0,
+    view_complete_frac=0.95,
+    view_median_frac=0.5,
+    retp_after_s=20.0,
+    retp_max=3,
+    nudge_after_s=60.0,
+    nudge_min_y=290.0,
+    nudge_max_uniq=30,
+    nudge_max=2,
+    nudge_step=16.0,
+)
 
 
 def row(i: int, uniq: int, in_view: int | None = None, y: float | None = 70.0) -> list[Any]:
-    x, z = cell(i)
+    x, z = cell(i, GRID)
     position = [None, None, None, None] if y is None else [x + 0.5, y, z + 0.5, 0]
     return [f"a{i:02d}", uniq, uniq if in_view is None else in_view, *position, 0, 1]
 
@@ -27,7 +47,7 @@ def rows(uniq: int, *, y: float | None = 70.0, n: int = N) -> list[list[Any]]:
 
 
 def settle(**rules: Any) -> Settle:
-    return Settle(SettleRules(**rules), n=N, start=START)
+    return Settle(dataclasses.replace(RULES, **rules), n=N, start=START, grid=GRID)
 
 
 def placed(s: Settle, t: float, n: int = N, *, teleported: bool = True) -> None:
@@ -43,16 +63,11 @@ def placed(s: Settle, t: float, n: int = N, *, teleported: bool = True) -> None:
 
 
 class TestRules:
-    def test_defaults_match_the_workload(self) -> None:
+    def test_rules_come_from_the_settle_phase(self) -> None:
         spec = WORKLOAD.phase("settle")
-        assert spec is not None
-        assert SettleRules.from_phase(spec) == SettleRules()
-
-    def test_a_phase_without_cap_never_caps(self) -> None:
-        spec = PhaseSpec("settle", cap_s=None, options={"min_s": 10.0})
         rules = SettleRules.from_phase(spec)
-        assert rules.cap_s == math.inf
-        assert rules.min_s == 10.0
+        assert rules.cap_s == spec.cap_s
+        assert dataclasses.asdict(rules) == {"cap_s": spec.cap_s, **spec.options}
 
 
 class TestBotView:
@@ -246,7 +261,7 @@ class TestNudge:
         s = self.hovering()
         s.progress(START + 60, rows(5, y=300.0))
         first = s.evaluate(START + 60).actions
-        x, z = cell(0)
+        x, z = cell(0, GRID)
         assert first[0] == Nudge("a00", 0, x + 16.0, 300.0, z, 1)
         assert len(first) == N
         s.progress(START + 70, rows(5, y=300.0))
@@ -282,4 +297,4 @@ class TestNudge:
 
 def test_needs_a_bot() -> None:
     with pytest.raises(ValueError):
-        Settle(SettleRules(), n=0, start=0.0)
+        Settle(RULES, n=0, start=0.0, grid=GRID)

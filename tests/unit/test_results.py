@@ -32,8 +32,8 @@ from bedrock_bench.model import (
     WorldInfo,
 )
 from bedrock_bench.sampling.series import MACHINE_COLUMNS, JsonlWriter, SeriesWriter
-from bedrock_bench.workload import WORKLOAD
 from fixtures.runs import synthetic
+from workloads import WORKLOAD
 
 RUN_ID_PATTERN = re.compile(r"^[0-9]{8}T[0-9]{6}Z-[a-z][a-z0-9_]*@[0-9A-Za-z._+-]+-r[0-9]+-[0-9a-f]{4}$")
 UNIT_WORKLOAD = WORKLOAD

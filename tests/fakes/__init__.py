@@ -10,7 +10,7 @@ integration tests and the adapter contract test use them. Every module here is s
 - ``fake_bots.py``: a stand-in for ``loadbot`` with the same flags, stdin protocol, exit codes and JSONL events.
 - ``fake_adapter.py``: adapters (``fake_bds``, ``fake_endstone``, ...) that launch the fake server.
 - ``bench.py``: ``FakeBench``, a temporary workspace that runs ``bbench`` against the fakes.
-- ``fake-quick.json``: the workload of runs against the fakes, four bots and every phase scaled down to seconds.
+- ``fake-quick.toml``: the config of runs against the fakes, four bots and every phase scaled down to seconds.
 - ``scripts/*.json``: behaviour scripts, picked with ``$BBENCH_FAKE_BEHAVIOUR``.
 - ``servers/*/server.toml``: the ``[benchmark]`` table of each fake adapter.
 - ``test_fakes.py``: self-tests of all of the above.

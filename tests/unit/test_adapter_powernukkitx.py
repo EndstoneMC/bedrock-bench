@@ -14,7 +14,7 @@ from bedrock_bench.adapters.standalone import Runtime, yaml_scalars
 from bedrock_bench.cache import Cache
 from bedrock_bench.model import ArtifactRef, Install, LogLine, OverrideCategory, Placement, RunContext
 from bedrock_bench.provenance import sha256_file
-from bedrock_bench.workload import WORKLOAD, with_overrides
+from workloads import WORKLOAD, with_overrides
 
 ROOT = Path(__file__).resolve().parents[2]
 LOGS = ROOT / "tests" / "fixtures" / "logs"

@@ -1,0 +1,34 @@
+# SPDX-License-Identifier: Apache-2.0
+# A short check that a server runs end to end: 4 players, short phases, one run.
+base = "spread"
+
+[bots]
+n = 4
+spawn_timeout_s = 60.0
+pkt_interval_s = 10.0
+
+[server]
+view_distance = 4
+
+[phases.idle]
+delay_s = 5.0
+duration_s = 10.0
+
+[phases.join]
+cap_s = 120.0
+
+[phases.settle]
+cap_s = 60.0
+min_s = 30.0
+rate_window_s = 20.0
+nudge_after_s = 30.0
+
+[phases.steady]
+delay_s = 5.0
+duration_s = 20.0
+
+[phases.teardown]
+stop_timeout_s = 60.0
+
+[run]
+repeats = 1

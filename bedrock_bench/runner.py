@@ -10,15 +10,17 @@ is taken, the bot or the install is missing, or the machine is not idle. Once th
 is recorded, and the exit code is derived from the recorded status: 0 ok, 4 server failed, 5 invalid, 130
 interrupted. A server death can therefore never exit 0.
 
-``run`` is one session: the given tags, or every server's benchmark default, each run ``--repeats`` times. It plans
+Every command takes a config from configs/ as its first argument; the config holds the workload and the session
+settings (``[run]``).
+
+``run`` is one session: the given tags, or every server's benchmark default, each run ``repeats`` times. It plans
 the order (``rotate``: block ``k`` runs the servers rotated by ``k``; ``sequential``; or ``seeded:N``), takes the
-machine lock for the whole session, fetches every server, then starts one ``bbench run-one`` subprocess per run with a
-cooldown between runs. The runs share a session id and land in ``<out>/<session>/``. The child inherits the lock
-through :meth:`bedrock_bench.lock.MachineLock.child_env`. An ``invalid`` run is rerun up to ``--rerun-invalid`` times;
+machine lock for the whole session, fetches every server, then starts one ``bbench run-one`` subprocess per run with
+``cooldown_s`` between runs. The runs share a session id and land in ``<out>/<session>/``. The child inherits the lock
+through :meth:`bedrock_bench.lock.MachineLock.child_env`. An ``invalid`` run is rerun up to ``rerun_invalid`` times;
 ``server_failed`` is a result and never rerun. The session exits with the worst final status and writes the report.
 
-``smoke`` is ``run-one`` with the short smoke workload plus an adapter check: every harness command accepted
-without an error line.
+``smoke`` is ``run-one`` plus an adapter check: every harness command accepted without an error line.
 """
 
 from __future__ import annotations
@@ -51,8 +53,8 @@ from bedrock_bench.model import (
     RunContext,
     Status,
 )
-from bedrock_bench.phases import COMMAND_REPLY_S, Session, bot_command
-from bedrock_bench.workload import SMOKE, WORKLOAD, Workload, for_run, is_builtin
+from bedrock_bench.phases import COMMAND_REPLY_S, ENV_BOT_CMD, Session, bot_command
+from bedrock_bench.workload import Workload
 
 log = logging.getLogger(__name__)
 
@@ -107,7 +109,7 @@ def _request(args: argparse.Namespace) -> RunRequest:
         raise ConfigError(f"bad session id {args.session!r}")
     return RunRequest(
         arm=arm,
-        workload=for_run(WORKLOAD),
+        workload=config.load_workload(args.config),
         machine=config.load_machine(args.machine),
         session=args.session or results.make_session_id(),
         order=args.order,
@@ -184,8 +186,6 @@ def _measure(
         flags.add(Flag.UNPUBLISHED_ARTIFACT.value)
     if bot.override:
         nonstandard.append("bot_override")
-    if not is_builtin(workload):
-        nonstandard.append("test_workload")
     if harness["dirty"]:
         nonstandard.append("dirty_harness")
     origin = Origin.capture()
@@ -326,11 +326,23 @@ def tag_arm(tag: str) -> Arm:
     return default.arm if default.version == arm.version else arm
 
 
-def session_arms(tags: Sequence[str]) -> tuple[list[Arm], list[str]]:
+def bot_missing(adapter: ServerAdapter) -> str | None:
+    """Why the bot for the adapter's protocol is not available on this machine, or None."""
+    if os.environ.get(ENV_BOT_CMD):
+        return None
+    try:
+        module = bots.module_for_protocol(adapter.protocol)
+        found = bots.binary_path(module, bots.Target.host()).is_file()
+    except bots.BotError as exc:
+        return str(exc)
+    return None if found else f"no {module} bot; run 'bbench bots build' or 'bbench bots fetch'"
+
+
+def session_arms(tags: Sequence[str], machine: Machine) -> tuple[list[Arm], list[str]]:
     """The arms of a session and the servers left out, each with its reason.
 
-    With tags, exactly those. Without, every server's benchmark default, except a server marked ``include = false`` or
-    one that does not run on this platform.
+    With tags, exactly those. Without, every server's benchmark default, except a server marked ``include = false``,
+    one that does not run on this platform and one whose bot is not available.
     """
     if tags:
         arms = [tag_arm(tag) for tag in tags]
@@ -350,6 +362,10 @@ def session_arms(tags: Sequence[str]) -> tuple[list[Arm], list[str]]:
         platforms = adapters.get(default.server).platforms
         if here not in platforms:
             skipped.append(f"{arm.id}: runs on {', '.join(sorted(platforms))} only")
+            continue
+        missing = bot_missing(adapters.create(arm, machine))
+        if missing:
+            skipped.append(f"{arm.id}: {missing}")
             continue
         arms.append(arm)
     return arms, skipped
@@ -396,28 +412,28 @@ class _Progress:
 
 
 def run_session(args: argparse.Namespace) -> int:
-    """``bbench run [TAG ...]``: one session, one ``run-one`` subprocess per run, then the report."""
-    if args.repeats < 1:
-        raise ConfigError("--repeats must be at least 1")
-    if args.cooldown < 0:
-        raise ConfigError("--cooldown must not be negative")
-    if args.rerun_invalid < 0:
-        raise ConfigError("--rerun-invalid must not be negative")
-    arms, skipped = session_arms(args.tags)
+    """``bbench run CONFIG [TAG ...]``: one session, one ``run-one`` subprocess per run, then the report."""
+    config_file = config.config_path(args.config)
+    workload = config.load_workload(config_file)
+    machine = config.load_machine(args.machine)
+    arms, skipped = session_arms(args.tags, machine)
     for line in skipped:
         _say(f"skipping {line}")
     if not arms:
         raise ConfigError("no server to run")
-    machine = config.load_machine(args.machine)
     for arm in arms:
         check_platform(adapters.create(arm, machine))
-    plan = plan_order(arms, repeats=args.repeats, order=args.order)
+    settings = workload.run
+    plan = plan_order(arms, repeats=settings.repeats, order=settings.order)
     out = args.out or DEFAULT_OUT
     session = results.make_session_id()
     session_dir = out / session
 
     if args.dry_run:
-        print(f"session {session}: {len(plan)} runs, order {args.order}, results in {session_dir.as_posix()}")
+        print(
+            f"session {session}: {workload.name}, {len(plan)} runs, order {settings.order}, "
+            f"results in {session_dir.as_posix()}"
+        )
         print(PlannedRun.HEADER)
         for run in plan:
             print(run.describe())
@@ -429,12 +445,12 @@ def run_session(args: argparse.Namespace) -> int:
         _say(f"bbench run: the machine lock is held by {info.describe() if info else 'another process'}")
         return ExitCode.ENV_GATE
     try:
-        code = _prepare_session(plan, machine)
+        code = _prepare_session(plan, workload, machine)
         if code != ExitCode.OK:
             return code
-        _say(f"session {session}: {len(plan)} runs")
+        _say(f"session {session}: {workload.name}, {len(plan)} runs")
         progress = _Progress()
-        code = _execute_plan(args, session, plan, out, lock, progress)
+        code = _execute_plan(args, config_file, workload, session, plan, out, lock, progress)
     finally:
         lock.release()
     _summarize(session, progress)
@@ -442,7 +458,7 @@ def run_session(args: argparse.Namespace) -> int:
     return code
 
 
-def _prepare_session(plan: Sequence[PlannedRun], machine: Machine) -> int:
+def _prepare_session(plan: Sequence[PlannedRun], workload: Workload, machine: Machine) -> int:
     """Placement, pre-flight checks, bots and installs for every arm before the first run starts."""
     topology = host.detect_topology()
     try:
@@ -459,7 +475,7 @@ def _prepare_session(plan: Sequence[PlannedRun], machine: Machine) -> int:
     for arm in {run.arm.id: run.arm for run in plan}.values():
         adapter = adapters.create(arm, machine)
         try:
-            bot_command(adapter, WORKLOAD, machine)
+            bot_command(adapter, workload, machine)
             _say(f"fetching {arm.id}")
             adapter.fetch(cache)
         except (FetchError, bots.BotError) as exc:
@@ -468,10 +484,13 @@ def _prepare_session(plan: Sequence[PlannedRun], machine: Machine) -> int:
     return ExitCode.OK
 
 
-def _child_command(args: argparse.Namespace, session: str, run: PlannedRun, out: Path) -> list[str]:
+def _child_command(
+    args: argparse.Namespace, config_file: Path, workload: Workload, session: str, run: PlannedRun, out: Path
+) -> list[str]:
     command = [sys.executable, "-m", "bedrock_bench", *["-v"] * min(getattr(args, "verbose", 0), 2)]
     command += [
         "run-one",
+        str(config_file.resolve()),
         "--server",
         run.arm.ref,
         "--session",
@@ -481,7 +500,7 @@ def _child_command(args: argparse.Namespace, session: str, run: PlannedRun, out:
         "--order-index",
         str(run.order_index),
         "--order",
-        args.order,
+        workload.run.order,
         "--out",
         str(out),
     ]
@@ -496,6 +515,8 @@ def _child_command(args: argparse.Namespace, session: str, run: PlannedRun, out:
 
 def _execute_plan(
     args: argparse.Namespace,
+    config_file: Path,
+    workload: Workload,
     session: str,
     plan: Sequence[PlannedRun],
     out: Path,
@@ -503,17 +524,19 @@ def _execute_plan(
     progress: _Progress,
 ) -> int:
     env = {**os.environ, **lock.child_env()}
+    cooldown, rerun_invalid = workload.run.cooldown_s, workload.run.rerun_invalid
     started = False
     for run in plan:
         attempts = 0
         while True:
-            if started and args.cooldown > 0:
-                _say(f"cooldown {args.cooldown:g} s")
-                time.sleep(args.cooldown)
+            if started and cooldown > 0:
+                _say(f"cooldown {cooldown:g} s")
+                time.sleep(cooldown)
             started = True
             _say(f"[{run.order_index + 1}/{len(plan)}] {run.arm.id} r{run.repeat}")
             try:
-                code = subprocess.run(_child_command(args, session, run, out), env=env, check=False).returncode
+                command = _child_command(args, config_file, workload, session, run, out)
+                code = subprocess.run(command, env=env, check=False).returncode
             except KeyboardInterrupt:
                 _say("bbench run: interrupted")
                 return ExitCode.INTERRUPTED
@@ -523,9 +546,9 @@ def _execute_plan(
             if code not in (ExitCode.OK, ExitCode.SERVER_FAILED, ExitCode.INVALID):
                 log.error("run-one exited with unexpected code %s; counting the run as invalid", code)
                 code = ExitCode.INVALID
-            if code == ExitCode.INVALID and attempts < args.rerun_invalid:
+            if code == ExitCode.INVALID and attempts < rerun_invalid:
                 attempts += 1
-                _say(f"invalid run; rerunning ({attempts}/{args.rerun_invalid})")
+                _say(f"invalid run; rerunning ({attempts}/{rerun_invalid})")
                 continue
             progress.finals.append((run, code))
             break
@@ -578,13 +601,14 @@ def _write_report(session_dir: Path, skipped: Sequence[str]) -> None:
 
 
 def smoke(args: argparse.Namespace) -> int:
-    """``bbench smoke server@version``: a short strict run that checks an adapter end to end."""
+    """``bbench smoke CONFIG server@version``: a short strict run that checks an adapter end to end."""
     arm = config.arm_from_ref(args.server, artifact=args.artifact)
+    workload = config.load_workload(args.config)
     machine = config.load_machine(args.machine)
     adapter = adapters.create(arm, machine)
     request = RunRequest(
         arm=arm,
-        workload=for_run(SMOKE),
+        workload=workload,
         machine=machine,
         out=args.out or DEFAULT_OUT,
     )
@@ -633,6 +657,7 @@ __all__ = [
     "RunRequest",
     "RunResult",
     "backend",
+    "bot_missing",
     "check_platform",
     "execute",
     "plan_order",

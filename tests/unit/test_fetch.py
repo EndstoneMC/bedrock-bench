@@ -297,6 +297,7 @@ class TestCli:
         for name in adapters.names():
             monkeypatch.setattr(adapters.get(name), "fetch", fake_fetch)
         monkeypatch.setattr(runner, "host_os", lambda: "windows")
+        monkeypatch.setattr(runner, "bot_missing", lambda adapter: None)
         args = argparse.Namespace(tags=[], accept_eula=False, artifact_dir=None)
         assert fetch.fetch_cli(args) == ExitCode.ENV_GATE
         assert "endstone@0.11.14" in fetched and "levilamina@26.51.6" in fetched

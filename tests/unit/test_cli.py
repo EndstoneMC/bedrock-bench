@@ -80,46 +80,58 @@ class TestArguments:
     def test_run(self) -> None:
         args = parse(
             "run",
+            "configs/spread-50.toml",
             "bds@1.26.52.3",
             "endstone@0.11.14",
-            "--repeats",
-            "5",
-            "--order",
-            "seeded:7",
-            "--cooldown",
-            "0",
-            "--rerun-invalid",
-            "2",
             "--dry-run",
             "--machine",
             "box.toml",
             "--out",
             "out",
         )
+        assert args.config == "configs/spread-50.toml"
         assert args.tags == ["bds@1.26.52.3", "endstone@0.11.14"]
-        assert (args.repeats, args.order, args.cooldown, args.rerun_invalid) == (5, "seeded:7", 0.0, 2)
         assert args.dry_run and args.machine == Path("box.toml") and args.out == Path("out")
         assert args.entry == "runner:run_session"
 
     def test_run_defaults(self) -> None:
-        args = parse("run")
-        assert args.tags == [] and (args.repeats, args.order, args.cooldown, args.rerun_invalid) == (3, "rotate", 60, 1)
-        assert args.machine is None and args.out is None and not args.dry_run
+        args = parse("run", "configs/spread-100.toml")
+        assert args.tags == [] and args.machine is None and args.out is None and not args.dry_run
+
+    @pytest.mark.parametrize("command", [["run"], ["smoke"], ["run-one", "--server", "bds@1.26.52.3"]])
+    def test_the_config_is_required(self, command: list[str], capsys: pytest.CaptureFixture[str]) -> None:
+        with pytest.raises(SystemExit) as info:
+            parse(*command)
+        assert info.value.code == ExitCode.USAGE
+        assert "CONFIG" in capsys.readouterr().err
+
+    @pytest.mark.parametrize("option", ["--repeats", "--order", "--cooldown", "--rerun-invalid"])
+    def test_session_settings_live_in_the_config(self, option: str) -> None:
+        with pytest.raises(SystemExit):
+            parse("run", "configs/spread-100.toml", option, "1")
+
+    def test_run_one(self) -> None:
+        args = parse(
+            "run-one", "smoke", "--server", "endstone@0.11.14", "--repeat", "2", "--session", "S1", "--python", "3.13"
+        )
+        assert (args.config, args.server, args.repeat, args.session, args.python) == (
+            "smoke",
+            "endstone@0.11.14",
+            2,
+            "S1",
+            "3.13",
+        )
+        assert args.bds is None and args.order is None and args.order_index is None
 
     def test_bad_order(self, capsys: pytest.CaptureFixture[str]) -> None:
         with pytest.raises(SystemExit) as info:
-            parse("run", "--order", "shuffle")
+            parse("run-one", "smoke", "--server", "bds@1.26.52.3", "--order", "shuffle")
         assert info.value.code == ExitCode.USAGE
         assert "order must be" in capsys.readouterr().err
 
-    def test_run_one(self) -> None:
-        args = parse("run-one", "--server", "endstone@0.11.14", "--repeat", "2", "--session", "S1", "--python", "3.13")
-        assert (args.server, args.repeat, args.session, args.python) == ("endstone@0.11.14", 2, "S1", "3.13")
-        assert args.bds is None and args.order is None and args.order_index is None
-
     def test_run_one_needs_a_server(self) -> None:
         with pytest.raises(SystemExit) as info:
-            cli.main(["run-one"])
+            cli.main(["run-one", "smoke"])
         assert info.value.code == ExitCode.USAGE
 
     def test_fetch(self) -> None:
@@ -137,7 +149,8 @@ class TestArguments:
 
     def test_other_commands(self) -> None:
         assert parse("doctor", "--json").json
-        assert parse("smoke", "bds@1.26.52.3", "--artifact", "x.zip").artifact == Path("x.zip")
+        smoke = parse("smoke", "configs/smoke.toml", "bds@1.26.52.3", "--artifact", "x.zip")
+        assert (smoke.config, smoke.server, smoke.artifact) == ("configs/smoke.toml", "bds@1.26.52.3", Path("x.zip"))
         assert parse("analyze", "a", "b").run_dirs == [Path("a"), Path("b")]
         report = parse("report", "runs/s", "--format", "json", "--publish")
         assert (report.dir, report.format, report.publish) == (Path("runs/s"), "json", True)

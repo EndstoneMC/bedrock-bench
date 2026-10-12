@@ -10,8 +10,7 @@ into the cache like a verified download, ``prepare`` renders ``server.properties
 and ``$BBENCH_FAKE_BEHAVIOUR`` picks a behaviour script from ``scripts/``: ``<script>`` for every fake adapter, or
 ``<adapter>=<script>,...``::
 
-    BBENCH_TEST_WORKLOAD=tests/fakes/fake-quick.json BBENCH_FAKE_BEHAVIOUR=crash-after-join \
-        bbench run-one --server fake_bds@1.0.0
+    BBENCH_FAKE_BEHAVIOUR=crash-after-join bbench run-one configs/fake-quick.toml --server fake_bds@1.0.0
 """
 
 from __future__ import annotations

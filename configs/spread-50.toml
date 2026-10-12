@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# The reference setup with 50 players, for machines that cannot drive 100 bots.
+base = "spread"
+
+[bots]
+n = 50

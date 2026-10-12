@@ -200,7 +200,10 @@
     "origin_mono_ns": 5000000000000
   },
   "workload": {
-    "name": "benchmark",
+    "base": [
+      "spread"
+    ],
+    "name": "spread-100",
     "params": {
       "bots": {
         "decode_errors": "count",
@@ -225,85 +228,59 @@
         "warn_offset_blocks": 200.0,
         "y": 300.0
       },
-      "phases": [
-        {
-          "cap_s": 600.0,
-          "delay_s": 0.0,
-          "duration_s": null,
-          "name": "boot",
-          "options": {}
+      "phases": {
+        "boot": {
+          "cap_s": 600.0
         },
-        {
-          "cap_s": null,
+        "idle": {
           "delay_s": 10.0,
-          "duration_s": 20.0,
-          "name": "idle",
-          "options": {}
+          "duration_s": 20.0
         },
-        {
+        "join": {
           "cap_s": 300.0,
-          "delay_s": 0.0,
-          "duration_s": null,
-          "name": "join",
-          "options": {
-            "pre_bots_s": 0.0
-          }
+          "pre_bots_s": 0.0
         },
-        {
+        "settle": {
           "cap_s": 900.0,
-          "delay_s": 0.0,
-          "duration_s": null,
-          "name": "settle",
-          "options": {
-            "eval_interval_s": 5.0,
-            "max_data_age_s": 5.0,
-            "min_s": 60.0,
-            "min_view_frac": 0.0,
-            "nudge_after_s": 60.0,
-            "nudge_max": 2,
-            "nudge_max_uniq": 30,
-            "nudge_min_y": 290.0,
-            "nudge_step": 16.0,
-            "rate_per_bot": 0.1,
-            "rate_window_s": 60.0,
-            "retp_after_s": 20.0,
-            "retp_max": 3,
-            "view_complete_frac": 0.95,
-            "view_median_frac": 0.5
-          }
+          "eval_interval_s": 5.0,
+          "max_data_age_s": 5.0,
+          "min_s": 60.0,
+          "min_view_frac": 0.0,
+          "nudge_after_s": 60.0,
+          "nudge_max": 2,
+          "nudge_max_uniq": 30,
+          "nudge_min_y": 290.0,
+          "nudge_step": 16.0,
+          "rate_per_bot": 0.1,
+          "rate_window_s": 60.0,
+          "retp_after_s": 20.0,
+          "retp_max": 3,
+          "view_complete_frac": 0.95,
+          "view_median_frac": 0.5
         },
-        {
-          "cap_s": null,
-          "delay_s": 0.0,
-          "duration_s": null,
-          "name": "spread",
-          "options": {
-            "query_timeout_s": 10.0
-          }
+        "spread": {
+          "query_timeout_s": 10.0
         },
-        {
-          "cap_s": null,
+        "steady": {
           "delay_s": 15.0,
-          "duration_s": 90.0,
-          "name": "steady",
-          "options": {}
+          "duration_s": 90.0
         },
-        {
-          "cap_s": null,
-          "delay_s": 0.0,
-          "duration_s": null,
-          "name": "teardown",
-          "options": {
-            "bot_quit_timeout_s": 10.0,
-            "crash_log_lines": 200,
-            "stop_timeout_s": 180.0
-          }
+        "teardown": {
+          "bot_quit_timeout_s": 10.0,
+          "crash_log_lines": 200,
+          "stop_timeout_s": 180.0
         }
-      ],
+      },
       "probe": {
         "interval_s": 5.0,
         "lagging_p99_ms": 1000.0,
         "max_gap_s": 15.0
+      },
+      "run": {
+        "cooldown_s": 60.0,
+        "order": "rotate",
+        "repeats": 3,
+        "rerun_invalid": 1
       },
       "server": {
         "autosave_ticks": 6000,
@@ -320,7 +297,7 @@
         "seed": 20261010
       }
     },
-    "sha256": "b0041ba4d937fb443a5a171b9706a00939061b02a528e780f40d222628d1b862"
+    "sha256": "40389d2a6a87d3987d4c3d660813efb3a60e5a67425d0e77443a1249848f9290"
   },
   "world": {
     "fresh": true,

@@ -10,35 +10,35 @@ run's timebase, and asks for a decision; it never sends anything itself:
 - :meth:`Settle.progress`: a ``progress`` event with one row per bot;
 - :meth:`Settle.evaluate`: a :class:`Decision`, with the interventions to send now.
 
-**The rule.** ``rate`` is the growth of the bots' total unique chunks per second over the last
-``rate_window_s`` (60 s). Settle ends once at least ``min_s`` (300 s) have passed since ``alljoined`` and
-``rate / n <= rate_per_bot`` (0.1 chunks per bot per second), or at ``cap_s`` (900 s), which is flagged
-``settle_capped``. A decision is only taken on data at most ``max_data_age_s`` (5 s) old. With ``min_view_frac`` above
-0 the rule also waits until that share of the bots has at least ``view_median_frac`` of the median view.
+The settings come from the config's ``[phases.settle]`` table.
+
+**The rule.** ``rate`` is the growth of the bots' total unique chunks per second over the last ``rate_window_s``.
+Settle ends once at least ``min_s`` have passed since ``alljoined`` and ``rate / n <= rate_per_bot`` (chunks per bot
+per second), or at ``cap_s``, which is flagged ``settle_capped``. A decision is only taken on data at most
+``max_data_age_s`` old. With ``min_view_frac`` above 0 the rule also waits until that share of the bots has at least
+``view_median_frac`` of the median view.
 
 **Interventions** (settle only; counted per bot and recorded in run.json):
 
-- Re-teleport: a bot whose placement got no ``tp`` event within ``retp_after_s`` (20 s) gets its placement commands
-  again, at most ``retp_max`` (3) times.
-- Nudge: from ``nudge_after_s`` (60 s) on, a bot still hovering above ``nudge_min_y`` (290) with fewer than
-  ``nudge_max_uniq`` (30) unique chunks is teleported to ``(x + nudge_step * (k % 2), y, z)`` of its cell on its
-  ``k``-th nudge, at most ``nudge_max`` (2) times. A bot is never nudged within ``retp_after_s`` of its last placement
-  or nudge, so it has time to fall and load before it is judged again.
+- Re-teleport: a bot whose placement got no ``tp`` event within ``retp_after_s`` gets its placement commands again,
+  at most ``retp_max`` times.
+- Nudge: from ``nudge_after_s`` on, a bot still hovering above ``nudge_min_y`` with fewer than ``nudge_max_uniq``
+  unique chunks is teleported to ``(x + nudge_step * (k % 2), y, z)`` of its cell on its ``k``-th nudge, at most
+  ``nudge_max`` times. A bot is never nudged within ``retp_after_s`` of its last placement or nudge, so it has time to
+  fall and load before it is judged again.
 
-At ``settled`` the run is flagged ``views_incomplete`` when fewer than ``view_complete_frac`` (95%) of the bots have
-at least ``view_median_frac`` (half) of the median view.
+At ``settled`` the run is flagged ``views_incomplete`` when fewer than ``view_complete_frac`` of the bots have at least
+``view_median_frac`` of the median view.
 """
 
 from __future__ import annotations
 
-import dataclasses
-import math
 import statistics
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from bedrock_bench.grid import DEFAULT_GRID, cell
+from bedrock_bench.grid import cell
 from bedrock_bench.workload import Grid, PhaseSpec
 
 #: Tolerance for comparing times that come from the same clock, against float rounding.
@@ -47,32 +47,29 @@ _EPS = 1e-9
 
 @dataclass(frozen=True)
 class SettleRules:
-    """The settle phase's options, with their defaults."""
+    """The settings of the settle phase: exactly the keys of a config's ``[phases.settle]``."""
 
-    min_s: float = 300.0
-    cap_s: float = 900.0
-    rate_per_bot: float = 0.1
-    rate_window_s: float = 60.0
-    eval_interval_s: float = 5.0
-    max_data_age_s: float = 5.0
-    min_view_frac: float = 0.0
-    view_complete_frac: float = 0.95
-    view_median_frac: float = 0.5
-    retp_after_s: float = 20.0
-    retp_max: int = 3
-    nudge_after_s: float = 60.0
-    nudge_min_y: float = 290.0
-    nudge_max_uniq: int = 30
-    nudge_max: int = 2
-    nudge_step: float = 16.0
+    min_s: float
+    cap_s: float
+    rate_per_bot: float
+    rate_window_s: float
+    eval_interval_s: float
+    max_data_age_s: float
+    min_view_frac: float
+    view_complete_frac: float
+    view_median_frac: float
+    retp_after_s: float
+    retp_max: int
+    nudge_after_s: float
+    nudge_min_y: float
+    nudge_max_uniq: int
+    nudge_max: int
+    nudge_step: float
 
     @classmethod
     def from_phase(cls, spec: PhaseSpec) -> SettleRules:
-        """Rules from a resolved ``settle`` phase. A phase without a cap never caps."""
-        names = {f.name for f in dataclasses.fields(cls)}
-        values: dict[str, Any] = {k: v for k, v in spec.options.items() if k in names}
-        values["cap_s"] = math.inf if spec.cap_s is None else spec.cap_s
-        return cls(**values)
+        """Rules from a loaded ``settle`` phase."""
+        return cls(cap_s=spec.cap_s, **spec.options)
 
 
 @dataclass(frozen=True)
@@ -158,7 +155,7 @@ class _Bot:
 class Settle:
     """The settle state machine for one run. ``start`` is the ``alljoined`` time; ``n`` the workload's bot count."""
 
-    def __init__(self, rules: SettleRules, *, n: int, start: float, grid: Grid = DEFAULT_GRID) -> None:
+    def __init__(self, rules: SettleRules, *, n: int, start: float, grid: Grid) -> None:
         if n < 1:
             raise ValueError("Settle needs at least one bot")
         self.rules = rules

@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 """The spread grid: where each bot is placed, and whether the bots ended up one per cell (docs/methodology.md#workload).
 
-Bot ``i`` goes to ``cell(i) = (origin + (i % columns) * spacing, origin + (i // columns) * spacing)``. With the default
-spacing of 640 blocks (40 chunks, more than two view distances of 10) no two bots share a chunk, which is the worst
-case for a server: every player needs its own terrain generated, loaded, ticked and sent.
+Bot ``i`` goes to ``cell(i) = (origin + (i % columns) * spacing, origin + (i // columns) * spacing)``, with the values
+from the config's ``[grid]``. With a spacing of more than two view distances no two bots share a chunk, which is the
+worst case for a server: every player needs its own terrain generated, loaded, ticked and sent.
 
 After settle the harness reads every player's position and maps it to the nearest cell. The spread is valid when every
 joined bot occupies its own cell (``cells_occupied == joined`` and ``max_per_cell == 1``).
@@ -19,17 +19,15 @@ from typing import Any
 from bedrock_bench.model import PlayerPos
 from bedrock_bench.workload import Grid
 
-DEFAULT_GRID = Grid()
 
-
-def cell(i: int, grid: Grid = DEFAULT_GRID) -> tuple[int, int]:
+def cell(i: int, grid: Grid) -> tuple[int, int]:
     """``(x, z)`` of the cell of bot ``i``."""
     if i < 0:
         raise ValueError(f"bot index must not be negative, got {i}")
     return grid.origin + (i % grid.columns) * grid.spacing, grid.origin + (i // grid.columns) * grid.spacing
 
 
-def nearest_cell(x: float, z: float, n: int, grid: Grid = DEFAULT_GRID) -> tuple[int, float]:
+def nearest_cell(x: float, z: float, n: int, grid: Grid) -> tuple[int, float]:
     """The closest of the first ``n`` cells to ``(x, z)`` and the horizontal distance to that cell's point.
 
     Ties go to the lower index, so the answer never depends on iteration order.
@@ -58,7 +56,7 @@ class Spread:
         """One bot per cell and every joined bot accounted for."""
         return self.cells_occupied == joined and self.max_per_cell == 1
 
-    def offset_warning(self, grid: Grid = DEFAULT_GRID) -> bool:
+    def offset_warning(self, grid: Grid) -> bool:
         """True when a bot ended up further from its cell than the workload's warning threshold."""
         return self.worst_offset_blocks is not None and self.worst_offset_blocks > grid.warn_offset_blocks
 
@@ -73,9 +71,7 @@ class Spread:
         }
 
 
-def verify_spread(
-    positions: Iterable[PlayerPos | tuple[float, float, float]], n: int, grid: Grid = DEFAULT_GRID
-) -> Spread:
+def verify_spread(positions: Iterable[PlayerPos | tuple[float, float, float]], n: int, grid: Grid) -> Spread:
     """Map every position to the nearest of the first ``n`` cells and report the occupancy.
 
     Positions are :class:`~bedrock_bench.model.PlayerPos` or ``(x, y, z)`` tuples; only ``x`` and ``z`` count.
@@ -97,4 +93,4 @@ def verify_spread(
     )
 
 
-__all__ = ["DEFAULT_GRID", "Spread", "cell", "nearest_cell", "verify_spread"]
+__all__ = ["Spread", "cell", "nearest_cell", "verify_spread"]

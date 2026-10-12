@@ -18,7 +18,7 @@ import pytest
 from bedrock_bench import bots
 from bedrock_bench.bots import BotBinary, BotError, BotExit, BotFleet, Target, ToolchainError
 from bedrock_bench.config import ConfigError, load_schema
-from bedrock_bench.workload import BotParams
+from workloads import WORKLOAD
 
 GOLDEN = Path("bots") / "core" / "testdata" / "golden.jsonl"
 
@@ -96,7 +96,7 @@ def test_provenance_matches_the_run_schema() -> None:
 
 
 def test_bot_args_are_derived_from_the_workload_only() -> None:
-    params = BotParams(n=100, prefix="a", spawn_timeout_s=180.0)
+    params = WORKLOAD.bots
     a = bots.bot_args(params, addr="127.0.0.1:19672", csg=True)
     b = bots.bot_args(params, addr="127.0.0.1:19672", csg=True)
     assert a == b
@@ -112,7 +112,7 @@ def test_bot_args_are_derived_from_the_workload_only() -> None:
 
 
 def test_bot_args_compat_flags_are_allowlisted() -> None:
-    params = BotParams(n=4)
+    params = WORKLOAD.bots
     plain = bots.bot_args(params, addr="127.0.0.1:1", csg=False)
     xuid = bots.bot_args(params, addr="127.0.0.1:1", csg=False, compat_flags=["-fake-xuid"])
     assert xuid == [*plain, "-fake-xuid"]

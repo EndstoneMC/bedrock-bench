@@ -25,7 +25,7 @@ from bedrock_bench.model import (
     RunContext,
     ThreadInfo,
 )
-from bedrock_bench.workload import WORKLOAD, with_overrides
+from workloads import WORKLOAD, with_overrides
 
 ROOT = Path(__file__).resolve().parents[2]
 LOGS = ROOT / "tests" / "fixtures" / "logs"

@@ -37,10 +37,11 @@ from bedrock_bench.adapters.bdsfamily import BdsFamily
 from bedrock_bench.adapters.standalone import StandaloneServer
 from bedrock_bench.config import ConfigError, project_root
 from bedrock_bench.model import Layout, Machine, ThreadInfo, WorldInfo
-from bedrock_bench.workload import SMOKE, WORKLOAD, Workload
+from bedrock_bench.workload import Workload
 from fakes import fake_server
 from fakes.bench import fake_workload, register_entry_point
 from fakes.fake_adapter import FAKE_ADAPTERS, FakeAdapter, FakeBds
+from workloads import SMOKE, WORKLOAD
 
 ROOT = project_root()
 FIXTURE_LOGS = ROOT / "tests" / "fixtures" / "logs"
@@ -99,7 +100,7 @@ def fixture_lines(cls: type[ServerAdapter]) -> list[str]:
 
 
 def workloads_for(cls: type[ServerAdapter]) -> list[Workload]:
-    """The built-in workloads, and the fakes' own for fake adapters."""
+    """The reference and smoke configs, and the fakes' own for fake adapters."""
     return [WORKLOAD, SMOKE, fake_workload()] if is_fake(cls) else [WORKLOAD, SMOKE]
 
 

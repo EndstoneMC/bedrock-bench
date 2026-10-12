@@ -18,15 +18,15 @@ from typing import Any
 
 import pytest
 
-from bedrock_bench import runner
+from bedrock_bench import bots, runner
 from bedrock_bench.adapters.base import host_os
 from bedrock_bench.config import ConfigError, load_machine
 from bedrock_bench.grid import cell
 from bedrock_bench.model import Arm, LogLine
 from bedrock_bench.phases import ENV_BOT_CMD, Placer, bot_command
-from bedrock_bench.workload import SMOKE, WORKLOAD
 from fakes.fake_adapter import FakeBds
 from fixtures.runs import synthetic
+from workloads import CONFIGS, SMOKE, WORKLOAD, with_overrides
 
 
 def arms(*tags: str) -> list[Arm]:
@@ -75,9 +75,17 @@ class TestPlanOrder:
         assert [line.split()[2] for line in map(runner.PlannedRun.describe, plan)] == ["a@1", "b@1"]
 
 
+def session_arms(tags: list[str]) -> tuple[list[Arm], list[str]]:
+    return runner.session_arms(tags, load_machine(None))
+
+
 class TestSessionServers:
+    @pytest.fixture(autouse=True)
+    def _bots_available(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setattr(runner, "bot_missing", lambda adapter: None)
+
     def test_tags(self) -> None:
-        found, skipped = runner.session_arms(["bds@1.26.52.3", "pocketmine@5.44.3"])
+        found, skipped = session_arms(["bds@1.26.52.3", "pocketmine@5.44.3"])
         assert [arm.id for arm in found] == ["bds@1.26.52.3", "pocketmine@5.44.3"] and skipped == []
 
     def test_a_default_tag_brings_its_bds_and_python(self) -> None:
@@ -86,11 +94,11 @@ class TestSessionServers:
 
     def test_a_tag_twice(self) -> None:
         with pytest.raises(ConfigError, match="twice"):
-            runner.session_arms(["bds@1.26.52.3", "bds@1.26.52.3"])
+            session_arms(["bds@1.26.52.3", "bds@1.26.52.3"])
 
     def test_defaults_skip_excluded_and_foreign_platform_servers(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(runner, "host_os", lambda: "linux")
-        found, skipped = runner.session_arms([])
+        found, skipped = session_arms([])
         tags = [arm.id for arm in found]
         assert "bds@1.26.52.3" in tags and "endstone@0.11.14" in tags
         assert not any(tag.startswith(("chorus@", "levilamina@")) for tag in tags)
@@ -99,16 +107,37 @@ class TestSessionServers:
             "levilamina@26.51.6: runs on windows only",
         ]
         monkeypatch.setattr(runner, "host_os", lambda: "windows")
-        assert "levilamina@26.51.6" in [arm.id for arm in runner.session_arms([])[0]]
+        assert "levilamina@26.51.6" in [arm.id for arm in session_arms([])[0]]
+
+    def test_defaults_skip_servers_whose_bot_is_missing(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setattr(runner, "bot_missing", lambda a: "no legacy1001 bot" if a.name == "pocketmine" else None)
+        found, skipped = session_arms([])
+        assert not any(arm.server == "pocketmine" for arm in found)
+        assert "pocketmine@5.44.3: no legacy1001 bot" in skipped
+        found, skipped = session_arms(["pocketmine@5.44.3"])
+        assert [arm.id for arm in found] == ["pocketmine@5.44.3"] and skipped == []
+
+
+class TestBotMissing:
+    def adapter(self) -> FakeBds:
+        return FakeBds(Arm("fake_bds@1.0.0", "fake_bds", "1.0.0"), load_machine(None))
+
+    def test_no_binary(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        monkeypatch.delenv(ENV_BOT_CMD, raising=False)
+        monkeypatch.setattr(bots, "binary_path", lambda module, target: tmp_path / module)
+        assert runner.bot_missing(self.adapter()) == "no loadbot bot; run 'bbench bots build' or 'bbench bots fetch'"
+        (tmp_path / "loadbot").write_bytes(b"")
+        assert runner.bot_missing(self.adapter()) is None
+
+    def test_the_override_counts_as_a_bot(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv(ENV_BOT_CMD, json.dumps(["python", "fake_bots.py"]))
+        assert runner.bot_missing(self.adapter()) is None
 
 
 def run_args(**values: Any) -> argparse.Namespace:
     defaults = {
+        "config": str(CONFIGS / "spread-100.toml"),
         "tags": ["bds@1.26.52.3"],
-        "repeats": 3,
-        "order": "rotate",
-        "cooldown": 60.0,
-        "rerun_invalid": 1,
         "machine": None,
         "out": None,
         "dry_run": True,
@@ -119,31 +148,33 @@ def run_args(**values: Any) -> argparse.Namespace:
 
 class TestRunSession:
     def test_dry_run(self, capsys: pytest.CaptureFixture[str], tmp_path: Path) -> None:
-        args = run_args(tags=["bds@1.26.52.3", "pocketmine@5.44.3"], repeats=2, out=tmp_path)
+        config = tmp_path / "two.toml"
+        config.write_text('base = "spread-100"\n\n[run]\nrepeats = 2\n', encoding="utf-8")
+        out = tmp_path / "runs"
+        args = run_args(config=str(config), tags=["bds@1.26.52.3", "pocketmine@5.44.3"], out=out)
         assert runner.run_session(args) == 0
         lines = capsys.readouterr().out.splitlines()
-        assert lines[0].startswith("session ") and "4 runs, order rotate" in lines[0]
+        assert lines[0].startswith("session ") and "two, 4 runs, order rotate" in lines[0]
         assert [line.split()[2] for line in lines[2:]] == [
             "bds@1.26.52.3",
             "pocketmine@5.44.3",
             "pocketmine@5.44.3",
             "bds@1.26.52.3",
         ]
-        assert not any(tmp_path.iterdir()), "a dry run writes nothing"
+        assert not out.exists(), "a dry run writes nothing"
 
-    @pytest.mark.parametrize(
-        ("change", "message"),
-        [({"repeats": 0}, "--repeats"), ({"cooldown": -1.0}, "--cooldown"), ({"rerun_invalid": -1}, "--rerun-invalid")],
-    )
-    def test_bad_options(self, change: dict[str, Any], message: str) -> None:
-        with pytest.raises(ConfigError, match=message):
-            runner.run_session(run_args(**change))
+    def test_the_config_is_required(self) -> None:
+        with pytest.raises(ConfigError, match="no such config"):
+            runner.run_session(run_args(config="missing"))
 
     def test_child_command(self, tmp_path: Path) -> None:
         run = runner.PlannedRun(3, 2, runner.tag_arm("endstone@0.11.14"))
-        command = runner._child_command(run_args(order="seeded:4"), "S1", run, tmp_path)
+        workload = with_overrides(WORKLOAD, {"run": {"order": "seeded:4"}})
+        config_file = CONFIGS / "spread-100.toml"
+        command = runner._child_command(run_args(), config_file, workload, "S1", run, tmp_path)
         assert command[command.index("run-one") :] == [
             "run-one",
+            str(config_file.resolve()),
             "--server",
             "endstone@0.11.14",
             "--session",
@@ -170,6 +201,7 @@ class TestRunSession:
 
 def namespace(**values: Any) -> argparse.Namespace:
     defaults = {
+        "config": "spread-100",
         "server": None,
         "bds": None,
         "python": None,
@@ -289,7 +321,7 @@ class TestPlacer:
         placer.on_bot_event({"ev": "spawned", "bot": "a03", "i": 3, "session": 1})
         assert console.sent == []
         placer.on_line(self.in_world("a03"))
-        x, z = cell(3)
+        x, z = cell(3, SMOKE.grid)
         assert console.sent[-1] == f"tp a03 {x} 300 {z}"
         assert len(console.sent) == 5 and all(c.startswith("effect a03 ") for c in console.sent[:4])
         assert [(p.bot, p.index) for p in placer.snapshot()] == [("a03", 3)]

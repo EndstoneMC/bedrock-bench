@@ -40,7 +40,7 @@ from bedrock_bench.model import (
     ThreadSample,
     ThreadSeries,
 )
-from bedrock_bench.workload import WORKLOAD, with_overrides
+from workloads import WORKLOAD, with_overrides
 
 HERE = Path(__file__).resolve().parent
 NAMES = ("synthetic-steady", "synthetic-dip", "synthetic-death", "synthetic-midnight")
