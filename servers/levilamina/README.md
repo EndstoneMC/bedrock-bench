@@ -3,8 +3,7 @@
 [LeviLamina](https://github.com/LiteLDev/LeviLamina) is a mod loader for Bedrock Dedicated Server on Windows, written
 in C++ and licensed LGPL-3.0. A patched copy of Mojang's BDS executable loads PreLoader, which loads LeviLamina and its
 mods before the server starts, so gameplay is BDS's own. LeviLamina also routes the server's memory allocations through
-mimalloc and drops some malformed packets, so its parity rows in [`server.toml`](server.toml) are fidelity V1. It runs
-without mods such as LeviOptimize. Adapter: [`levilamina.py`](../../bedrock_bench/adapters/levilamina.py), built on the
+mimalloc and drops some malformed packets. It runs without mods such as LeviOptimize. Adapter: [`levilamina.py`](../../bedrock_bench/adapters/levilamina.py), built on the
 BDS behaviour in
 [`bdsfamily.py`](../../bedrock_bench/adapters/bdsfamily.py).
 

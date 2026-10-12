@@ -2,9 +2,8 @@
 
 [Endstone](https://github.com/EndstoneMC/endstone) is a plugin API for Bedrock Dedicated Server, written in C++ with
 Python bindings and licensed Apache-2.0. It runs Mojang's BDS binary of a fixed build through its own Python launcher
-(`python -m endstone`), so gameplay is BDS's own. From 0.11.14 it also replaces some server paths with faster ones that
-are meant to behave identically, so its parity rows in [`server.toml`](server.toml) are fidelity V0 for 0.11.13 and V1
-for 0.11.14. Endstone's own equivalence tests are not used as evidence. Adapter:
+(`python -m endstone`), so gameplay is BDS's own. 0.11.14 also replaces some server paths with faster ones that are
+meant to behave identically. Adapter:
 [`endstone.py`](../../bedrock_bench/adapters/endstone.py), built on the BDS behaviour in
 [`bdsfamily.py`](../../bedrock_bench/adapters/bdsfamily.py).
 
