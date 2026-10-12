@@ -40,8 +40,8 @@ save_player_data = true
 
 [probe]
 interval_s = 5.0                 # tick probe interval
-max_gap_s = 15.0                 # longest gap between probe replies before the run is invalid
-lagging_p99_ms = 1000.0          # p99 probe latency before the run is invalid
+max_gap_s = 60.0                 # longest gap between probe replies before the run is invalid (a stuck probe)
+lagging_p99_ms = 30000.0         # p99 probe latency before the run is invalid; a busy server answers late, not never
 
 [phases.boot]
 cap_s = 600.0                    # longest wait for the server to be ready

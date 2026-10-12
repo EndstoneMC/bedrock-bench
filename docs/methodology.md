@@ -130,9 +130,10 @@ are never read as zero players.
 **Tick probe.** Every 5 s the harness sends the server's tick command through a priority lane of the console writer,
 ahead of any queued command, and stamps each reply with its monotonic clock. TPS over a window is the counter
 difference divided by the reply-time difference at the window's edges (R8). The counter must advance during idle, which
-catches servers that only tick worlds with players in them. A gap of more than 15 s between replies, or a p99 reply
-time above 1000 ms in steady, makes the run invalid. Rates over spans shorter than a window are dominated by reply
-jitter and are never reported alone.
+catches servers that only tick worlds with players in them. A busy server answers the probe late, since most servers
+run console commands on the tick thread, so the limits only catch a stuck probe: a gap of more than 60 s between
+replies, or a p99 reply time above 30 s in steady, makes the run invalid. Rates over spans shorter than a window are
+dominated by reply jitter and are never reported alone.
 
 | Sampler | Rate | Source |
 |---|---|---|
