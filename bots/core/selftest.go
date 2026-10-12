@@ -3,8 +3,8 @@
 package core
 
 // Selftest writes one event of every kind with synthetic values, using the same types the fleet uses. The harness
-// validates this output against schemas/bot-event.schema.json, so a field the schema does not know fails a test
-// instead of a benchmark run.
+// validates this output against bedrock_bench/schemas/bot-event.schema.json, so a field the schema does not know
+// fails a test instead of a benchmark run.
 func Selftest(em *Emitter, build BuildInfo, flags map[string]any, intervals Intervals) {
 	if build.Patches == nil {
 		build.Patches = []string{}

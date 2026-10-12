@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// EventVersion is the value of the "v" field of every event (schemas/bot-event.schema.json).
+// EventVersion is the value of the "v" field of every event (bedrock_bench/schemas/bot-event.schema.json).
 const EventVersion = 1
 
 // Event names.

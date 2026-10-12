@@ -3,9 +3,9 @@
 """A stand-in for the ``loadbot`` binary, for tests only.
 
 It takes the loadbot command line (SPEC.md section 5.2), joins the fake server over its JSON-lines TCP protocol (see
-``README.md`` in this folder) and writes loadbot's JSONL events (``schemas/bot-event.schema.json``) to stdout. Chunk
-delivery, movement corrections and the packet mix follow the rates the fake server sends at spawn, so the numbers
-come from the server's behaviour script rather than from the bot.
+``README.md`` in this folder) and writes loadbot's JSONL events (``bedrock_bench/schemas/bot-event.schema.json``) to
+stdout. Chunk delivery, movement corrections and the packet mix follow the rates the fake server sends at spawn, so
+the numbers come from the server's behaviour script rather than from the bot.
 
 stdin takes ``quit`` and, with ``-control``, JSON operations. ``quit``, end of input, SIGINT, SIGTERM and CTRL_BREAK
 all stop the bots cleanly: ``left`` per online bot, ``bot_summary`` per bot that joined, a final ``stat``, ``done``.

@@ -120,7 +120,7 @@ def project_root() -> Path:
     override = os.environ.get(ENV_ROOT)
     if override:
         return Path(override).expanduser().resolve()
-    candidate = Path(__file__).resolve().parents[2]
+    candidate = Path(__file__).resolve().parents[1]
     if (candidate / "pyproject.toml").is_file() and (candidate / "scenarios").is_dir():
         return candidate
     return Path.cwd()

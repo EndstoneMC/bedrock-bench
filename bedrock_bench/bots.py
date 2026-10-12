@@ -2,9 +2,9 @@
 """The load bot, seen from the harness: build or download it, find it, and run a fleet of bots.
 
 The bot is a Go program under ``bots/`` (see ``bots/README.md``). One process runs every bot of a run, writes JSON
-lines to stdout (``schemas/bot-event.schema.json``) and takes commands on stdin. :class:`BotFleet` starts it, stamps
-every event with the harness monotonic clock on receipt (``rx_ns``) and stops it cleanly: ``quit`` on stdin first,
-so the bot can write its per-bot summaries, then an interrupt, then a kill.
+lines to stdout (``bedrock_bench/schemas/bot-event.schema.json``) and takes commands on stdin. :class:`BotFleet`
+starts it, stamps every event with the harness monotonic clock on receipt (``rx_ns``) and stops it cleanly: ``quit``
+on stdin first, so the bot can write its per-bot summaries, then an interrupt, then a kill.
 
 Rule R2 (one bot source, identical flags for every arm) is enforced by :func:`bot_args`: the arguments are derived
 from the scenario alone, and only allowlisted compatibility flags may be added per adapter.

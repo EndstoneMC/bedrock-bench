@@ -14,7 +14,7 @@ import pytest
 from bedrock_bench import lock
 from bedrock_bench.lock import ENV_TOKEN, LockHeld, MachineLock, holder
 
-SRC = Path(__file__).resolve().parents[2] / "src"
+SRC = Path(__file__).resolve().parents[2]
 
 CHILD = """
 import sys, time

@@ -42,10 +42,10 @@ dev = [
 ]
 
 [tool.hatch.version]
-path = "src/bedrock_bench/__init__.py"
+path = "bedrock_bench/__init__.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/bedrock_bench"]
+packages = ["bedrock_bench"]
 
 [tool.hatch.build.targets.sdist]
 exclude = ["/legacy", "/runs", "/cache", "/bots/bin"]
@@ -65,7 +65,7 @@ markers = [
 [tool.ruff]
 line-length = 120
 target-version = "py311"
-src = ["src", "tests"]
+src = [".", "tests"]
 extend-exclude = ["legacy"]
 
 [tool.ruff.lint]

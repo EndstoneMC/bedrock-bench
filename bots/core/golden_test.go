@@ -15,7 +15,7 @@ import (
 var update = flag.Bool("update", false, "rewrite testdata/golden.jsonl")
 
 // TestSelftestGolden pins the exact event output. tests/unit/test_bots.py validates the same file against
-// schemas/bot-event.schema.json, which ties the Go types to the schema.
+// bedrock_bench/schemas/bot-event.schema.json, which ties the Go types to the schema.
 func TestSelftestGolden(t *testing.T) {
 	var buf bytes.Buffer
 	build := BuildInfo{

@@ -7,14 +7,14 @@ on:
     paths:
       - bots/**
       - servers/dragonfly/**
-      - schemas/bot-event.schema.json
+      - bedrock_bench/schemas/bot-event.schema.json
       - .github/scripts/build-go.sh
       - .github/workflows/bots.yml
   pull_request:
     paths:
       - bots/**
       - servers/dragonfly/**
-      - schemas/bot-event.schema.json
+      - bedrock_bench/schemas/bot-event.schema.json
       - .github/scripts/build-go.sh
       - .github/workflows/bots.yml
   workflow_call:
