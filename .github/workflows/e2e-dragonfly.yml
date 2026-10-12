@@ -8,6 +8,7 @@ on:
     paths:
       - bedrock_bench/**
       - bots/**
+      - configs/**
       - servers/dragonfly/**
       - pyproject.toml
       - uv.lock
@@ -17,6 +18,7 @@ on:
     paths:
       - bedrock_bench/**
       - bots/**
+      - configs/**
       - servers/dragonfly/**
       - pyproject.toml
       - uv.lock
@@ -51,9 +53,9 @@ jobs:
           cache-dependency-path: |
             bots/*/go.sum
             servers/dragonfly/go.sum
-      - name: Pinned Dragonfly version
+      - name: Dragonfly's benchmark default
         run: |
-          version=$(uv run python -c 'from bedrock_bench.config import load_artifacts; print(list(load_artifacts("dragonfly").versions)[-1])')
+          version=$(uv run python -c 'from bedrock_bench.config import load_benchmark; print(load_benchmark("dragonfly").version)')
           echo "DRAGONFLY=dragonfly@$version" >>"$GITHUB_ENV"
       - name: Build the load bot
         run: uv run bbench bots build --module loadbot
