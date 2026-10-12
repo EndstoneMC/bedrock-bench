@@ -11,6 +11,7 @@ from pathlib import Path
 
 import pytest
 
+from bedrock_bench import cli
 from bedrock_bench.report import export
 from fixtures.runs import synthetic
 
@@ -97,3 +98,11 @@ def test_metrics_nobody_measured_are_empty_cells(tmp_path: Path) -> None:
     assert (rows[0]["runs_ok"], rows[0]["runs_total"]) == ("0", "1")
     assert rows[0]["tps_median"] == rows[0]["chunks_per_player_max"] == ""
     assert read(tmp_path / export.TPS_CSV)[1] == []
+
+
+def test_bbench_report_writes_the_csv_files_next_to_report_md(tmp_path: Path) -> None:
+    for name in synthetic.NAMES:
+        shutil.copytree(synthetic.HERE / name, tmp_path / name)
+    cli.main(["report", str(tmp_path)])
+    for name in ("report.md", export.SUMMARY_CSV, export.TPS_CSV, export.VIEW_LOAD_CSV):
+        assert (tmp_path / name).is_file()

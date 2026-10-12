@@ -71,7 +71,7 @@ def write(
     publish: bool = False,
     features: FeatureLookup | None = default_features,
 ) -> Report:
-    """Write ``summary.json``, ``report.md`` and the figure CSVs into ``matrix_dir``. Run directories are never touched."""
+    """Write ``summary.json``, ``report.md`` and the CSV files into ``matrix_dir``. Run directories are not touched."""
     matrix_dir = Path(matrix_dir)
     summary, text, problems = build(matrix_dir, publish=publish, features=features)
     summary_path = matrix_dir / SUMMARY_FILE
