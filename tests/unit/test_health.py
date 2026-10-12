@@ -233,4 +233,4 @@ def test_log_counts_follow_levels_and_the_benign_list(steady: tuple[RunData, dic
 
 
 def test_module_exports() -> None:
-    assert health.RECORDED_GATES == (Gate.HARNESS_OK, Gate.CONFIG_READBACK)
+    assert health.RECORDED_GATES == (Gate.HARNESS_OK, Gate.CONFIG_READBACK, Gate.SERVER_ALIVE)

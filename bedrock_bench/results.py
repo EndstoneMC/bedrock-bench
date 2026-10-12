@@ -506,8 +506,8 @@ def finalize(
     from bedrock_bench import metrics
     from bedrock_bench.provenance import Scrubber
 
-    recorded = list(dict.fromkeys(reasons))
     scrubber = Scrubber(dict(scrub_roots or {}))
+    recorded = [scrubber.text(reason) for reason in dict.fromkeys(reasons)]
     record = scrubber(record)
     leaks = scrubber.leaks(record)
     if leaks:
@@ -526,8 +526,8 @@ def finalize(
         doc = metrics.compute(load_run(run_dir.path))
     except Exception as exc:  # a formula bug must not lose the run; it is recorded as a harness fault
         log.exception("metrics computation failed")
-        recorded.append(f"harness_ok: metrics computation failed: {type(exc).__name__}: {exc}")
-        record["status_reasons"] = [scrubber.text(r) for r in recorded]
+        recorded.append(scrubber.text(f"harness_ok: metrics computation failed: {type(exc).__name__}: {exc}"))
+        record["status_reasons"] = recorded
         record["status"] = Status.INVALID.value
         record["exit_code"] = int(ExitCode.INVALID)
         run_dir.write_run(record)

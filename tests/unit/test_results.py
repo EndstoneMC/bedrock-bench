@@ -340,8 +340,21 @@ class TestFinalize:
         outcome, run_path = self.finalize(
             tmp_path, "synthetic-steady", reasons=[f"harness_ok: cannot read {secret / 'x.txt'}"]
         )
-        text = (run_path / "run.json").read_text(encoding="utf-8")
-        assert str(tmp_path) not in text and str(tmp_path).replace("\\", "/") not in text
+
+        def strings(node: Any) -> list[str]:
+            if isinstance(node, str):
+                return [node]
+            if isinstance(node, dict):
+                return [s for key, value in node.items() for s in (key, *strings(value))]
+            if isinstance(node, list):
+                return [s for item in node for s in strings(item)]
+            return []
+
+        secrets = (str(tmp_path), str(tmp_path).replace("\\", "/"))
+        for name in ("run.json", "metrics.json"):
+            doc = json.loads((run_path / name).read_text(encoding="utf-8"))
+            leaked = [s for s in strings(doc) if any(secret in s for secret in secrets)]
+            assert not leaked, (name, leaked)
         assert any("x.txt" in reason for reason in outcome.reasons)
 
     def test_flags_are_recorded(self, tmp_path: Path) -> None:

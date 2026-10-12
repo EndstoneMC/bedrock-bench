@@ -251,6 +251,6 @@ A run is `invalid` if any invalid-level gate fails, else `server_failed` if an o
 | `world_fresh` | invalid | world dir absent before launch, or a template scenario with its template hash recorded |
 | `config_readback` | invalid | parity keys read back after the run equal what was written (recorded by the runner) |
 | `interventions_in_measured` | invalid | interventions_in_measured = 0 |
-| `server_alive` | server_failed | the server did not exit before teardown and exited with 0 after stop |
+| `server_alive` | server_failed | the server ran until teardown and exited with 0 on stop, without being killed |
 | `joined_all` | server_failed | joined = the scenario's bot count (reported as joined/n) |
 | `dropped` | warning | dropped = 0 outside chaos; a nonzero count adds the dropped flag |

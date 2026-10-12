@@ -4,9 +4,9 @@
 ``evaluate`` reads the computed metrics, run.json and the scenario; it never re-reads raw series. A gate on a window
 the run never reached is skipped, so a server that dies during join is a ``server_failed`` result, not an invalid run.
 
-Some facts only exist while the run is live: a harness exception, or a parity key that read back differently after
-shutdown. The runner records those as ``"<gate>: <detail>"`` entries in run.json ``status_reasons``; they are kept
-on every recompute (``RECORDED_GATES``).
+Some facts only exist while the run is live: a harness exception, a parity key that read back differently after
+shutdown, or a server that ignored its stop command and was killed. The runner records those as
+``"<gate>: <detail>"`` entries in run.json ``status_reasons``; they are kept on every recompute (``RECORDED_GATES``).
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ from typing import Any
 from bedrock_bench.model import Flag, Gate, Gates, RunData, Scenario, Status
 
 #: Gates whose failures only the live runner can see; their recorded reasons survive a recompute.
-RECORDED_GATES = (Gate.HARNESS_OK, Gate.CONFIG_READBACK)
+RECORDED_GATES = (Gate.HARNESS_OK, Gate.CONFIG_READBACK, Gate.SERVER_ALIVE)
 MEASURED = ("load", "steady", "chaos")
 
 
@@ -62,7 +62,7 @@ GATES: tuple[GateDef, ...] = (
         Gate.CONFIG_READBACK, "parity keys read back after the run equal what was written (recorded by the runner)"
     ),
     GateDef(Gate.INTERVENTIONS_IN_MEASURED, "interventions_in_measured = 0"),
-    GateDef(Gate.SERVER_ALIVE, "the server did not exit before teardown and exited with 0 after stop"),
+    GateDef(Gate.SERVER_ALIVE, "the server ran until teardown and exited with 0 on stop, without being killed"),
     GateDef(Gate.JOINED_ALL, "joined = the scenario's bot count (reported as joined/n)"),
     GateDef(Gate.DROPPED, "dropped = 0 outside chaos; a nonzero count adds the dropped flag"),
 )

@@ -808,16 +808,20 @@ class Session:
         launched = self.launched
         if launched is not None:
             stop_timeout = float(options.get("stop_timeout_s", 180.0))
+            stopped = False
             if launched.poll() is None and not self.died.is_set() and not self._kill_on_stop:
                 assert self.console is not None
                 stop = self.console.send(self.adapter.dialect.stop_cmd, origin="phase")
                 if not stop.wait(EXIT_GRACE_S):
                     launched.interrupt()  # the console no longer takes input
                 launched.wait(stop_timeout)
+                stopped = True
             elif launched.poll() is None and self.died.is_set():
                 launched.wait(EXIT_GRACE_S)
             if launched.poll() is None or (self.server is not None and _running(self.server)):
                 log.warning("killing the server process tree")
+                if stopped:
+                    self.result.reasons.append(f"server_alive: still running {stop_timeout:g} s after stop; killed")
                 launched.kill_tree()
         if self.death is not None:
             self.death.stop()

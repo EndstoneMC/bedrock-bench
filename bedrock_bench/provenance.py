@@ -349,7 +349,7 @@ def _root_pattern(path: str) -> str:
     if path.startswith(("\\\\", "//")):
         return r"[\\/]{2}" + body
     if path.startswith(("/", "\\")):
-        return r"(?<![\w.])[\\/]" + body
+        return r"(?<![\w.>])[\\/]" + body
     return r"(?<![A-Za-z0-9])" + body
 
 

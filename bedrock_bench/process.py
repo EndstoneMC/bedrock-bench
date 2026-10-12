@@ -144,8 +144,9 @@ class Launched:
                 proc.kill()
             except psutil.Error:
                 pass
-        psutil.wait_procs(alive, timeout=timeout_s)
+        # Popen reaps its own child, so the exit code is kept; psutil would reap it first and leave Popen with 0.
         self.wait(timeout_s)
+        psutil.wait_procs([p for p in alive if p.pid != self.pid], timeout=timeout_s)
         return [p.pid for p in alive]
 
     def close(self) -> None:
