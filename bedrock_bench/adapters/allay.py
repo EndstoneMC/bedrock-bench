@@ -8,8 +8,7 @@ world's tick counter) and ``positions``, and starts Allay's console on piped std
 the JDK reports a console.
 
 Prepare writes ``server-settings.yml``, which Allay completes and rewrites on start, and ``worlds/world-settings.yml``
-with one flat overworld named after the level. Allay generates only flat and void worlds, so its runs are flagged
-``terrain_mismatch``.
+with one flat overworld named after the level. Allay generates only flat and void worlds.
 
 Launch: ``java -Xms<heap> -Xmx<heap> ... -Dsentry.dsn= -jar allay.jar``. The world ticks on its own thread,
 ``World Thread #<level>``, found with ``jcmd``. The 0.14 line speaks protocol 1001 (Minecraft 1.26.30), so it gets the

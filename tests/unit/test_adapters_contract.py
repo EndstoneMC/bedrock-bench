@@ -1,9 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """The server adapter contract, checked for every registered adapter and every fake adapter.
 
-Per adapter: the class attributes, the dialect against fixture log lines, well-formed commands, bot flags inside the
-allowlist, and a feature file that covers every key the workload exercises. The last section covers the shared code in
-``adapters/base.py`` and the registry.
+Per adapter: the class attributes, the dialect against fixture log lines, well-formed commands and bot flags inside the
+allowlist. The last section covers the shared code in ``adapters/base.py`` and the registry.
 
 Fixture lines come from ``tests/fixtures/logs/<name>*`` (any text file) for real adapters and from
 ``fake_server.sample_log`` for the fakes.

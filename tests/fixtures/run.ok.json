@@ -114,7 +114,7 @@
   },
   "workload": {
     "name": "benchmark",
-    "sha256": "2e938143fc978fd56b6608394ce25b39517254bb47dd6280428838c5fcf9c513",
+    "sha256": "0e7e4be82e73bfeb823585c8a3b6149b08f889146bdb672546f03c33fd97d24a",
     "params": {
       "bots": {
         "n": 100,

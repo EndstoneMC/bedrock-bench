@@ -208,7 +208,7 @@ class TestServerFile:
             (server_file("x", BENCHMARK, head="schema = 2\n"), r"schema: only schema = 1 is supported"),
             (server_file("x", BENCHMARK, head=""), r"schema: is required"),
             (server_file("x", ARTIFACTS), r"benchmark: is required"),
-            (server_file("x", BENCHMARK + "[features]\n"), r"features: unknown key"),
+            (server_file("x", BENCHMARK + "[extra]\n"), r"extra: unknown key"),
             (server_file("x", 'benchmark = "none"\n'), r"benchmark: expected a table"),
         ],
     )

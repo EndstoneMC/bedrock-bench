@@ -69,7 +69,7 @@ _RELEASE = re.compile(r"\d+(?:\.\d+)+")
 
 class PnxDialect(Dialect):
     """Release jars report ``3.0.5-SNAPSHOT (git-9813b75)``, read as ``3.0.5``. Nightly jars report
-    ``nightly-SNAPSHOT (git-86f70bc)``, read as ``nightly.86f70bc``, so one ``nightly`` feature range covers them all.
+    ``nightly-SNAPSHOT (git-86f70bc)``, read as ``nightly.86f70bc``.
     """
 
     def parse_version(self, text: str) -> str | None:

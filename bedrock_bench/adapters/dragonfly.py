@@ -11,7 +11,7 @@ next to the binary. See servers/dragonfly/README.md.
   Every other key keeps the build's default, and each written value that differs from its default is an override.
 - Console: Go's standard log format with a level; ``gametime`` reads the overworld's tick counter, ``positions``
   lists every player, and ``Player spawned: <name>`` is printed once a player is in the world.
-- Dragonfly only generates flat worlds, so its runs are flagged ``terrain_mismatch``.
+- Dragonfly only generates flat worlds.
 - A Go program has no tick thread to single out; only process CPU is reported.
 """
 
