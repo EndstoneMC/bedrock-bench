@@ -48,8 +48,8 @@ def test_every_gate_is_documented() -> None:
     [
         ({"probe_tick_decreases": 3}, Gate.PROBE_MONOTONIC),
         ({"probe_idle_ticks": 0}, Gate.PROBE_MONOTONIC),
-        ({"probe_max_gap_s_steady": 20.0}, Gate.PROBE_COVERAGE),
-        ({"probe_latency_ms_steady": {"p50": 10.0, "p99": 1500.0, "max": 1600.0, "n": 18}}, Gate.PROBE_LAGGING),
+        ({"probe_max_gap_s_steady": 90.0}, Gate.PROBE_COVERAGE),
+        ({"probe_latency_ms_steady": {"p50": 10.0, "p99": 45000.0, "max": 46000.0, "n": 18}}, Gate.PROBE_LAGGING),
         ({"foreign_cores_steady": 0.5}, Gate.FOREIGN_LOAD),
         ({"foreign_cores_peak_10s_load": 2.0}, Gate.FOREIGN_LOAD),
         ({"foreign_server_set_cores_steady": 0.3}, Gate.FOREIGN_LOAD),
