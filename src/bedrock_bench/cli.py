@@ -53,8 +53,9 @@ def _order(value: str) -> str:
 def _add_machine(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--machine",
-        metavar="M",
-        help="machine profile: a name in machines/ or a path (default: built-in defaults, CPU sets auto)",
+        type=Path,
+        metavar="FILE",
+        help="machine profile TOML (default: built-in defaults, CPU sets auto)",
     )
 
 
@@ -130,7 +131,7 @@ def _configure_analyze(p: argparse.ArgumentParser) -> None:
 def _configure_report(p: argparse.ArgumentParser) -> None:
     p.add_argument("matrix_dir", type=Path, metavar="MATRIX_DIR")
     p.add_argument("--format", choices=("md", "json"), default="md")
-    p.add_argument("--claims", metavar="CLAIMS", help="claims file or name to check")
+    p.add_argument("--claims", type=Path, metavar="FILE", help="claims TOML to check")
     p.add_argument(
         "--publish",
         action="store_true",

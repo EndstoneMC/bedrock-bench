@@ -46,7 +46,7 @@ from typing import IO, Any
 
 from bedrock_bench import ANALYSIS_VERSION, METRICS_SCHEMA, RUN_SCHEMA, SCHEMA_MINOR
 from bedrock_bench.clock import NS_PER_S, Origin, utc_compact
-from bedrock_bench.config import ConfigError, load_features, load_schema, project_root
+from bedrock_bench.config import ConfigError, load_features, load_schema, parse_claims, project_root
 from bedrock_bench.model import (
     MARKS,
     ExitCode,
@@ -670,7 +670,11 @@ def _check_document(path: Path, validators: _Validators) -> tuple[list[str], int
             data = tomllib.loads(path.read_text(encoding="utf-8"))
             if "claim" not in data:
                 return [f"{where}: no schema for this TOML file (only claims files are validated)"], 0
-            return validators.errors("claims", data, where), 1
+            try:
+                parse_claims(data, file=path)
+            except ConfigError as exc:
+                return [str(exc)], 1
+            return [], 1
         document = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError, EOFError, tomllib.TOMLDecodeError) as exc:
         return [f"{where}: cannot read: {exc}"], 0

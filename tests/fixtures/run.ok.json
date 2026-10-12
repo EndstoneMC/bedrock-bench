@@ -34,23 +34,23 @@
   "artifacts": [
     {
       "name": "bedrock-server-1.26.52.3.zip",
-      "url": "https://www.minecraft.net/bedrockdedicatedserver/bin-win/bedrock-server-1.26.52.3.zip",
-      "sha256": "0973ad571de450584cfdc5bde5621e5f010d3d5f3b58a7dfb692749ea57056f6",
+      "url": "https://example.invalid/bedrock-server-1.26.52.3.zip",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
       "size": 123456789,
       "source": "mojang"
     },
     {
       "name": "endstone-0.11.14-cp313-cp313-win_amd64.whl",
-      "url": "https://files.pythonhosted.org/packages/endstone-0.11.14-cp313-cp313-win_amd64.whl",
-      "sha256": "4c6f2c73f9f59ad8bb0dd368e206fc1104116fd701d36b6c87f2d8aa4e6d97b6",
+      "url": "https://example.invalid/endstone-0.11.14-cp313-cp313-win_amd64.whl",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
       "size": 23456789,
       "source": "pypi"
     }
   ],
   "install": {
-    "tree_sha256": "dc9c5edb8b2d479e697b4b0b8ab874f32b325138598ce9e7b759eb8292110622",
-    "exe_sha256_before": "9095bdb859308b62acf04036ffd4adfe366d7f737d276eb6c46ae434f3816c9b",
-    "exe_sha256_after": "9095bdb859308b62acf04036ffd4adfe366d7f737d276eb6c46ae434f3816c9b"
+    "tree_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "exe_sha256_before": "0000000000000000000000000000000000000000000000000000000000000000",
+    "exe_sha256_after": "0000000000000000000000000000000000000000000000000000000000000000"
   },
   "server": {
     "pid": 12345,
@@ -89,12 +89,12 @@
   "config_files": [
     {
       "path": "server.properties",
-      "written_sha256": "b264807709578e5c5fee1de72a80ab0dab5692bfcee892db3a58e0e9b0d63c72",
-      "after_sha256": "b264807709578e5c5fee1de72a80ab0dab5692bfcee892db3a58e0e9b0d63c72"
+      "written_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "after_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
     }
   ],
   "parity": {
-    "file_sha256": "5b8a8b56dada6ce7567442b4935298df7de2badd7becdcf4915a59487338ca4b",
+    "file_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
     "range": "0.11",
     "row": {
       "terrain.vanilla_generator": "vanilla",
@@ -111,7 +111,7 @@
   "bot": {
     "module": "loadbot",
     "protocol": 2193,
-    "sha256": "75410280889e4a70dcb1283602b1eee43739f072c981e9fc52884222b38f576d",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
     "version": "0.1.0",
     "vcs": "1a2b3c4",
     "go": "go1.26.3",
@@ -313,7 +313,7 @@
     "virtualized": false,
     "power": "High performance",
     "tsc_hz_calibrated": null,
-    "profile_sha256": "e2117902a6160d376d5dc211b18153b162124cdf234b6ded56308dfde1a7a449"
+    "profile_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
   },
   "placement": {
     "server_cpus": [
@@ -436,15 +436,15 @@
   },
   "files": {
     "server.log.gz": {
-      "sha256": "836ff184e7b41b1e13cb5fd89fa1de98dbbab99e9d2918913ff43b86a5c7c213",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
       "bytes": 81234
     },
     "bots.jsonl.gz": {
-      "sha256": "10b8ecc0d7ffa69355fc2ad96eae450ee66556bf2f10dba7dc85a2fbcddcdea1",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
       "bytes": 912345
     },
     "series/probe.csv": {
-      "sha256": "ba9c736f19e7f60b7f6764adb0b7908c0a2b394e09b6c09863528c7f2bc86095",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
       "bytes": 4567
     }
   }

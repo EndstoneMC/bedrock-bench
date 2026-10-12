@@ -369,10 +369,19 @@ def validate(capsys: pytest.CaptureFixture[str]) -> Callable[..., tuple[int, str
 
 
 class TestValidate:
-    def test_schema_examples(self, validate: Callable[..., tuple[int, str]]) -> None:
-        examples = project_root() / "schemas" / "examples"
-        code, output = validate(*sorted(examples.iterdir()))
+    def test_fixture_files(self, validate: Callable[..., tuple[int, str]]) -> None:
+        root = project_root()
+        fixtures = root / "tests" / "fixtures"
+        paths = (fixtures / "run.ok.json", fixtures / "metrics.json", fixtures / "claims.toml")
+        code, output = validate(*paths, root / "bots" / "core" / "testdata" / "golden.jsonl")
         assert code == ExitCode.OK, output
+
+    def test_a_bad_claims_file_is_reported(self, tmp_path: Path, validate: Callable[..., tuple[int, str]]) -> None:
+        claims = tmp_path / "claims.toml"
+        claims.write_text('schema = 1\nmatrix = "m"\n[[claim]]\nid = "a"\ntext = "t"\n', encoding="utf-8")
+        code, output = validate(claims)
+        assert code == ExitCode.INVALID
+        assert "claim[0].expr: is required" in output
 
     def test_fixture_run_directories(self, validate: Callable[..., tuple[int, str]]) -> None:
         code, output = validate(synthetic.HERE)

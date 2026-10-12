@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Claims: the expression whitelist, verdicts, and the shipped claims files."""
+"""Claims: the expression whitelist, verdicts, and loading a claims file."""
 
 from __future__ import annotations
 
@@ -236,30 +236,27 @@ class TestEvaluate:
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# Shipped claims files
+# Claims files
 # --------------------------------------------------------------------------------------------------------------------
 
-
-def _shipped() -> list[Path]:
-    return sorted((config.project_root() / "claims").glob("*.toml"))
+FIXTURE = config.project_root() / "tests" / "fixtures" / "claims.toml"
 
 
-@pytest.mark.parametrize("path", _shipped(), ids=lambda p: p.stem)
-def test_shipped_claims_are_valid(path: Path, schema_validator: Any) -> None:
-    claims = config.load_claims(path)
+def test_fixture_against_a_synthetic_matrix() -> None:
+    claims = config.load_claims(FIXTURE)
     check_claims(claims)
-    assert claims.matrix == path.stem
-    assert list(schema_validator("claims").iter_errors(config.load_toml(path))) == []
-
-
-def test_endstone_claims_against_a_synthetic_matrix() -> None:
-    claims = config.load_claims("endstone-0.11.14-csg")
-    where = {"matrix": "endstone-0.11.14-csg", "scenario": "spread100-csg"}
+    where = {"matrix": "fixture", "scenario": "spread100-csg"}
     verdicts = {r["id"]: r["verdict"] for r in evaluate(claims, summary(**where))["results"]}
     assert verdicts == {
-        "endstone-0.11.14-steady-tps": "pass",
-        "endstone-0.11.14-vs-vanilla-tps": "pass",
-        "endstone-0.11.14-tick-cpu": "pass",
+        "endstone-steady-tps": "pass",
+        "endstone-vs-vanilla-tps": "pass",
+        "endstone-tick-cpu": "pass",
     }
     elsewhere = {r["id"]: r["verdict"] for r in evaluate(claims, summary(label="laptop", **where))["results"]}
-    assert elsewhere["endstone-0.11.14-tick-cpu"] == "inconclusive"
+    assert elsewhere["endstone-tick-cpu"] == "inconclusive"
+
+
+def test_claims_are_loaded_by_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(ConfigError, match="no such claims file"):
+        config.load_claims("fixture")

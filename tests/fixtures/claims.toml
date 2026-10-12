@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: Apache-2.0
+# A claims file with made-up figures, checked against the synthetic matrices in test_claims.py and test_report.py.
+schema = 1
+matrix = "fixture"
+
+[[claim]]
+id = "endstone-steady-tps"
+text = "endstone@0.11.14 holds at least 19 TPS"
+scenario = "spread100-csg"
+expr = "median('endstone@0.11.14', 'tps_window_steady') >= 19"
+source = "https://example.invalid/claims"
+
+[[claim]]
+id = "endstone-vs-vanilla-tps"
+text = "endstone@0.11.14 ticks at least 1.5 times as fast as bds@1.26.52.3"
+scenario = "spread100-csg"
+expr = "ratio('endstone@0.11.14', 'bds@1.26.52.3', 'tps_window_steady') >= 1.5"
+inconclusive_if = "median('bds@1.26.52.3', 'tps_window_steady') >= 19"
+
+[[claim]]
+id = "endstone-tick-cpu"
+text = "endstone@0.11.14 spends at most 50 ms of tick-thread CPU per tick"
+scenario = "spread100-csg"
+machine = "reference"
+expr = "median('endstone@0.11.14', 'tick_cpu_ms_per_tick_steady') <= 50"

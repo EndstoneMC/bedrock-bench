@@ -3,13 +3,13 @@ from __future__ import annotations
 
 import copy
 import json
-import tomllib
 from pathlib import Path
 from typing import Any
 
 import pytest
 
-from bedrock_bench import BOT_SCHEMA, METRICS_SCHEMA, RUN_SCHEMA, SCHEMA_VERSION, config
+from bedrock_bench import BOT_SCHEMA, METRICS_SCHEMA, RUN_SCHEMA, SCHEMA_VERSION
+from bedrock_bench.config import load_schema
 from bedrock_bench.model import (
     ARTIFACT_SOURCES,
     PLACEMENT_KINDS,
@@ -22,12 +22,12 @@ from bedrock_bench.model import (
     sha256_json,
 )
 
-SCHEMAS = ("run", "metrics", "bot-event", "claims")
+SCHEMAS = ("run", "metrics", "bot-event")
 
 
 @pytest.fixture(scope="module")
-def examples(project_root: Path) -> Path:
-    return project_root / "schemas" / "examples"
+def fixtures(project_root: Path) -> Path:
+    return project_root / "tests" / "fixtures"
 
 
 def load_json(path: Path) -> Any:
@@ -38,9 +38,17 @@ def errors(validator: Any, instance: Any) -> list[str]:
     return [e.message for e in validator.iter_errors(instance)]
 
 
+def partial_run(run: dict[str, Any]) -> dict[str, Any]:
+    """run.partial.json as the runner writes it right after the server is ready."""
+    keep = ("schema", "analysis_version", "run_id", "matrix", "harness", "arm", "scenario", "time")
+    partial = {key: copy.deepcopy(run[key]) for key in keep}
+    partial.update(partial=True, status=None, marks={"ready": run["marks"]["ready"]})
+    return partial
+
+
 @pytest.fixture(scope="module")
-def run_example(examples: Path) -> dict[str, Any]:
-    return load_json(examples / "run.ok.json")
+def run_example(fixtures: Path) -> dict[str, Any]:
+    return load_json(fixtures / "run.ok.json")
 
 
 @pytest.mark.parametrize("name", SCHEMAS)
@@ -48,17 +56,17 @@ def test_schema_is_valid(schema_validator, name: str) -> None:
     schema_validator(name)  # check_schema runs inside the fixture
 
 
-def test_schema_ids_match_constants(project_root: Path) -> None:
+def test_schema_ids_match_constants() -> None:
     def const(name: str) -> Any:
-        return load_json(project_root / "schemas" / f"{name}.schema.json")["properties"]
+        return load_schema(name)["properties"]
 
     assert const("run")["schema"]["const"] == RUN_SCHEMA
     assert const("metrics")["schema"]["const"] == METRICS_SCHEMA
     assert const("bot-event")["v"]["const"] == SCHEMA_VERSION == int(BOT_SCHEMA.rsplit("/", 1)[1])
 
 
-def test_schema_enums_match_model(project_root: Path) -> None:
-    run = load_json(project_root / "schemas" / "run.schema.json")
+def test_schema_enums_match_model() -> None:
+    run = load_schema("run")
     props, defs = run["properties"], run["$defs"]
     assert defs["status"]["enum"] == [s.value for s in Status]
     assert props["overrides"]["items"]["properties"]["category"]["enum"] == [c.value for c in OverrideCategory]
@@ -67,7 +75,8 @@ def test_schema_enums_match_model(project_root: Path) -> None:
     assert props["parity"]["properties"]["fidelity"]["enum"][:-1] == [f.value for f in Fidelity]
     assert props["placement"]["properties"]["priority"]["enum"] == list(PRIORITIES)
     assert props["placement"]["properties"]["kind"]["enum"] == list(PLACEMENT_KINDS)
-    metrics = load_json(project_root / "schemas" / "metrics.schema.json")
+    assert props["harness"]["properties"]["backend"]["enum"] == ["native-windows", "native-linux"]
+    metrics = load_schema("metrics")
     assert metrics["$defs"]["metric"]["properties"]["availability"]["enum"] == [a.value for a in Availability]
 
 
@@ -77,10 +86,10 @@ def test_schema_enums_match_model(project_root: Path) -> None:
 
 
 class TestRun:
-    def test_examples_validate(self, schema_validator, examples: Path) -> None:
+    def test_fixture_validates(self, schema_validator, run_example: dict) -> None:
         validator = schema_validator("run")
-        for name in ("run.ok.json", "run.partial.json"):
-            assert errors(validator, load_json(examples / name)) == [], name
+        assert errors(validator, run_example) == []
+        assert errors(validator, partial_run(run_example)) == []
 
     def test_example_scenario_hash_is_consistent(self, run_example: dict) -> None:
         scenario = run_example["scenario"]
@@ -99,8 +108,8 @@ class TestRun:
         sparse.update(status="invalid", status_reasons=["harness_ok"], flags=[], exit_code=5)
         assert errors(schema_validator("run"), sparse) == []
 
-    def test_final_run_needs_status(self, schema_validator, examples: Path) -> None:
-        partial = load_json(examples / "run.partial.json")
+    def test_final_run_needs_status(self, schema_validator, run_example: dict) -> None:
+        partial = partial_run(run_example)
         del partial["partial"]
         assert errors(schema_validator("run"), partial)
         partial.update(status="server_failed", status_reasons=["server_alive"], flags=[], exit_code=4)
@@ -157,8 +166,8 @@ class TestRun:
 
 
 class TestMetrics:
-    def test_example_validates(self, schema_validator, examples: Path) -> None:
-        assert errors(schema_validator("metrics"), load_json(examples / "metrics.json")) == []
+    def test_fixture_validates(self, schema_validator, fixtures: Path) -> None:
+        assert errors(schema_validator("metrics"), load_json(fixtures / "metrics.json")) == []
 
     @pytest.mark.parametrize(
         "metric",
@@ -171,13 +180,13 @@ class TestMetrics:
             {"value": 1, "unit": "tps", "availability": "estimated"},
         ],
     )
-    def test_metric_rules(self, schema_validator, examples: Path, metric: dict) -> None:
-        doc = load_json(examples / "metrics.json")
+    def test_metric_rules(self, schema_validator, fixtures: Path, metric: dict) -> None:
+        doc = load_json(fixtures / "metrics.json")
         doc["metrics"]["tps_window_steady"] = metric
         assert errors(schema_validator("metrics"), doc)
 
-    def test_metric_id_format(self, schema_validator, examples: Path) -> None:
-        doc = load_json(examples / "metrics.json")
+    def test_metric_id_format(self, schema_validator, fixtures: Path) -> None:
+        doc = load_json(fixtures / "metrics.json")
         doc["metrics"]["TPS-steady"] = {"value": 1, "unit": "tps", "availability": "measured"}
         assert errors(schema_validator("metrics"), doc)
 
@@ -187,28 +196,11 @@ class TestMetrics:
 # --------------------------------------------------------------------------------------------------------------------
 
 
-@pytest.fixture(scope="module")
-def lines(examples: Path) -> list[dict[str, Any]]:
-    text = (examples / "bot-events.jsonl").read_text(encoding="utf-8")
-    return [json.loads(line) for line in text.splitlines() if line.strip()]
-
-
 class TestBotEvents:
-    def test_examples_validate(self, schema_validator, lines: list[dict]) -> None:
-        validator = schema_validator("bot-event")
-        for line in lines:
-            assert errors(validator, line) == [], line["ev"]
-
-    def test_examples_cover_every_core_event(self, project_root: Path, lines: list[dict]) -> None:
-        schema = load_json(project_root / "schemas" / "bot-event.schema.json")
-        seen = {line["ev"] for line in lines}
-        lifecycle = {"died", "respawned", "dim", "left", "dropped", "rejoin", "kicked"}
-        missing = set(schema["properties"]["ev"]["enum"]) - seen - lifecycle
-        assert not missing
-        assert seen & lifecycle
-
-    def test_harness_receipt_stamp_allowed(self, schema_validator, lines: list[dict]) -> None:
-        assert errors(schema_validator("bot-event"), {**lines[1], "rx_ns": 123456789}) == []
+    def test_harness_receipt_stamp_allowed(self, schema_validator) -> None:
+        dial = {"v": 1, "ev": "dial", "t": 1791813526400, "mono_ms": 2100, "bot": "a07", "i": 7}
+        assert errors(schema_validator("bot-event"), dial) == []
+        assert errors(schema_validator("bot-event"), {**dial, "rx_ns": 123456789}) == []
 
     @pytest.mark.parametrize(
         "event",
@@ -240,30 +232,3 @@ class TestBotEvents:
     )
     def test_rejects(self, schema_validator, event: dict) -> None:
         assert errors(schema_validator("bot-event"), event)
-
-
-# --------------------------------------------------------------------------------------------------------------------
-# claims
-# --------------------------------------------------------------------------------------------------------------------
-
-
-class TestClaims:
-    def test_example_validates_and_loads(self, schema_validator, examples: Path) -> None:
-        path = examples / "claims.toml"
-        data = tomllib.loads(path.read_text(encoding="utf-8"))
-        assert errors(schema_validator("claims"), data) == []
-        assert len(config.load_claims(path).claims) == len(data["claim"])
-
-    @pytest.mark.parametrize(
-        "data",
-        [
-            {"schema": 2, "matrix": "m", "claim": [{"id": "a", "text": "t", "expr": "x"}]},
-            {"schema": 1, "matrix": "m", "claim": []},
-            {"schema": 1, "matrix": "m", "claim": [{"id": "a", "text": "t"}]},
-            {"schema": 1, "matrix": "m", "claim": [{"id": "a", "text": "t", "expr": "x", "weight": 1}]},
-        ],
-    )
-    def test_rejects(self, schema_validator, data: dict) -> None:
-        assert errors(schema_validator("claims"), data)
-        with pytest.raises(config.ConfigError):
-            config.parse_claims(data)

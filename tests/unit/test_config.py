@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
+import dataclasses
 import textwrap
 from pathlib import Path
 
@@ -8,7 +9,7 @@ import pytest
 
 from bedrock_bench import config
 from bedrock_bench.config import ConfigError
-from bedrock_bench.model import FeatureClass, Fidelity, Machine, OverrideCategory
+from bedrock_bench.model import FeatureClass, Fidelity, Gates, Machine, OverrideCategory
 
 MINIMAL_SCENARIO = {"server": {"csg": False}}
 
@@ -383,30 +384,25 @@ class TestMachine:
         m = config.load_machine(None)
         assert isinstance(m, Machine)
         assert (m.server_cpus, m.bot_cpus, m.harness_cpus, m.priority) == ("auto", "auto", "bot", "normal")
-        assert (m.runtime, m.port, m.jvm_heap, m.label) == ("native", 19672, "8G", "default")
+        assert (m.port, m.jvm_heap, m.label) == (19672, "8G", "default")
         assert m.gates.foreign_cores_mean == 0.25 and m.gates.bot_cpu_frac_max == 0.85
 
-    def test_load(self, write_file) -> None:
-        path = write_file(
-            "machines/ref.toml",
-            toml(
-                """
-                [placement]
-                server_cpus = "0-15"
-                bot_cpus = "16-27"
-                priority = "above_normal"
-                [runtime]
-                kind = "docker"
-                port = 20000
-                jvm_heap = "4G"
-                [gates]
-                idle_check_s = 30
-                """
-            ),
-        )
+    def test_every_key(self, project_root: Path) -> None:
+        path = project_root / "tests" / "fixtures" / "machine.toml"
+        assert set(config.load_toml(path)["gates"]) == {f.name for f in dataclasses.fields(Gates)}
         m = config.load_machine(path)
-        assert m.label == "ref" and m.server_cpus == "0-15" and m.runtime == "docker" and m.port == 20000
-        assert m.gates.idle_check_s == 30
+        assert (m.label, m.server_cpus, m.bot_cpus, m.harness_cpus) == ("lab", "0-15", "16-27", "bot")
+        assert (m.priority, m.port, m.jvm_heap) == ("above_normal", 20000, "4G")
+        assert m.gates == Gates(30.0, 0.5, 2.0, 0.5, 0.9)
+
+    def test_label_defaults_to_the_file_name(self, write_file) -> None:
+        m = config.load_machine(write_file("box.toml", '[runtime]\nport = 20000\n'))
+        assert m.label == "box" and m.port == 20000
+
+    def test_load_takes_a_path(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.chdir(tmp_path)
+        with pytest.raises(ConfigError, match="no such machine profile"):
+            config.load_machine("reference")
 
     @pytest.mark.parametrize(
         ("data", "message"),
@@ -418,7 +414,7 @@ class TestMachine:
             ({"placement": {"priority": "high"}}, r"priority: must be one of normal, above_normal"),
             ({"runtime": {"port": 80}}, r"port: must be >= 1024"),
             ({"runtime": {"jvm_heap": "8GB"}}, r"jvm_heap: invalid value"),
-            ({"runtime": {"kind": "podman"}}, r"kind: must be one of"),
+            ({"runtime": {"kind": "native"}}, r"runtime\.kind: unknown key"),
             ({"gates": {"foreign_cores_mean": -1}}, r"must be >= 0"),
             ({"gates": {"cpu": 1}}, r"gates\.cpu: unknown key"),
         ],
@@ -626,11 +622,12 @@ class TestFeatures:
 
 
 class TestClaims:
-    def test_example_file(self, project_root: Path) -> None:
-        claims = config.load_claims(project_root / "schemas" / "examples" / "claims.toml")
-        assert claims.matrix == "endstone-0.11.14" and len(claims.claims) == 3
+    def test_fixture_file(self, project_root: Path) -> None:
+        claims = config.load_claims(project_root / "tests" / "fixtures" / "claims.toml")
+        assert claims.matrix == "fixture" and len(claims.claims) == 3
         ratio = claims.claims[1]
-        assert ratio.inconclusive_if is not None and ratio.scenario == "spread100"
+        assert ratio.inconclusive_if is not None and ratio.scenario == "spread100-csg"
+        assert claims.claims[0].source == "https://example.invalid/claims"
         assert claims.claims[2].machine == "reference"
 
     @pytest.mark.parametrize(
@@ -653,6 +650,10 @@ class TestClaims:
             config.parse_claims({"schema": 1, "matrix": "m", "claim": [claim, claim]})
         with pytest.raises(ConfigError, match=r"\[\[claim\]\]"):
             config.parse_claims({"schema": 1, "matrix": "m"})
+        with pytest.raises(ConfigError, match=r"\[\[claim\]\]"):
+            config.parse_claims({"schema": 1, "matrix": "m", "claim": []})
+        with pytest.raises(ConfigError, match="only schema = 1"):
+            config.parse_claims({"schema": 2, "matrix": "m", "claim": [claim]})
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -683,13 +684,15 @@ class TestResolve:
         with pytest.raises(ConfigError, match=r"no such scenario \(available: smoke\)"):
             config.resolve("scenarios", "spread100")
 
-    def test_unknown_kind(self) -> None:
+    @pytest.mark.parametrize("kind", ["worlds", "machines", "claims"])
+    def test_unknown_kind(self, kind: str) -> None:
         with pytest.raises(ValueError):
-            config.resolve("worlds", "x")
+            config.resolve(kind, "x")
 
-    def test_schema_path(self, project_root: Path) -> None:
-        assert config.schema_path("run") == project_root / "schemas" / "run.schema.json"
-        assert config.load_schema("claims")["properties"]["schema"]["const"] == 1
+    def test_schemas_ship_with_the_package(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("BBENCH_ROOT", str(tmp_path))
+        assert config.schema_path("run") == Path(config.__file__).resolve().parent / "schemas" / "run.schema.json"
+        assert config.load_schema("run")["properties"]["schema"]["const"] == "bedrock-bench/run/1"
 
 
 def test_override_category_footnotes() -> None:

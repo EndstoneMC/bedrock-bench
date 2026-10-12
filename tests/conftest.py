@@ -11,6 +11,7 @@ from typing import Any
 import pytest
 
 from bedrock_bench.config import project_root as _project_root
+from bedrock_bench.config import schema_path
 
 PROJECT_ROOT = _project_root()
 
@@ -41,14 +42,13 @@ def write_file(tmp_path: Path) -> Callable[[str, str], Path]:
 
 @pytest.fixture(scope="session")
 def schema_validator() -> Callable[[str], Any]:
-    """``schema_validator("run")`` -> a jsonschema validator for ``schemas/run.schema.json``."""
+    """``schema_validator("run")`` -> a jsonschema validator for the packaged ``run.schema.json``."""
     jsonschema = pytest.importorskip("jsonschema")
     cache: dict[str, Any] = {}
 
     def get(name: str) -> Any:
         if name not in cache:
-            path = PROJECT_ROOT / "schemas" / f"{name}.schema.json"
-            schema = json.loads(path.read_text(encoding="utf-8"))
+            schema = json.loads(schema_path(name).read_text(encoding="utf-8"))
             cls = jsonschema.validators.validator_for(schema)
             cls.check_schema(schema)
             cache[name] = cls(schema, format_checker=cls.FORMAT_CHECKER)

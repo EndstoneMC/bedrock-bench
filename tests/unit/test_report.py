@@ -27,11 +27,11 @@ from bedrock_bench.report.markdown import (
     render,
 )
 
-EXAMPLES = project_root() / "schemas" / "examples"
-MATRIX = "endstone-0.11.14-csg"
-BASE_RUN = json.loads((EXAMPLES / "run.ok.json").read_text(encoding="utf-8"))
+FIXTURES = project_root() / "tests" / "fixtures"
+MATRIX = "fixture"
+BASE_RUN = json.loads((FIXTURES / "run.ok.json").read_text(encoding="utf-8"))
 EXERCISES = BASE_RUN["scenario"]["resolved"]["exercises"]
-CLAIMS = project_root() / "claims" / f"{MATRIX}.toml"
+CLAIMS = FIXTURES / "claims.toml"
 
 RESCUE = {
     "category": "rescue",
@@ -252,7 +252,7 @@ class TestRender:
     def test_conditions(self, markdown: str) -> None:
         assert "- Machine: `reference`, Intel(R) Core(TM) i7-14700F, 28 logical / 20 physical CPUs" in markdown
         assert "server on CPUs 0-15, bots on 16-27, harness on 16-27, priority above_normal, physical cores" in markdown
-        assert "- Bot: loadbot, protocol 2193, gophertunnel v1.62.0, no patches, sha256 `75410280889e`." in markdown
+        assert "- Bot: loadbot, protocol 2193, gophertunnel v1.62.0, no patches, sha256 `000000000000`." in markdown
 
     def test_cost_values(self, markdown: str) -> None:
         assert table_row(markdown, "Steady TPS")[1:4] == [
@@ -317,8 +317,8 @@ class TestRender:
 
     def test_claims(self, markdown: str) -> None:
         claims = markdown.split("## Claims")[1]
-        assert "From `endstone-0.11.14-csg.toml`: 3 pass, 0 fail, 0 inconclusive, 0 error." in claims
-        assert table_row(claims, "endstone@0.11.14 holds 20 TPS")[1] == "pass"
+        assert "From `claims.toml`: 3 pass, 0 fail, 0 inconclusive, 0 error." in claims
+        assert table_row(claims, "endstone@0.11.14 holds at least 19 TPS")[1] == "pass"
 
     def test_ascii(self, markdown: str) -> None:
         markdown.encode("ascii")
@@ -409,7 +409,7 @@ class TestCli:
 
     def test_mixed_machine_profiles(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         write_run(tmp_path, "bds@1.26.52.3", 1, headline(9.4, 105, 1.0, 4000, 190))
-        write_run(tmp_path, "bds@1.26.52.3", 2, headline(9.4, 105, 1.0, 4000, 190), profile="0" * 64)
+        write_run(tmp_path, "bds@1.26.52.3", 2, headline(9.4, 105, 1.0, 4000, 190), profile="1" * 64)
         assert cli.main(["report", str(tmp_path)]) == 2
         assert "different machine profiles" in capsys.readouterr().err
         assert not (tmp_path / SUMMARY_FILE).exists()

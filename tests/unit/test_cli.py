@@ -92,12 +92,12 @@ class TestArguments:
             "b",
             "--dry-run",
             "--machine",
-            "ref",
+            "box.toml",
             "--out",
             "out",
         )
         assert (args.matrix, args.repeats, args.order, args.only) == ("endstone-0.11.14", 5, "seeded:7", ["a", "b"])
-        assert args.dry_run and args.machine == "ref" and args.out == Path("out")
+        assert args.dry_run and args.machine == Path("box.toml") and args.out == Path("out")
         assert args.entry == "runner:run_matrix"
 
     def test_run_defaults(self) -> None:
@@ -148,11 +148,11 @@ class TestArguments:
         assert parse("prepare-world", "nukkit@1.0", "--scenario", "spread100-pregen").server == "nukkit@1.0"
         assert parse("smoke", "bds@1.26.52.3", "--artifact", "x.zip").artifact == Path("x.zip")
         assert parse("analyze", "a", "b").run_dirs == [Path("a"), Path("b")]
-        report = parse("report", "runs/m", "--format", "json", "--claims", "endstone-0.11.14", "--publish")
+        report = parse("report", "runs/m", "--format", "json", "--claims", "claims.toml", "--publish")
         assert (report.matrix_dir, report.format, report.claims, report.publish) == (
             Path("runs/m"),
             "json",
-            "endstone-0.11.14",
+            Path("claims.toml"),
             True,
         )
         assert parse("validate", "r1", "r2").paths == [Path("r1"), Path("r2")]

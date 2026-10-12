@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: Apache-2.0
+# A machine profile that sets every key, for tests/unit/test_config.py.
+label = "lab"
+
+[placement]
+server_cpus = "0-15"
+bot_cpus = "16-27"
+harness_cpus = "bot"
+priority = "above_normal"
+
+[runtime]
+port = 20000
+jvm_heap = "4G"
+
+[gates]
+idle_check_s = 30.0
+foreign_cores_mean = 0.5
+foreign_cores_peak_10s = 2.0
+foreign_server_set_cores_mean = 0.5
+bot_cpu_frac_max = 0.9

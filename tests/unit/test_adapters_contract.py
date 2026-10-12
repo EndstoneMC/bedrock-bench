@@ -17,6 +17,7 @@ import inspect
 import json
 import os
 import re
+import sys
 import time
 import tomllib
 from collections.abc import Iterator
@@ -39,7 +40,7 @@ from bedrock_bench.adapters.base import (
     quote_player,
 )
 from bedrock_bench.config import ConfigError, project_root
-from bedrock_bench.model import RUNTIMES, Layout, Machine, ThreadInfo, WorldInfo
+from bedrock_bench.model import PLATFORMS, Layout, Machine, ThreadInfo, WorldInfo
 from fakes import fake_server
 from fakes.bench import FAKE_SCENARIOS, register_entry_point
 from fakes.fake_adapter import FAKE_ADAPTERS, FakeAdapter, FakeBds
@@ -199,18 +200,22 @@ def test_bot_compat_flags_are_allowlisted(cls: type[ServerAdapter]) -> None:
 
 
 @every_adapter
-def test_construction_and_variants(cls: type[ServerAdapter]) -> None:
+def test_construction_and_variants(cls: type[ServerAdapter], monkeypatch: pytest.MonkeyPatch) -> None:
     assert make(cls).arm.server == cls.name
     for variant in cls.variants:
-        assert any(_constructs(cls, variant, runtime) for runtime in RUNTIMES), f"variant {variant!r} never constructs"
+        constructs = any(_constructs(cls, variant, system, monkeypatch) for system in PLATFORMS)
+        assert constructs, f"variant {variant!r} never constructs"
     with pytest.raises(ConfigError, match="no-such-variant"):
         make(cls, "no-such-variant")
 
 
-def _constructs(cls: type[ServerAdapter], variant: str, runtime: str) -> bool:
-    """Whether the variant constructs on this host under ``runtime``; a variant may be limited to some platforms."""
+def _constructs(cls: type[ServerAdapter], variant: str, system: str, monkeypatch: pytest.MonkeyPatch) -> bool:
+    """Whether the variant constructs on ``system``; a variant may be limited to some platforms."""
+    module = sys.modules[cls.__module__]
+    if hasattr(module, "host_os"):
+        monkeypatch.setattr(module, "host_os", lambda: system)
     try:
-        adapter = make(cls, variant, config.parse_machine({"runtime": {"kind": runtime}}))
+        adapter = make(cls, variant)
     except ConfigError as exc:
         assert "no variant" not in str(exc), f"declared variant {variant!r} is rejected as unknown"
         return False
