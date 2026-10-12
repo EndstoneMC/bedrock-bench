@@ -121,6 +121,12 @@ class TestYaml:
         assert text == "aliases: {}\nport: 1\n"
         assert keys == [KeyChange("aliases", None, "{}")]
 
+    def test_keys_with_colons(self) -> None:
+        existing = "dimensions:\n  minecraft:overworld:\n    generator-type: VOID\n    url: http://a\n"
+        text, keys = merge("yaml", existing, "dimensions:\n  minecraft:overworld:\n    generator-type: FLAT\n")
+        assert text == "dimensions:\n  minecraft:overworld:\n    generator-type: FLAT\n    url: http://a\n"
+        assert keys == [KeyChange("dimensions.minecraft:overworld.generator-type", "VOID", "FLAT")]
+
     def test_block_lists_in_a_template_are_rejected(self) -> None:
         with pytest.raises(ConfigError, match="block mappings"):
             merge("yaml", "", "worlds:\n  - one\n")

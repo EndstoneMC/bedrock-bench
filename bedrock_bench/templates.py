@@ -151,7 +151,7 @@ def _merge_properties(existing: str, rendered: str) -> tuple[str, list[KeyChange
 # --------------------------------------------------------------------------------------------------------------------
 
 _YAML_ENTRY = re.compile(
-    r"^(?P<indent> *)(?P<key>[A-Za-z0-9_][A-Za-z0-9_.-]*|\"[^\"]*\"|'[^']*') *:(?: +(?P<value>.*))?$"
+    r"^(?P<indent> *)(?P<key>[A-Za-z0-9_][A-Za-z0-9_.:-]*|\"[^\"]*\"|'[^']*') *:(?: +(?P<value>.*))?$"
 )
 
 
