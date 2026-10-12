@@ -1,11 +1,9 @@
 # Allay (`allay`)
 
 [Allay](https://github.com/AllayMC/Allay) is a Bedrock server written in Java, licensed under LGPL-3.0. It shares no
-code with Mojang's server and implements each system on its own; its only world generators are flat and void. Its
-`[features]` rows in [server.toml](server.toml) are fidelity V1, so reports list it under "Reduced fidelity". The
+code with Mojang's server and implements each system on its own; its only world generators are flat and void. The
 pinned 0.14 line accepts protocols 818 to 1001 (up to Minecraft 1.26.30), which the main load bot cannot join, so its
-runs use the [protocol 1001 bot](../../bots/README.md#protocol-1001) and are flagged `bot_protocol_differs`. Every
-scenario that exercises terrain is flagged `terrain_mismatch`.
+runs use the [protocol 1001 bot](../../bots/README.md#protocol-1001) and are flagged `bot_protocol_differs`.
 
 Adapter: [allay.py](../../bedrock_bench/adapters/allay.py). Helper plugin: [plugin.json](plugin.json) and
 [BenchTick.java](BenchTick.java). Config templates: [server-settings.yml](server-settings.yml) and

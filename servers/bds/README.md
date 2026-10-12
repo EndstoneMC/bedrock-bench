@@ -1,9 +1,8 @@
 # Bedrock Dedicated Server (`bds`)
 
 Mojang's [Bedrock Dedicated Server](https://www.minecraft.net/download/server/bedrock), closed-source C++, run
-unmodified from the official zip under the [Minecraft EULA](https://www.minecraft.net/eula). It is the baseline every
-BDS-hosted server is compared with and the parity reference: every feature in [`server.toml`](server.toml) is
-`vanilla` at fidelity V0. Endstone and LeviLamina take their BDS build from the same pins, so a hosted server and its
+unmodified from the official zip under the [Minecraft EULA](https://www.minecraft.net/eula). It is the vanilla baseline
+every server is compared with. Endstone and LeviLamina take their BDS build from the same pins, so a hosted server and its
 vanilla baseline run the same verified binary. Adapter: [`bds.py`](../../bedrock_bench/adapters/bds.py), with the
 behaviour every BDS-hosted server shares in [`bdsfamily.py`](../../bedrock_bench/adapters/bdsfamily.py).
 
