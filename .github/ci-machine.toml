@@ -1,0 +1,13 @@
+# GitHub-hosted ubuntu-latest runner (4 vCPUs). For wiring checks only; never published.
+label = "github-hosted"
+
+[placement]
+server_cpus = "0-1"
+bot_cpus = "2-3"
+harness_cpus = "bot"
+priority = "normal"
+
+[gates]
+foreign_cores_mean = 0.5
+foreign_cores_peak_10s = 2.0
+foreign_server_set_cores_mean = 0.5

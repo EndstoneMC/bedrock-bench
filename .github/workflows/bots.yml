@@ -1,0 +1,145 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Bots
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - bots/**
+      - servers/dragonfly/**
+      - schemas/bot-event.schema.json
+      - .github/scripts/build-go.sh
+      - .github/workflows/bots.yml
+  pull_request:
+    paths:
+      - bots/**
+      - servers/dragonfly/**
+      - schemas/bot-event.schema.json
+      - .github/scripts/build-go.sh
+      - .github/workflows/bots.yml
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bots-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  GOWORK: "off"
+
+jobs:
+  check:
+    name: Vet and test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: bots/loadbot/go.mod
+          cache-dependency-path: |
+            bots/*/go.sum
+            servers/dragonfly/go.sum
+      - name: gofmt
+        if: runner.os == 'Linux'
+        run: |
+          unformatted=$(gofmt -l bots servers/dragonfly)
+          if [ -n "$unformatted" ]; then
+            echo "::error::gofmt -w these files:"
+            echo "$unformatted"
+            exit 1
+          fi
+      - name: Verify, tidy check, vet and test each module
+        shell: bash
+        run: |
+          for dir in bots/core bots/loadbot bots/legacy1001 servers/dragonfly; do
+            echo "::group::$dir"
+            (cd "$dir" && go mod verify && go mod tidy -diff && go vet ./... && go test ./...)
+            echo "::endgroup::"
+          done
+
+  build:
+    name: Build on ${{ matrix.host }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - host: linux
+            os: ubuntu-latest
+          - host: windows
+            os: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # git describe needs the tags
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: bots/loadbot/go.mod
+          cache-dependency-path: |
+            bots/*/go.sum
+            servers/dragonfly/go.sum
+      - name: Build linux/amd64 and windows/amd64 binaries
+        shell: bash
+        run: bash .github/scripts/build-go.sh "$RUNNER_TEMP/dist"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: go-built-on-${{ matrix.host }}
+          path: ${{ runner.temp }}/dist/
+          if-no-files-found: error
+          retention-days: 14
+
+  reproducible:
+    name: Linux and Windows builds are identical
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: go-built-on-*
+          path: ${{ runner.temp }}/builds
+      - name: Compare SHA256SUMS
+        working-directory: ${{ runner.temp }}/builds
+        run: |
+          if ! diff -u go-built-on-linux/SHA256SUMS go-built-on-windows/SHA256SUMS; then
+            echo "::error::the same commit built on Linux and on Windows gave different binaries"
+            exit 1
+          fi
+
+  selftest:
+    name: Bot events match the schema
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: go-built-on-linux
+          path: ${{ runner.temp }}/bin
+      - name: Validate -selftest-output of each bot
+        env:
+          UV_LOCKED: "1"
+        run: |
+          for bot in loadbot legacy1001; do
+            exe="$RUNNER_TEMP/bin/$bot-linux-amd64"
+            chmod +x "$exe"
+            mkdir -p "$RUNNER_TEMP/selftest/$bot"
+            "$exe" -selftest-output >"$RUNNER_TEMP/selftest/$bot/bots.jsonl"
+            uv run bbench validate "$RUNNER_TEMP/selftest/$bot/bots.jsonl"
+          done

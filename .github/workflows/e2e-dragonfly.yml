@@ -1,0 +1,76 @@
+# SPDX-License-Identifier: Apache-2.0
+# Dragonfly is MIT-licensed and needs no EULA, so it is the one real server that hosted CI runs.
+name: E2E (Dragonfly)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - src/**
+      - bots/**
+      - servers/dragonfly/**
+      - scenarios/smoke.toml
+      - artifacts/dragonfly.toml
+      - features/dragonfly.toml
+      - pyproject.toml
+      - uv.lock
+      - .github/ci-machine.toml
+      - .github/workflows/e2e-dragonfly.yml
+  pull_request:
+    paths:
+      - src/**
+      - bots/**
+      - servers/dragonfly/**
+      - scenarios/smoke.toml
+      - artifacts/dragonfly.toml
+      - features/dragonfly.toml
+      - pyproject.toml
+      - uv.lock
+      - .github/ci-machine.toml
+      - .github/workflows/e2e-dragonfly.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  UV_LOCKED: "1"
+
+jobs:
+  smoke:
+    name: 4-bot smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # the run records git describe
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: bots/loadbot/go.mod
+          cache-dependency-path: |
+            bots/*/go.sum
+            servers/dragonfly/go.sum
+      - name: Pinned Dragonfly version
+        run: |
+          version=$(uv run python -c 'from bedrock_bench.config import load_artifacts; print(list(load_artifacts("dragonfly").versions)[-1])')
+          echo "DRAGONFLY=dragonfly@$version" >>"$GITHUB_ENV"
+      - name: Build the load bot
+        run: uv run bbench bots build --module loadbot
+      - name: Build the Dragonfly helper
+        run: uv run bbench fetch "$DRAGONFLY"
+      - name: Smoke
+        run: uv run bbench smoke "$DRAGONFLY" --machine .github/ci-machine.toml --out runs
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: e2e-dragonfly-runs
+          path: runs/
+          if-no-files-found: ignore
+          retention-days: 14
