@@ -15,7 +15,7 @@ The profile's gates are loose enough for a busy desktop; ``strict_gates=True`` r
 contamination tests.
 
     bench = FakeBench.create(tmp_path)
-    run = bench.run_one("fake_bds", variant="crash-after-join")
+    run = bench.run_one("fake_bds", behaviour="crash-after-join")
     assert run.exit_code == 4
 """
 
@@ -38,7 +38,7 @@ from typing import Any
 import psutil
 
 from bedrock_bench.workload import ENV_TEST_WORKLOAD, WORKLOAD, Workload, with_overrides
-from fakes.fake_adapter import BOTS_SCRIPT, FAKE_ADAPTERS, SERVERS_DIR, interpreter
+from fakes.fake_adapter import BOTS_SCRIPT, ENV_BEHAVIOUR, FAKE_ADAPTERS, SERVERS_DIR, interpreter
 
 #: Environment variable the bot fleet reads instead of the loadbot binary path: a JSON array, the argv prefix.
 ENV_BOT_CMD = "BBENCH_BOT_CMD"
@@ -139,7 +139,7 @@ def cpu_list(cpus: Sequence[int]) -> str:
 
 
 def toml_dumps(data: Mapping[str, Any], prefix: str = "") -> str:
-    """Enough TOML for machine profiles and matrices: scalars, arrays, tables and arrays of tables."""
+    """Enough TOML for machine profiles: scalars, arrays, tables and arrays of tables."""
     lines: list[str] = []
     tables: list[str] = []
     for key, value in data.items():
@@ -174,11 +174,6 @@ def _toml_value(value: Any) -> str:
 def server_tag(server: str) -> str:
     """``fake_bds`` -> ``fake_bds@1.0.0``; a tag that has a version stays as it is."""
     return server if "@" in server else f"{server}@{DEFAULT_VERSION}"
-
-
-def _arm_table(arm: str | Mapping[str, Any]) -> dict[str, Any]:
-    table = {"server": arm} if isinstance(arm, str) else dict(arm)
-    return {**table, "server": server_tag(str(table["server"]))}
 
 
 @contextmanager
@@ -351,34 +346,24 @@ class FakeBench:
     def machine_path(self, name: str = "fake") -> Path:
         return self.root / f"machine-{name}.toml"
 
-    def matrix(
-        self,
-        name: str,
-        arms: Sequence[str | Mapping[str, Any]],
-        *,
-        scenarios: Sequence[str] = ("fake-quick",),
-        repeats: int = 1,
-        order: str = "rotate",
-    ) -> Path:
-        """``configs/matrices/<name>.toml`` with no cooldown and no reruns.
-
-        An arm is a server tag (``fake_bds`` gets ``@1.0.0``) or an ``[[arm]]`` table whose ``server`` is one.
-        """
-        data = {
-            "matrix": {
-                "name": name,
-                "scenarios": list(scenarios),
-                "repeats": repeats,
-                "order": order,
-                "cooldown_s": 0.0,
-                "rerun_invalid": 0,
-            },
-            "arm": [_arm_table(arm) for arm in arms],
-        }
-        path = self.root / "configs" / "matrices" / f"{name}.toml"
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(toml_dumps(data), encoding="utf-8", newline="\n")
-        return path
+    def session_args(self, *servers: str, repeats: int = 1, order: str = "rotate", machine: str = "fake") -> list[str]:
+        """``bbench run`` arguments for a session of the fake servers with no cooldown and no reruns."""
+        return [
+            "run",
+            *map(server_tag, servers),
+            "--repeats",
+            str(repeats),
+            "--order",
+            order,
+            "--cooldown",
+            "0",
+            "--rerun-invalid",
+            "0",
+            "--machine",
+            str(self.machine_path(machine)),
+            "--out",
+            str(self.out),
+        ]
 
     # ---- commands --------------------------------------------------------------------------------------------------
 
@@ -416,7 +401,7 @@ class FakeBench:
         self,
         server: str = "fake_bds",
         *,
-        variant: str | None = None,
+        behaviour: str | None = None,
         workload: Path | None = None,
         machine: str = "fake",
         timeout: float = 300.0,
@@ -432,9 +417,9 @@ class FakeBench:
             "--out",
             self.out,
         ]
-        if variant is not None:
-            args += ["--variant", variant]
-        env = {ENV_TEST_WORKLOAD: str(workload)} if workload is not None else None
+        env = {ENV_TEST_WORKLOAD: str(workload)} if workload is not None else {}
+        if behaviour is not None:
+            env[ENV_BEHAVIOUR] = behaviour
         process = self.bbench(*args, timeout=timeout, env=env)
         created = sorted(set(self.run_dirs()) - before)
         assert len(created) <= 1, f"run-one created {len(created)} run directories: {created}"

@@ -16,8 +16,8 @@
     "python": "3.13.5",
     "backend": "native-windows"
   },
-  "matrix": {
-    "name": "endstone-0.11.14",
+  "session": {
+    "id": "20261011T120000Z-a1b2",
     "repeat": 1,
     "order_index": 1,
     "order": "rotate"
@@ -26,7 +26,6 @@
     "id": "endstone@0.11.14",
     "server": "endstone",
     "version": "0.11.14",
-    "variant": null,
     "bds": "1.26.52.3",
     "python": "3.13",
     "artifact": null

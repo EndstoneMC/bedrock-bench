@@ -18,7 +18,7 @@ ENTRY_POINTS = {
     "fetch": "fetch:fetch_cli",
     "bots": "bots:build_cli",
     "smoke": "runner:smoke",
-    "run": "runner:run_matrix",
+    "run": "runner:run_session",
     "run-one": "runner:run_one",
     "analyze": "metrics:analyze_cli",
     "report": "report:report_cli",
@@ -80,59 +80,53 @@ class TestArguments:
     def test_run(self) -> None:
         args = parse(
             "run",
-            "endstone-0.11.14",
+            "bds@1.26.52.3",
+            "endstone@0.11.14",
             "--repeats",
             "5",
             "--order",
             "seeded:7",
-            "--only",
-            "a",
-            "--only",
-            "b",
+            "--cooldown",
+            "0",
+            "--rerun-invalid",
+            "2",
             "--dry-run",
             "--machine",
             "box.toml",
             "--out",
             "out",
         )
-        assert (args.matrix, args.repeats, args.order, args.only) == ("endstone-0.11.14", 5, "seeded:7", ["a", "b"])
+        assert args.tags == ["bds@1.26.52.3", "endstone@0.11.14"]
+        assert (args.repeats, args.order, args.cooldown, args.rerun_invalid) == (5, "seeded:7", 0.0, 2)
         assert args.dry_run and args.machine == Path("box.toml") and args.out == Path("out")
-        assert args.entry == "runner:run_matrix"
+        assert args.entry == "runner:run_session"
 
     def test_run_defaults(self) -> None:
-        args = parse("run", "m")
-        assert args.repeats is None and args.order is None and args.only is None and not args.dry_run
+        args = parse("run")
+        assert args.tags == [] and (args.repeats, args.order, args.cooldown, args.rerun_invalid) == (3, "rotate", 60, 1)
+        assert args.machine is None and args.out is None and not args.dry_run
 
     def test_bad_order(self, capsys: pytest.CaptureFixture[str]) -> None:
         with pytest.raises(SystemExit) as info:
-            parse("run", "m", "--order", "shuffle")
+            parse("run", "--order", "shuffle")
         assert info.value.code == ExitCode.USAGE
         assert "order must be" in capsys.readouterr().err
 
-    def test_run_one_by_server(self) -> None:
-        args = parse("run-one", "--server", "bds@1.26.52.3", "--repeat", "2", "--variant", "x")
-        assert (args.server, args.repeat, args.variant) == ("bds@1.26.52.3", 2, "x")
-        assert args.matrix is None and args.arm is None and args.order_index is None
+    def test_run_one(self) -> None:
+        args = parse("run-one", "--server", "endstone@0.11.14", "--repeat", "2", "--session", "S1", "--python", "3.13")
+        assert (args.server, args.repeat, args.session, args.python) == ("endstone@0.11.14", 2, "S1", "3.13")
+        assert args.bds is None and args.order is None and args.order_index is None
 
-    @pytest.mark.parametrize(
-        "argv",
-        [
-            ["run-one"],
-            ["run-one", "--matrix", "m"],
-            ["run-one", "--server", "bds@1", "--matrix", "m", "--arm", "a"],
-        ],
-    )
-    def test_run_one_needs_one_arm_source(self, argv: list[str]) -> None:
+    def test_run_one_needs_a_server(self) -> None:
         with pytest.raises(SystemExit) as info:
-            cli.main(argv)
+            cli.main(["run-one"])
         assert info.value.code == ExitCode.USAGE
 
     def test_fetch(self) -> None:
-        args = parse("fetch", "bds@1.26.52.3", "endstone-0.11.14", "--accept-eula", "--artifact-dir", "dl")
-        assert args.targets == ["bds@1.26.52.3", "endstone-0.11.14"]
+        args = parse("fetch", "bds@1.26.52.3", "endstone@0.11.14", "--accept-eula", "--artifact-dir", "dl")
+        assert args.tags == ["bds@1.26.52.3", "endstone@0.11.14"]
         assert args.accept_eula and args.artifact_dir == Path("dl")
-        with pytest.raises(SystemExit):
-            parse("fetch")
+        assert parse("fetch").tags == []
 
     def test_bots(self) -> None:
         args = parse("bots", "build", "--module", "legacy1001", "--target", "linux/amd64", "--target", "windows/amd64")
@@ -145,8 +139,8 @@ class TestArguments:
         assert parse("doctor", "--json").json
         assert parse("smoke", "bds@1.26.52.3", "--artifact", "x.zip").artifact == Path("x.zip")
         assert parse("analyze", "a", "b").run_dirs == [Path("a"), Path("b")]
-        report = parse("report", "runs/m", "--format", "json", "--publish")
-        assert (report.matrix_dir, report.format, report.publish) == (Path("runs/m"), "json", True)
+        report = parse("report", "runs/s", "--format", "json", "--publish")
+        assert (report.dir, report.format, report.publish) == (Path("runs/s"), "json", True)
         assert parse("validate", "r1", "r2").paths == [Path("r1"), Path("r2")]
         docs = parse("docs", "metrics", "--check")
         assert docs.target == "metrics" and docs.check
@@ -216,11 +210,11 @@ class TestMain:
 
     def test_config_error(self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
         def bad(args: argparse.Namespace) -> int:
-            raise ConfigError("unknown key", file="configs/matrices/x.toml", key="arm[0].steady")
+            raise ConfigError("unknown key", file="configs/bds/server.toml", key="benchmark.steady")
 
         monkeypatch.setattr(cli, "resolve_entry", lambda entry: bad)
         assert cli.main(["run", "x"]) == ExitCode.USAGE
-        assert "configs/matrices/x.toml: arm[0].steady: unknown key" in capsys.readouterr().err
+        assert "configs/bds/server.toml: benchmark.steady: unknown key" in capsys.readouterr().err
 
     def test_interrupted(self, monkeypatch: pytest.MonkeyPatch) -> None:
         def interrupted(args: argparse.Namespace) -> int:

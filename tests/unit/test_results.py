@@ -61,7 +61,7 @@ def record(**changes: Any) -> dict[str, Any]:
         run_id=results.make_run_id(ARM.id, 1, 1_791_813_480_000, "abcd"),
         arm=ARM,
         workload=UNIT_WORKLOAD,
-        matrix={"name": None, "repeat": 1, "order_index": None, "order": None},
+        session={"id": "20261011T120000Z-a1b2", "repeat": 1, "order_index": None, "order": None},
         harness={"version": "0.1.0", "git": None, "dirty": None, "python": "3.13", "backend": "native-linux"},
         machine=results.machine_record(
             MACHINE, {"fingerprint_id": "f" * 16, "os": "Linux", "cpu": "test", "logical": 4}, {}, None

@@ -66,10 +66,10 @@ def _configure_doctor(p: argparse.ArgumentParser) -> None:
 
 def _configure_fetch(p: argparse.ArgumentParser) -> None:
     p.add_argument(
-        "targets",
-        nargs="+",
-        metavar="TARGET",
-        help="a matrix (a name in configs/matrices/ or a path), or server@version",
+        "tags",
+        nargs="*",
+        metavar="TAG",
+        help="server@version (default: every server's benchmark default)",
     )
     p.add_argument(
         "--accept-eula",
@@ -94,29 +94,36 @@ def _configure_bots(p: argparse.ArgumentParser) -> None:
 def _configure_smoke(p: argparse.ArgumentParser) -> None:
     p.add_argument("server", metavar="SERVER@VERSION")
     _add_machine(p)
-    p.add_argument("--variant", metavar="V")
     p.add_argument("--artifact", type=Path, metavar="PATH", help="local artifact instead of the pinned download")
     p.add_argument("--out", type=Path, metavar="DIR", help="results root (default: runs/)")
 
 
 def _configure_run(p: argparse.ArgumentParser) -> None:
-    p.add_argument("matrix", metavar="MATRIX", help="a name in configs/matrices/ or a path")
+    p.add_argument("tags", nargs="*", metavar="TAG", help="server@version (default: every server's benchmark default)")
+    p.add_argument("--repeats", type=int, default=3, metavar="N", help="runs of each server (default: 3)")
+    p.add_argument(
+        "--order",
+        type=_order,
+        default="rotate",
+        metavar="ORDER",
+        help="rotate, sequential or seeded:N (default: rotate)",
+    )
+    p.add_argument("--cooldown", type=float, default=60.0, metavar="S", help="seconds between runs (default: 60)")
+    p.add_argument("--rerun-invalid", type=int, default=1, metavar="N", help="reruns of an invalid run (default: 1)")
     _add_machine(p)
-    p.add_argument("--repeats", type=int, metavar="N", help="override the matrix repeat count")
-    p.add_argument("--order", type=_order, metavar="ORDER", help="rotate, sequential or seeded:N")
-    p.add_argument("--only", action="append", metavar="ARM", help="run only this arm id, repeatable")
     p.add_argument("--out", type=Path, metavar="DIR", help="results root (default: runs/)")
     p.add_argument("--dry-run", action="store_true", help="print the run order and exit")
 
 
 def _configure_run_one(p: argparse.ArgumentParser) -> None:
-    p.add_argument("--server", metavar="S@V", help="server@version to run (or use --matrix and --arm)")
-    p.add_argument("--matrix", metavar="MATRIX", help="matrix that defines the arm: a name or a path")
-    p.add_argument("--arm", metavar="ID", help="arm id inside --matrix")
+    p.add_argument("--server", required=True, metavar="S@V", help="server@version to run")
+    p.add_argument("--bds", metavar="V", help="BDS version a BDS-hosted server runs on")
+    p.add_argument("--python", metavar="V", help="Python version for Endstone")
     _add_machine(p)
-    p.add_argument("--variant", metavar="V")
+    p.add_argument("--session", metavar="ID", help="session the run belongs to (default: a new one)")
     p.add_argument("--repeat", type=int, default=1, metavar="K", help="repeat index (default: 1)")
-    p.add_argument("--order-index", type=int, metavar="N", help="position in the matrix run order")
+    p.add_argument("--order-index", type=int, metavar="N", help="position in the session's run order")
+    p.add_argument("--order", type=_order, metavar="ORDER", help="the session's run order")
     p.add_argument("--artifact", type=Path, metavar="PATH", help="local artifact instead of the pinned download")
     p.add_argument("--out", type=Path, metavar="DIR", help="results root (default: runs/)")
 
@@ -126,7 +133,7 @@ def _configure_analyze(p: argparse.ArgumentParser) -> None:
 
 
 def _configure_report(p: argparse.ArgumentParser) -> None:
-    p.add_argument("matrix_dir", type=Path, metavar="MATRIX_DIR")
+    p.add_argument("dir", type=Path, metavar="DIR", help="a session directory, or a folder of them")
     p.add_argument("--format", choices=("md", "json"), default="md")
     p.add_argument(
         "--publish",
@@ -151,11 +158,11 @@ COMMANDS: tuple[Command, ...] = (
     Command("fetch", "fetch:fetch_cli", "download and verify server artifacts", _configure_fetch),
     Command("bots", "bots:build_cli", "build or download the load bot", _configure_bots),
     Command("smoke", "runner:smoke", "short strict run that checks an adapter end to end", _configure_smoke),
-    Command("run", "runner:run_matrix", "run a matrix", _configure_run),
-    Command("run-one", "runner:run_one", "run one arm once", _configure_run_one),
+    Command("run", "runner:run_session", "run a benchmark session", _configure_run),
+    Command("run-one", "runner:run_one", "run one server once (used by run)", _configure_run_one),
     Command("analyze", "metrics:analyze_cli", "recompute metrics.json and status from raw files", _configure_analyze),
     Command(
-        "report", "report:report_cli", "aggregate a matrix directory into summary.json and report.md", _configure_report
+        "report", "report:report_cli", "aggregate runs into summary.json, report.md and CSV files", _configure_report
     ),
     Command("validate", "results:validate_cli", "check result files against the schemas", _configure_validate),
     Command("docs", "metrics.registry:render_docs", "regenerate generated documentation", _configure_docs),
@@ -190,22 +197,12 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _check_run_one(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
-    by_matrix = args.matrix is not None or args.arm is not None
-    if args.server and by_matrix:
-        parser.error("run-one: use either --server or --matrix with --arm, not both")
-    if not args.server and not (args.matrix and args.arm):
-        parser.error("run-one: needs --server S@V, or --matrix and --arm")
-
-
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     if args.command is None:
         parser.print_help(sys.stderr)
         return ExitCode.USAGE
-    if args.command == "run-one":
-        _check_run_one(parser, args)
 
     logging.basicConfig(
         level=(logging.WARNING, logging.INFO, logging.DEBUG)[min(args.verbose, 2)],

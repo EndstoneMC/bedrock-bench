@@ -38,20 +38,20 @@
         "backend": { "enum": ["native-windows", "native-linux"] }
       }
     },
-    "matrix": {
-      "description": "matrix name, repeat, position in the run order and order mode",
+    "session": {
+      "description": "session id, repeat, position in the run order and order mode",
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "repeat"],
+      "required": ["id", "repeat"],
       "properties": {
-        "name": { "type": ["string", "null"] },
+        "id": { "type": "string", "pattern": "^[0-9A-Za-z][0-9A-Za-z._-]*$" },
         "repeat": { "type": "integer", "minimum": 1 },
         "order_index": { "type": ["integer", "null"], "minimum": 0 },
         "order": { "type": ["string", "null"], "pattern": "^(rotate|sequential|seeded:[0-9]+)$" }
       }
     },
     "arm": {
-      "description": "arm id, server, version, variant, hosted BDS version, Python version and local artifact",
+      "description": "arm id, server, version, hosted BDS version, Python version and local artifact",
       "type": "object",
       "additionalProperties": false,
       "required": ["id", "server", "version"],
@@ -59,7 +59,6 @@
         "id": { "$ref": "#/$defs/arm_id" },
         "server": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
         "version": { "$ref": "#/$defs/version" },
-        "variant": { "type": ["string", "null"] },
         "bds": { "type": ["string", "null"] },
         "python": { "type": ["string", "null"] },
         "artifact": { "description": "file name of a local artifact override", "oneOf": [{ "$ref": "#/$defs/relpath" }, { "type": "null" }] }
@@ -369,7 +368,7 @@
       "if": { "required": ["status"], "properties": { "status": { "const": "ok" } } },
       "then": {
         "required": [
-          "official", "nonstandard", "matrix", "artifacts", "install", "server", "overrides", "config_files",
+          "official", "nonstandard", "session", "artifacts", "install", "server", "overrides", "config_files",
           "parity", "bot", "machine", "placement", "world", "marks", "settle", "interventions", "spread", "health",
           "interference", "files"
         ]
@@ -380,7 +379,7 @@
     "status": { "enum": ["ok", "server_failed", "invalid"] },
     "name": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
     "version": { "type": "string", "pattern": "^[0-9A-Za-z][0-9A-Za-z._-]*$" },
-    "arm_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*@[0-9A-Za-z][0-9A-Za-z._-]*([+][a-z0-9][a-z0-9._-]*)?$", "description": "<server>@<version>[+<variant>]" },
+    "arm_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*@[0-9A-Za-z][0-9A-Za-z._-]*$", "description": "<server>@<version>" },
     "flag": { "type": "string", "pattern": "^[a-z][a-z0-9_]*(:[A-Za-z0-9_.-]+)?$" },
     "feature_key": { "type": "string", "pattern": "^[a-z]+\\.[a-z_]+$" },
     "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },

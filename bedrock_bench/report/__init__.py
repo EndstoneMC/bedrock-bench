@@ -78,7 +78,7 @@ def write(report_dir: Path, *, publish: bool = False) -> Report:
 def report_cli(args: argparse.Namespace) -> int:
     """``bbench report <dir> [--format md|json] [--publish]``."""
     try:
-        report = write(args.matrix_dir, publish=args.publish)
+        report = write(args.dir, publish=args.publish)
     except ReportError as exc:
         print(f"bbench report: {exc}", file=sys.stderr)
         return ExitCode.USAGE

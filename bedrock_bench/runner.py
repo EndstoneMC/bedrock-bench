@@ -10,13 +10,12 @@ is taken, the bot or the install is missing, or the machine is not idle. Once th
 is recorded, and the exit code is derived from the recorded status: 0 ok, 4 server failed, 5 invalid, 130
 interrupted. A server death can therefore never exit 0.
 
-``run`` executes a matrix. It plans the order (``rotate``: block ``k`` runs the arms rotated by ``k``;
-``sequential``; or ``seeded:N``), refuses to add runs to a matrix directory that holds runs from another machine
-profile, machine or workload, takes the machine lock for the whole matrix, fetches every arm, then starts one
-``bbench run-one`` subprocess per run with a cooldown between runs. The child inherits the lock through
-:meth:`bedrock_bench.lock.MachineLock.child_env` and the effective run order through ``$BBENCH_MATRIX_ORDER``. An
-``invalid`` run is rerun up to ``rerun_invalid`` times; ``server_failed`` is a result and never rerun. The matrix
-exits with the worst final status and writes the report.
+``run`` is one session: the given tags, or every server's benchmark default, each run ``--repeats`` times. It plans
+the order (``rotate``: block ``k`` runs the servers rotated by ``k``; ``sequential``; or ``seeded:N``), takes the
+machine lock for the whole session, fetches every server, then starts one ``bbench run-one`` subprocess per run with a
+cooldown between runs. The runs share a session id and land in ``<out>/<session>/``. The child inherits the lock
+through :meth:`bedrock_bench.lock.MachineLock.child_env`. An ``invalid`` run is rerun up to ``--rerun-invalid`` times;
+``server_failed`` is a result and never rerun. The session exits with the worst final status and writes the report.
 
 ``smoke`` is ``run-one`` with the short smoke workload plus adapter checks: every harness command accepted
 without an error line, and movement corrections seen where the feature file declares movement validation.
@@ -50,7 +49,6 @@ from bedrock_bench.model import (
     FeatureClass,
     Flag,
     Machine,
-    Matrix,
     Placement,
     RunContext,
     Status,
@@ -61,9 +59,6 @@ from bedrock_bench.workload import SMOKE, WORKLOAD, Workload, for_run, is_builti
 log = logging.getLogger(__name__)
 
 DEFAULT_OUT = Path("runs")
-
-#: Set by ``bbench run`` for its ``run-one`` children: the effective run order, which may differ from the matrix file.
-ENV_MATRIX_ORDER = "BBENCH_MATRIX_ORDER"
 
 #: Feature whose declared parity makes ``smoke`` expect movement corrections.
 MOVEMENT_FEATURE = "player.server_authoritative_movement"
@@ -80,21 +75,21 @@ def _say(message: str) -> None:
 
 @dataclass(frozen=True)
 class RunRequest:
-    """Everything ``run-one`` needs, resolved from the command line or a matrix."""
+    """Everything ``run-one`` needs, resolved from the command line."""
 
     arm: Arm
     workload: Workload
     machine: Machine
-    matrix: Matrix | None = None
+    session: str = field(default_factory=results.make_session_id)
     order: str | None = None
     repeat: int = 1
     order_index: int | None = None
     out: Path = DEFAULT_OUT
 
     @property
-    def matrix_dir(self) -> Path:
-        """``<out>/<matrix>``; a run outside a matrix groups under its workload name."""
-        return self.out / (self.matrix.name if self.matrix is not None else self.workload.name)
+    def session_dir(self) -> Path:
+        """``<out>/<session>``; a run started on its own is a session of one run."""
+        return self.out / self.session
 
 
 @dataclass(frozen=True)
@@ -110,30 +105,17 @@ def run_one(args: argparse.Namespace) -> int:
 
 
 def _request(args: argparse.Namespace) -> RunRequest:
-    matrix: Matrix | None = None
-    if args.server:
-        arm = config.arm_from_ref(args.server, variant=args.variant, artifact=args.artifact)
-    else:
-        if args.variant is not None or args.artifact is not None:
-            raise ConfigError("--variant and --artifact go with --server; a matrix arm defines its own")
-        matrix = config.load_matrix(args.matrix)
-        try:
-            arm = matrix.arm(args.arm)
-        except KeyError as exc:
-            raise ConfigError(str(exc.args[0])) from None
+    arm = config.arm_from_ref(args.server, artifact=args.artifact, bds=args.bds, python=args.python)
     if args.repeat < 1:
         raise ConfigError("--repeat must be at least 1")
-    machine = config.load_machine(args.machine)
-    order = None
-    if matrix is not None:
-        machine = config.with_priority(machine, matrix.priority_override)
-        order = config.validate_order(os.environ.get(ENV_MATRIX_ORDER) or matrix.order)
+    if args.session is not None and not results.SESSION_RE.match(args.session):
+        raise ConfigError(f"bad session id {args.session!r}")
     return RunRequest(
         arm=arm,
         workload=for_run(WORKLOAD),
-        machine=machine,
-        matrix=matrix,
-        order=order,
+        machine=config.load_machine(args.machine),
+        session=args.session or results.make_session_id(),
+        order=args.order,
         repeat=args.repeat,
         order_index=args.order_index,
         out=args.out or DEFAULT_OUT,
@@ -197,7 +179,7 @@ def _measure(
     bot: Any,
 ) -> RunResult:
     arm, workload, machine = request.arm, request.workload, request.machine
-    run_dir = results.RunDir.create(request.matrix_dir, arm.id, request.repeat)
+    run_dir = results.RunDir.create(request.session_dir, arm.id, request.repeat)
     _say(f"run {run_dir.run_id}: {arm.id}")
     harness = provenance.harness_info(backend())
     nonstandard = []
@@ -216,8 +198,8 @@ def _measure(
         run_id=run_dir.run_id,
         arm=arm,
         workload=workload,
-        matrix={
-            "name": request.matrix.name if request.matrix is not None else None,
+        session={
+            "id": request.session,
             "repeat": request.repeat,
             "order_index": request.order_index,
             "order": request.order,
@@ -337,154 +319,136 @@ def preflight(machine: Machine, placement: Placement, topology: host.Topology) -
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# Matrices
+# Sessions
 # --------------------------------------------------------------------------------------------------------------------
+
+
+def tag_arm(tag: str) -> Arm:
+    """The arm a tag names. The server's benchmark default brings its ``bds`` and ``python``."""
+    arm = config.arm_from_ref(tag)
+    if not (config.project_root() / config.CONFIG_PATHS["servers"].format(arm.server)).is_file():
+        return arm
+    default = config.load_benchmark(arm.server)
+    return default.arm if default.version == arm.version else arm
+
+
+def session_arms(tags: Sequence[str]) -> tuple[list[Arm], list[str]]:
+    """The arms of a session and the servers left out, each with its reason.
+
+    With tags, exactly those. Without, every server's benchmark default, except a server marked ``include = false`` or
+    one that does not run on this platform.
+    """
+    if tags:
+        arms = [tag_arm(tag) for tag in tags]
+        seen: set[str] = set()
+        for arm in arms:
+            if arm.id in seen:
+                raise ConfigError(f"{arm.id} is given twice")
+            seen.add(arm.id)
+        return arms, []
+    arms, skipped = [], []
+    here = host_os()
+    for default in config.benchmark_defaults():
+        arm = default.arm
+        if not default.include:
+            skipped.append(f"{arm.id}: {default.reason}")
+            continue
+        platforms = adapters.get(default.server).platforms
+        if here not in platforms:
+            skipped.append(f"{arm.id}: runs on {', '.join(sorted(platforms))} only")
+            continue
+        arms.append(arm)
+    return arms, skipped
 
 
 @dataclass(frozen=True)
 class PlannedRun:
-    """One run of a matrix in execution order."""
+    """One run of a session in execution order."""
 
     order_index: int
     repeat: int
     arm: Arm
-    scenario: str
 
-    HEADER: ClassVar[str] = f"{'order':>5}  {'repeat':<6}  {'arm':<36}  scenario"
+    HEADER: ClassVar[str] = f"{'order':>5}  {'repeat':<6}  server"
 
     def describe(self) -> str:
-        return f"{self.order_index:>5}  {'r' + str(self.repeat):<6}  {self.arm.id:<36}  {self.scenario}"
+        return f"{self.order_index:>5}  {'r' + str(self.repeat):<6}  {self.arm.id}"
 
 
-def plan_order(matrix: Matrix, *, repeats: int, order: str, only: Sequence[str] = ()) -> list[PlannedRun]:
-    """The runs of a matrix in execution order.
+def plan_order(arms: Sequence[Arm], *, repeats: int, order: str) -> list[PlannedRun]:
+    """The runs of a session in execution order.
 
-    Block ``k`` (repeat ``k + 1``) runs every scenario in matrix order; within a scenario the arms run in matrix order
-    rotated by ``k`` (``rotate``), unrotated (``sequential``) or shuffled by a seeded generator (``seeded:N``).
+    Block ``k`` (repeat ``k + 1``) runs every arm once: in the given order rotated by ``k`` (``rotate``), unrotated
+    (``sequential``) or shuffled by a seeded generator (``seeded:N``).
     """
     config.validate_order(order)
-    arms = list(matrix.arms)
-    if only:
-        known = {arm.id for arm in arms}
-        unknown = [arm_id for arm_id in only if arm_id not in known]
-        if unknown:
-            raise ConfigError(f"matrix {matrix.name} has no arm {unknown[0]!r} (arms: {', '.join(sorted(known))})")
-        arms = [arm for arm in arms if arm.id in set(only)]
     rng = random.Random(int(order.partition(":")[2])) if order.startswith("seeded:") else None
     planned: list[PlannedRun] = []
     for block in range(repeats):
-        for scenario in matrix.scenarios:
-            members = [arm for arm in arms if scenario in matrix.scenarios_for(arm)]
-            if not members:
-                continue
-            if order == "rotate":
-                shift = block % len(members)
-                members = members[shift:] + members[:shift]
-            elif rng is not None:
-                rng.shuffle(members)
-            first = len(planned)
-            planned.extend(PlannedRun(first + i, block + 1, arm, scenario) for i, arm in enumerate(members))
+        members = list(arms)
+        if order == "rotate" and members:
+            shift = block % len(members)
+            members = members[shift:] + members[:shift]
+        elif rng is not None:
+            rng.shuffle(members)
+        first = len(planned)
+        planned.extend(PlannedRun(first + i, block + 1, arm) for i, arm in enumerate(members))
     return planned
 
 
-def existing_records(matrix_dir: Path) -> list[dict[str, Any]]:
-    """run.json (or run.partial.json) of every run already in a matrix directory."""
-    records = []
-    if not matrix_dir.is_dir():
-        return records
-    for run_dir in sorted(p for p in matrix_dir.iterdir() if p.is_dir()):
-        for name in (results.RUN_FILE, results.PARTIAL_FILE):
-            path = run_dir / name
-            if path.is_file():
-                try:
-                    records.append(json.loads(path.read_text(encoding="utf-8")))
-                except (OSError, ValueError) as exc:
-                    log.warning("cannot read %s: %s", path, exc)
-                break
-    return records
-
-
-def mixing_problems(
-    records: Sequence[dict[str, Any]], machine: Machine, fingerprint_id: str, workload: Workload
-) -> list[str]:
-    """Reasons a matrix directory must not receive new runs: rule R3 (one placement per table) and R1 (one workload)."""
-    problems: list[str] = []
-
-    def add(text: str) -> None:
-        if text not in problems:
-            problems.append(text)
-
-    for record in records:
-        recorded_machine = record.get("machine") or {}
-        profile = recorded_machine.get("profile_sha256")
-        if profile and profile != machine.profile_sha256:
-            add("it holds runs made with another machine profile (CPU sets, priority, runtime, heap or gates)")
-        fingerprint = recorded_machine.get("fingerprint_id")
-        if fingerprint and fingerprint != fingerprint_id:
-            add("it holds runs made on another machine")
-        recorded = (record.get("workload") or {}).get("sha256")
-        if recorded and recorded != workload.sha256:
-            add("it holds runs of another workload")
-    return problems
-
-
 @dataclass
-class _MatrixProgress:
+class _Progress:
     finals: list[tuple[PlannedRun, int]] = field(default_factory=list)
 
 
-def run_matrix(args: argparse.Namespace) -> int:
-    """``bbench run``: execute a matrix, one ``run-one`` subprocess per run."""
-    matrix = config.load_matrix(args.matrix)
-    machine = config.with_priority(config.load_machine(args.machine), matrix.priority_override)
-    repeats = args.repeats if args.repeats is not None else matrix.repeats
-    if repeats < 1:
+def run_session(args: argparse.Namespace) -> int:
+    """``bbench run [TAG ...]``: one session, one ``run-one`` subprocess per run, then the report."""
+    if args.repeats < 1:
         raise ConfigError("--repeats must be at least 1")
-    order = args.order or matrix.order
-    plan = plan_order(matrix, repeats=repeats, order=order, only=args.only or ())
-    if not plan:
-        raise ConfigError(f"matrix {matrix.name} plans no runs")
-    for arm in {run.arm.id: run.arm for run in plan}.values():
-        adapter = adapters.create(arm, machine)
-        check_platform(adapter)
+    if args.cooldown < 0:
+        raise ConfigError("--cooldown must not be negative")
+    if args.rerun_invalid < 0:
+        raise ConfigError("--rerun-invalid must not be negative")
+    arms, skipped = session_arms(args.tags)
+    for line in skipped:
+        _say(f"skipping {line}")
+    if not arms:
+        raise ConfigError("no server to run")
+    machine = config.load_machine(args.machine)
+    for arm in arms:
+        check_platform(adapters.create(arm, machine))
+    plan = plan_order(arms, repeats=args.repeats, order=args.order)
     out = args.out or DEFAULT_OUT
-    matrix_dir = out / matrix.name
-
-    problems = mixing_problems(
-        existing_records(matrix_dir), machine, provenance.machine_fingerprint()["fingerprint_id"], for_run(WORKLOAD)
-    )
-    if problems:
-        for problem in problems:
-            _say(f"bbench run: refusing to add runs to {matrix_dir.as_posix()}: {problem}")
-        _say("bbench run: use another --out directory")
-        return ExitCode.USAGE
+    session = results.make_session_id()
+    session_dir = out / session
 
     if args.dry_run:
-        print(f"matrix {matrix.name}: {len(plan)} runs, order {order}, results in {matrix_dir.as_posix()}")
+        print(f"session {session}: {len(plan)} runs, order {args.order}, results in {session_dir.as_posix()}")
         print(PlannedRun.HEADER)
         for run in plan:
             print(run.describe())
         return ExitCode.OK
 
-    lock = MachineLock(label=f"matrix {matrix.name}")
+    lock = MachineLock(label=f"session {session}")
     if not lock.acquire(timeout=0):
         info = holder(lock.path)
         _say(f"bbench run: the machine lock is held by {info.describe() if info else 'another process'}")
         return ExitCode.ENV_GATE
     try:
-        code = _prepare_matrix(matrix, plan, machine)
+        code = _prepare_session(plan, machine)
         if code != ExitCode.OK:
             return code
-        progress = _MatrixProgress()
-        code = _execute_plan(args, matrix, plan, order, out, lock, progress)
+        _say(f"session {session}: {len(plan)} runs")
+        progress = _Progress()
+        code = _execute_plan(args, session, plan, out, lock, progress)
     finally:
         lock.release()
-    _summarize(matrix, progress)
-    _write_report(matrix_dir)
+    _summarize(session, progress)
+    _write_report(session_dir)
     return code
 
 
-def _prepare_matrix(matrix: Matrix, plan: Sequence[PlannedRun], machine: Machine) -> int:
+def _prepare_session(plan: Sequence[PlannedRun], machine: Machine) -> int:
     """Placement, pre-flight checks, bots and installs for every arm before the first run starts."""
     topology = host.detect_topology()
     try:
@@ -507,25 +471,30 @@ def _prepare_matrix(matrix: Matrix, plan: Sequence[PlannedRun], machine: Machine
         except (FetchError, bots.BotError) as exc:
             _say(f"bbench run: {arm.id}: {exc}")
             return ExitCode.ENV_GATE
-    _say(f"matrix {matrix.name}: {len(plan)} runs")
     return ExitCode.OK
 
 
-def _child_command(args: argparse.Namespace, matrix: Matrix, run: PlannedRun, out: Path) -> list[str]:
+def _child_command(args: argparse.Namespace, session: str, run: PlannedRun, out: Path) -> list[str]:
     command = [sys.executable, "-m", "bedrock_bench", *["-v"] * min(getattr(args, "verbose", 0), 2)]
     command += [
         "run-one",
-        "--matrix",
-        str(matrix.path.resolve()),
-        "--arm",
-        run.arm.id,
+        "--server",
+        run.arm.ref,
+        "--session",
+        session,
         "--repeat",
         str(run.repeat),
         "--order-index",
         str(run.order_index),
+        "--order",
+        args.order,
         "--out",
         str(out),
     ]
+    if run.arm.bds:
+        command += ["--bds", run.arm.bds]
+    if run.arm.python:
+        command += ["--python", run.arm.python]
     if args.machine:
         command += ["--machine", str(config.input_file(args.machine, "machine profile").resolve())]
     return command
@@ -533,37 +502,36 @@ def _child_command(args: argparse.Namespace, matrix: Matrix, run: PlannedRun, ou
 
 def _execute_plan(
     args: argparse.Namespace,
-    matrix: Matrix,
+    session: str,
     plan: Sequence[PlannedRun],
-    order: str,
     out: Path,
     lock: MachineLock,
-    progress: _MatrixProgress,
+    progress: _Progress,
 ) -> int:
-    env = {**os.environ, **lock.child_env(), ENV_MATRIX_ORDER: order}
+    env = {**os.environ, **lock.child_env()}
     started = False
     for run in plan:
         attempts = 0
         while True:
-            if started and matrix.cooldown_s > 0:
-                _say(f"cooldown {matrix.cooldown_s:g} s")
-                time.sleep(matrix.cooldown_s)
+            if started and args.cooldown > 0:
+                _say(f"cooldown {args.cooldown:g} s")
+                time.sleep(args.cooldown)
             started = True
-            _say(f"[{run.order_index + 1}/{len(plan)}] {run.arm.id} {run.scenario} r{run.repeat}")
+            _say(f"[{run.order_index + 1}/{len(plan)}] {run.arm.id} r{run.repeat}")
             try:
-                code = subprocess.run(_child_command(args, matrix, run, out), env=env, check=False).returncode
+                code = subprocess.run(_child_command(args, session, run, out), env=env, check=False).returncode
             except KeyboardInterrupt:
                 _say("bbench run: interrupted")
                 return ExitCode.INTERRUPTED
             if code in (ExitCode.USAGE, ExitCode.ENV_GATE, ExitCode.INTERRUPTED):
-                _say(f"bbench run: stopping the matrix (run-one exited with {code})")
+                _say(f"bbench run: stopping the session (run-one exited with {code})")
                 return code
             if code not in (ExitCode.OK, ExitCode.SERVER_FAILED, ExitCode.INVALID):
                 log.error("run-one exited with unexpected code %s; counting the run as invalid", code)
                 code = ExitCode.INVALID
-            if code == ExitCode.INVALID and attempts < matrix.rerun_invalid:
+            if code == ExitCode.INVALID and attempts < args.rerun_invalid:
                 attempts += 1
-                _say(f"invalid run; rerunning ({attempts}/{matrix.rerun_invalid})")
+                _say(f"invalid run; rerunning ({attempts}/{args.rerun_invalid})")
                 continue
             progress.finals.append((run, code))
             break
@@ -581,7 +549,7 @@ def _severity(code: int) -> int:
     return {ExitCode.OK: 0, ExitCode.SERVER_FAILED: 1, ExitCode.INVALID: 2}.get(code, 3)
 
 
-def _summarize(matrix: Matrix, progress: _MatrixProgress) -> None:
+def _summarize(session: str, progress: _Progress) -> None:
     if not progress.finals:
         return
     counts: dict[str, int] = {}
@@ -589,18 +557,18 @@ def _summarize(matrix: Matrix, progress: _MatrixProgress) -> None:
         status = _STATUS_OF_CODE.get(ExitCode(code), Status.INVALID).value
         counts[status] = counts.get(status, 0) + 1
     summary = ", ".join(f"{n} {status}" for status, n in sorted(counts.items()))
-    _say(f"matrix {matrix.name}: {summary}")
+    _say(f"session {session}: {summary}")
 
 
-def _write_report(matrix_dir: Path) -> None:
-    if not matrix_dir.is_dir() or not any(matrix_dir.iterdir()):
+def _write_report(session_dir: Path) -> None:
+    if not session_dir.is_dir() or not any(session_dir.iterdir()):
         return
     try:
         from bedrock_bench import report
     except ImportError:
         return
     try:
-        written = report.write(matrix_dir)
+        written = report.write(session_dir)
     except report.ReportError as exc:
         _say(f"bbench run: no report: {exc}")
         return
@@ -617,7 +585,7 @@ def _write_report(matrix_dir: Path) -> None:
 
 def smoke(args: argparse.Namespace) -> int:
     """``bbench smoke server@version``: a short strict run that checks an adapter end to end."""
-    arm = config.arm_from_ref(args.server, variant=args.variant, artifact=args.artifact)
+    arm = config.arm_from_ref(args.server, artifact=args.artifact)
     machine = config.load_machine(args.machine)
     adapter = adapters.create(arm, machine)
     request = RunRequest(
@@ -675,19 +643,18 @@ def smoke_problems(run_dir: Path, adapter: ServerAdapter) -> list[str]:
 
 __all__ = [
     "DEFAULT_OUT",
-    "ENV_MATRIX_ORDER",
     "PlannedRun",
     "RunRequest",
     "RunResult",
     "backend",
     "check_platform",
     "execute",
-    "existing_records",
-    "mixing_problems",
     "plan_order",
     "preflight",
-    "run_matrix",
     "run_one",
+    "run_session",
+    "session_arms",
     "smoke",
     "smoke_problems",
+    "tag_arm",
 ]

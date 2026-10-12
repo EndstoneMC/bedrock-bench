@@ -17,139 +17,19 @@ def toml(text: str) -> str:
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# Matrices
+# Run order
 # --------------------------------------------------------------------------------------------------------------------
 
-MATRIX = toml(
-    """
-    [matrix]
-    name = "endstone-0.11.14"
-    scenarios = ["spread100"]
-    repeats = 3
-    order = "rotate"
-    cooldown_s = 60
-    rerun_invalid = 1
-    priority_override = "above_normal"
 
-    [[arm]]
-    server = "bds@1.26.52.3"
-
-    [[arm]]
-    server = "endstone@0.11.14"
-    bds = "1.26.52.3"
-    python = "3.13"
-    """
-)
+@pytest.mark.parametrize("order", ["rotate", "sequential", "seeded:0", "seeded:42"])
+def test_orders(order: str) -> None:
+    assert config.validate_order(order) == order
 
 
-class TestMatrix:
-    def test_load(self, write_file) -> None:
-        path = write_file("configs/matrices/endstone-0.11.14.toml", MATRIX)
-        m = config.load_matrix(path)
-        assert m.name == "endstone-0.11.14" and m.scenarios == ("spread100",)
-        assert (m.repeats, m.order, m.cooldown_s, m.rerun_invalid) == (3, "rotate", 60, 1)
-        assert m.priority_override == "above_normal"
-        assert [a.id for a in m.arms] == ["bds@1.26.52.3", "endstone@0.11.14"]
-        endstone = m.arm("endstone@0.11.14")
-        assert (endstone.server, endstone.version, endstone.bds, endstone.python) == (
-            "endstone",
-            "0.11.14",
-            "1.26.52.3",
-            "3.13",
-        )
-        assert endstone.ref == "endstone@0.11.14" and m.scenarios_for(endstone) == ("spread100",)
-        assert len(m.sha256) == 64 and m.path == path
-        with pytest.raises(KeyError):
-            m.arm("nope")
-
-    def test_hash_ignores_line_endings(self, tmp_path: Path) -> None:
-        lf = tmp_path / "lf" / "m.toml"
-        crlf = tmp_path / "crlf" / "m.toml"
-        for path, text in ((lf, MATRIX), (crlf, MATRIX.replace("\n", "\r\n"))):
-            path.parent.mkdir()
-            path.write_bytes(text.encode())
-        assert config.load_matrix(lf).sha256 == config.load_matrix(crlf).sha256
-
-    def test_defaults_and_arm_id(self) -> None:
-        m = config.parse_matrix(
-            {
-                "matrix": {"name": "x", "scenarios": ["smoke"]},
-                "arm": [{"server": "endstone@0.11.14", "variant": "glibc-alloc"}],
-            }
-        )
-        assert m.repeats == 1 and m.order == "rotate" and m.priority_override is None
-        assert m.arms[0].id == "endstone@0.11.14+glibc-alloc"
-
-    @pytest.mark.parametrize(
-        ("arm", "message"),
-        [
-            ({"server": "bds@1", "version": "1"}, r"arm\[0\]\.version: write the arm as server"),
-            ({"server": "bds@1", "id": "vanilla"}, r"arm\[0\]\.id: write the arm as server"),
-            ({"server": "bds"}, r"arm\[0\]\.server: expected <server>@<version>"),
-            ({"server": "BDS@1"}, r"arm\[0\]\.server: expected <server>@<version>"),
-            ({"server": "bds@1+x"}, r"arm\[0\]\.server: expected <server>@<version>"),
-            ({"server": "bds@1", "colour": "red"}, r"colour: unknown key"),
-            ({"server": "bds@1", "python": "3"}, r"python: invalid value"),
-            ({"server": "bds@1", "scenarios": ["other"]}, r"scenarios: must be one of s"),
-        ],
-    )
-    def test_bad_arms(self, arm: dict, message: str) -> None:
-        with pytest.raises(ConfigError, match=message):
-            config.parse_matrix({"matrix": {"name": "x", "scenarios": ["s"]}, "arm": [arm]})
-
-    def test_duplicate_arm(self) -> None:
-        arm = {"server": "bds@1"}
-        with pytest.raises(ConfigError, match="duplicate arm id 'bds@1'"):
-            config.parse_matrix({"matrix": {"name": "x", "scenarios": ["s"]}, "arm": [arm, arm]})
-
-    @pytest.mark.parametrize(
-        ("head", "message"),
-        [
-            ({"name": "x", "scenarios": []}, "at least one scenario"),
-            ({"name": "x", "scenarios": ["s", "s"]}, "twice"),
-            ({"name": "x", "scenarios": ["s"], "order": "random"}, "order must be"),
-            ({"name": "x", "scenarios": ["s"], "repeats": 0}, "repeats: must be >= 1"),
-            ({"name": "x", "scenarios": ["s"], "priority_override": "high"}, "priority_override"),
-            ({"name": "x", "scenarios": ["s"], "phases": {}}, "phases: unknown key"),
-        ],
-    )
-    def test_bad_head(self, head: dict, message: str) -> None:
-        with pytest.raises(ConfigError, match=message):
-            config.parse_matrix({"matrix": head, "arm": [{"server": "bds@1"}]})
-
-    def test_needs_arms(self) -> None:
-        with pytest.raises(ConfigError, match=r"\[\[arm\]\]"):
-            config.parse_matrix({"matrix": {"name": "x", "scenarios": ["s"]}})
-
-    def test_arm_scenario_subset_and_artifact_path(self, write_file) -> None:
-        path = write_file(
-            "configs/matrices/cross.toml",
-            toml(
-                """
-                [matrix]
-                scenarios = ["spread100", "spread100-pregen"]
-
-                [[arm]]
-                server = "nukkit@1.0"
-                scenarios = ["spread100-pregen"]
-                artifact = "../local/nukkit.jar"
-                """
-            ),
-        )
-        m = config.load_matrix(path)
-        assert m.name == "cross"
-        arm = m.arms[0]
-        assert m.scenarios_for(arm) == ("spread100-pregen",)
-        assert arm.artifact == path.parent / "../local/nukkit.jar"
-
-    @pytest.mark.parametrize("order", ["rotate", "sequential", "seeded:0", "seeded:42"])
-    def test_orders(self, order: str) -> None:
-        assert config.validate_order(order) == order
-
-    @pytest.mark.parametrize("order", ["", "seeded", "seeded:", "seeded:-1", "seeded:x", "shuffle"])
-    def test_bad_orders(self, order: str) -> None:
-        with pytest.raises(ValueError):
-            config.validate_order(order)
+@pytest.mark.parametrize("order", ["", "seeded", "seeded:", "seeded:-1", "seeded:x", "shuffle"])
+def test_bad_orders(order: str) -> None:
+    with pytest.raises(ValueError):
+        config.validate_order(order)
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -205,12 +85,7 @@ class TestMachine:
         base = config.parse_machine({})
         assert base.profile_sha256 == config.parse_machine({"label": "x", "runtime": {"port": 20000}}).profile_sha256
         assert base.profile_sha256 != config.parse_machine({"runtime": {"jvm_heap": "4G"}}).profile_sha256
-        raised = config.with_priority(base, "above_normal")
-        assert raised.priority == "above_normal" and raised.profile_sha256 != base.profile_sha256
-        assert raised.profile_sha256 == config.parse_machine({"placement": {"priority": "above_normal"}}).profile_sha256
-        assert config.with_priority(base, None) is base
-        with pytest.raises(ConfigError):
-            config.with_priority(base, "realtime")
+        assert base.profile_sha256 != config.parse_machine({"placement": {"priority": "above_normal"}}).profile_sha256
 
 
 @pytest.mark.parametrize(
@@ -246,11 +121,11 @@ def test_parse_server_ref() -> None:
 
 
 def test_arm_from_ref() -> None:
-    arm = config.arm_from_ref("endstone@0.11.14", variant="glibc-alloc", artifact=Path("x.whl"))
-    assert arm.id == "endstone@0.11.14+glibc-alloc" and arm.artifact == Path("x.whl")
+    arm = config.arm_from_ref("endstone@0.11.14", artifact=Path("x.whl"), bds="1.26.52.3", python="3.13")
+    assert (arm.id, arm.artifact, arm.bds, arm.python) == ("endstone@0.11.14", Path("x.whl"), "1.26.52.3", "3.13")
     assert config.arm_from_ref("bds@1.26.52.3").id == "bds@1.26.52.3"
     with pytest.raises(ConfigError):
-        config.arm_from_ref("bds@1", variant="Bad Variant")
+        config.arm_from_ref("bds@1+stock")
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -509,9 +384,9 @@ class TestResolve:
 
     def test_dotted_name_is_a_name(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("BBENCH_ROOT", str(tmp_path))
-        (tmp_path / "configs" / "matrices").mkdir(parents=True)
-        (tmp_path / "configs" / "matrices" / "endstone-0.11.14.toml").write_text(MATRIX)
-        assert config.load_matrix("endstone-0.11.14").name == "endstone-0.11.14"
+        (tmp_path / "configs" / "a.b").mkdir(parents=True)
+        (tmp_path / "configs" / "a.b" / "server.toml").write_text("schema = 1\n")
+        assert config.resolve("servers", "a.b") == tmp_path.resolve() / "configs" / "a.b" / "server.toml"
 
     def test_missing_lists_available(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("BBENCH_ROOT", str(tmp_path))
@@ -520,7 +395,7 @@ class TestResolve:
         with pytest.raises(ConfigError, match=r"no such server file \(available: bds\)"):
             config.resolve("servers", "nukkit")
 
-    @pytest.mark.parametrize("kind", ["scenarios", "worlds", "machines", "claims", "artifacts", "features"])
+    @pytest.mark.parametrize("kind", ["scenarios", "matrices", "worlds", "machines", "claims", "artifacts", "features"])
     def test_unknown_kind(self, kind: str) -> None:
         with pytest.raises(ValueError):
             config.resolve(kind, "x")

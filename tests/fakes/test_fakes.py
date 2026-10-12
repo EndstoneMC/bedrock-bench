@@ -32,6 +32,7 @@ from fakes import fake_bots, fake_server
 from fakes.bench import ENV_BOT_CMD, FakeBench, fake_workload, free_port, register_entry_point
 from fakes.fake_adapter import (
     BOTS_SCRIPT,
+    ENV_BEHAVIOUR,
     FAKE_ADAPTERS,
     FakeAdapter,
     FakeBds,
@@ -53,9 +54,9 @@ BOT_EVENTS = (
 # --------------------------------------------------------------------------------------------------------------------
 
 
-def make_adapter(cls: type[FakeAdapter], port: int, variant: str | None = None) -> FakeAdapter:
+def make_adapter(cls: type[FakeAdapter], port: int, behaviour: str | None = None) -> FakeAdapter:
     machine = config.parse_machine({"runtime": {"port": port}}, label="fakes")
-    return cls(config.arm_from_ref(f"{cls.name}@1.0.0", variant=variant), machine)
+    return cls(config.arm_from_ref(f"{cls.name}@1.0.0"), machine, behaviour)
 
 
 def make_context(adapter: FakeAdapter, tmp_path: Path) -> RunContext:
@@ -71,9 +72,9 @@ def make_context(adapter: FakeAdapter, tmp_path: Path) -> RunContext:
 
 
 def prepared(
-    cls: type[FakeAdapter], tmp_path: Path, variant: str | None = None
+    cls: type[FakeAdapter], tmp_path: Path, behaviour: str | None = None
 ) -> tuple[FakeAdapter, Layout, LaunchSpec]:
-    adapter = make_adapter(cls, free_port(), variant)
+    adapter = make_adapter(cls, free_port(), behaviour)
     install = adapter.fetch(Cache(tmp_path / "cache"))
     layout = adapter.prepare(install, make_context(adapter, tmp_path))
     return adapter, layout, adapter.launch(layout)
@@ -277,7 +278,7 @@ def test_nukkit_reads_the_language_line(tmp_path: Path) -> None:
 
 def test_crash_writes_a_report_the_adapter_collects(tmp_path: Path) -> None:
     started = int(time.time() * 1000) - 1000
-    adapter, layout, spec = prepared(FakeBds, tmp_path, variant="crash-at-boot")
+    adapter, layout, spec = prepared(FakeBds, tmp_path, behaviour="crash-at-boot")
     with running(adapter, spec) as console:
         assert console.proc.wait(10) == 3
     (report,) = adapter.crash_artifacts(layout, started)
@@ -286,7 +287,7 @@ def test_crash_writes_a_report_the_adapter_collects(tmp_path: Path) -> None:
 
 
 def test_tick_counter_can_stall_without_players(tmp_path: Path) -> None:
-    adapter, _, spec = prepared(FakeBds, tmp_path, variant="tick-stalls-idle")
+    adapter, _, spec = prepared(FakeBds, tmp_path, behaviour="tick-stalls-idle")
     with running(adapter, spec) as console:
         console.wait_for(adapter.dialect.is_ready)
         first = console.probe()
@@ -470,7 +471,7 @@ def test_bots_against_the_fake_server(tmp_path: Path, schema_validator: Callable
 
 
 def test_rejected_login_is_a_join_failure(tmp_path: Path) -> None:
-    adapter, _, spec = prepared(FakeBds, tmp_path, variant="reject-join")
+    adapter, _, spec = prepared(FakeBds, tmp_path, behaviour="reject-join")
     with running(adapter, spec) as console:
         console.wait_for(adapter.dialect.is_ready)
         bots = _bots(adapter.machine.port, "-n", "3")
@@ -486,7 +487,7 @@ def test_rejected_login_is_a_join_failure(tmp_path: Path) -> None:
 
 
 def test_decode_error_fails_the_bots_on_request(tmp_path: Path) -> None:
-    adapter, _, spec = prepared(FakeBds, tmp_path, variant="decode-error")
+    adapter, _, spec = prepared(FakeBds, tmp_path, behaviour="decode-error")
     with running(adapter, spec) as console:
         console.wait_for(adapter.dialect.is_ready)
         bots = _bots(adapter.machine.port, "-n", "2", "-decode-errors", "fail")
@@ -518,7 +519,7 @@ def test_fetch_is_idempotent(tmp_path: Path) -> None:
 
 
 def test_prepare_records_categorised_overrides(tmp_path: Path) -> None:
-    adapter, layout, spec = prepared(FakeBds, tmp_path, variant="exit-nonzero")
+    adapter, layout, spec = prepared(FakeBds, tmp_path, behaviour="exit-nonzero")
     overrides = {o.key: o for o in layout.overrides}
     assert overrides["online-mode"].category is OverrideCategory.HARNESS
     assert overrides["view-distance"].category is OverrideCategory.PARITY
@@ -543,9 +544,17 @@ def test_prepare_refuses_a_used_work_directory(tmp_path: Path) -> None:
         adapter.prepare(install, context)
 
 
-def test_unknown_variant_is_a_config_error() -> None:
+def test_unknown_behaviour_is_a_config_error() -> None:
     with pytest.raises(config.ConfigError):
-        make_adapter(FakeBds, 19672, variant="no-such-behaviour")
+        make_adapter(FakeBds, 19672, behaviour="no-such-behaviour")
+
+
+def test_behaviour_from_the_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(ENV_BEHAVIOUR, "crash-at-boot,fake_nukkit=dip-on-join")
+    assert make_adapter(FakeBds, 19672).behaviour == "crash-at-boot"
+    assert make_adapter(FakeNukkit, 19672).behaviour == "dip-on-join"
+    monkeypatch.delenv(ENV_BEHAVIOUR)
+    assert make_adapter(FakeBds, 19672).behaviour is None
 
 
 def test_position_parsers_never_turn_garbage_into_zero_players() -> None:
@@ -613,9 +622,8 @@ def test_bench_workspace_resolves_inputs(tmp_path: Path, monkeypatch: pytest.Mon
     machine = config.load_machine(bench.machine_path())
     assert machine.port == bench.port
     assert set(config.parse_cpu_list(machine.server_cpus)).isdisjoint(config.parse_cpu_list(machine.bot_cpus))
-    matrix = config.load_matrix(bench.matrix("pair", ["fake_bds", {"server": "fake_nukkit", "variant": "dip-on-join"}]))
-    assert (matrix.repeats, matrix.cooldown_s) == (1, 0.0)
-    assert [arm.id for arm in matrix.arms] == ["fake_bds@1.0.0", "fake_nukkit@1.0.0+dip-on-join"]
+    assert [b.arm.id for b in config.benchmark_defaults()] == sorted(f"{cls.name}@1.0.0" for cls in FAKE_ADAPTERS)
+    assert bench.session_args("fake_bds", repeats=2)[:4] == ["run", "fake_bds@1.0.0", "--repeats", "2"]
 
 
 def test_bench_environment_reaches_bbench_subprocesses(tmp_path: Path) -> None:

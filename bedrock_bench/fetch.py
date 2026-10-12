@@ -37,7 +37,7 @@ from pathlib import Path, PurePosixPath
 from bedrock_bench import __version__
 from bedrock_bench.cache import ENV_CACHE, Cache
 from bedrock_bench.config import ConfigError
-from bedrock_bench.model import Arm, ArtifactRef, ArtifactSpec, ExitCode
+from bedrock_bench.model import ArtifactRef, ArtifactSpec, ExitCode
 from bedrock_bench.provenance import DEFAULT_TREE_EXCLUDES, sha256_file, tree_sha256
 
 log = logging.getLogger(__name__)
@@ -350,8 +350,8 @@ def copy_install(src: Path, dst: Path) -> None:
 
 
 def fetch_cli(args: argparse.Namespace) -> int:
-    """``bbench fetch <matrix | server@version>...``: download, verify and install every arm's artifacts."""
-    from bedrock_bench import adapters, config
+    """``bbench fetch [server@version ...]``: download, verify and install, by default every benchmark default."""
+    from bedrock_bench import adapters, config, runner
 
     def report(message: str) -> None:
         print(message, file=sys.stderr, flush=True)
@@ -365,8 +365,11 @@ def fetch_cli(args: argparse.Namespace) -> int:
     machine = config.default_machine()
     cache = Cache()
     failed = 0
+    arms, skipped = runner.session_arms(args.tags)
+    for line in skipped:
+        report(f"skipping {line}")
     with using(opts):
-        for arm in _arms_for(args.targets):
+        for arm in arms:
             adapter = adapters.create(arm, machine)
             try:
                 install = adapter.fetch(cache)
@@ -377,18 +380,3 @@ def fetch_cli(args: argparse.Namespace) -> int:
             sources = ", ".join(f"{a.name} ({a.source})" for a in install.artifacts)
             print(f"{arm.ref}: ok, tree {install.tree_sha256[:12]}: {sources}")
     return ExitCode.ENV_GATE if failed else ExitCode.OK
-
-
-def _arms_for(targets: Iterable[str]) -> list[Arm]:
-    from bedrock_bench import config
-
-    arms: list[Arm] = []
-    seen: set[tuple[object, ...]] = set()
-    for target in targets:
-        found = [config.arm_from_ref(target)] if "@" in target else list(config.load_matrix(target).arms)
-        for arm in found:
-            key = (arm.server, arm.version, arm.variant, arm.bds, arm.python, arm.artifact)
-            if key not in seen:
-                seen.add(key)
-                arms.append(arm)
-    return arms

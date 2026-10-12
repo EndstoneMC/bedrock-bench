@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Load and validate the TOML inputs: matrices, server files and machine profiles.
+"""Load and validate the TOML inputs: server files and machine profiles.
 
 Every loader rejects unknown keys, so a typo fails loudly instead of falling back to a default. Failures raise
 :class:`ConfigError` naming the file and the dotted key; the CLI turns them into exit code 2.
 
-Matrices and server files are referenced by path or by bare name. A bare name resolves inside the project checkout,
-for example ``bds`` -> ``configs/bds/server.toml``. Machine profiles are always paths.
+Server files are referenced by path or by bare name. A bare name resolves inside the project checkout, for example
+``bds`` -> ``configs/bds/server.toml``. Machine profiles are always paths.
 
 A server file holds ``schema = 1``, an optional ``server`` that must match its folder, and three tables:
 ``[artifacts]`` (download pins), ``[features]`` (declared parity) and ``[config]`` (the values written into the
@@ -44,7 +44,6 @@ from bedrock_bench.model import (
     Fidelity,
     Gates,
     Machine,
-    Matrix,
     OverrideCategory,
     sha256_json,
     to_json,
@@ -57,11 +56,9 @@ SCHEMA_DIR = Path(__file__).resolve().parent / "schemas"
 
 #: Where each input kind that resolves by name lives, relative to the project root.
 CONFIG_PATHS = {
-    "matrices": "configs/matrices/{}.toml",
     "servers": "configs/{}/server.toml",
 }
 _SINGULAR = {
-    "matrices": "matrix",
     "servers": "server file",
 }
 
@@ -216,20 +213,16 @@ def parse_server_ref(ref: str) -> tuple[str, str]:
 def arm_from_ref(
     ref: str,
     *,
-    variant: str | None = None,
     artifact: Path | None = None,
     bds: str | None = None,
     python: str | None = None,
 ) -> Arm:
-    """An arm for a command line ``server@version``, with the id ``<server>@<version>[+<variant>]``."""
+    """An arm for a command line ``server@version``; the tag is its id."""
     server, version = parse_server_ref(ref)
-    if variant is not None and not NAME_RE.match(variant):
-        raise ConfigError(f"bad variant name {variant!r}")
     return Arm(
-        id=_arm_id(server, version, variant),
+        id=f"{server}@{version}",
         server=server,
         version=version,
-        variant=variant,
         bds=bds,
         python=python,
         artifact=Path(artifact) if artifact is not None else None,
@@ -237,17 +230,13 @@ def arm_from_ref(
 
 
 def validate_order(order: str) -> str:
-    """Run order of a matrix: ``rotate``, ``sequential`` or ``seeded:<non-negative int>``."""
+    """Run order of a session: ``rotate``, ``sequential`` or ``seeded:<non-negative int>``."""
     if order in ("rotate", "sequential"):
         return order
     kind, sep, seed = order.partition(":")
     if kind == "seeded" and sep and seed.isdigit():
         return order
     raise ValueError(f"order must be rotate, sequential or seeded:<int>, got {order!r}")
-
-
-def _arm_id(server: str, version: str, variant: str | None) -> str:
-    return f"{server}@{version}" + (f"+{variant}" if variant else "")
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -432,91 +421,6 @@ def _read_dataclass(table: _Table, cls: type, rules: Mapping[str, Mapping[str, A
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# Matrices
-# --------------------------------------------------------------------------------------------------------------------
-
-
-def load_matrix(ref: str | Path) -> Matrix:
-    path = resolve("matrices", ref)
-    return parse_matrix(load_toml(path), file=path)
-
-
-def parse_matrix(data: Mapping[str, Any], *, file: Path | None = None) -> Matrix:
-    top = _Table(dict(data), file=file)
-    head = top.table("matrix", required=True)
-    stem = file.stem if file is not None else None
-    name = head.get("name", str, stem if stem is not None else _MISSING, pattern=NAME_RE.pattern)
-    scenarios = head.get("scenarios", tuple[str, ...], pattern=NAME_RE.pattern)
-    if not scenarios:
-        raise head.error("scenarios", "must name at least one scenario")
-    if len(set(scenarios)) != len(scenarios):
-        raise head.error("scenarios", "lists a scenario twice")
-    repeats = head.get("repeats", int, 1, minimum=1)
-    order = head.get("order", str, "rotate", check=validate_order)
-    cooldown_s = head.get("cooldown_s", float, 60.0, minimum=0)
-    rerun_invalid = head.get("rerun_invalid", int, 1, minimum=0)
-    priority_override = head.get("priority_override", str, None, choices=PRIORITIES)
-    head.finish()
-
-    raw_arms = top.raw("arm", None)
-    if not isinstance(raw_arms, list) or not raw_arms:
-        raise top.error("arm", "needs at least one [[arm]] table")
-    top.finish()
-
-    base_dir = file.parent if file is not None else Path.cwd()
-    arms: list[Arm] = []
-    seen: set[str] = set()
-    for index, raw in enumerate(raw_arms):
-        arm = _read_arm(_Table(raw, file=file, where=f"arm[{index}]"), base_dir, scenarios)
-        if arm.id in seen:
-            raise ConfigError(f"duplicate arm id {arm.id!r}", file=file, key=f"arm[{index}].id")
-        seen.add(arm.id)
-        arms.append(arm)
-
-    return Matrix(
-        name=name,
-        path=file if file is not None else Path(f"{name}.toml"),
-        sha256=file_sha256(file) if file is not None else sha256_json(data),
-        scenarios=scenarios,
-        arms=tuple(arms),
-        repeats=repeats,
-        order=order,
-        cooldown_s=cooldown_s,
-        rerun_invalid=rerun_invalid,
-        priority_override=priority_override,
-    )
-
-
-def _read_arm(table: _Table, base_dir: Path, matrix_scenarios: tuple[str, ...]) -> Arm:
-    try:
-        server, version = parse_server_ref(table.get("server", str))
-    except ConfigError as exc:
-        raise table.error("server", exc.message) from None
-    variant = table.get("variant", str, None, pattern=NAME_RE.pattern)
-    bds = table.get("bds", str, None, pattern=VERSION_RE.pattern)
-    python = table.get("python", str, None, pattern=PYTHON_RE.pattern)
-    artifact = table.get("artifact", str, None)
-    scenarios = table.get("scenarios", tuple[str, ...], (), choices=matrix_scenarios)
-    table.finish(_explain_arm_key)
-    return Arm(
-        id=_arm_id(server, version, variant),
-        server=server,
-        version=version,
-        variant=variant,
-        bds=bds,
-        python=python,
-        artifact=(base_dir / artifact) if artifact else None,
-        scenarios=scenarios,
-    )
-
-
-def _explain_arm_key(key: str) -> str | None:
-    if key in ("id", "version"):
-        return 'write the arm as server = "<server>@<version>"; its id is that tag plus "+<variant>"'
-    return None
-
-
-# --------------------------------------------------------------------------------------------------------------------
 # Machine profiles
 # --------------------------------------------------------------------------------------------------------------------
 
@@ -569,26 +473,6 @@ def parse_machine(data: Mapping[str, Any], *, file: Path | None = None, label: s
         gates=gates,
         profile_sha256=_profile_sha256(server_cpus, bot_cpus, harness_cpus, priority, jvm_heap, gates),
         label=label,
-    )
-
-
-def with_priority(machine: Machine, priority: str | None) -> Machine:
-    """Apply a matrix ``priority_override``; the profile hash follows the effective priority."""
-    if priority is None or priority == machine.priority:
-        return machine
-    if priority not in PRIORITIES:
-        raise ConfigError(f"priority must be one of {', '.join(PRIORITIES)}, got {priority!r}")
-    return dataclasses.replace(
-        machine,
-        priority=priority,
-        profile_sha256=_profile_sha256(
-            machine.server_cpus,
-            machine.bot_cpus,
-            machine.harness_cpus,
-            priority,
-            machine.jvm_heap,
-            machine.gates,
-        ),
     )
 
 

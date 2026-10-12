@@ -6,7 +6,7 @@ so it is released when the holder exits, however it exits; there is never a stal
 JSON file next to it says who holds it, for ``bbench doctor`` and for error messages. That file is informational
 only: :func:`holder` trusts it only while the lock is really held.
 
-``bbench run`` holds the lock for the whole matrix and starts one ``bbench run-one`` subprocess per run. The child
+``bbench run`` holds the lock for the whole session and starts one ``bbench run-one`` subprocess per run. The child
 inherits the hold through an environment variable carrying a random token, so it neither deadlocks on its parent nor
 runs unlocked. A ``run-one`` started by hand takes the lock itself.
 

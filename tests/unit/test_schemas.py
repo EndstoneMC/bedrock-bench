@@ -40,7 +40,7 @@ def errors(validator: Any, instance: Any) -> list[str]:
 
 def partial_run(run: dict[str, Any]) -> dict[str, Any]:
     """run.partial.json as the runner writes it right after the server is ready."""
-    keep = ("schema", "analysis_version", "run_id", "matrix", "harness", "arm", "workload", "time")
+    keep = ("schema", "analysis_version", "run_id", "session", "harness", "arm", "workload", "time")
     partial = {key: copy.deepcopy(run[key]) for key in keep}
     partial.update(partial=True, status=None, marks={"ready": run["marks"]["ready"]})
     return partial

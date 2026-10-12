@@ -187,7 +187,7 @@ def test_validate_accepts_the_run(bench: FakeBench, good_run: Run) -> None:
 
 
 @pytest.mark.parametrize(
-    ("variant", "gate"),
+    ("behaviour", "gate"),
     [
         ("positions-truncated", "spread"),
         ("tick-stalls-idle", "probe_monotonic"),
@@ -196,8 +196,8 @@ def test_validate_accepts_the_run(bench: FakeBench, good_run: Run) -> None:
         ("wrong-version", "version_match"),
     ],
 )
-def test_broken_run_is_invalid(bench: FakeBench, variant: str, gate: str) -> None:
-    run = bench.run_one("fake_bds", variant=variant)
+def test_broken_run_is_invalid(bench: FakeBench, behaviour: str, gate: str) -> None:
+    run = bench.run_one("fake_bds", behaviour=behaviour)
     assert run.exit_code == ExitCode.INVALID, run.describe()
     record = run.run_json
     assert record["status"] == Status.INVALID

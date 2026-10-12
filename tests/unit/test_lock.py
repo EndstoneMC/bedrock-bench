@@ -99,7 +99,7 @@ def test_released_when_the_holder_dies(tmp_path: Path) -> None:
 
 def test_children_inherit_through_the_token(tmp_path: Path) -> None:
     path = tmp_path / "machine.lock"
-    parent = MachineLock(path, label="matrix")
+    parent = MachineLock(path, label="session")
     assert parent.acquire()
     try:
         env = parent.child_env()
@@ -120,7 +120,7 @@ def test_children_inherit_through_the_token(tmp_path: Path) -> None:
             timeout=60,
         )
         assert wrong.stdout.strip() == "busy"
-        assert holder(path) is not None and holder(path).label == "matrix"
+        assert holder(path) is not None and holder(path).label == "session"
     finally:
         parent.release()
 

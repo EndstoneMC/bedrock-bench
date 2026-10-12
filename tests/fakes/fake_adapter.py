@@ -7,15 +7,18 @@ point group through a throwaway ``.dist-info`` folder, exactly as a third-party 
 
 Each dialect is compiled from the patterns the family declares in ``fake_server.py``. ``fetch`` copies the fake server
 into the cache like a verified download, ``prepare`` renders ``server.properties`` and records every change from the
-fake server's defaults as a categorised override, and the behaviour scripts in ``scripts/`` are the variants::
+fake server's defaults as a categorised override, and ``$BBENCH_FAKE_BEHAVIOUR`` picks a behaviour script from
+``scripts/``: ``<script>`` for every fake adapter, or ``<adapter>=<script>,...``::
 
-    BBENCH_TEST_WORKLOAD=tests/fakes/fake-quick.json bbench run-one --server fake_bds@1.0.0 --variant crash-after-join
+    BBENCH_TEST_WORKLOAD=tests/fakes/fake-quick.json BBENCH_FAKE_BEHAVIOUR=crash-after-join \
+        bbench run-one --server fake_bds@1.0.0
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import shutil
 import sys
@@ -25,13 +28,16 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from bedrock_bench.adapters.base import Dialect, ServerAdapter
+from bedrock_bench.config import ConfigError
 from bedrock_bench.model import (
+    Arm,
     ArtifactRef,
     ConfigFile,
     Install,
     LaunchSpec,
     Layout,
     LogLine,
+    Machine,
     Override,
     OverrideCategory,
     PlayerPos,
@@ -104,11 +110,24 @@ def _tree_sha256(files: Iterable[Path], root: Path) -> str:
     return hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()
 
 
-def _variants() -> dict[str, str]:
+#: The behaviour script fake servers run: ``<script>`` for every fake adapter, or ``<adapter>=<script>,...``.
+ENV_BEHAVIOUR = "BBENCH_FAKE_BEHAVIOUR"
+
+
+def behaviours() -> dict[str, str]:
+    """Behaviour script name -> its description."""
     return {
         path.stem: str(json.loads(path.read_text(encoding="utf-8")).get("description", ""))
         for path in sorted(SCRIPTS_DIR.glob("*.json"))
     }
+
+
+def behaviour_from_env(adapter: str) -> str | None:
+    chosen: dict[str, str] = {}
+    for item in filter(None, os.environ.get(ENV_BEHAVIOUR, "").split(",")):
+        name, sep, script = item.strip().rpartition("=")
+        chosen[name if sep else "*"] = script
+    return chosen.get(adapter, chosen.get("*"))
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -184,7 +203,6 @@ class FakeAdapter(ServerAdapter):
     protocol = 2193
     tick_thread_rule = "first_created"
     crash_paths = ("crash_reports",)
-    variants: ClassVar[Mapping[str, str]] = _variants()
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
@@ -193,6 +211,12 @@ class FakeAdapter(ServerAdapter):
             cls.dialect = dialect_for(family)
             cls.supports_csg = family.supports_csg
             cls.features_file = str(SERVERS_DIR / cls.name / "server.toml")
+
+    def __init__(self, arm: Arm, machine: Machine, behaviour: str | None = None) -> None:
+        super().__init__(arm, machine)
+        self.behaviour = behaviour if behaviour is not None else behaviour_from_env(self.name)
+        if self.behaviour is not None and self.behaviour not in behaviours():
+            raise ConfigError(f"{self.name} has no behaviour script {self.behaviour!r}")
 
     @property
     def server_family(self) -> Family:
@@ -247,8 +271,8 @@ class FakeAdapter(ServerAdapter):
             for key, value in values.items()
             if value != CONFIG_DEFAULTS.get(key)
         )
-        if self.arm.variant is not None:
-            shutil.copyfile(install.root / "scripts" / f"{self.arm.variant}.json", server_dir / SCRIPT_FILE)
+        if self.behaviour is not None:
+            shutil.copyfile(install.root / "scripts" / f"{self.behaviour}.json", server_dir / SCRIPT_FILE)
 
         world_dir = server_dir / "worlds" / workload.world.level_name
         world = WorldInfo(fresh=True, generator="custom", path=world_dir)

@@ -28,7 +28,7 @@ Endstone runs the server as the child of a launcher, and Nukkit reads ``eng`` on
 LeviLamina print the transport banner at error level after the ready line, so their dialects treat it as benign.
 ``test_fakes.py`` checks that the real bds, endstone and levilamina adapters read the fake output of their families.
 
-Behaviour scripts. A fake adapter copies ``scripts/<variant>.json`` to ``bench-script.json`` in the server directory.
+Behaviour scripts. A fake adapter copies ``scripts/<behaviour>.json`` to ``bench-script.json`` in the server directory.
 :data:`DEFAULT_SCRIPT` lists the keys and their defaults; unknown keys are errors. An event fires ``after_s`` seconds
 after its ``anchor`` (default ``ready``): ``start``, ``ready``, ``first_spawn``, ``all_spawned``, or
 ``command:<regex>``, the first console command matching the regex. The actions:

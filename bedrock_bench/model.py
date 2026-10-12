@@ -50,7 +50,7 @@ class Status(StrEnum):
 
 
 class ExitCode(IntEnum):
-    """Process exit codes of ``bbench``. A matrix exits with the worst code of its runs."""
+    """Process exit codes of ``bbench``. A session exits with the worst code of its runs."""
 
     OK = 0
     USAGE = 2
@@ -215,7 +215,7 @@ FEATURE_KEYS = frozenset(
 )
 
 # --------------------------------------------------------------------------------------------------------------------
-# Matrix and arms
+# Servers under test
 # --------------------------------------------------------------------------------------------------------------------
 
 
@@ -223,14 +223,12 @@ FEATURE_KEYS = frozenset(
 class Arm:
     """One server build under test. ``bds`` and ``python`` apply to BDS-hosted servers only."""
 
-    id: str
+    id: str  # the tag, ``<server>@<version>``
     server: str
     version: str
-    variant: str | None = None
     bds: str | None = None
     python: str | None = None
     artifact: Path | None = None  # local artifact override; results are marked ``unpublished_artifact``
-    scenarios: tuple[str, ...] = ()  # subset of the matrix scenarios this arm runs; empty = all
 
     @property
     def ref(self) -> str:
@@ -252,31 +250,6 @@ class Benchmark:
     @property
     def arm(self) -> Arm:
         return Arm(f"{self.server}@{self.version}", self.server, self.version, bds=self.bds, python=self.python)
-
-
-@dataclass(frozen=True)
-class Matrix:
-    """``configs/matrices/<name>.toml``: which arms run which scenarios, how often and in which order."""
-
-    name: str
-    path: Path
-    sha256: str
-    scenarios: tuple[str, ...]
-    arms: tuple[Arm, ...]
-    repeats: int = 1
-    order: str = "rotate"  # rotate | sequential | seeded:<int>
-    cooldown_s: float = 60.0
-    rerun_invalid: int = 1  # server_failed is never rerun
-    priority_override: str | None = None
-
-    def arm(self, arm_id: str) -> Arm:
-        for arm in self.arms:
-            if arm.id == arm_id:
-                return arm
-        raise KeyError(f"matrix {self.name!r} has no arm {arm_id!r}")
-
-    def scenarios_for(self, arm: Arm) -> tuple[str, ...]:
-        return arm.scenarios or self.scenarios
 
 
 # --------------------------------------------------------------------------------------------------------------------

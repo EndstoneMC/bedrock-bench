@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
-"""``bbench run`` over a matrix: rotate order, one subprocess and directory per run, refusal to mix machine
-profiles in one matrix directory, and a report with one Results row per server.
+"""``bbench run`` as one session: rotate order, one subprocess and directory per run, one session id and directory,
+and a report with one Results row per server.
 
-The matrix has two arms, ``fake_bds`` and ``fake_dragonfly``, each run twice.
+The session runs two servers, ``fake_bds`` and ``fake_dragonfly``, each twice.
 """
 
 from __future__ import annotations
@@ -21,18 +21,16 @@ from fakes.bench import FakeBench, read_json
 
 pytestmark = pytest.mark.integration
 
-MATRIX = "order"
 FULL, REDUCED = "fake_bds@1.0.0", "fake_dragonfly@1.0.0"
 ARMS = [FULL, REDUCED]
+SESSION_ID = re.compile(r"^\d{8}T\d{6}Z-[0-9a-f]{4}$")
 RUN_ID = re.compile(r"^\d{8}T\d{6}Z-fake_(bds|dragonfly)@1\.0\.0-r[12]-[0-9a-f]{4}$")
 
 
 @pytest.fixture(scope="module")
-def matrix_run(tmp_path_factory: pytest.TempPathFactory) -> tuple[FakeBench, subprocess.CompletedProcess[str]]:
+def session_run(tmp_path_factory: pytest.TempPathFactory) -> tuple[FakeBench, subprocess.CompletedProcess[str]]:
     bench = FakeBench.create(tmp_path_factory.mktemp("bench"))
-    matrix = bench.matrix(MATRIX, ARMS, repeats=2, order="rotate")
-    machine = bench.machine_path()
-    result = bench.bbench("run", matrix, "--machine", machine, "--out", bench.out, timeout=900)
+    result = bench.bbench(*bench.session_args(*ARMS, repeats=2), timeout=900)
     return bench, result
 
 
@@ -40,21 +38,26 @@ def records(bench: FakeBench) -> list[dict[str, Any]]:
     return [read_json(run_dir / "run.json") for run_dir in bench.run_dirs()]
 
 
-def completed(matrix_run: tuple[FakeBench, subprocess.CompletedProcess[str]]) -> FakeBench:
-    """The bench of a matrix run that finished every run; tests that build on it need that first."""
-    bench, result = matrix_run
+def session_dir(bench: FakeBench) -> Path:
+    (found,) = [p for p in bench.out.iterdir() if p.is_dir()]
+    return found
+
+
+def completed(session_run: tuple[FakeBench, subprocess.CompletedProcess[str]]) -> FakeBench:
+    """The bench of a session that finished every run; tests that build on it need that first."""
+    bench, result = session_run
     assert result.returncode == ExitCode.OK, result.stdout + result.stderr
     assert len(bench.run_dirs()) == 4
     return bench
 
 
-def test_every_arm_and_repeat_runs_once(matrix_run: tuple[FakeBench, subprocess.CompletedProcess[str]]) -> None:
-    bench, result = matrix_run
+def test_every_server_and_repeat_runs_once(session_run: tuple[FakeBench, subprocess.CompletedProcess[str]]) -> None:
+    bench, result = session_run
     assert result.returncode == ExitCode.OK, result.stdout + result.stderr
     runs = records(bench)
     assert len(runs) == 4
     assert all(run["status"] == Status.OK for run in runs), [run["status_reasons"] for run in runs]
-    assert sorted((run["arm"]["id"], run["matrix"]["repeat"]) for run in runs) == [
+    assert sorted((run["arm"]["id"], run["session"]["repeat"]) for run in runs) == [
         (FULL, 1),
         (FULL, 2),
         (REDUCED, 1),
@@ -63,40 +66,41 @@ def test_every_arm_and_repeat_runs_once(matrix_run: tuple[FakeBench, subprocess.
     ids = [run["run_id"] for run in runs]
     assert len(set(ids)) == 4
     assert all(RUN_ID.match(run_id) for run_id in ids), ids
-    assert all(run_dir.parent == bench.out / MATRIX for run_dir in bench.run_dirs())
+    sessions = {run["session"]["id"] for run in runs}
+    assert len(sessions) == 1 and SESSION_ID.match(next(iter(sessions))), sessions
+    assert all(run_dir.parent == bench.out / next(iter(sessions)) for run_dir in bench.run_dirs())
 
 
-def test_blocks_rotate_the_arm_order(matrix_run: tuple[FakeBench, subprocess.CompletedProcess[str]]) -> None:
-    bench = completed(matrix_run)
-    runs = sorted(records(bench), key=lambda run: run["matrix"]["order_index"])
-    assert [(run["arm"]["id"], run["matrix"]["repeat"]) for run in runs] == [
+def test_blocks_rotate_the_server_order(session_run: tuple[FakeBench, subprocess.CompletedProcess[str]]) -> None:
+    bench = completed(session_run)
+    runs = sorted(records(bench), key=lambda run: run["session"]["order_index"])
+    assert [(run["arm"]["id"], run["session"]["repeat"]) for run in runs] == [
         (FULL, 1),
         (REDUCED, 1),
         (REDUCED, 2),
         (FULL, 2),
     ]
-    assert {run["matrix"]["order"] for run in runs} == {"rotate"}
+    assert {run["session"]["order"] for run in runs} == {"rotate"}
     assert {run["machine"]["profile_sha256"] for run in runs} == {runs[0]["machine"]["profile_sha256"]}
 
 
 def test_dry_run_prints_the_order_and_runs_nothing(tmp_path: Path) -> None:
     bench = FakeBench.create(tmp_path)
-    matrix = bench.matrix(MATRIX, ARMS, repeats=2, order="rotate")
-    machine = bench.machine_path()
-    result = bench.bbench("run", matrix, "--machine", machine, "--out", bench.out, "--dry-run")
+    result = bench.bbench(*bench.session_args(*ARMS, repeats=2), "--dry-run")
     assert result.returncode == ExitCode.OK, result.stderr
     order = [arm for line in result.stdout.splitlines() for arm in ARMS if arm in line]
     assert order == [FULL, REDUCED, REDUCED, FULL]
     assert bench.run_dirs() == []
 
 
-def test_report_has_one_row_per_server(matrix_run: tuple[FakeBench, subprocess.CompletedProcess[str]]) -> None:
-    bench = completed(matrix_run)
-    matrix_dir = bench.out / MATRIX
-    result = bench.bbench("report", matrix_dir)
+def test_report_has_one_row_per_server(session_run: tuple[FakeBench, subprocess.CompletedProcess[str]]) -> None:
+    bench = completed(session_run)
+    directory = session_dir(bench)
+    assert (directory / "report.md").is_file(), "bbench run writes the report at the end"
+    result = bench.bbench("report", directory)
     assert result.returncode == ExitCode.OK, result.stdout + result.stderr
-    assert (matrix_dir / "summary.json").is_file()
-    report = (matrix_dir / "report.md").read_text(encoding="utf-8")
+    assert (directory / "summary.json").is_file()
+    report = (directory / "report.md").read_text(encoding="utf-8")
     results = report.split("## Results\n")[1].split("\n## ")[0]
     rows = [line for line in results.splitlines() if line.startswith("| `")]
     assert [row.split(" | ")[1] for row in rows] == ["2/2", "2/2"]
@@ -105,11 +109,11 @@ def test_report_has_one_row_per_server(matrix_run: tuple[FakeBench, subprocess.C
 
 
 def test_report_refuses_mixed_machine_profiles(
-    matrix_run: tuple[FakeBench, subprocess.CompletedProcess[str]], tmp_path: Path
+    session_run: tuple[FakeBench, subprocess.CompletedProcess[str]], tmp_path: Path
 ) -> None:
-    bench = completed(matrix_run)
-    copy = tmp_path / MATRIX
-    shutil.copytree(bench.out / MATRIX, copy, ignore=shutil.ignore_patterns("summary.json", "report.md"))
+    bench = completed(session_run)
+    copy = tmp_path / "session"
+    shutil.copytree(session_dir(bench), copy, ignore=shutil.ignore_patterns("summary.json", "report.md", "*.csv"))
     run_json = sorted(copy.glob("*/run.json"))[0]
     record = read_json(run_json)
     record["machine"]["profile_sha256"] = "0" * 64
@@ -117,16 +121,3 @@ def test_report_refuses_mixed_machine_profiles(
     result = bench.bbench("report", copy)
     assert result.returncode != ExitCode.OK, "a report never mixes machine profiles"
     assert not (copy / "report.md").exists()
-
-
-def test_runner_refuses_mixed_placement(matrix_run: tuple[FakeBench, subprocess.CompletedProcess[str]]) -> None:
-    bench = completed(matrix_run)
-    if len(bench.server_cpus + bench.bot_cpus) < 2:
-        pytest.skip("needs two CPUs to swap the server and bot sets")
-    other = bench.machine("swapped", server_cpus=bench.bot_cpus, bot_cpus=bench.server_cpus)
-    before = bench.run_dirs()
-    matrix = bench.root / "configs" / "matrices" / f"{MATRIX}.toml"
-    result = bench.bbench("run", matrix, "--machine", other, "--out", bench.out, "--repeats", "3")
-    refused = (ExitCode.USAGE, ExitCode.ENV_GATE)
-    assert result.returncode in refused, "adding runs on another placement to a matrix directory is refused"
-    assert bench.run_dirs() == before

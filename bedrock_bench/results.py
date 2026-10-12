@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Run directories: layout, ``run.json`` assembly, the raw-file loader and schema validation.
 
-A run directory is ``<out>/<matrix>/<run_id>/``. It is created once, with a unique id, and never overwritten or
+A run directory is ``<out>/<session>/<run_id>/``. It is created once, with a unique id, and never overwritten or
 deleted. While the run is in progress ``run.partial.json`` is rewritten after every phase, so a crashed harness
 still leaves a record; at the end ``run.json`` replaces it and ``metrics.json`` is computed from the raw files, the
 same way ``bbench analyze`` recomputes it later.
@@ -33,6 +33,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import secrets
 import sys
 import threading
@@ -87,6 +88,17 @@ _TMP_SUFFIX = ".tmp"
 # --------------------------------------------------------------------------------------------------------------------
 
 
+#: A session id: ``make_session_id`` output, or anything else that is safe as one directory name.
+SESSION_RE = re.compile(r"^[0-9A-Za-z][0-9A-Za-z._-]*$")
+
+
+def make_session_id(epoch_ms: int | None = None) -> str:
+    """``<UTCyyyymmddThhmmssZ>-<4hex>``, shared by every run of one ``bbench run``."""
+    if epoch_ms is None:
+        epoch_ms = time.time_ns() // 1_000_000
+    return f"{utc_compact(epoch_ms)}-{secrets.token_hex(2)}"
+
+
 def make_run_id(arm_id: str, repeat: int, epoch_ms: int, suffix: str | None = None) -> str:
     """``<UTCyyyymmddThhmmssZ>-<arm>-r<k>-<4hex>``."""
     suffix = suffix if suffix is not None else secrets.token_hex(2)
@@ -101,18 +113,18 @@ class RunDir:
         self.run_id = self.path.name
 
     @classmethod
-    def create(cls, matrix_dir: Path, arm_id: str, repeat: int) -> RunDir:
+    def create(cls, session_dir: Path, arm_id: str, repeat: int) -> RunDir:
         """A new, empty directory with a unique run id. An existing directory is never reused."""
         for _ in range(64):
             epoch_ms = time.time_ns() // 1_000_000
-            path = Path(matrix_dir) / make_run_id(arm_id, repeat, epoch_ms)
+            path = Path(session_dir) / make_run_id(arm_id, repeat, epoch_ms)
             try:
                 path.mkdir(parents=True, exist_ok=False)
             except FileExistsError:
                 continue
             (path / SERIES_DIR).mkdir()
             return cls(path)
-        raise RuntimeError(f"cannot find an unused run id under {matrix_dir}")
+        raise RuntimeError(f"cannot find an unused run id under {session_dir}")
 
     @classmethod
     def open(cls, path: Path) -> RunDir:
@@ -234,7 +246,6 @@ def arm_record(arm: Any) -> dict[str, Any]:
         "id": arm.id,
         "server": arm.server,
         "version": arm.version,
-        "variant": arm.variant,
         "bds": arm.bds,
         "python": arm.python,
         "artifact": arm.artifact.name if arm.artifact is not None else None,
@@ -333,7 +344,7 @@ def new_record(
     run_id: str,
     arm: Any,
     workload: Workload,
-    matrix: Mapping[str, Any],
+    session: Mapping[str, Any],
     harness: Mapping[str, Any],
     machine: Mapping[str, Any],
     placement: Placement,
@@ -358,7 +369,7 @@ def new_record(
         "official": official,
         "nonstandard": list(nonstandard),
         "harness": dict(harness),
-        "matrix": dict(matrix),
+        "session": dict(session),
         "arm": arm_record(arm),
         "artifacts": [to_json(ref) for ref in install.artifacts],
         "install": {"tree_sha256": install.tree_sha256, "exe_sha256_before": None, "exe_sha256_after": None},
@@ -749,6 +760,7 @@ __all__ = [
     "METRICS_FILE",
     "PARTIAL_FILE",
     "RUN_FILE",
+    "SESSION_RE",
     "JsonLines",
     "Outcome",
     "RunDir",
@@ -758,6 +770,7 @@ __all__ = [
     "load_run",
     "machine_record",
     "make_run_id",
+    "make_session_id",
     "new_record",
     "parity_record",
     "placement_record",

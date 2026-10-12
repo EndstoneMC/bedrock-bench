@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 """Foreign load is guarded, not tolerated (rule R4): a process burning a server CPU during the measured windows makes
-the run invalid, and foreign load before a matrix starts makes the runner refuse to begin.
+the run invalid, and foreign load before a session starts makes the runner refuse to begin.
 
 The CPU burner is a child of the test process, so it is outside the server, bot and harness process trees.
 """
@@ -40,11 +40,10 @@ def test_cpu_burner_on_server_cpus_invalidates_the_run(tmp_path: Path) -> None:
     assert any("foreign" in reason for reason in record["status_reasons"]), record["status_reasons"]
 
 
-def test_foreign_load_before_a_matrix_is_refused(tmp_path: Path) -> None:
+def test_foreign_load_before_a_session_is_refused(tmp_path: Path) -> None:
     bench = FakeBench.create(tmp_path)
-    machine = bench.machine("strict", strict_gates=True)
-    matrix = bench.matrix("busy", ["fake_bds"])
+    bench.machine("strict", strict_gates=True)
     with cpu_burner(bench.server_cpus[:1]):
-        result = bench.bbench("run", matrix, "--machine", machine, "--out", bench.out)
+        result = bench.bbench(*bench.session_args("fake_bds", machine="strict"))
     assert result.returncode == ExitCode.ENV_GATE, result.stdout + result.stderr
     assert bench.run_dirs() == [], "no run starts on a busy machine"

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""The runner and the phase helpers that need no live server: run order, matrix-directory refusal, pre-flight checks,
+"""The runner and the phase helpers that need no live server: session servers and run order, pre-flight checks,
 the bot command, placement and the smoke checks.
 
 End-to-end runs against the fake server are in ``tests/integration``.
@@ -13,7 +13,6 @@ import gzip
 import json
 import shutil
 import socket
-from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -21,18 +20,17 @@ import pytest
 
 from bedrock_bench import runner
 from bedrock_bench.adapters.base import host_os
-from bedrock_bench.config import ConfigError, load_machine, parse_matrix
+from bedrock_bench.config import ConfigError, load_machine
 from bedrock_bench.grid import cell
-from bedrock_bench.model import Arm, LogLine, Matrix
+from bedrock_bench.model import Arm, LogLine
 from bedrock_bench.phases import ENV_BOT_CMD, Placer, bot_command
 from bedrock_bench.workload import SMOKE, WORKLOAD
 from fakes.fake_adapter import FakeBds
 from fixtures.runs import synthetic
 
 
-def matrix(arms: list[str], *, scenarios: tuple[str, ...] = ("s1",), **head: Any) -> Matrix:
-    data = {"matrix": {"name": "m", "scenarios": list(scenarios), **head}, "arm": [{"server": a} for a in arms]}
-    return parse_matrix(data)
+def arms(*tags: str) -> list[Arm]:
+    return [Arm(tag, *tag.split("@")) for tag in tags]
 
 
 def ids(plan: list[runner.PlannedRun]) -> list[tuple[str, int]]:
@@ -40,87 +38,129 @@ def ids(plan: list[runner.PlannedRun]) -> list[tuple[str, int]]:
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# Run order
+# Session servers and run order
 # --------------------------------------------------------------------------------------------------------------------
 
 
 class TestPlanOrder:
     def test_rotate_shifts_each_block(self) -> None:
-        plan = runner.plan_order(matrix(["a@1", "b@1"]), repeats=2, order="rotate")
+        plan = runner.plan_order(arms("a@1", "b@1"), repeats=2, order="rotate")
         assert ids(plan) == [("a@1", 1), ("b@1", 1), ("b@1", 2), ("a@1", 2)]
         assert [run.order_index for run in plan] == [0, 1, 2, 3]
 
-    def test_rotate_three_arms(self) -> None:
-        plan = runner.plan_order(matrix(["a@1", "b@1", "c@1"]), repeats=3, order="rotate")
+    def test_rotate_three_servers(self) -> None:
+        plan = runner.plan_order(arms("a@1", "b@1", "c@1"), repeats=3, order="rotate")
         blocks = [[run.arm.id[0] for run in plan if run.repeat == k] for k in (1, 2, 3)]
         assert blocks == [["a", "b", "c"], ["b", "c", "a"], ["c", "a", "b"]]
 
     def test_sequential(self) -> None:
-        plan = runner.plan_order(matrix(["a@1", "b@1"]), repeats=2, order="sequential")
+        plan = runner.plan_order(arms("a@1", "b@1"), repeats=2, order="sequential")
         assert ids(plan) == [("a@1", 1), ("b@1", 1), ("a@1", 2), ("b@1", 2)]
 
     def test_seeded_is_deterministic(self) -> None:
-        m = matrix([f"s{i}@1" for i in range(6)])
-        first = runner.plan_order(m, repeats=3, order="seeded:7")
-        assert ids(first) == ids(runner.plan_order(m, repeats=3, order="seeded:7"))
-        assert ids(first) != ids(runner.plan_order(m, repeats=3, order="seeded:8"))
+        servers = arms(*(f"s{i}@1" for i in range(6)))
+        first = runner.plan_order(servers, repeats=3, order="seeded:7")
+        assert ids(first) == ids(runner.plan_order(servers, repeats=3, order="seeded:7"))
+        assert ids(first) != ids(runner.plan_order(servers, repeats=3, order="seeded:8"))
         for k in (1, 2, 3):
-            assert sorted(run.arm.id for run in first if run.repeat == k) == sorted(a.id for a in m.arms)
+            assert sorted(run.arm.id for run in first if run.repeat == k) == sorted(a.id for a in servers)
 
-    def test_scenarios_and_arm_subsets(self) -> None:
-        data = {
-            "matrix": {"name": "m", "scenarios": ["s1", "s2"]},
-            "arm": [{"server": "a@1"}, {"server": "b@1", "scenarios": ["s2"]}],
-        }
-        plan = runner.plan_order(parse_matrix(data), repeats=1, order="rotate")
-        assert [(run.arm.id, run.scenario) for run in plan] == [("a@1", "s1"), ("a@1", "s2"), ("b@1", "s2")]
+    def test_bad_order(self) -> None:
+        with pytest.raises(ValueError, match="order"):
+            runner.plan_order(arms("a@1"), repeats=1, order="random")
 
-    def test_only(self) -> None:
-        plan = runner.plan_order(matrix(["a@1", "b@1", "c@1"]), repeats=1, order="rotate", only=["c@1", "a@1"])
-        assert [run.arm.id for run in plan] == ["a@1", "c@1"]
-        with pytest.raises(ConfigError, match="no arm 'd@1'"):
-            runner.plan_order(matrix(["a@1"]), repeats=1, order="rotate", only=["d@1"])
-
-    def test_dry_run_lines_name_one_arm_each(self) -> None:
-        plan = runner.plan_order(matrix(["a@1", "b@1"]), repeats=1, order="rotate")
+    def test_dry_run_lines_name_one_server_each(self) -> None:
+        plan = runner.plan_order(arms("a@1", "b@1"), repeats=1, order="rotate")
         assert "a@1" not in runner.PlannedRun.HEADER
         assert [line.split()[2] for line in map(runner.PlannedRun.describe, plan)] == ["a@1", "b@1"]
 
 
-class TestMatrixDirectory:
-    MACHINE = load_machine(None)
+class TestSessionServers:
+    def test_tags(self) -> None:
+        found, skipped = runner.session_arms(["bds@1.26.52.3", "pocketmine@5.44.3"])
+        assert [arm.id for arm in found] == ["bds@1.26.52.3", "pocketmine@5.44.3"] and skipped == []
 
-    def recorded(self, **machine: Any) -> dict[str, Any]:
-        return {
-            "machine": {"profile_sha256": self.MACHINE.profile_sha256, "fingerprint_id": "f1", **machine},
-            "workload": WORKLOAD.record(),
-        }
+    def test_a_default_tag_brings_its_bds_and_python(self) -> None:
+        assert runner.tag_arm("endstone@0.11.14") == Arm("endstone@0.11.14", "endstone", "0.11.14", "1.26.52.3", "3.13")
+        assert runner.tag_arm("endstone@0.11.13") == Arm("endstone@0.11.13", "endstone", "0.11.13")
 
-    def problems(self, record: dict[str, Any]) -> list[str]:
-        return runner.mixing_problems([record], self.MACHINE, "f1", WORKLOAD)
+    def test_a_tag_twice(self) -> None:
+        with pytest.raises(ConfigError, match="twice"):
+            runner.session_arms(["bds@1.26.52.3", "bds@1.26.52.3"])
 
-    def test_same_profile_machine_and_workload(self) -> None:
-        assert self.problems(self.recorded()) == []
+    def test_defaults_skip_excluded_and_foreign_platform_servers(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setattr(runner, "host_os", lambda: "linux")
+        found, skipped = runner.session_arms([])
+        tags = [arm.id for arm in found]
+        assert "bds@1.26.52.3" in tags and "endstone@0.11.14" in tags
+        assert not any(tag.startswith(("chorus@", "levilamina@")) for tag in tags)
+        assert skipped == [
+            "chorus@95ca835: its player list gives the bots decode errors",
+            "levilamina@26.51.6: runs on windows only",
+        ]
+        monkeypatch.setattr(runner, "host_os", lambda: "windows")
+        assert "levilamina@26.51.6" in [arm.id for arm in runner.session_arms([])[0]]
 
-    def test_another_profile(self) -> None:
-        assert "another machine profile" in self.problems(self.recorded(profile_sha256="0" * 64))[0]
 
-    def test_another_machine(self) -> None:
-        assert "another machine" in self.problems(self.recorded(fingerprint_id="f2"))[0]
+def run_args(**values: Any) -> argparse.Namespace:
+    defaults = {
+        "tags": ["bds@1.26.52.3"],
+        "repeats": 3,
+        "order": "rotate",
+        "cooldown": 60.0,
+        "rerun_invalid": 1,
+        "machine": None,
+        "out": None,
+        "dry_run": True,
+        "verbose": 0,
+    }
+    return argparse.Namespace(**{**defaults, **values})
 
-    def test_another_workload(self) -> None:
-        record = {**self.recorded(), "workload": {**WORKLOAD.record(), "sha256": "0" * 64}}
-        assert "another workload" in self.problems(record)[0]
 
-    def test_existing_records(self, tmp_path: Path) -> None:
-        (tmp_path / "r1").mkdir()
-        (tmp_path / "r1" / "run.json").write_text('{"run_id": "r1"}', encoding="utf-8")
-        (tmp_path / "r2").mkdir()
-        (tmp_path / "r2" / "run.partial.json").write_text('{"run_id": "r2"}', encoding="utf-8")
-        (tmp_path / "r3").mkdir()
-        (tmp_path / "summary.json").write_text("{}", encoding="utf-8")
-        assert [r["run_id"] for r in runner.existing_records(tmp_path)] == ["r1", "r2"]
-        assert runner.existing_records(tmp_path / "missing") == []
+class TestRunSession:
+    def test_dry_run(self, capsys: pytest.CaptureFixture[str], tmp_path: Path) -> None:
+        args = run_args(tags=["bds@1.26.52.3", "pocketmine@5.44.3"], repeats=2, out=tmp_path)
+        assert runner.run_session(args) == 0
+        lines = capsys.readouterr().out.splitlines()
+        assert lines[0].startswith("session ") and "4 runs, order rotate" in lines[0]
+        assert [line.split()[2] for line in lines[2:]] == [
+            "bds@1.26.52.3",
+            "pocketmine@5.44.3",
+            "pocketmine@5.44.3",
+            "bds@1.26.52.3",
+        ]
+        assert not any(tmp_path.iterdir()), "a dry run writes nothing"
+
+    @pytest.mark.parametrize(
+        ("change", "message"),
+        [({"repeats": 0}, "--repeats"), ({"cooldown": -1.0}, "--cooldown"), ({"rerun_invalid": -1}, "--rerun-invalid")],
+    )
+    def test_bad_options(self, change: dict[str, Any], message: str) -> None:
+        with pytest.raises(ConfigError, match=message):
+            runner.run_session(run_args(**change))
+
+    def test_child_command(self, tmp_path: Path) -> None:
+        run = runner.PlannedRun(3, 2, runner.tag_arm("endstone@0.11.14"))
+        command = runner._child_command(run_args(order="seeded:4"), "S1", run, tmp_path)
+        assert command[command.index("run-one") :] == [
+            "run-one",
+            "--server",
+            "endstone@0.11.14",
+            "--session",
+            "S1",
+            "--repeat",
+            "2",
+            "--order-index",
+            "3",
+            "--order",
+            "seeded:4",
+            "--out",
+            str(tmp_path),
+            "--bds",
+            "1.26.52.3",
+            "--python",
+            "3.13",
+        ]
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -131,12 +171,13 @@ class TestMatrixDirectory:
 def namespace(**values: Any) -> argparse.Namespace:
     defaults = {
         "server": None,
-        "matrix": None,
-        "arm": None,
+        "bds": None,
+        "python": None,
         "machine": None,
-        "variant": None,
+        "session": None,
         "repeat": 1,
         "order_index": None,
+        "order": None,
         "artifact": None,
         "out": None,
     }
@@ -145,34 +186,31 @@ def namespace(**values: Any) -> argparse.Namespace:
 
 class TestRequest:
     def test_server_tag(self) -> None:
-        request = runner._request(namespace(server="bds@1.26.52.3", variant="x"))
-        assert request.arm.id == "bds@1.26.52.3+x"
-        assert request.matrix is None and request.order is None
-        assert request.matrix_dir == runner.DEFAULT_OUT / "benchmark"
+        request = runner._request(namespace(server="bds@1.26.52.3"))
+        assert request.arm.id == "bds@1.26.52.3"
+        assert request.order is None and request.order_index is None
+        assert request.session_dir == runner.DEFAULT_OUT / request.session
         assert request.workload == WORKLOAD
 
-    def test_matrix_arm(
-        self, write_file: Callable[[str, str], Path], monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
-        path = write_file(
-            "configs/matrices/m.toml",
-            '[matrix]\nname = "m"\nscenarios = ["smoke"]\norder = "rotate"\npriority_override = "above_normal"\n'
-            '[[arm]]\nserver = "bds@1.26.52.3"\n',
+    def test_session_run(self, tmp_path: Path) -> None:
+        args = namespace(
+            server="endstone@0.11.14",
+            bds="1.26.52.3",
+            python="3.13",
+            session="S1",
+            repeat=2,
+            order_index=5,
+            order="rotate",
+            out=tmp_path,
         )
-        monkeypatch.setenv(runner.ENV_MATRIX_ORDER, "sequential")
-        request = runner._request(namespace(matrix=str(path), arm="bds@1.26.52.3", repeat=2, out=tmp_path))
-        assert request.machine.priority == "above_normal"
-        assert request.order == "sequential"
-        assert request.matrix_dir == tmp_path / "m"
+        request = runner._request(args)
+        assert (request.arm.bds, request.arm.python) == ("1.26.52.3", "3.13")
+        assert (request.session, request.repeat, request.order_index, request.order) == ("S1", 2, 5, "rotate")
+        assert request.session_dir == tmp_path / "S1"
 
-    def test_matrix_arm_errors(self, write_file: Callable[[str, str], Path]) -> None:
-        path = write_file(
-            "configs/matrices/m.toml", '[matrix]\nscenarios = ["spread100"]\n[[arm]]\nserver = "bds@1.0"\n'
-        )
-        with pytest.raises(ConfigError, match="no arm"):
-            runner._request(namespace(matrix=str(path), arm="bds@2.0"))
-        with pytest.raises(ConfigError, match="go with --server"):
-            runner._request(namespace(matrix=str(path), arm="bds@1.0", variant="x"))
+    def test_bad_session_id(self) -> None:
+        with pytest.raises(ConfigError, match="session"):
+            runner._request(namespace(server="bds@1.26.52.3", session="../x"))
 
 
 class TestPreflight:

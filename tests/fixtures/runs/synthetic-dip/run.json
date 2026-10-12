@@ -4,7 +4,6 @@
     "bds": null,
     "id": "synthetic@1.0",
     "server": "synthetic",
-    "variant": null,
     "version": "1.0"
   },
   "artifacts": [
@@ -144,12 +143,6 @@
     "steady1": 205.0,
     "stop": 207.0
   },
-  "matrix": {
-    "name": "fixtures",
-    "order": "rotate",
-    "order_index": 0,
-    "repeat": 1
-  },
   "nonstandard": [],
   "official": false,
   "overrides": [],
@@ -197,6 +190,12 @@
       "thread_census_idle": {}
     },
     "pid": 4242
+  },
+  "session": {
+    "id": "20261012T135800Z-0001",
+    "order": "rotate",
+    "order_index": 0,
+    "repeat": 1
   },
   "settle": {
     "capped": false,

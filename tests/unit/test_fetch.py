@@ -277,12 +277,34 @@ class TestInstalls:
 
 
 class TestCli:
-    def test_targets_deduplicated(self) -> None:
-        arms = fetch._arms_for(["bds@1.26.52.3", "bds@1.26.52.3", "endstone@0.11.14"])
-        assert [arm.ref for arm in arms] == ["bds@1.26.52.3", "endstone@0.11.14"]
+    def test_a_tag_twice_is_a_config_error(self) -> None:
+        args = argparse.Namespace(tags=["bds@1.26.52.3", "bds@1.26.52.3"], accept_eula=False, artifact_dir=None)
+        with pytest.raises(ConfigError, match="twice"):
+            fetch.fetch_cli(args)
+
+    def test_no_tag_fetches_every_default(
+        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        from bedrock_bench import adapters, runner
+        from bedrock_bench.adapters.base import ServerAdapter
+
+        fetched: list[str] = []
+
+        def fake_fetch(self: ServerAdapter, cache: Cache) -> object:
+            fetched.append(self.arm.id)
+            raise FetchError("not here")
+
+        for name in adapters.names():
+            monkeypatch.setattr(adapters.get(name), "fetch", fake_fetch)
+        monkeypatch.setattr(runner, "host_os", lambda: "windows")
+        args = argparse.Namespace(tags=[], accept_eula=False, artifact_dir=None)
+        assert fetch.fetch_cli(args) == ExitCode.ENV_GATE
+        assert "endstone@0.11.14" in fetched and "levilamina@26.51.6" in fetched
+        assert not any(tag.startswith("chorus@") for tag in fetched)
+        assert "skipping chorus@95ca835" in capsys.readouterr().err
 
     def test_unknown_server_is_a_config_error(self) -> None:
-        args = argparse.Namespace(targets=["nosuchserver@1.0"], accept_eula=False, artifact_dir=None)
+        args = argparse.Namespace(tags=["nosuchserver@1.0"], accept_eula=False, artifact_dir=None)
         with pytest.raises(ConfigError, match="unknown server"):
             fetch.fetch_cli(args)
 
@@ -293,6 +315,6 @@ class TestCli:
             raise FetchError("simulated failure")
 
         monkeypatch.setattr(bds.BdsAdapter, "fetch", failing_fetch)
-        args = argparse.Namespace(targets=["bds@1.26.52.3"], accept_eula=False, artifact_dir=None)
+        args = argparse.Namespace(tags=["bds@1.26.52.3"], accept_eula=False, artifact_dir=None)
         assert fetch.fetch_cli(args) == ExitCode.ENV_GATE
         assert "bds@1.26.52.3: simulated failure" in capsys.readouterr().err

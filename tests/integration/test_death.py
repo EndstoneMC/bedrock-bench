@@ -32,7 +32,7 @@ def assert_server_failed(run: Run, gate: str) -> dict[str, Any]:
 
 
 def test_crash_after_join(bench: FakeBench) -> None:
-    run = bench.run_one(variant="crash-after-join")
+    run = bench.run_one(behaviour="crash-after-join")
     record = assert_server_failed(run, "server_alive")
     health = record["health"]
     assert health["died"] is True
@@ -46,7 +46,7 @@ def test_crash_after_join(bench: FakeBench) -> None:
 
 
 def test_crash_during_boot(bench: FakeBench) -> None:
-    run = bench.run_one(variant="crash-at-boot")
+    run = bench.run_one(behaviour="crash-at-boot")
     record = assert_server_failed(run, "server_alive")
     assert record["health"]["died"] is True
     assert record["marks"].get("ready") is None
@@ -54,7 +54,7 @@ def test_crash_during_boot(bench: FakeBench) -> None:
 
 
 def test_nonzero_exit_after_stop(bench: FakeBench) -> None:
-    run = bench.run_one(variant="exit-nonzero")
+    run = bench.run_one(behaviour="exit-nonzero")
     record = assert_server_failed(run, "server_alive")
     assert record["health"]["died"] is False, "the server lived until teardown"
     assert record["health"]["server_exit"] == 1
@@ -63,13 +63,13 @@ def test_nonzero_exit_after_stop(bench: FakeBench) -> None:
 def test_hang_on_stop_is_killed(bench: FakeBench) -> None:
     workload = bench.workload("short-stop", phases={"teardown": {"stop_timeout_s": 2.0}})
     started = time.monotonic()
-    run = bench.run_one(variant="hang-on-stop", workload=workload)
+    run = bench.run_one(behaviour="hang-on-stop", workload=workload)
     assert time.monotonic() - started < 120, "the harness kills a server that ignores stop"
     record = assert_server_failed(run, "server_alive")
     assert record["health"]["server_exit"] != 0
 
 
 def test_refused_join(bench: FakeBench) -> None:
-    run = bench.run_one(variant="reject-join")
+    run = bench.run_one(behaviour="reject-join")
     record = assert_server_failed(run, "joined_all")
     assert (record["health"]["joined"], record["health"]["failed"]) == (3, 1)
