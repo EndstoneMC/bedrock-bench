@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import os
+import random
 import shutil
 import socket
 import subprocess
@@ -108,11 +109,10 @@ def _bindable(port: int) -> bool:
 
 def free_port() -> int:
     """A port that is free for TCP and UDP, together with the next one (the IPv6 port of BDS-style servers)."""
-    for _ in range(100):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            sock.bind(("127.0.0.1", 0))
-            port = sock.getsockname()[1]
-        if 1024 <= port <= 65000 and _bindable(port) and _bindable(port + 1):
+    for _ in range(200):
+        # Below the dynamic range, where Windows may reserve blocks of ports.
+        port = random.randrange(20000, 49150)
+        if _bindable(port) and _bindable(port + 1):
             return port
     raise RuntimeError("no free port pair found")
 

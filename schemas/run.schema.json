@@ -202,7 +202,18 @@
         "virtualized": { "type": ["boolean", "null"] },
         "power": { "type": ["string", "null"] },
         "tsc_hz_calibrated": { "type": ["number", "null"], "minimum": 0 },
-        "profile_sha256": { "$ref": "#/$defs/sha256" }
+        "profile_sha256": { "$ref": "#/$defs/sha256" },
+        "gates": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "idle_check_s": { "type": "number", "minimum": 0 },
+            "foreign_cores_mean": { "type": "number", "minimum": 0 },
+            "foreign_cores_peak_10s": { "type": "number", "minimum": 0 },
+            "foreign_server_set_cores_mean": { "type": "number", "minimum": 0 },
+            "bot_cpu_frac_max": { "type": "number", "minimum": 0 }
+          }
+        }
       }
     },
     "placement": {

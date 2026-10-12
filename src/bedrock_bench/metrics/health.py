@@ -248,8 +248,8 @@ def evaluate(
     if decode:
         out.fail(Gate.DECODE_ERRORS, f"{decode} bot decode errors")
     joined = _value(metrics, "joined")
-    if marks.get("settled") is not None:
-        spread = meta.get("spread") or {}
+    spread = meta.get("spread") or {}
+    if marks.get("settled") is not None and not (_value(metrics, "died_during_run") and spread.get("source") is None):
         if spread.get("source") is None or spread.get("players") is None or spread.get("cells_occupied") is None:
             out.fail(Gate.SPREAD, "player positions unknown")
         else:
