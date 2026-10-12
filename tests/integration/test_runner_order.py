@@ -21,8 +21,8 @@ from fakes.bench import FakeBench, read_json
 
 pytestmark = pytest.mark.integration
 
-FULL, REDUCED = "fake_bds@1.0.0", "fake_dragonfly@1.0.0"
-ARMS = [FULL, REDUCED]
+BDS, DRAGONFLY = "fake_bds@1.0.0", "fake_dragonfly@1.0.0"
+ARMS = [BDS, DRAGONFLY]
 SESSION_ID = re.compile(r"^\d{8}T\d{6}Z-[0-9a-f]{4}$")
 RUN_ID = re.compile(r"^\d{8}T\d{6}Z-fake_(bds|dragonfly)@1\.0\.0-r[12]-[0-9a-f]{4}$")
 
@@ -58,10 +58,10 @@ def test_every_server_and_repeat_runs_once(session_run: tuple[FakeBench, subproc
     assert len(runs) == 4
     assert all(run["status"] == Status.OK for run in runs), [run["status_reasons"] for run in runs]
     assert sorted((run["arm"]["id"], run["session"]["repeat"]) for run in runs) == [
-        (FULL, 1),
-        (FULL, 2),
-        (REDUCED, 1),
-        (REDUCED, 2),
+        (BDS, 1),
+        (BDS, 2),
+        (DRAGONFLY, 1),
+        (DRAGONFLY, 2),
     ]
     ids = [run["run_id"] for run in runs]
     assert len(set(ids)) == 4
@@ -75,10 +75,10 @@ def test_blocks_rotate_the_server_order(session_run: tuple[FakeBench, subprocess
     bench = completed(session_run)
     runs = sorted(records(bench), key=lambda run: run["session"]["order_index"])
     assert [(run["arm"]["id"], run["session"]["repeat"]) for run in runs] == [
-        (FULL, 1),
-        (REDUCED, 1),
-        (REDUCED, 2),
-        (FULL, 2),
+        (BDS, 1),
+        (DRAGONFLY, 1),
+        (DRAGONFLY, 2),
+        (BDS, 2),
     ]
     assert {run["session"]["order"] for run in runs} == {"rotate"}
     assert {run["machine"]["profile_sha256"] for run in runs} == {runs[0]["machine"]["profile_sha256"]}
@@ -89,7 +89,7 @@ def test_dry_run_prints_the_order_and_runs_nothing(tmp_path: Path) -> None:
     result = bench.bbench(*bench.session_args(*ARMS, repeats=2), "--dry-run")
     assert result.returncode == ExitCode.OK, result.stderr
     order = [arm for line in result.stdout.splitlines() for arm in ARMS if arm in line]
-    assert order == [FULL, REDUCED, REDUCED, FULL]
+    assert order == [BDS, DRAGONFLY, DRAGONFLY, BDS]
     assert bench.run_dirs() == []
 
 
@@ -104,7 +104,7 @@ def test_report_has_one_row_per_server(session_run: tuple[FakeBench, subprocess.
     results = report.split("## Results\n")[1].split("\n## ")[0]
     rows = [line for line in results.splitlines() if line.startswith("| `")]
     assert [row.split(" | ")[1] for row in rows] == ["2/2", "2/2"]
-    assert FULL in rows[0] and REDUCED in rows[1]
+    assert BDS in rows[0] and DRAGONFLY in rows[1]
 
 
 def test_report_refuses_mixed_machine_profiles(
