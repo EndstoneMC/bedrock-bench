@@ -72,7 +72,7 @@ PNX_DIALECT = Dialect(
 
 class PowerNukkitXAdapter(JavaServer):
     name: ClassVar[str] = "powernukkitx"
-    platforms: ClassVar[frozenset[str]] = frozenset({"windows", "linux", "docker"})
+    platforms: ClassVar[frozenset[str]] = frozenset({"windows", "linux"})
     protocol: ClassVar[int] = 2193
     bot_compat_flags: ClassVar[tuple[str, ...]] = ("-fake-xuid",)
     dialect: ClassVar[Dialect] = PNX_DIALECT
@@ -123,8 +123,7 @@ class PowerNukkitXAdapter(JavaServer):
         return [override], [ConfigFile(relative, sha256_file(path))], {"world_config": relative, "seed": seed}
 
     def launch(self, layout: Layout) -> LaunchSpec:
-        argv, image = self.java_launch(layout)
-        return LaunchSpec(argv=argv, cwd=layout.server_dir, image=image)
+        return LaunchSpec(argv=self.java_launch(layout), cwd=layout.server_dir)
 
     def readback(self, layout: Layout) -> list[str]:
         problems = super().readback(layout)

@@ -49,9 +49,9 @@ worlds:
 JCMD_OUTPUT = '"main" #1 [4242] prio=5 os_prio=0 cpu=5.00ms elapsed=9.00s tid=0x1 nid=4242 runnable\n'
 
 
-def make_adapter(variant: str | None = None, runtime: str = "native") -> NukkitAdapter:
+def make_adapter(variant: str | None = None) -> NukkitAdapter:
     arm = config.arm_from_ref("nukkit@b3caad6", variant=variant)
-    return NukkitAdapter(arm, config.parse_machine({"runtime": {"kind": runtime}}))
+    return NukkitAdapter(arm, config.default_machine())
 
 
 def make_ctx(tmp_path: Path, adapter: NukkitAdapter) -> RunContext:
@@ -212,12 +212,6 @@ class TestPrepare:
         assert spec.stdin_lines == (), "nukkit.yml exists, so Nukkit never asks for a language"
         facts = adapter.facts(layout, None)  # type: ignore[arg-type]
         assert facts["jvm"] == "21.0.12.1+1" and facts["jvm_heap_mib"] == 8192 and facts["allocator"] == "jvm"
-
-    def test_docker_launch(self, install: Install, tmp_path: Path) -> None:
-        adapter = make_adapter(runtime="docker")
-        layout = adapter.prepare(install, make_ctx(tmp_path, adapter))
-        spec = adapter.launch(layout)
-        assert spec.argv[0] == "java" and spec.image == "jvm"
 
     def test_tick_thread_from_jcmd(self, install: Install, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         adapter = make_adapter()

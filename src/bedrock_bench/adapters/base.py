@@ -241,7 +241,7 @@ class ServerAdapter(abc.ABC):
     """
 
     name: ClassVar[str]
-    platforms: ClassVar[frozenset[str]]  # subset of {"windows", "linux", "docker"}
+    platforms: ClassVar[frozenset[str]]  # subset of {"windows", "linux"}
     protocol: ClassVar[int]  # network protocol; selects the bot build (2193 -> loadbot, 1001 -> legacy1001)
     bot_compat_flags: ClassVar[tuple[str, ...]] = ()  # subset of ALLOWED_COMPAT
     supports_csg: ClassVar[bool] = False

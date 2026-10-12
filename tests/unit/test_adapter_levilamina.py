@@ -395,12 +395,6 @@ class TestFetch:
         with pytest.raises(ConfigError, match="Windows only"):
             LeviLaminaAdapter(arm(), config.default_machine()).fetch(Cache(tmp_path / "cache"))
 
-    def test_not_in_docker(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setattr(levilamina_module, "host_os", lambda: "windows")
-        machine = config.parse_machine({"runtime": {"kind": "docker"}})
-        with pytest.raises(ConfigError, match="Windows only"):
-            LeviLaminaAdapter(arm(), machine).fetch(Cache(tmp_path / "cache"))
-
     def test_unpinned_version(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(levilamina_module, "host_os", lambda: "windows")
         adapter = LeviLaminaAdapter(arm(version="1.0.0", id="levilamina@1.0.0"), config.default_machine())
@@ -532,11 +526,8 @@ class TestPrepareAndLaunch:
         adapter, _, layout = fetch_and_prepare(tmp_path)
         spec = adapter.launch(layout)
         assert spec.argv == (str(layout.server_dir / MOD_EXE),)
-        assert spec.cwd == layout.server_dir and not spec.env_set and spec.image is None
+        assert spec.cwd == layout.server_dir and not spec.env_set
         assert adapter.server_process(SimpleNamespace(pid=1)).pid == 1  # type: ignore[arg-type]
-        docker = LeviLaminaAdapter(arm(), config.parse_machine({"runtime": {"kind": "docker"}}))
-        with pytest.raises(ConfigError, match="Windows only"):
-            docker.launch(layout)
 
     def test_facts(self, tmp_path: Path, downloads: FakeDownloads) -> None:
         adapter, _, layout = fetch_and_prepare(tmp_path, LEVIOPTIMIZE_ALL)

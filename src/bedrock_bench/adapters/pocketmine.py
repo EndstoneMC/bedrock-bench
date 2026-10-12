@@ -62,7 +62,6 @@ SHIPPED_CONFIG = "resources/pocketmine.yml"
 HELPER_SOURCE = "servers/pocketmine/plugins/BenchHelper.php"
 HELPER_FILE = "plugins/BenchHelper.php"
 DEFAULT_RUNTIME = "php-8.2-pm5-524"
-DOCKER_IMAGE = "php"
 STOCK = "stock"
 
 #: ``[13:58:00.123] [Server thread/INFO]: text``. Replies to console commands are printed as ``Command output | text``.
@@ -93,7 +92,7 @@ PMMP_DIALECT = Dialect(
 
 class PocketMineAdapter(StandaloneServer):
     name: ClassVar[str] = "pocketmine"
-    platforms: ClassVar[frozenset[str]] = frozenset({"windows", "linux", "docker"})
+    platforms: ClassVar[frozenset[str]] = frozenset({"windows", "linux"})
     protocol: ClassVar[int] = 1001
     dialect: ClassVar[Dialect] = PMMP_DIALECT
     tick_thread_rule: ClassVar[str] = "first_created"
@@ -152,7 +151,7 @@ class PocketMineAdapter(StandaloneServer):
             Override(harness, COMMAND_LINE, "--disable-ansi", None, "set", "plain console output, no title updates"),
             Override(harness, ENVIRONMENT, "PHPRC", None, "(unset)", "PHP reads the php.ini of its own build"),
         ]
-        if self.machine.runtime != "docker" and "extension_dir" in install.extra.get("runtime_paths", {}):
+        if "extension_dir" in install.extra.get("runtime_paths", {}):
             overrides.append(
                 Override(
                     harness,
@@ -167,8 +166,6 @@ class PocketMineAdapter(StandaloneServer):
 
     def launch(self, layout: Layout) -> LaunchSpec:
         args = (PHAR, "--no-wizard", "--disable-ansi")
-        if self.machine.runtime == "docker":
-            return LaunchSpec(argv=("php", *args), cwd=layout.server_dir, env_remove=("PHPRC",), image=DOCKER_IMAGE)
         php = str(self.runtime_path(layout, "php"))
         options: tuple[str, ...] = ()
         if "extension_dir" in layout.extra.get("runtime_paths", {}):

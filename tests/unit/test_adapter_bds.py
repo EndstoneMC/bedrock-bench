@@ -407,7 +407,7 @@ class TestLaunch:
         layout = local_adapter.prepare(install, make_ctx(tmp_path))
         spec = local_adapter.launch(layout)
         assert spec.argv == (str(layout.server_dir / "bedrock_server.exe"),)
-        assert spec.cwd == layout.server_dir and dict(spec.env_set) == {} and spec.image is None
+        assert spec.cwd == layout.server_dir and dict(spec.env_set) == {}
 
     def test_linux(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(bdsfamily, "host_os", lambda: "linux")
@@ -419,12 +419,6 @@ class TestLaunch:
         assert spec.argv == ("./bedrock_server",)
         assert dict(spec.env_set) == {"LD_LIBRARY_PATH": "."}
         assert "LD_PRELOAD" in spec.env_remove
-
-    def test_docker_uses_linux_build(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setattr(bdsfamily, "host_os", lambda: "windows")
-        machine = config.parse_machine({"runtime": {"kind": "docker"}})
-        adapter = BdsAdapter(Arm(id="bds", server="bds", version="1.26.52.3"), machine)
-        assert adapter.platform == "linux"
 
 
 class TestFactsAndCrashes:

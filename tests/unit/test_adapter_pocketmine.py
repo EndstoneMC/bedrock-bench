@@ -79,9 +79,9 @@ def make_ctx(tmp_path: Path, adapter: PocketMineAdapter, **world: Any) -> RunCon
     )
 
 
-def make_adapter(variant: str | None = None, runtime: str = "native") -> PocketMineAdapter:
+def make_adapter(variant: str | None = None) -> PocketMineAdapter:
     arm = config.arm_from_ref("pocketmine@5.44.3", variant=variant)
-    return PocketMineAdapter(arm, config.parse_machine({"runtime": {"kind": runtime}}))
+    return PocketMineAdapter(arm, config.default_machine())
 
 
 @pytest.fixture
@@ -264,7 +264,7 @@ class TestFetchAndPrepare:
         spec = adapter.launch(layout)
         assert Path(spec.argv[0]) == tmp_path / "php" / "bin" / "php" / "php.exe"
         assert spec.argv[1:] == ("PocketMine-MP.phar", "--no-wizard", "--disable-ansi")
-        assert spec.cwd == layout.server_dir and spec.env_remove == ("PHPRC",) and spec.image is None
+        assert spec.cwd == layout.server_dir and spec.env_remove == ("PHPRC",)
 
     @pytest.mark.parametrize(
         "runtime_paths",
@@ -281,12 +281,6 @@ class TestFetchAndPrepare:
         assert spec.argv[3] == "PocketMine-MP.phar"
         override = next(o for o in layout.overrides if o.key == "-d extension_dir")
         assert override.value.startswith("<runtime>/") and str(tmp_path) not in override.value
-
-    def test_docker_launch(self, install: Install, tmp_path: Path) -> None:
-        adapter = make_adapter(runtime="docker")
-        layout = adapter.prepare(install, make_ctx(tmp_path, adapter))
-        spec = adapter.launch(layout)
-        assert spec.argv[0] == "php" and spec.image == "php"
 
 
 class TestCommands:

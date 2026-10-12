@@ -91,7 +91,7 @@ DIMENSION_LEVELS = {"overworld": "overworld", "nether": "nether", "the_end": "th
 
 class NukkitAdapter(JavaServer):
     name: ClassVar[str] = "nukkit"
-    platforms: ClassVar[frozenset[str]] = frozenset({"windows", "linux", "docker"})
+    platforms: ClassVar[frozenset[str]] = frozenset({"windows", "linux"})
     protocol: ClassVar[int] = 2193
     bot_compat_flags: ClassVar[tuple[str, ...]] = ("-fake-xuid",)
     dialect: ClassVar[Dialect] = NUKKIT_DIALECT
@@ -143,8 +143,7 @@ class NukkitAdapter(JavaServer):
         return overrides, [], {}
 
     def launch(self, layout: Layout) -> LaunchSpec:
-        argv, image = self.java_launch(layout)
-        return LaunchSpec(argv=argv, cwd=layout.server_dir, image=image)
+        return LaunchSpec(argv=self.java_launch(layout), cwd=layout.server_dir)
 
     # ---- commands -------------------------------------------------------------------------------------------------
 

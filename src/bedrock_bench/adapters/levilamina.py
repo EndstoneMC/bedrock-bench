@@ -276,8 +276,8 @@ class LeviLaminaAdapter(BdsFamily):
     # ---- fetch ----------------------------------------------------------------------------------------------------
 
     def fetch(self, cache: Cache) -> Install:
-        if self.machine.runtime == "docker" or host_os() != "windows":
-            raise ConfigError("LeviLamina runs on Windows only, with the native runtime")
+        if host_os() != "windows":
+            raise ConfigError("LeviLamina runs on Windows only")
         catalog = config.load_artifacts(self.name)
         entry = catalog.versions.get(self.arm.version)
         if entry is None:
@@ -407,8 +407,6 @@ class LeviLaminaAdapter(BdsFamily):
         return overrides, files, extra
 
     def launch(self, layout: Layout) -> LaunchSpec:
-        if self.machine.runtime == "docker":
-            raise ConfigError("LeviLamina runs on Windows only, with the native runtime")
         self._server_exe = self.executable(layout)
         return LaunchSpec(argv=(str(self._server_exe),), cwd=layout.server_dir)
 

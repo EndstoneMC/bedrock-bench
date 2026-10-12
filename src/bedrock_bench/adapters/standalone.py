@@ -860,7 +860,6 @@ class StandaloneServer(ServerAdapter):
 #: ``"main" #1 [12345] prio=5 os_prio=0 ... tid=0x... nid=12345 runnable``; older JDKs print ``nid=0x3039``.
 _JCMD_MAIN = re.compile(r'^"main" #\d+(?: \[(?P<tid>\d+)\])?.*?\bnid=(?P<nid>0x[0-9a-fA-F]+|\d+)')
 UTF8_STREAMS = ("-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8")
-DOCKER_JVM_IMAGE = "jvm"
 
 
 def heap_mib(heap: str) -> int:
@@ -920,14 +919,10 @@ class JavaServer(StandaloneServer):
         heap_mib(heap)
         return [f"-Xms{heap}", f"-Xmx{heap}", *UTF8_STREAMS]
 
-    def java_launch(self, layout: Layout, *args: str) -> tuple[tuple[str, ...], str | None]:
-        """``(argv, docker image)``: the JVM command line for the release file plus ``args``."""
-        if self.machine.runtime == "docker":
-            java, image = "java", DOCKER_JVM_IMAGE
-        else:
-            java, image = str(self.runtime_path(layout, "java")), None
-            self._jcmd = self.runtime_path(layout, "jcmd")
-        return (java, *self.jvm_args(), "-jar", layout.extra["server_file"], *args), image
+    def java_launch(self, layout: Layout, *args: str) -> tuple[str, ...]:
+        """The JVM command line for the release file plus ``args``."""
+        self._jcmd = self.runtime_path(layout, "jcmd")
+        return (str(self.runtime_path(layout, "java")), *self.jvm_args(), "-jar", layout.extra["server_file"], *args)
 
     def launch_overrides(self, install: Install) -> Sequence[Override]:
         heap = self.machine.jvm_heap
