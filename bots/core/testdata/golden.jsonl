@@ -1,0 +1,21 @@
+{"v":1,"ev":"hello","t":1791813524100,"mono_ms":100,"build":{"module":"loadbot","version":"0.1.0","vcs":"0123456789ab","go":"go1.26.3","gophertunnel":"v1.62.0","patches":[],"protocol":2193},"flags":{"addr":"127.0.0.1:19672","csg":true,"n":100,"prefix":"a","radius":16},"intervals_ms":{"progress":5000,"stat":10000,"pkt":60000}}
+{"v":1,"ev":"dial","t":1791813524200,"mono_ms":200,"bot":"b00","i":0}
+{"v":1,"ev":"spawned","t":1791813524300,"mono_ms":300,"bot":"b00","i":0,"session":1,"join_ms":812.5,"radius":10,"dim":0}
+{"v":1,"ev":"join_failed","t":1791813524400,"mono_ms":400,"bot":"b01","i":1,"stage":"spawn","err":"context deadline exceeded","session":1,"attempt":1,"final":true}
+{"v":1,"ev":"tp","t":1791813524500,"mono_ms":500,"bot":"b00","pos":[1280.5,301.62,1280.5],"dim":0,"n":1}
+{"v":1,"ev":"first_chunk","t":1791813524600,"mono_ms":600,"bot":"b00","dt_ms":1430}
+{"v":1,"ev":"progress","t":1791813524700,"mono_ms":700,"rows":[["b00",112,98,1280.5,301.62,1280.5,0,3,1],["b01",0,0,null,null,null,null,0,0]]}
+{"v":1,"ev":"stat","t":1791813524800,"mono_ms":800,"online":1,"joined":1,"failed":1,"dropped":0,"left":0,"rejoins":0,"deaths":0,"rx_pkts":12345,"tx_pkts":2345,"rx_bytes":9876543,"tx_bytes":123456,"corrections":3,"level_chunks":130,"subchunks":2400,"uniq":112,"in_view":98,"decode_errors":0,"kicked":0,"rejoin_failed":0}
+{"v":1,"ev":"pkt","t":1791813524900,"mono_ms":900,"rx":{"CorrectPlayerMovePrediction":3,"LevelChunk":130,"MoveActorDelta":12},"tx":{"PlayerAuthInput":1200,"SubChunkRequest":130}}
+{"v":1,"ev":"rtt","t":1791813525000,"mono_ms":1000,"n":12,"p50_ms":3.1,"p99_ms":48,"max_ms":61.2,"lost":0}
+{"v":1,"ev":"died","t":1791813525100,"mono_ms":1100,"bot":"b00","session":1}
+{"v":1,"ev":"respawned","t":1791813525200,"mono_ms":1200,"bot":"b00","session":1}
+{"v":1,"ev":"dim","t":1791813525300,"mono_ms":1300,"bot":"b00","dim":1,"session":1}
+{"v":1,"ev":"left","t":1791813525400,"mono_ms":1400,"bot":"b00","session":1}
+{"v":1,"ev":"rejoin","t":1791813525500,"mono_ms":1500,"bot":"b00","session":2}
+{"v":1,"ev":"dropped","t":1791813525600,"mono_ms":1600,"bot":"b00","session":2,"err":"connection timed out"}
+{"v":1,"ev":"kicked","t":1791813525700,"mono_ms":1700,"bot":"b00","session":3,"reason":"disconnectionScreen.serverFull"}
+{"v":1,"ev":"decode_error","t":1791813525800,"mono_ms":1800,"bot":"b00","pkt_id":174,"err":"decode packet *packet.SubChunk: unexpected EOF","total":1}
+{"v":1,"ev":"alljoined","t":1791813525900,"mono_ms":1900,"joined":1,"failed":1}
+{"v":1,"ev":"bot_summary","t":1791813526000,"mono_ms":2000,"bot":"b00","uniq":112,"in_view":98,"chunks":120,"corrections":3,"first_seen_ms":[1430,0,0,12,3,40]}
+{"v":1,"ev":"done","t":1791813526100,"mono_ms":2100}
