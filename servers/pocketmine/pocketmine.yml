@@ -7,9 +7,6 @@ memory:
 chunk-ticking:
   # Same simulation distance on every server.
   tick-radius: {{ workload.server.tick_distance }}
-ticks-per:
-  # Same autosave interval on every server.
-  autosave: {{ workload.server.autosave_ticks }}
 player:
   # Player data is saved, as on every server.
   save-player-data: {{ workload.server.save_player_data | lower }}

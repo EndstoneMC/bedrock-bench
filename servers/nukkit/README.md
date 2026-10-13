@@ -57,7 +57,7 @@ two are written as rendered and Nukkit adds its own defaults.
 - `server.properties`: the run's port; offline login; `allow-flight=on` (see Caveats); an empty `rcon.password`, so no
   generated secret lands in the run's saved configs (RCON stays off); view distance, seed, level name, difficulty,
   game mode, max players and autosave, the same as on every server.
-- `nukkit.yml`: simulation distance, autosave interval and player data, the same as on every server.
+- `nukkit.yml`: simulation distance and player data, the same as on every server.
   `level-settings.auto-tick-rate` is off: with it, Nukkit ticks a slow level only every few server ticks while the
   tick counter keeps advancing, which would hide slowness from the probe. `worlds` is emptied, because the shipped list
   loads a level named `world` next to the benchmark level.
@@ -71,8 +71,8 @@ Held in the adapter:
 
 ## Caveats
 
-- Nukkit's watchdog stops the server once a tick takes 60 s. The first autosave of a fresh 100-bot world runs on
-  the main thread and can take longer; the run is then a `server_failed` result.
+- Nukkit sets Netty's leak detector to `PARANOID` in `main`, so every buffer write records a stack trace. No flag turns
+  it off.
 - Nukkit applies no gravity to clients, so bots teleported to the spread height stay there. With `allow-flight=off` it
   kicks them for flying; `allow-flight=on` only stops the kick.
 - It sends no movement corrections and no locator-bar packets.

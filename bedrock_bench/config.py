@@ -552,7 +552,6 @@ _WORKLOAD_RULES: dict[str, dict[str, dict[str, Any]]] = {
         "difficulty": {"choices": ("peaceful", "easy", "normal", "hard")},
         "gamemode": {"choices": ("survival", "creative", "adventure")},
         "max_players": {"minimum": 1},
-        "autosave_ticks": {"minimum": 1},
     },
     "probe": {"interval_s": {"above": 0}, "max_gap_s": {"above": 0}, "lagging_p99_ms": {"above": 0}},
     "run": {

@@ -220,7 +220,7 @@ class TestTemplate:
             "Bench.TickRange": 4,
             "Bench.Difficulty": "easy",
             "Bench.GameMode": "survival",
-            "Bench.SaveIntervalSeconds": 300,
+            "Bench.SaveIntervalSeconds": -1,
         }
         assert all(k.before is None for k in written.keys), "dfbench starts without a config.toml"
 

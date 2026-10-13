@@ -49,7 +49,7 @@ its own defaults; `pocketmine.yml` is merged onto the shipped copy.
 
 - `server.properties`: the run's port, with IPv6 off; offline login; view distance, seed, level name, difficulty, game
   mode, max players and autosave, the same as on every server.
-- `pocketmine.yml`: simulation distance, autosave interval and player data, the same as on every server; crash report
+- `pocketmine.yml`: simulation distance and player data, the same as on every server; crash report
   upload, the auto-updater and anonymous statistics off. `settings.async-workers` is the number of server CPUs,
   because `auto` counts every CPU of the machine. `memory.main-hard-limit` is 0 (off) instead of the shipped 1024 MB,
   at which the server stops itself about 23 s into the 100-bot join.

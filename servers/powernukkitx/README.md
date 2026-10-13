@@ -52,8 +52,8 @@ rendered. Both versions have the same defaults for the keys written here.
 
 - `pnx.yml`: the run's port; offline login; usage metrics off; the per-IP RakNet packet limit raised, because every
   bot connects from 127.0.0.1 and the default limit is sized for one player per address; the RakNet transport, which
-  is the default; view and simulation distance, level name, difficulty, game mode, max players, autosave and its
-  interval, and player data, the same as on every server. `level-settings.autoTickRate` is off: with it, a slow level
+  is the default; view and simulation distance, level name, difficulty, game mode, max players, autosave and player
+  data, the same as on every server. `level-settings.autoTickRate` is off: with it, a slow level
   is ticked only every few server ticks while the tick counter keeps advancing. `level-settings.loadAllLevels` is off,
   so only the benchmark level loads.
 - `config.json`: the workload seed for the overworld, nether and end generators, the same seed as on every server.

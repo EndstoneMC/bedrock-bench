@@ -75,7 +75,7 @@ class ServerParams:
     difficulty: str
     gamemode: str
     max_players: int
-    autosave_ticks: int
+    autosave: bool
     save_player_data: bool
 
     @property

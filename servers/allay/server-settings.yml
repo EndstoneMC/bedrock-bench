@@ -23,8 +23,8 @@ world-settings:
   # The same simulation distance on every server.
   tick-radius: {{ workload.server.tick_distance }}
 storage-settings:
-  # The same autosave interval on every server.
-  chunk-auto-save-cycle: {{ workload.server.autosave_ticks }}
+  # Same autosave setting on every server. Allay has no switch, so off is the longest cycle it accepts.
+  chunk-auto-save-cycle: {{ 6000 if workload.server.autosave else 2147483647 }}
   # Player data is saved, as on every server.
   save-player-data: {{ workload.server.save_player_data | lower }}
 bstats-settings:

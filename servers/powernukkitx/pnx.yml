@@ -8,10 +8,8 @@ settings:
   maxPlayers: {{ workload.server.max_players }}
   # A fixed world folder, checked absent before launch.
   defaultLevelName: "{{ workload.world.level_name }}"
-  # The world is saved periodically, as on every server.
-  autoSave: true
-  # The same autosave interval on every server.
-  autosaveDelay: {{ workload.server.autosave_ticks }}
+  # The same autosave setting on every server.
+  autoSave: {{ workload.server.autosave | lower }}
 network-settings:
   # The bots connect over RakNet.
   transport: raknet

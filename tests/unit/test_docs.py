@@ -112,7 +112,8 @@ def test_markdown_set() -> None:
     docs = {path for path in markdown() if not path.startswith("tests/")}
     blog = {path for path in docs if path.startswith(BLOG) and "/" not in path[len(BLOG) :]}
     assert f"{BLOG}README.md" in blog
-    assert sorted(docs - blog - allowed) == [], "markdown outside the allowed set"
+    reports = {path for path in docs if path.startswith("results/") and path.endswith("/report.md")}
+    assert sorted(docs - blog - reports - allowed) == [], "markdown outside the allowed set"
     assert sorted(allowed - docs) == [], "missing markdown"
 
 

@@ -41,7 +41,7 @@ world-settings:
   view-distance: 10
 storage-settings:
   save-player-data: true
-  chunk-auto-save-cycle: 6000
+  chunk-auto-save-cycle: 2147483647
 bstats-settings:
   enable: false
   server-uuid: 00000000-0000-0000-0000-000000000000

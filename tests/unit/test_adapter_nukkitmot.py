@@ -222,7 +222,7 @@ class TestPrepare:
         assert all(c.created for c in files.values()), "the jar ships no config file"
         assert {c.before for c in files["nukkit-mot.yml"].keys} == {None}
         changes = {c.key: c.after for c in files["nukkit-mot.yml"].keys}
-        assert changes["performance-settings.ticks-per-autosave"] == "6000"
+        assert {c.key: c.after for c in files["server.properties"].keys}["auto-save"] == "off"
         assert changes["player-settings.save-player-data"] == "true"
         assert adapter.readback(layout) == []
 

@@ -229,7 +229,7 @@ class TestFetchAndPrepare:
         assert changes["settings.async-workers"] == ("auto", "4")
         assert changes["anonymous-statistics.enabled"] == ("false", "false")
         assert {c.before for c in files["server.properties"].keys} == {None}
-        assert written_values(layout, "pocketmine.yml")["ticks-per.autosave"] == "6000"
+        assert written_values(layout, "server.properties")["auto-save"] == "off"
 
         assert layout.world.fresh and layout.world.generator == "custom"
         assert layout.world.path == server / "worlds" / "bench" and not layout.world.path.exists()

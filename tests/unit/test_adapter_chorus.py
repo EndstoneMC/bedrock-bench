@@ -232,7 +232,7 @@ class TestPrepare:
                 "name": "bench",
                 "seed": 20261010,
                 "max_view_distance": 10,
-                "autosave": "300s",
+                "autosave": False,
                 "chunk_saving": "modified",
             },
         }
@@ -254,7 +254,7 @@ class TestPrepare:
         layout = make_adapter().prepare(make_install(tmp_path), ctx)
         written = (layout.server_dir / chorus.CONFIG).read_text(encoding="utf-8")
         assert written.startswith("[server]\n")
-        assert 'autosave = "300s"\n' in written and "threads = 4\n" in written
+        assert "autosave = false\n" in written and "threads = 4\n" in written
 
     def test_readback(self, tmp_path: Path) -> None:
         adapter = make_adapter()

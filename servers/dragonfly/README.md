@@ -139,7 +139,7 @@ by `dfbench -defaults`.
 - Log level `info`, because at `debug` Dragonfly logs every packet it does not handle.
 - `Bench.IdleTicking` on (see Caveats).
 - The same view distance (`Players.MaximumChunkRadius`, 32 by default), simulation distance (`Bench.TickRange`),
-  difficulty, max players, world folder and autosave interval as every server.
+  difficulty, max players, world folder and autosave setting as every server.
 - `Bench.GameMode` is the workload's game mode, because a new Dragonfly world puts players in creative, where they take
   no damage and may fly.
 - `World.SaveData` and `Players.SaveData` are written as `true`, the default, and read back.

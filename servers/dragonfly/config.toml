@@ -34,5 +34,5 @@ TickRange = {{ workload.server.tick_distance }}
 Difficulty = "{{ workload.server.difficulty }}"
 # A new Dragonfly world puts players in creative, so every server gets the workload's game mode.
 GameMode = "{{ workload.server.gamemode }}"
-# Same autosave interval on every server, in seconds.
-SaveIntervalSeconds = {{ workload.server.autosave_ticks // 20 }}
+# Same autosave setting on every server: -1 is off, 0 is Dragonfly's default interval.
+SaveIntervalSeconds = {{ 0 if workload.server.autosave else -1 }}
