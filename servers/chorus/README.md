@@ -112,7 +112,7 @@ by `chorusbench -defaults`. Chorus refuses unknown keys.
   never triggers a firewall prompt.
 - Offline login.
 - The same view distance (`level.max_view_distance`, 32 by default, which also caps generation), max players, level
-  name, seed and autosave interval as every server.
+  name, seed and autosave setting as every server.
 - `server.threads` is the number of server CPUs: `auto` counts every CPU of the machine on Windows, not the server's
   CPU set.
 - The RakNet transport and `level.chunk_saving = "modified"` are written as their defaults and read back.

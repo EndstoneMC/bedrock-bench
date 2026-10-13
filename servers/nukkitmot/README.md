@@ -54,8 +54,8 @@ rewrites both on start.
 - `server.properties`: the run's port; offline login; `allow-flight=on` (see Caveats); an empty `rcon.password`; view
   distance, seed, level name, difficulty, game mode, max players and autosave, the same as on every server.
 - `nukkit-mot.yml`: NetherNet off, because it listens on UDP 19132 whatever `server-port` says; error reports, bStats
-  and the palette download off; no update check when an operator joins; simulation distance, autosave interval and
-  player data, the same as on every server. `performance-settings.auto-tick-rate` is off: with it, a slow level is
+  and the palette download off; no update check when an operator joins; simulation distance and player
+  data, the same as on every server. `performance-settings.auto-tick-rate` is off: with it, a slow level is
   ticked only every few server ticks while the tick counter keeps advancing.
 
 Held in the adapter:

@@ -61,9 +61,9 @@ written as rendered; Allay adds its own defaults and rewrites them on start and 
 
 - `server-settings.yml`: the run's port, with IPv6 off; offline login; the RakNet per-address limit (120 datagrams per
   10 ms) raised to the largest int, because every bot connects from 127.0.0.1; the dashboard window off; bStats off,
-  with a fixed server id; max players, game mode, difficulty, view and simulation distance, chunk autosave interval and
-  player data, the same as on every server. Game mode and difficulty apply when the world is created, and every run
-  creates it.
+  with a fixed server id; max players, game mode, difficulty, view and simulation distance, chunk autosave and player
+  data, the same as on every server. Allay has no autosave switch, so off is the longest cycle it accepts. Game mode
+  and difficulty apply when the world is created, and every run creates it.
 - `worlds/world-settings.yml`: one world named after the level and made the default world, with Allay's flat generator
   and LevelDB storage, ticked on a platform thread so the world tick has its own OS thread.
 

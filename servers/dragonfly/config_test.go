@@ -60,7 +60,7 @@ func TestHarnessConfig(t *testing.T) {
 		t.Errorf("unlisted or default-valued keys changed: %+v", u)
 	}
 	b := cfg.Bench
-	if b.LogLevel != "info" || !b.IdleTicking || b.saveInterval() != 5*time.Minute || *b.TickRange != 4 ||
+	if b.LogLevel != "info" || !b.IdleTicking || b.saveInterval() >= 0 || *b.TickRange != 4 ||
 		*b.Difficulty != "easy" || *b.GameMode != "survival" {
 		t.Errorf("bench = %+v", b)
 	}

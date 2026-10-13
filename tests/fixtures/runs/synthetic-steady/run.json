@@ -294,7 +294,7 @@
         "rerun_invalid": 1
       },
       "server": {
-        "autosave_ticks": 6000,
+        "autosave": false,
         "csg": false,
         "difficulty": "easy",
         "gamemode": "survival",

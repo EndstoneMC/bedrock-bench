@@ -35,7 +35,7 @@ tick_distance = 4                # simulation distance
 difficulty = "easy"
 gamemode = "survival"
 max_players = 200
-autosave_ticks = 6000
+autosave = false                 # periodic world saves
 save_player_data = true
 
 [probe]

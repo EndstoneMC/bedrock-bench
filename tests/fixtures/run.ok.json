@@ -125,7 +125,7 @@
     "base": [
       "spread"
     ],
-    "sha256": "5d36524be28fe323e236e2bc49122fadad230c6bb1165a5ab927c1f239d54360",
+    "sha256": "7152670298f95c9b5ff6599ed848d4c7489466e7e00307342cc80a3a58b956e6",
     "params": {
       "bots": {
         "n": 100,
@@ -161,7 +161,7 @@
         "difficulty": "easy",
         "gamemode": "survival",
         "max_players": 200,
-        "autosave_ticks": 6000,
+        "autosave": false,
         "save_player_data": true
       },
       "probe": {

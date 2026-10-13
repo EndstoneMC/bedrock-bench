@@ -5,9 +5,6 @@ level-settings:
 chunk-ticking:
   # The workload's simulation distance.
   tick-radius: {{ workload.server.tick_distance }}
-ticks-per:
-  # The same autosave interval on every server.
-  autosave: {{ workload.server.autosave_ticks }}
 player:
   # Player data is saved, as on every server.
   save-player-data: {{ workload.server.save_player_data | lower }}

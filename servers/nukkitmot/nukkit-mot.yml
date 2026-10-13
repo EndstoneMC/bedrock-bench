@@ -16,8 +16,6 @@ custom-block-settings:
 performance-settings:
   # Every level ticks every tick, so the tick counter shows a slow level.
   auto-tick-rate: false
-  # The same autosave interval on every server.
-  ticks-per-autosave: {{ workload.server.autosave_ticks }}
 chunk-settings:
   # The workload's simulation distance.
   ticking-radius: {{ workload.server.tick_distance }}

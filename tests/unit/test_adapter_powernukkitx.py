@@ -27,7 +27,7 @@ settings:
   port: 19672
   maxPlayers: 200
   defaultLevelName: bench
-  autoSave: true
+  autoSave: false
   autosaveDelay: 6000
   xboxAuth: false
 player-settings:

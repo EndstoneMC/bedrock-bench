@@ -49,8 +49,9 @@ The values below are those in `spread.toml`.
   terrain. Spread players are the worst case for a server: each one needs its own terrain generated, loaded, ticked and
   sent. Clustered players share chunks and flatter the server.
 - **Server settings.** View distance 10, simulation distance 4, seed 20261010, easy, survival, room for 200 players,
-  autosave every 6000 ticks with player data saved, client-side generation off. Each adapter writes them into its
-  server's own config files ([below](#server-configuration)).
+  autosave off with player data saved, client-side generation off. Each adapter writes them into its server's own
+  config files ([below](#server-configuration)). BDS has no autosave switch, so BDS, Endstone and LeviLamina keep its
+  incremental saver, which writes at most one changed chunk per tick.
 - **World.** No world folder exists before launch (`world_fresh` checks it), and the server generates the world with
   its own generator during the run. Servers with their own generator build different terrain from the same seed, and
   some build only flat worlds. Each server's README says which.
