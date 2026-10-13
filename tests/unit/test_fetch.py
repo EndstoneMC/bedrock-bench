@@ -301,8 +301,6 @@ class TestCli:
         args = argparse.Namespace(tags=[], accept_eula=False, artifact_dir=None)
         assert fetch.fetch_cli(args) == ExitCode.ENV_GATE
         assert "endstone@0.11.14" in fetched and "levilamina@26.51.6" in fetched
-        assert not any(tag.startswith("chorus@") for tag in fetched)
-        assert "skipping chorus@95ca835" in capsys.readouterr().err
 
     def test_unknown_server_is_a_config_error(self) -> None:
         args = argparse.Namespace(tags=["nosuchserver@1.0"], accept_eula=False, artifact_dir=None)

@@ -25,7 +25,7 @@ are in bold.
 | [PowerNukkitX](https://github.com/PowerNukkitX/PowerNukkitX) | Java | `powernukkitx@3.0.5`<br>**`powernukkitx@nightly.86f70bc`** | [`servers/powernukkitx/`](servers/powernukkitx/) | The nightly runs on JDK 25. Upstream replaces the nightly jar with every build, so keep a copy for `--artifact-dir`. |
 | [Allay](https://github.com/AllayMC/Allay) | Java | **`allay@0.14.0`** | [`servers/allay/`](servers/allay/) | Speaks protocol 1001, so it needs the [protocol 1001 bot](bots/README.md#protocol-1001). |
 | [Dragonfly](https://github.com/df-mc/dragonfly) | Go | **`dragonfly@1793369`** | [`servers/dragonfly/`](servers/dragonfly/) | Built from source, so it needs Go 1.26 or newer. |
-| [Chorus](https://github.com/bedrock-crustaceans/chorus) | Rust | **`chorus@95ca835`** | [`servers/chorus/`](servers/chorus/) | Built from source with Rust 1.95.0. Off by default: its player list gives the bots decode errors. |
+| [Chorus](https://github.com/bedrock-crustaceans/chorus) | Rust | **`chorus@5cffd3`** | [`servers/chorus/`](servers/chorus/) | Built from source with Rust 1.95.0 |
 
 Evaluated, not supported: [MiNET](https://github.com/NiclasOlofsson/MiNET) (needs a NetherNet bot),
 [JSPrismarine](https://github.com/JSPrismarine/JSPrismarine) (protocol 748, client-authoritative movement),

@@ -230,7 +230,7 @@ class TestPrepare:
         server = layout.server_dir
         written = tomllib.loads((server / chorus.CONFIG).read_text(encoding="utf-8"))
         assert written == {
-            "network": {"ip": "127.0.0.1", "port": 19672, "transport": "RakNet"},
+            "network": {"ip": "127.0.0.1", "port": 19672, "transport": "RakNet","chunks":{"subchunks": True}},
             "server": {"authentication": False, "max_players": 200, "threads": 4},
             "level": {
                 "name": "bench",
