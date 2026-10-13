@@ -14,6 +14,7 @@ Config `spread-100`, 100 bots.
 | Python | 3.13.5 |
 | Harness | bedrock-bench 0.1.0.dev0 (`158b54c`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`2748fde`) |
+| Harness | bedrock-bench 0.1.0.dev0 (`6104d49`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`6d96b6b`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`88f8d0a`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`d0c0996`) |
@@ -33,7 +34,7 @@ Median [min, max] over the ok runs.
 | `endstone@0.11.14` | 1/1 | 19.92 | 50.0 | 2.43 | 8220 | 13.59 | 431 | 536 | 600 | 58.6 | 372 |
 | `levilamina@26.51.6` | 1/1 | 11.29 | 88.1 | 2.40 | 8232 | 9.30 | 511 | 684 | 795 | 47.1 | 373 |
 | `nukkit@b3caad6` | 0/2 | - | - | - | - | - | - | - | - | - | - |
-| `nukkitmot@9cb0aba` | 0/1 | - | - | - | - | - | - | - | - | - | - |
+| `nukkitmot@9cb0aba` | 0/2 | - | - | - | - | - | - | - | - | - | - |
 
 ## Notes
 
@@ -41,4 +42,5 @@ Median [min, max] over the ok runs.
 - `nukkit@b3caad6` run `20261013T095506Z-nukkit@b3caad6-r1-9a58`: invalid: spread: up to 51 bots in one cell; server_alive: exit code 1; joined_all: joined 50/100
 - `nukkit@b3caad6`: views were still incomplete when the settle phase ended
 - `nukkitmot@9cb0aba` run `20261013T100926Z-nukkitmot@9cb0aba-r1-55d5`: invalid: spread: up to 24 bots in one cell; joined_all: joined 66/100
+- `nukkitmot@9cb0aba` run `20261013T102312Z-nukkitmot@9cb0aba-r1-6193`: invalid: spread: up to 13 bots in one cell; joined_all: joined 62/100
 - `nukkitmot@9cb0aba`: views were still incomplete when the settle phase ended
