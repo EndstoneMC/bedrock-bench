@@ -20,6 +20,7 @@ Config `spread-100`, 100 bots.
 | Harness | bedrock-bench 0.1.0.dev0 (`6d96b6b`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`88f8d0a`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`aaf8cd8`) |
+| Harness | bedrock-bench 0.1.0.dev0 (`bb87871`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`ce513e5`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`d0c0996`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`f55fbd6`) |
@@ -33,7 +34,7 @@ Median [min, max] over the ok runs.
 
 | Server | Runs ok | TPS | Tick-thread CPU per tick (ms) | Server CPU (cores) | Memory (MiB) | Lowest TPS while views load | View load time, median player (s) | View load time, p90 player (s) | View load time, slowest player (s) | Chunks per second while views load | Chunks in view per player |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| `altay@5.44.7` | 1/1 | 16.35 | 60.8 | 1.21 | 6160 | 3.95 | 33.6 | 85.6 | 97.0 | 111 | 376 |
+| `altay@5.44.7` | 2/2 | 16.39 [16.35, 16.44] | 60.5 [60.3, 60.8] | 1.22 [1.21, 1.23] | 6154 [6148, 6160] | 3.97 [3.95, 3.99] | 33.7 [33.6, 33.8] | 86.4 [85.6, 87.2] | 110 [97.0, 124] | 110 [109, 111] | 376 [376, 376] |
 | `bds@1.26.52.3` | 1/1 | 11.09 | 89.8 | 2.35 | 7282 | 8.86 | 530 | 679 | 876 | 47.1 | 372 |
 | `dragonfly@1793369` | 1/1 | 20.00 | n/a | 0.49 | 1923 | 19.86 | 8.62 | 16.1 | 18.6 | 111 | 371 |
 | `endstone@0.11.14` | 2/2 | 19.80 [19.68, 19.92] | 50.3 [50.0, 50.6] | 2.44 [2.43, 2.45] | 8220 [8220, 8220] | 14.17 [13.59, 14.75] | 430 [428, 431] | 534 [532, 536] | 648 [600, 697] | 58.8 [58.6, 59.1] | 372 [372, 373] |
