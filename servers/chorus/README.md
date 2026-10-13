@@ -26,7 +26,7 @@ target/release/chorusbench -defaults    # the default chorus.toml
 ## Setup
 
 ```shell
-bbench fetch chorus@ec1e7b0
+bbench fetch chorus@5c5ffd3
 ```
 
 Fetch needs Rust 1.95.0 (with rustup, `rustup toolchain install 1.95.0`; fetch selects it through
@@ -121,11 +121,8 @@ by `chorusbench -defaults`. Chorus refuses unknown keys.
 
 - Difficulty is always peaceful, game mode survival and the simulation distance 0 (no random block ticks), whatever
   the scenario asks; `spread100` asks for easy and 4. Chorus has no setting for them.
-- It generates its own terrain from the seed, a port of the Java Edition overworld generator, which never matches BDS
-  terrain. The spawn for seed 20261010 is `[8, 64, 8]`.
-- It sends whole chunk columns in `LevelChunk` packets, with no sub-chunk requests, and never lets clients generate
-  terrain. With the client blob cache on, each chunk is a `LevelChunk` with blob ids; the bots answer that every blob
-  is missing, and Chorus sends a `ClientCacheMissResponse` with the data.
+- It generates terrain using a port of the Java Edition overworld generator.
+  Modern Java and Bedrock terrain are broadly aligned for the same seed, but feature placement and spawn logic differ, and Chorus does not yet implement Bedrock-specific decorators or structures.
 - With `level.chunk_saving = modified`, generated chunks nobody changed are never written: the world folder stays a few
   kilobytes, and autosave and shutdown save nothing during a spread run.
 - It sends no movement corrections and no locator-bar packets, and bots teleported to the spread height keep hovering
