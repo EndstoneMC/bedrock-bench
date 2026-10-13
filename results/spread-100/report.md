@@ -13,11 +13,12 @@ Config `spread-100`, 100 bots.
 | OS | Windows 11 (10.0.26200) |
 | Python | 3.13.5 |
 | Harness | bedrock-bench 0.1.0.dev0 (`158b54c`) |
+| Harness | bedrock-bench 0.1.0.dev0 (`2748fde`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`6d96b6b`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`f55fbd6`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`fba0cc0`) |
 | Bots | loadbot, protocol 2193, gophertunnel v1.62.0 |
-| Servers | `altay@5.44.7`, `bds@1.26.52.3`, `endstone@0.11.14` (bds 1.26.52.3, python 3.13), `levilamina@26.51.6` |
+| Servers | `altay@5.44.7`, `bds@1.26.52.3`, `endstone@0.11.14` (bds 1.26.52.3, python 3.13), `levilamina@26.51.6`, `nukkit@b3caad6` |
 
 ## Results
 
@@ -29,3 +30,9 @@ Median [min, max] over the ok runs.
 | `bds@1.26.52.3` | 1/1 | 11.09 | 89.8 | 2.35 | 7282 | 8.86 | 530 | 679 | 876 | 47.1 | 372 |
 | `endstone@0.11.14` | 1/1 | 19.92 | 50.0 | 2.43 | 8220 | 13.59 | 431 | 536 | 600 | 58.6 | 372 |
 | `levilamina@26.51.6` | 1/1 | 11.29 | 88.1 | 2.40 | 8232 | 9.30 | 511 | 684 | 795 | 47.1 | 373 |
+| `nukkit@b3caad6` | 0/1 | - | - | - | - | - | - | - | - | - | - |
+
+## Notes
+
+- `nukkit@b3caad6` run `20261013T094045Z-nukkit@b3caad6-r1-bccb`: invalid: spread: up to 29 bots in one cell; server_alive: exit code 1; joined_all: joined 72/100
+- `nukkit@b3caad6`: views were still incomplete when the settle phase ended
