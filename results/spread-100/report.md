@@ -16,6 +16,7 @@ Config `spread-100`, 100 bots.
 | Harness | bedrock-bench 0.1.0.dev0 (`158b54c`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`268fbf9`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`2748fde`) |
+| Harness | bedrock-bench 0.1.0.dev0 (`359de8c`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`436a59d`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`4f763f5`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`553358f`) |
@@ -54,7 +55,7 @@ Median [min, max] over the ok runs.
 | `levilamina@26.51.6` | 3/3 | 11.22 [11.13, 11.29] | 88.7 [88.1, 89.6] | 2.40 [2.32, 2.43] | 8232 [8202, 8254] | 9.08 [8.90, 9.30] | 531 [511, 533] | 684 [667, 692] | 759 [689, 795] | 47.1 [46.2, 47.2] | 373 [372, 373] |
 | `nukkit@b3caad6` | 0/6 | - | - | - | - | - | - | - | - | - | - |
 | `nukkitmot@9cb0aba` | 0/6 | - | - | - | - | - | - | - | - | - | - |
-| `powernukkitx@nightly.86f70bc` | 0/2 | - | - | - | - | - | - | - | - | - | - |
+| `powernukkitx@nightly.86f70bc` | 0/3 | - | - | - | - | - | - | - | - | - | - |
 
 ## Notes
 
@@ -75,3 +76,5 @@ Median [min, max] over the ok runs.
 - `nukkitmot@9cb0aba`: views were still incomplete when the settle phase ended
 - `powernukkitx@nightly.86f70bc` run `20261013T103647Z-powernukkitx@nightly.86f70bc-r1-2233`: server_failed: server_alive: the server exited before teardown; joined_all: joined 46/100
 - `powernukkitx@nightly.86f70bc` run `20261013T122711Z-powernukkitx@nightly.86f70bc-r2-bd4e`: server_failed: server_alive: the server exited before teardown; joined_all: joined 50/100
+- `powernukkitx@nightly.86f70bc` run `20261013T141916Z-powernukkitx@nightly.86f70bc-r3-3532`: server_failed: server_alive: the server exited before teardown; joined_all: joined 46/100
+- `powernukkitx@nightly.86f70bc`: the server dropped bots during steady (in 1 of 3 runs)
