@@ -16,6 +16,7 @@ Config `spread-100`, 100 bots.
 | Harness | bedrock-bench 0.1.0.dev0 (`158b54c`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`268fbf9`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`2748fde`) |
+| Harness | bedrock-bench 0.1.0.dev0 (`436a59d`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`4f763f5`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`553358f`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`6104d49`) |
@@ -52,7 +53,7 @@ Median [min, max] over the ok runs.
 | `endstone@0.11.14` | 2/2 | 19.80 [19.68, 19.92] | 50.3 [50.0, 50.6] | 2.44 [2.43, 2.45] | 8220 [8220, 8220] | 14.17 [13.59, 14.75] | 430 [428, 431] | 534 [532, 536] | 648 [600, 697] | 58.8 [58.6, 59.1] | 372 [372, 373] |
 | `levilamina@26.51.6` | 3/3 | 11.22 [11.13, 11.29] | 88.7 [88.1, 89.6] | 2.40 [2.32, 2.43] | 8232 [8202, 8254] | 9.08 [8.90, 9.30] | 531 [511, 533] | 684 [667, 692] | 759 [689, 795] | 47.1 [46.2, 47.2] | 373 [372, 373] |
 | `nukkit@b3caad6` | 0/6 | - | - | - | - | - | - | - | - | - | - |
-| `nukkitmot@9cb0aba` | 0/5 | - | - | - | - | - | - | - | - | - | - |
+| `nukkitmot@9cb0aba` | 0/6 | - | - | - | - | - | - | - | - | - | - |
 | `powernukkitx@nightly.86f70bc` | 0/2 | - | - | - | - | - | - | - | - | - | - |
 
 ## Notes
@@ -70,6 +71,7 @@ Median [min, max] over the ok runs.
 - `nukkitmot@9cb0aba` run `20261013T120007Z-nukkitmot@9cb0aba-r2-68bf`: invalid: spread: up to 30 bots in one cell; joined_all: joined 71/100
 - `nukkitmot@9cb0aba` run `20261013T121355Z-nukkitmot@9cb0aba-r2-5607`: server_failed: joined_all: joined 55/100
 - `nukkitmot@9cb0aba` run `20261013T135202Z-nukkitmot@9cb0aba-r3-4e57`: invalid: spread: up to 30 bots in one cell; joined_all: joined 70/100
+- `nukkitmot@9cb0aba` run `20261013T140535Z-nukkitmot@9cb0aba-r3-6bbe`: invalid: spread: up to 8 bots in one cell; joined_all: joined 67/100
 - `nukkitmot@9cb0aba`: views were still incomplete when the settle phase ended
 - `powernukkitx@nightly.86f70bc` run `20261013T103647Z-powernukkitx@nightly.86f70bc-r1-2233`: server_failed: server_alive: the server exited before teardown; joined_all: joined 46/100
 - `powernukkitx@nightly.86f70bc` run `20261013T122711Z-powernukkitx@nightly.86f70bc-r2-bd4e`: server_failed: server_alive: the server exited before teardown; joined_all: joined 50/100
