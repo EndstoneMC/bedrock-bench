@@ -12,10 +12,11 @@ Config `spread-100`, 100 bots.
 | RAM | 63.7 GiB |
 | OS | Windows 11 (10.0.26200) |
 | Python | 3.13.5 |
+| Harness | bedrock-bench 0.1.0.dev0 (`0afe819`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`341131a`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`54b4285`) |
 | Bots | loadbot, protocol 2193, gophertunnel v1.62.0 |
-| Servers | `bds@1.26.52.3`, `endstone@0.11.14` (bds 1.26.52.3, python 3.13) |
+| Servers | `bds@1.26.52.3`, `endstone@0.11.14` (bds 1.26.52.3, python 3.13), `levilamina@26.51.6` |
 
 ## Results
 
@@ -25,3 +26,4 @@ Median [min, max] over the ok runs.
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | `bds@1.26.52.3` | 1/1 | 11.27 | 88.4 | 2.39 | 7290 | 9.03 | 525 | 696 | 706 | 46.3 | 372 |
 | `endstone@0.11.14` | 1/1 | 19.76 | 50.1 | 2.39 | 8214 | 15.25 | 427 | 527 | 554 | 59.2 | 372 |
+| `levilamina@26.51.6` | 1/1 | 11.09 | 89.8 | 2.21 | 8320 | 9.04 | 517 | 672 | 778 | 47.1 | 371 |
