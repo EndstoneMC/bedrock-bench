@@ -26,7 +26,7 @@ target/release/chorusbench -defaults    # the default chorus.toml
 ## Setup
 
 ```shell
-bbench fetch chorus@95ca835
+bbench fetch chorus@ec1e7b0
 ```
 
 Fetch needs Rust 1.95.0 (with rustup, `rustup toolchain install 1.95.0`; fetch selects it through
@@ -119,10 +119,6 @@ by `chorusbench -defaults`. Chorus refuses unknown keys.
 
 ## Caveats
 
-- Every bot reports decode errors at 95ca835: the `PlayerList` entry of each player carries the base64 text of its skin
-  (10924 bytes) where the 64x32 image needs 8192 bytes. Each join sends the entry to every player online, so 4 bots
-  log 10 errors and 100 bots about 5000. A run with decode errors is invalid, so no Chorus run at this commit is
-  valid. `loadbot -decode-errors fail` stops at the first join.
 - Difficulty is always peaceful, game mode survival and the simulation distance 0 (no random block ticks), whatever
   the scenario asks; `spread100` asks for easy and 4. Chorus has no setting for them.
 - It generates its own terrain from the seed, a port of the Java Edition overworld generator, which never matches BDS
