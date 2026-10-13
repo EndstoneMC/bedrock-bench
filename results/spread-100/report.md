@@ -12,6 +12,7 @@ Config `spread-100`, 100 bots.
 | RAM | 63.7 GiB |
 | OS | Windows 11 (10.0.26200) |
 | Python | 3.13.5 |
+| Harness | bedrock-bench 0.1.0.dev0 (`02270ad`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`158b54c`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`2748fde`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`6104d49`) |
@@ -22,7 +23,7 @@ Config `spread-100`, 100 bots.
 | Harness | bedrock-bench 0.1.0.dev0 (`f55fbd6`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`fba0cc0`) |
 | Bots | loadbot, protocol 2193, gophertunnel v1.62.0 |
-| Servers | `altay@5.44.7`, `bds@1.26.52.3`, `endstone@0.11.14` (bds 1.26.52.3, python 3.13), `levilamina@26.51.6`, `nukkit@b3caad6`, `nukkitmot@9cb0aba`, `powernukkitx@nightly.86f70bc` |
+| Servers | `altay@5.44.7`, `bds@1.26.52.3`, `dragonfly@1793369`, `endstone@0.11.14` (bds 1.26.52.3, python 3.13), `levilamina@26.51.6`, `nukkit@b3caad6`, `nukkitmot@9cb0aba`, `powernukkitx@nightly.86f70bc` |
 
 ## Results
 
@@ -32,6 +33,7 @@ Median [min, max] over the ok runs.
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | `altay@5.44.7` | 1/1 | 16.35 | 60.8 | 1.21 | 6160 | 3.95 | 33.6 | 85.6 | 97.0 | 111 | 376 |
 | `bds@1.26.52.3` | 1/1 | 11.09 | 89.8 | 2.35 | 7282 | 8.86 | 530 | 679 | 876 | 47.1 | 372 |
+| `dragonfly@1793369` | 1/1 | 20.00 | n/a | 0.49 | 1923 | 19.86 | 8.62 | 16.1 | 18.6 | 111 | 371 |
 | `endstone@0.11.14` | 1/1 | 19.92 | 50.0 | 2.43 | 8220 | 13.59 | 431 | 536 | 600 | 58.6 | 372 |
 | `levilamina@26.51.6` | 1/1 | 11.29 | 88.1 | 2.40 | 8232 | 9.30 | 511 | 684 | 795 | 47.1 | 373 |
 | `nukkit@b3caad6` | 0/2 | - | - | - | - | - | - | - | - | - | - |
@@ -40,6 +42,7 @@ Median [min, max] over the ok runs.
 
 ## Notes
 
+- `dragonfly@1793369`: Tick-thread CPU per tick (ms): not applicable (the server has no single tick thread)
 - `nukkit@b3caad6` run `20261013T094045Z-nukkit@b3caad6-r1-bccb`: invalid: spread: up to 29 bots in one cell; server_alive: exit code 1; joined_all: joined 72/100
 - `nukkit@b3caad6` run `20261013T095506Z-nukkit@b3caad6-r1-9a58`: invalid: spread: up to 51 bots in one cell; server_alive: exit code 1; joined_all: joined 50/100
 - `nukkit@b3caad6`: views were still incomplete when the settle phase ended
