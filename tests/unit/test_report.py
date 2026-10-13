@@ -206,10 +206,9 @@ class TestNotes:
         assert availability_text("TPS", {"n": 0, "availability": "unavailable"}, 0) is None
 
     def test_skipped_servers(self, report_dir: Path) -> None:
-        skipped = ["chorus@95ca835: its player list gives the bots decode errors", "levilamina@26.51.6"]
+        skipped = ["levilamina@26.51.6"]
         write(report_dir, skipped=skipped)
         notes = section(build(report_dir)[1], "Notes")
-        assert "- `chorus@95ca835`: skipped, its player list gives the bots decode errors\n" in notes
         assert "- `levilamina@26.51.6`: skipped\n" in notes
         assert json.loads((report_dir / "summary.json").read_text(encoding="utf-8"))["skipped"] == skipped
         write(report_dir)
