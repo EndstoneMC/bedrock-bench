@@ -14,6 +14,7 @@ Config `spread-100`, 100 bots.
 | Python | 3.13.5 |
 | Harness | bedrock-bench 0.1.0.dev0 (`02270ad`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`158b54c`) |
+| Harness | bedrock-bench 0.1.0.dev0 (`2099f47`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`268fbf9`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`2748fde`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`359de8c`) |
@@ -43,7 +44,7 @@ Config `spread-100`, 100 bots.
 | Harness | bedrock-bench 0.1.0.dev0 (`ff06c4b`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`ff12261`) |
 | Bots | loadbot, protocol 2193, gophertunnel v1.62.0 |
-| Servers | `altay@5.44.7`, `bds@1.26.52.3`, `dragonfly@1793369`, `endstone@0.11.14` (bds 1.26.52.3, python 3.13), `levilamina@26.51.6`, `nukkit@b3caad6`, `nukkitmot@9cb0aba`, `powernukkitx@nightly.86f70bc` |
+| Servers | `altay@5.44.7`, `bds@1.26.52.3`, `dragonfly@1793369`, `endstone@0.11.14` (bds 1.26.52.3, python 3.13), `levilamina@26.51.6`, `nukkit@b3caad6`, `nukkitmot@9cb0aba`, `nukkitmot@ce235ee`, `powernukkitx@nightly.86f70bc` |
 
 ## Results
 
@@ -58,6 +59,7 @@ Median [min, max] over the ok runs.
 | `levilamina@26.51.6` | 3/3 | 11.22 [11.13, 11.29] | 88.7 [88.1, 89.6] | 2.40 [2.32, 2.43] | 8232 [8202, 8254] | 9.08 [8.90, 9.30] | 531 [511, 533] | 684 [667, 692] | 759 [689, 795] | 47.1 [46.2, 47.2] | 373 [372, 373] |
 | `nukkit@b3caad6` | 0/6 | - | - | - | - | - | - | - | - | - | - |
 | `nukkitmot@9cb0aba` | 0/6 | - | - | - | - | - | - | - | - | - | - |
+| `nukkitmot@ce235ee` | 0/1 | - | - | - | - | - | - | - | - | - | - |
 | `powernukkitx@nightly.86f70bc` | 0/3 | - | - | - | - | - | - | - | - | - | - |
 
 ## Notes
@@ -77,6 +79,7 @@ Median [min, max] over the ok runs.
 - `nukkitmot@9cb0aba` run `20261013T135202Z-nukkitmot@9cb0aba-r3-4e57`: invalid: spread: up to 30 bots in one cell; joined_all: joined 70/100
 - `nukkitmot@9cb0aba` run `20261013T140535Z-nukkitmot@9cb0aba-r3-6bbe`: invalid: spread: up to 8 bots in one cell; joined_all: joined 67/100
 - `nukkitmot@9cb0aba`: views were still incomplete when the settle phase ended
+- `nukkitmot@ce235ee` run `20261013T190204Z-nukkitmot@ce235ee-r1-6d94`: server_failed: server_alive: exit code 1
 - `powernukkitx@nightly.86f70bc` run `20261013T103647Z-powernukkitx@nightly.86f70bc-r1-2233`: server_failed: server_alive: the server exited before teardown; joined_all: joined 46/100
 - `powernukkitx@nightly.86f70bc` run `20261013T122711Z-powernukkitx@nightly.86f70bc-r2-bd4e`: server_failed: server_alive: the server exited before teardown; joined_all: joined 50/100
 - `powernukkitx@nightly.86f70bc` run `20261013T141916Z-powernukkitx@nightly.86f70bc-r3-3532`: server_failed: server_alive: the server exited before teardown; joined_all: joined 46/100
