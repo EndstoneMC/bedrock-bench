@@ -161,7 +161,7 @@ class TestDialect:
         lines = session()
         texts = [entry.text for entry in lines]
         assert [t for t in texts if CHORUS_DIALECT.is_ready(t)] == ["Started on 127.0.0.1:19930."]
-        assert [v for v in map(CHORUS_DIALECT.parse_version, texts) if v] == [VERSION]
+        assert [v for v in map(CHORUS_DIALECT.parse_version, texts) if v] == ["95ca835"]
         assert [p for p in map(CHORUS_DIALECT.player_entered, texts) if p] == ["a00", "a01", "a02", "a03"]
         assert [t for t in map(CHORUS_DIALECT.parse_tick, texts) if t is not None] == [23, 286, 486, 1046]
         errors = [entry.text for entry in lines if entry.level == "error"]
@@ -223,6 +223,13 @@ class TestTemplate:
                 assert lines[index - 1].startswith("# "), entry
 
 
+def _flat_keys(table: dict, prefix: str = "") -> list[str]:
+    keys = []
+    for key, value in table.items():
+        keys += _flat_keys(value, f"{prefix}{key}.") if isinstance(value, dict) else [f"{prefix}{key}"]
+    return keys
+
+
 class TestPrepare:
     def test_fresh_server_directory(self, tmp_path: Path) -> None:
         adapter = make_adapter()
@@ -230,7 +237,7 @@ class TestPrepare:
         server = layout.server_dir
         written = tomllib.loads((server / chorus.CONFIG).read_text(encoding="utf-8"))
         assert written == {
-            "network": {"ip": "127.0.0.1", "port": 19672, "transport": "RakNet","chunks":{"subchunks": True}},
+            "network": {"ip": "127.0.0.1", "port": 19672, "transport": "RakNet", "chunks": {"subchunks": True}},
             "server": {"authentication": False, "max_players": 200, "threads": 4},
             "level": {
                 "name": "bench",
@@ -249,9 +256,7 @@ class TestPrepare:
         (written_file,) = layout.config_files
         assert (written_file.template, written_file.created) == (chorus.CONFIG, True)
         assert all(k.before is None for k in written_file.keys), "chorusbench starts without a chorus.toml"
-        assert {k.key for k in written_file.keys} == {
-            f"{table}.{key}" for table, values in written.items() for key in values
-        }
+        assert {k.key for k in written_file.keys} == set(_flat_keys(written))
 
     def test_benchmark_workload(self, tmp_path: Path) -> None:
         ctx = dataclasses.replace(make_ctx(tmp_path), workload=WORKLOAD)
