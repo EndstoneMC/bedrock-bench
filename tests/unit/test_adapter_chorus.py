@@ -23,8 +23,8 @@ from workloads import WORKLOAD, with_overrides
 
 ROOT = Path(__file__).resolve().parents[2]
 LOGS = ROOT / "tests" / "fixtures" / "logs"
-VERSION = "95ca835"
-COMMIT = "95ca8355f5961619ff2949b01ef85a5c6f13e492"
+VERSION = "5c5ffd3"
+COMMIT = "5c5ffd3962dcb1deedef3021b62aa2f3c33e9a6d"
 
 #: 'chorusbench -defaults' of the pinned build.
 DEFAULTS = """\
@@ -54,6 +54,10 @@ level = 6
 
 [network.snappy]
 threshold = 1
+
+[network.chunks]
+subchunks = false
+cache = false
 
 [level]
 name = "world"

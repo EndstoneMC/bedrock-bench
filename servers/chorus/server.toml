@@ -5,9 +5,7 @@ server = "chorus"
 
 # What `bbench run` measures when it is given no tag.
 [benchmark]
-version = "ec1e7b0"
-include = false
-reason = "its player list gives the bots decode errors"
+version = "5c5ffd3"
 
 # Chorus builds. Chorus has no releases or tags: 'bbench fetch chorus@<version>' builds chorusbench, the Rust program
 # in this folder, which links Chorus at the pinned commit. Cargo.toml must name that commit and Cargo.lock must hash to
@@ -20,16 +18,16 @@ source = "github"
 
 # Latest commit on main when Chorus was added (2026-10-12). `cargo_lock` is the sha256 of Cargo.lock with LF line
 # endings.
-[artifacts.version."ec1e7b0"]
-commit = "ec1e7b0ec2880675a538858a423842f554152137"
+[artifacts.version."5c5ffd3"]
+commit = "5c5ffd3962dcb1deedef3021b62aa2f3c33e9a6d"
 repository = "https://github.com/bedrock-crustaceans/chorus"
 protocol = 2193
 minecraft = "1.26.50"
 rust = "1.95.0"
-cargo_lock = "16c5a5531567e11debb81484573816761f9c4fc836b79b7edc69fd9e9bdb7bd1"
+cargo_lock = "eb710cafbb3d30ec595a2864d01ae03cf750771110b3915a609226dcae7a0856"
 
 # The source archive of the commit, for reference. The build gets the same commit through Cargo.
-[artifacts.version."ec1e7b0".any]
-url = "https://github.com/bedrock-crustaceans/chorus/archive/ec1e7b0ec2880675a538858a423842f554152137.tar.gz"
-sha256 = "4896daa3fae76d1d1fca869964c36504f0f705cdc28caafcff096c7974a52b4f"
-size = 540980
+[artifacts.version."5c5ffd3".any]
+url = "https://github.com/bedrock-crustaceans/chorus/archive/5c5ffd3962dcb1deedef3021b62aa2f3c33e9a6d.tar.gz"
+sha256 = "dc811827914e4d37b1d3d557c1291c3f92af0f52625d21e01ef4f62c458db6f1"
+size = 539758
