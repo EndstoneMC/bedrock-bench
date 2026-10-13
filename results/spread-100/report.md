@@ -25,6 +25,7 @@ Config `spread-100`, 100 bots.
 | Harness | bedrock-bench 0.1.0.dev0 (`d0c0996`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`d600432`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`f55fbd6`) |
+| Harness | bedrock-bench 0.1.0.dev0 (`fa1238f`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`fa3334b`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`fba0cc0`) |
 | Bots | loadbot, protocol 2193, gophertunnel v1.62.0 |
@@ -42,7 +43,7 @@ Median [min, max] over the ok runs.
 | `endstone@0.11.14` | 2/2 | 19.80 [19.68, 19.92] | 50.3 [50.0, 50.6] | 2.44 [2.43, 2.45] | 8220 [8220, 8220] | 14.17 [13.59, 14.75] | 430 [428, 431] | 534 [532, 536] | 648 [600, 697] | 58.8 [58.6, 59.1] | 372 [372, 373] |
 | `levilamina@26.51.6` | 2/2 | 11.21 [11.13, 11.29] | 88.9 [88.1, 89.6] | 2.36 [2.32, 2.40] | 8217 [8202, 8232] | 9.10 [8.90, 9.30] | 522 [511, 533] | 688 [684, 692] | 777 [759, 795] | 46.6 [46.2, 47.1] | 372 [372, 373] |
 | `nukkit@b3caad6` | 0/4 | - | - | - | - | - | - | - | - | - | - |
-| `nukkitmot@9cb0aba` | 0/2 | - | - | - | - | - | - | - | - | - | - |
+| `nukkitmot@9cb0aba` | 0/3 | - | - | - | - | - | - | - | - | - | - |
 | `powernukkitx@nightly.86f70bc` | 0/1 | - | - | - | - | - | - | - | - | - | - |
 
 ## Notes
@@ -55,5 +56,6 @@ Median [min, max] over the ok runs.
 - `nukkit@b3caad6`: views were still incomplete when the settle phase ended
 - `nukkitmot@9cb0aba` run `20261013T100926Z-nukkitmot@9cb0aba-r1-55d5`: invalid: spread: up to 24 bots in one cell; joined_all: joined 66/100
 - `nukkitmot@9cb0aba` run `20261013T102312Z-nukkitmot@9cb0aba-r1-6193`: invalid: spread: up to 13 bots in one cell; joined_all: joined 62/100
+- `nukkitmot@9cb0aba` run `20261013T120007Z-nukkitmot@9cb0aba-r2-68bf`: invalid: spread: up to 30 bots in one cell; joined_all: joined 71/100
 - `nukkitmot@9cb0aba`: views were still incomplete when the settle phase ended
 - `powernukkitx@nightly.86f70bc` run `20261013T103647Z-powernukkitx@nightly.86f70bc-r1-2233`: server_failed: server_alive: the server exited before teardown; joined_all: joined 46/100
