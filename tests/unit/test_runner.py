@@ -101,7 +101,7 @@ class TestSessionServers:
         found, skipped = session_arms([])
         tags = [arm.id for arm in found]
         assert "bds@1.26.52.3" in tags and "endstone@0.11.14" in tags
-        assert not any(tag.startswith(("levilamina@")) for tag in tags)
+        assert not any(tag.startswith("levilamina@") for tag in tags)
         assert skipped == [
             "levilamina@26.51.6: runs on windows only",
         ]
