@@ -24,6 +24,12 @@ const (
 	WalkNone   = "none"
 )
 
+// Transports.
+const (
+	TransportRakNet    = "raknet"
+	TransportNetherNet = "nethernet"
+)
+
 // Decode error policies.
 const (
 	DecodeCount = "count"
@@ -33,6 +39,7 @@ const (
 // Config holds every flag shared by the protocol frontends. Field defaults are set by Register.
 type Config struct {
 	Addr             string
+	Transport        string
 	N                int
 	Prefix           string
 	Stagger          time.Duration
@@ -57,6 +64,7 @@ type Config struct {
 // Register adds the shared flags to fs.
 func (c *Config) Register(fs *flag.FlagSet) {
 	fs.StringVar(&c.Addr, "addr", "", "server address HOST:PORT (required)")
+	fs.StringVar(&c.Transport, "transport", TransportRakNet, "raknet, or nethernet with HTTP signaling on the server port")
 	fs.IntVar(&c.N, "n", 1, "number of bots")
 	fs.StringVar(&c.Prefix, "prefix", "b", "bot name prefix; names are prefix + %02d index")
 	fs.DurationVar(&c.Stagger, "stagger", 300*time.Millisecond, "spacing between join starts")
@@ -83,6 +91,9 @@ func (c *Config) Validate() error {
 	var errs []error
 	if c.Addr == "" {
 		errs = append(errs, errors.New("-addr is required"))
+	}
+	if c.Transport != TransportRakNet && c.Transport != TransportNetherNet {
+		errs = append(errs, fmt.Errorf("-transport must be raknet or nethernet, got %q", c.Transport))
 	}
 	if c.N < 1 {
 		errs = append(errs, fmt.Errorf("-n must be at least 1, got %d", c.N))

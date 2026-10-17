@@ -4,6 +4,9 @@ package main
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"errors"
 	"log/slog"
 	"net"
@@ -11,6 +14,8 @@ import (
 	"time"
 
 	"github.com/EndstoneMC/bedrock-bench/bots/core"
+	"github.com/df-mc/go-nethernet"
+	"github.com/df-mc/go-nethernet/endpoint"
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/google/uuid"
 	"github.com/sandertv/gophertunnel/minecraft"
@@ -34,10 +39,18 @@ func (frontend) PacketNames() map[uint32]string { return packetNames }
 func (frontend) RunSession(ctx context.Context, s *core.Session) core.SessionEnd {
 	cfg := s.Config()
 	counters := &s.Fleet().C
-	network := countingNetwork{
+	var network minecraft.Network = countingNetwork{
 		log:     slog.New(sessionLog{s: s, transport: true}),
 		rxBytes: &counters.RxBytes,
 		txBytes: &counters.TxBytes,
+	}
+	addr := cfg.Addr
+	if cfg.Transport == core.TransportNetherNet {
+		nn, err := netherNet(s)
+		if err != nil {
+			return joinFailure(ctx, core.StageDial, err)
+		}
+		network, addr = nn, "http://"+cfg.Addr
 	}
 	memoryTier := 0
 	if cfg.CSG {
@@ -62,7 +75,7 @@ func (frontend) RunSession(ctx context.Context, s *core.Session) core.SessionEnd
 
 	joinCtx, cancel := context.WithTimeout(ctx, cfg.SpawnTimeout)
 	defer cancel()
-	conn, err := dialer.DialContextNetwork(joinCtx, network, cfg.Addr)
+	conn, err := dialer.DialContextNetwork(joinCtx, network, addr)
 	if err != nil {
 		return joinFailure(ctx, dialStage(err), err)
 	}
@@ -73,10 +86,28 @@ func (frontend) RunSession(ctx context.Context, s *core.Session) core.SessionEnd
 	return newBotConn(s, conn).play(ctx)
 }
 
-// dialStage tells a failure of the RakNet connection (dial) from one during the Minecraft login (login).
+// netherNet is a NetherNet network that offers through the server's HTTP signaling endpoint, with a self-signed
+// identity as BDS accepts from any client.
+func netherNet(s *core.Session) (minecraft.NetherNet, error) {
+	key, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
+	if err != nil {
+		return minecraft.NetherNet{}, err
+	}
+	identity, err := nethernet.GenerateServerIdentity(key, "self")
+	if err != nil {
+		return minecraft.NetherNet{}, err
+	}
+	return minecraft.NetherNet{
+		Signaling: endpoint.NewClient(),
+		Dialer:    nethernet.Dialer{Identity: identity},
+		Log:       slog.New(sessionLog{s: s, transport: true}),
+	}, nil
+}
+
+// dialStage tells a failure of the transport connection (dial) from one during the Minecraft login (login).
 func dialStage(err error) string {
 	var op *net.OpError
-	if errors.As(err, &op) && op.Net == "raknet" {
+	if errors.As(err, &op) && (op.Net == "raknet" || op.Net == "nethernet") {
 		return core.StageDial
 	}
 	return core.StageLogin

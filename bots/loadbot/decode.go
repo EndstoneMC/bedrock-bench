@@ -79,7 +79,7 @@ func decodedPacketID(msg string) *uint32 {
 // and count against the run; everything else at warning level or above goes to stderr.
 type sessionLog struct {
 	s         *core.Session
-	transport bool // RakNet's log: diagnostics only, never decode errors
+	transport bool // the transport's log: diagnostics only, never decode errors
 }
 
 func (h sessionLog) Enabled(_ context.Context, level slog.Level) bool { return level >= slog.LevelWarn }
@@ -91,7 +91,7 @@ func (h sessionLog) Handle(_ context.Context, r slog.Record) error {
 	}
 	src := "gophertunnel"
 	if h.transport {
-		src = "raknet"
+		src = h.s.Config().Transport
 	}
 	h.s.Logf("%s %s: %s", src, strings.ToLower(r.Level.String()), r.Message)
 	return nil
