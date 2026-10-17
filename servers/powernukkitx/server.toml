@@ -5,7 +5,7 @@ server = "powernukkitx"
 
 # What `bbench run` measures when it is given no tag.
 [benchmark]
-version = "nightly.f3e2583"
+version = "nightly.b9b8fd8"
 
 # PowerNukkitX jars from GitHub, verified against the sha256 GitHub publishes for each release asset.
 # A release jar reports its version as <version>-SNAPSHOT with the commit it was built from; `commit` is that commit.
@@ -51,3 +51,16 @@ url = "https://github.com/PowerNukkitX/PowerNukkitX/pull/3281"
 name = "powernukkitx-pr3281-f3e2583.jar"
 sha256 = "b4e172731b1a323a97338e2b9174f53fa694f4609e02094e5fff668e0f3f4b9f"
 size = 95387629
+
+# The nightly after PR #3281 (join flood fix) was merged into beta.
+[artifacts.version."nightly.b9b8fd8"]
+commit = "b9b8fd87161ae99da6ebf2193ebc19aca58376e8"
+protocol = 2193
+minecraft = "1.26.50"
+runtime = "jdk-25.0.4.1"
+
+[artifacts.version."nightly.b9b8fd8".any]
+url = "https://github.com/PowerNukkitX/PowerNukkitX/releases/download/nightly/powernukkitx.jar"
+name = "powernukkitx-nightly-b9b8fd8.jar"
+sha256 = "6f23b5d670cb64f368ac910c0fcb69653af50eecf02595bb69f8212e996100aa"
+size = 95489144
