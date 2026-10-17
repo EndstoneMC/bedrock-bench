@@ -61,7 +61,7 @@ Median [min, max] over the ok runs.
 | `levilamina@26.51.6` | 3/3 | 11.22 [11.13, 11.29] | 88.7 [88.1, 89.6] | 2.40 [2.32, 2.43] | 8232 [8202, 8254] | 9.08 [8.90, 9.30] | 531 [511, 533] | 684 [667, 692] | 759 [689, 795] | 47.1 [46.2, 47.2] | 373 [372, 373] |
 | `nukkit@b3caad6` | 0/6 | - | - | - | - | - | - | - | - | - | - |
 | `nukkitmot@9cb0aba` | 0/6 | - | - | - | - | - | - | - | - | - | - |
-| `nukkitmot@ce235ee` | 0/1 | - | - | - | - | - | - | - | - | - | - |
+| `nukkitmot@ce235ee` | 1/1 | 19.98 | 13.2 | 2.08 | 8719 | 19.90 | 316 | 530 | 590 | 55.6 | 374 |
 | `powernukkitx@nightly.86f70bc` | 0/3 | - | - | - | - | - | - | - | - | - | - |
 
 ## Notes
@@ -69,12 +69,13 @@ Median [min, max] over the ok runs.
 - `chorus@5c5ffd3` run `20261013T192017Z-chorus@5c5ffd3-r1-8675`: invalid: spread: 4 cells occupied by 35 joined bots; joined_all: joined 35/100
 - `chorus@5c5ffd3`: the server dropped bots during steady
 - `dragonfly@1793369`: Tick-thread CPU per tick (ms): not applicable (the server has no single tick thread)
-- `nukkit@b3caad6` run `20261013T094045Z-nukkit@b3caad6-r1-bccb`: invalid: spread: up to 29 bots in one cell; server_alive: exit code 1; joined_all: joined 72/100
-- `nukkit@b3caad6` run `20261013T095506Z-nukkit@b3caad6-r1-9a58`: invalid: spread: up to 51 bots in one cell; server_alive: exit code 1; joined_all: joined 50/100
-- `nukkit@b3caad6` run `20261013T113041Z-nukkit@b3caad6-r2-0dc8`: invalid: spread: up to 20 bots in one cell; server_alive: exit code 1; joined_all: joined 81/100
-- `nukkit@b3caad6` run `20261013T114546Z-nukkit@b3caad6-r2-f232`: invalid: spread: up to 49 bots in one cell; server_alive: exit code 1; joined_all: joined 52/100
-- `nukkit@b3caad6` run `20261013T132321Z-nukkit@b3caad6-r3-ac13`: invalid: spread: up to 43 bots in one cell; server_alive: exit code 1; joined_all: joined 58/100
-- `nukkit@b3caad6` run `20261013T133741Z-nukkit@b3caad6-r3-87b7`: invalid: spread: up to 38 bots in one cell; server_alive: exit code 1; joined_all: joined 63/100
+- `nukkit@b3caad6` run `20261013T094045Z-nukkit@b3caad6-r1-bccb`: invalid: spread: up to 29 bots in one cell; joined_all: joined 72/100
+- `nukkit@b3caad6` run `20261013T095506Z-nukkit@b3caad6-r1-9a58`: invalid: spread: up to 51 bots in one cell; joined_all: joined 50/100
+- `nukkit@b3caad6` run `20261013T113041Z-nukkit@b3caad6-r2-0dc8`: invalid: spread: up to 20 bots in one cell; joined_all: joined 81/100
+- `nukkit@b3caad6` run `20261013T114546Z-nukkit@b3caad6-r2-f232`: invalid: spread: up to 49 bots in one cell; joined_all: joined 52/100
+- `nukkit@b3caad6` run `20261013T132321Z-nukkit@b3caad6-r3-ac13`: invalid: spread: up to 43 bots in one cell; joined_all: joined 58/100
+- `nukkit@b3caad6` run `20261013T133741Z-nukkit@b3caad6-r3-87b7`: invalid: spread: up to 38 bots in one cell; joined_all: joined 63/100
+- `nukkit@b3caad6`: the server crashed or exited with an error when stopped, after the measured windows
 - `nukkit@b3caad6`: views were still incomplete when the settle phase ended
 - `nukkitmot@9cb0aba` run `20261013T100926Z-nukkitmot@9cb0aba-r1-55d5`: invalid: spread: up to 24 bots in one cell; joined_all: joined 66/100
 - `nukkitmot@9cb0aba` run `20261013T102312Z-nukkitmot@9cb0aba-r1-6193`: invalid: spread: up to 13 bots in one cell; joined_all: joined 62/100
@@ -83,7 +84,7 @@ Median [min, max] over the ok runs.
 - `nukkitmot@9cb0aba` run `20261013T135202Z-nukkitmot@9cb0aba-r3-4e57`: invalid: spread: up to 30 bots in one cell; joined_all: joined 70/100
 - `nukkitmot@9cb0aba` run `20261013T140535Z-nukkitmot@9cb0aba-r3-6bbe`: invalid: spread: up to 8 bots in one cell; joined_all: joined 67/100
 - `nukkitmot@9cb0aba`: views were still incomplete when the settle phase ended
-- `nukkitmot@ce235ee` run `20261013T190204Z-nukkitmot@ce235ee-r1-6d94`: server_failed: server_alive: exit code 1
+- `nukkitmot@ce235ee`: the server crashed or exited with an error when stopped, after the measured windows
 - `powernukkitx@nightly.86f70bc` run `20261013T103647Z-powernukkitx@nightly.86f70bc-r1-2233`: server_failed: server_alive: the server exited before teardown; joined_all: joined 46/100
 - `powernukkitx@nightly.86f70bc` run `20261013T122711Z-powernukkitx@nightly.86f70bc-r2-bd4e`: server_failed: server_alive: the server exited before teardown; joined_all: joined 50/100
 - `powernukkitx@nightly.86f70bc` run `20261013T141916Z-powernukkitx@nightly.86f70bc-r3-3532`: server_failed: server_alive: the server exited before teardown; joined_all: joined 46/100
