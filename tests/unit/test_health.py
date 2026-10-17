@@ -126,6 +126,8 @@ def test_outcome_gates(steady: tuple[RunData, dict[str, Any]]) -> None:
     assert check(steady, server_exit_code=1) == (Status.OK, [], ["unclean_stop"])
     killed = edit(steady, "status_reasons", ["server_alive: still running 30 s after stop; killed"])
     assert check(steady, run=killed) == (Status.OK, [], ["unclean_stop"])
+    stale = edit(steady, "status_reasons", ["server_alive: exit code 1"])
+    assert check(steady, run=stale, server_exit_code=1) == (Status.OK, [], ["unclean_stop"])
     run = edit(steady, "spread.cells_occupied", 5)
     run["spread"]["players"] = 5
     status, reasons, _ = check(steady, run=run, joined=5)

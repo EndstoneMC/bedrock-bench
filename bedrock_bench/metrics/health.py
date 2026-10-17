@@ -177,6 +177,8 @@ def evaluate(
         match = _REASON.match(reason)
         if match and match["gate"] == Gate.SERVER_ALIVE.value and match["detail"].startswith("still running"):
             killed_on_stop = True
+        elif match and match["gate"] == Gate.SERVER_ALIVE.value and match["detail"].startswith("exit code"):
+            continue
         elif match and match["gate"] in {g.value for g in RECORDED_GATES}:
             out.fail(Gate(match["gate"]), match["detail"])
     if meta.get("partial"):
