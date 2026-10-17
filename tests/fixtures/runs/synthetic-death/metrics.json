@@ -1,5 +1,5 @@
 {
-  "analysis_version": 2,
+  "analysis_version": 3,
   "flags": [
     "dropped"
   ],
@@ -235,7 +235,6 @@
   "schema_minor": 0,
   "status": "server_failed",
   "status_reasons": [
-    "server_alive: the server exited before teardown",
-    "server_alive: exit code -6"
+    "server_alive: the server exited before teardown"
   ]
 }

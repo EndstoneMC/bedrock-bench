@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Server failures are results (rule R9): a crash, a bad exit, a hang on stop or a refused join ends as
-``server_failed`` with exit code 4, a kept run directory and the evidence collected, never as a dropped run.
+"""Server failures are results (rule R9): a crash or a refused join ends as ``server_failed`` with exit code 4, a kept
+run directory and the evidence collected, never as a dropped run. A bad exit or a hang on stop comes after the measured
+windows, so the run stays ok with the ``unclean_stop`` flag.
 """
 
 from __future__ import annotations
@@ -53,9 +54,17 @@ def test_crash_during_boot(bench: FakeBench) -> None:
     assert (run.require_dir() / "crash").is_dir()
 
 
+def assert_unclean_stop(run: Run) -> dict[str, Any]:
+    assert run.exit_code == ExitCode.OK, run.describe()
+    record = run.run_json
+    assert record["status"] == Status.OK, record["status_reasons"]
+    assert "unclean_stop" in record["flags"]
+    return record
+
+
 def test_nonzero_exit_after_stop(bench: FakeBench) -> None:
     run = bench.run_one(behaviour="exit-nonzero")
-    record = assert_server_failed(run, "server_alive")
+    record = assert_unclean_stop(run)
     assert record["health"]["died"] is False, "the server lived until teardown"
     assert record["health"]["server_exit"] == 1
 
@@ -65,7 +74,7 @@ def test_hang_on_stop_is_killed(bench: FakeBench) -> None:
     started = time.monotonic()
     run = bench.run_one(behaviour="hang-on-stop", config=short_stop)
     assert time.monotonic() - started < 120, "the harness kills a server that ignores stop"
-    record = assert_server_failed(run, "server_alive")
+    record = assert_unclean_stop(run)
     assert record["health"]["server_exit"] != 0
 
 

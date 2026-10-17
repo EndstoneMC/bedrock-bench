@@ -103,18 +103,20 @@ class TestSessionServers:
         assert "bds@1.26.52.3" in tags and "endstone@0.11.14" in tags
         assert not any(tag.startswith(("levilamina@")) for tag in tags)
         assert skipped == [
+            "allay@0.14.0: no release supports protocol 2193 (Bedrock 1.26.50)",
             "levilamina@26.51.6: runs on windows only",
+            "pocketmine@5.44.3: no release supports protocol 2193 (Bedrock 1.26.50)",
         ]
         monkeypatch.setattr(runner, "host_os", lambda: "windows")
         assert "levilamina@26.51.6" in [arm.id for arm in session_arms([])[0]]
 
     def test_defaults_skip_servers_whose_bot_is_missing(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setattr(runner, "bot_missing", lambda a: "no legacy1001 bot" if a.name == "pocketmine" else None)
+        monkeypatch.setattr(runner, "bot_missing", lambda a: "no loadbot bot" if a.name == "dragonfly" else None)
         found, skipped = session_arms([])
-        assert not any(arm.server == "pocketmine" for arm in found)
-        assert "pocketmine@5.44.3: no legacy1001 bot" in skipped
-        found, skipped = session_arms(["pocketmine@5.44.3"])
-        assert [arm.id for arm in found] == ["pocketmine@5.44.3"] and skipped == []
+        assert not any(arm.server == "dragonfly" for arm in found)
+        assert "dragonfly@1793369: no loadbot bot" in skipped
+        found, skipped = session_arms(["dragonfly@1793369"])
+        assert [arm.id for arm in found] == ["dragonfly@1793369"] and skipped == []
 
 
 class TestBotMissing:

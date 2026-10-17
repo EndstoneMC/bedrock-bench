@@ -780,7 +780,7 @@ class Session:
             if launched.poll() is None or (self.server is not None and _running(self.server)):
                 log.warning("killing the server process tree")
                 if stopped:
-                    self.result.reasons.append(f"server_alive: still running {stop_timeout:g} s after stop; killed")
+                    self.result.flags.add(Flag.UNCLEAN_STOP.value)
                 launched.kill_tree()
         if self.death is not None:
             self.death.stop()

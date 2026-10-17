@@ -63,7 +63,7 @@ GATES: tuple[GateDef, ...] = (
         Gate.CONFIG_READBACK, "config values read back after the run equal what was written (recorded by the runner)"
     ),
     GateDef(Gate.INTERVENTIONS_IN_MEASURED, "interventions_in_measured = 0"),
-    GateDef(Gate.SERVER_ALIVE, "the server ran until teardown and exited with 0 on stop, without being killed"),
+    GateDef(Gate.SERVER_ALIVE, "the server ran until teardown"),
     GateDef(Gate.JOINED_ALL, "joined = the workload's bot count (reported as joined/n)"),
     GateDef(Gate.DROPPED, "dropped = 0; a nonzero count adds the dropped flag"),
 )
@@ -172,9 +172,12 @@ def evaluate(
         return all(marks.get(k) is not None for k in bounds)
 
     # harness_ok and other recorded gates
+    killed_on_stop = False
     for reason in meta.get("status_reasons") or ():
         match = _REASON.match(reason)
-        if match and match["gate"] in {g.value for g in RECORDED_GATES}:
+        if match and match["gate"] == Gate.SERVER_ALIVE.value and match["detail"].startswith("still running"):
+            killed_on_stop = True
+        elif match and match["gate"] in {g.value for g in RECORDED_GATES}:
             out.fail(Gate(match["gate"]), match["detail"])
     if meta.get("partial"):
         out.fail(Gate.HARNESS_OK, "run did not finish (partial run.json)")
@@ -274,15 +277,15 @@ def evaluate(
     # outcome
     if _value(metrics, "died_during_run"):
         out.fail(Gate.SERVER_ALIVE, "the server exited before teardown")
-    exit_code = _value(metrics, "server_exit_code")
-    if exit_code not in (None, 0):
-        out.fail(Gate.SERVER_ALIVE, f"exit code {exit_code}")
     if marks.get("bots_start") is not None:
         n = workload.bots.n
         if (joined or 0) < n:
             out.fail(Gate.JOINED_ALL, f"joined {joined or 0}/{n}")
 
     flags = {str(f) for f in meta.get("flags") or ()}
+    stopped_unclean = killed_on_stop or _value(metrics, "server_exit_code") not in (None, 0)
+    if stopped_unclean and not _value(metrics, "died_during_run"):
+        flags.add(Flag.UNCLEAN_STOP.value)
     dropped = _value(metrics, "dropped")
     if dropped:
         flags.add(Gate.DROPPED.value)

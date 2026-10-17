@@ -22,6 +22,7 @@ _FLAG_TEXT: dict[str, str] = {
     Flag.BOT_PROTOCOL_DIFFERS: "the bots used a build for a different client protocol{runs}",
     Flag.DIFFERENT_BDS_BUILD: "the report has no run of the BDS build this server hosts ({bds})",
     Flag.UNPUBLISHED_ARTIFACT: "ran a local artifact instead of a pinned release{runs}",
+    Flag.UNCLEAN_STOP: "the server crashed or exited with an error when stopped, after the measured windows{runs}",
     Gate.DROPPED: "the server dropped bots during steady{runs}",
 }
 

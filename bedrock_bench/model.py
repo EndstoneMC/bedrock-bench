@@ -135,6 +135,7 @@ class Flag(StrEnum):
     DIFFERENT_BDS_BUILD = "different_bds_build"
     KNOWN_ISSUE = "known_issue"
     UNPUBLISHED_ARTIFACT = "unpublished_artifact"
+    UNCLEAN_STOP = "unclean_stop"
 
 
 # --------------------------------------------------------------------------------------------------------------------

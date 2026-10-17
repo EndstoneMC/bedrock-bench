@@ -81,7 +81,7 @@ duration_s = 90.0                # the measured window
 
 [phases.teardown]
 bot_quit_timeout_s = 10.0
-stop_timeout_s = 180.0
+stop_timeout_s = 10.0
 crash_log_lines = 200
 
 [run]

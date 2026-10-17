@@ -273,7 +273,8 @@ server and is never rerun (R9). Gates on a window the run never reached are skip
 exits 0.
 
 Flags never change the status but always appear next to the numbers: `settle_capped`, `views_incomplete`,
-`bot_protocol_differs`, `different_bds_build`, `unpublished_artifact` and `dropped`.
+`bot_protocol_differs`, `different_bds_build`, `unpublished_artifact`, `dropped` and `unclean_stop` (the server crashed,
+exited nonzero or had to be killed when stopped, after the measured windows).
 
 When the server dies or exits nonzero, the harness copies the last 200 log lines, and every file modified since the run
 started under the adapter's crash paths, into `crash/`.

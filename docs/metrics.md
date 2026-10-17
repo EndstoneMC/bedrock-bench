@@ -2,7 +2,7 @@
 
 # Metrics
 
-Every metric in `metrics.json` (schema `bedrock-bench/metrics/1`), analysis version 2: what the report and the CSV
+Every metric in `metrics.json` (schema `bedrock-bench/metrics/1`), analysis version 3: what the report and the CSV
 files show, and what the validity gates read. `bbench analyze` recomputes the file byte for byte from a run's raw
 files; any change to a formula bumps the analysis version.
 
@@ -123,6 +123,6 @@ A run is `invalid` if any invalid-level gate fails, else `server_failed` if an o
 | `world_fresh` | invalid | world dir absent before launch |
 | `config_readback` | invalid | config values read back after the run equal what was written (recorded by the runner) |
 | `interventions_in_measured` | invalid | interventions_in_measured = 0 |
-| `server_alive` | server_failed | the server ran until teardown and exited with 0 on stop, without being killed |
+| `server_alive` | server_failed | the server ran until teardown |
 | `joined_all` | server_failed | joined = the workload's bot count (reported as joined/n) |
 | `dropped` | warning | dropped = 0; a nonzero count adds the dropped flag |

@@ -268,13 +268,13 @@
         "teardown": {
           "bot_quit_timeout_s": 10.0,
           "crash_log_lines": 200,
-          "stop_timeout_s": 180.0
+          "stop_timeout_s": 10.0
         }
       },
       "probe": {
         "interval_s": 5.0,
-        "lagging_p99_ms": 1000.0,
-        "max_gap_s": 15.0
+        "lagging_p99_ms": 30000.0,
+        "max_gap_s": 60.0
       },
       "run": {
         "cooldown_s": 60.0,
@@ -297,7 +297,7 @@
         "seed": 20261010
       }
     },
-    "sha256": "40389d2a6a87d3987d4c3d660813efb3a60e5a67425d0e77443a1249848f9290"
+    "sha256": "f1c6e4c59e2b5c365001a52da00043521fcec77b6930dc6730f41fdc7f00a809"
   },
   "world": {
     "fresh": true,

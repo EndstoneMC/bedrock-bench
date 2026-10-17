@@ -1,5 +1,5 @@
 {
-  "analysis_version": 2,
+  "analysis_version": 3,
   "flags": [],
   "metrics": {
     "bot_cpu_frac_load": {

@@ -28,7 +28,7 @@ delay_s = 5.0
 duration_s = 20.0
 
 [phases.teardown]
-stop_timeout_s = 60.0
+stop_timeout_s = 10.0
 
 [run]
 repeats = 1

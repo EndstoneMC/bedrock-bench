@@ -94,10 +94,8 @@ def test_known_answers_of_the_dip_run() -> None:
 def test_known_answers_of_the_death_run() -> None:
     doc = stored_doc("synthetic-death")
     assert doc["status"] == "server_failed"
-    assert doc["status_reasons"] == [
-        "server_alive: the server exited before teardown",
-        "server_alive: exit code -6",
-    ]
+    assert doc["status_reasons"] == ["server_alive: the server exited before teardown"]
+    assert "unclean_stop" not in doc["flags"], "a death before teardown is a failure, not an unclean stop"
     assert doc["flags"] == ["dropped"]
     assert doc["metrics"]["tps_window_steady"]["reason"] == "the steady window was not reached"
     assert value(doc, "joined") == 6

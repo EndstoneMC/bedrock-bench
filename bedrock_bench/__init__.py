@@ -11,7 +11,7 @@ SCHEMA_VERSION = 1
 SCHEMA_MINOR = 0
 
 #: Version of the metric formulas. Any change to a formula in ``metrics/`` bumps it.
-ANALYSIS_VERSION = 2
+ANALYSIS_VERSION = 3
 
 RUN_SCHEMA = f"bedrock-bench/run/{SCHEMA_VERSION}"
 METRICS_SCHEMA = f"bedrock-bench/metrics/{SCHEMA_VERSION}"
