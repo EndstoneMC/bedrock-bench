@@ -22,8 +22,10 @@ Config `spread-100`, 100 bots.
 | Harness | bedrock-bench 0.1.0.dev0 (`475ffa9`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`4f763f5`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`553358f`) |
+| Harness | bedrock-bench 0.1.0.dev0 (`5dc7cd1`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`6104d49`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`6d96b6b`) |
+| Harness | bedrock-bench 0.1.0.dev0 (`6f6fa41`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`7572797`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`7a46b55`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`88f8d0a`) |
@@ -45,7 +47,7 @@ Config `spread-100`, 100 bots.
 | Harness | bedrock-bench 0.1.0.dev0 (`ff06c4b`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`ff12261`) |
 | Bots | loadbot, protocol 2193, gophertunnel v1.62.0 |
-| Servers | `altay@5.44.7`, `bds@1.26.52.3`, `chorus@5c5ffd3`, `dragonfly@1793369`, `endstone@0.11.14` (bds 1.26.52.3, python 3.13), `levilamina@26.51.6`, `nukkit@b3caad6`, `nukkitmot@9cb0aba`, `nukkitmot@ce235ee`, `powernukkitx@nightly.86f70bc` |
+| Servers | `altay@5.44.7`, `bds@1.26.52.3`, `chorus@5c5ffd3`, `dragonfly@1793369`, `endstone@0.11.14` (bds 1.26.52.3, python 3.13), `levilamina@26.51.6`, `nukkit@b3caad6`, `nukkitmot@9cb0aba`, `nukkitmot@a27d96c`, `nukkitmot@ce235ee`, `powernukkitx@nightly.86f70bc`, `powernukkitx@nightly.b9b8fd8` |
 
 ## Results
 
@@ -61,8 +63,10 @@ Median [min, max] over the ok runs.
 | `levilamina@26.51.6` | 3/3 | 11.22 [11.13, 11.29] | 88.7 [88.1, 89.6] | 2.40 [2.32, 2.43] | 8232 [8202, 8254] | 9.08 [8.90, 9.30] | 531 [511, 533] | 684 [667, 692] | 759 [689, 795] | 47.1 [46.2, 47.2] | 373 [372, 373] |
 | `nukkit@b3caad6` | 0/6 | - | - | - | - | - | - | - | - | - | - |
 | `nukkitmot@9cb0aba` | 0/6 | - | - | - | - | - | - | - | - | - | - |
+| `nukkitmot@a27d96c` | 1/2 | 19.98 | 12.7 | 2.18 | 8723 | 19.75 | 308 | 525 | 604 | 55.5 | 371 |
 | `nukkitmot@ce235ee` | 1/1 | 19.98 | 13.2 | 2.08 | 8719 | 19.90 | 316 | 530 | 590 | 55.6 | 374 |
 | `powernukkitx@nightly.86f70bc` | 0/3 | - | - | - | - | - | - | - | - | - | - |
+| `powernukkitx@nightly.b9b8fd8` | 0/1 | - | - | - | - | - | - | - | - | - | - |
 
 ## Notes
 
@@ -84,8 +88,12 @@ Median [min, max] over the ok runs.
 - `nukkitmot@9cb0aba` run `20261013T135202Z-nukkitmot@9cb0aba-r3-4e57`: invalid: spread: up to 30 bots in one cell; joined_all: joined 70/100
 - `nukkitmot@9cb0aba` run `20261013T140535Z-nukkitmot@9cb0aba-r3-6bbe`: invalid: spread: up to 8 bots in one cell; joined_all: joined 67/100
 - `nukkitmot@9cb0aba`: views were still incomplete when the settle phase ended
+- `nukkitmot@a27d96c` run `20261018T220053Z-nukkitmot@a27d96c-r1-3113`: invalid: foreign_load: foreign load 10 s peak 5.7639 cores in load (limit 5)
+- `nukkitmot@a27d96c`: the server crashed or exited with an error when stopped, after the measured windows
 - `nukkitmot@ce235ee`: the server crashed or exited with an error when stopped, after the measured windows
 - `powernukkitx@nightly.86f70bc` run `20261013T103647Z-powernukkitx@nightly.86f70bc-r1-2233`: server_failed: server_alive: the server exited before teardown; joined_all: joined 46/100
 - `powernukkitx@nightly.86f70bc` run `20261013T122711Z-powernukkitx@nightly.86f70bc-r2-bd4e`: server_failed: server_alive: the server exited before teardown; joined_all: joined 50/100
 - `powernukkitx@nightly.86f70bc` run `20261013T141916Z-powernukkitx@nightly.86f70bc-r3-3532`: server_failed: server_alive: the server exited before teardown; joined_all: joined 46/100
 - `powernukkitx@nightly.86f70bc`: the server dropped bots during steady (in 1 of 3 runs)
+- `powernukkitx@nightly.b9b8fd8` run `20261017T232202Z-powernukkitx@nightly.b9b8fd8-r1-7f4e`: server_failed: server_alive: the server exited before teardown; joined_all: joined 89/100
+- `powernukkitx@nightly.b9b8fd8`: the server dropped bots during steady
