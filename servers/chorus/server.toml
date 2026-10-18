@@ -24,7 +24,7 @@ repository = "https://github.com/bedrock-crustaceans/chorus"
 protocol = 2193
 minecraft = "1.26.50"
 rust = "1.95.0"
-cargo_lock = "eb710cafbb3d30ec595a2864d01ae03cf750771110b3915a609226dcae7a0856"
+cargo_lock = "a7fe4a8f6d4d634adaf62df9940478523f93e3643802fdce9df3734d7d2b19ed"
 
 # The source archive of the commit, for reference. The build gets the same commit through Cargo.
 [artifacts.version."5c5ffd3".any]

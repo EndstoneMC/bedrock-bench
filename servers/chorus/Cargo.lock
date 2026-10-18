@@ -391,7 +391,7 @@ dependencies = [
 [[package]]
 name = "bevy-raknet"
 version = "0.1.0"
-source = "git+https://github.com/bedrock-crustaceans/raknet?branch=main#508bf2648e12e8e12c950c98b5ea6b9da0165de5"
+source = "git+https://github.com/bedrock-crustaceans/raknet?branch=main#1b15b7a590645ab80a8b1c35881d089d64e5683c"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
@@ -1437,9 +1437,9 @@ checksum = "34aa73646ffb006b8f5147f3dc182bd4bcb190227ce861fc4a4844bf8e3cb2c0"
 
 [[package]]
 name = "equivalent"
-version = "1.0.2"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
+checksum = "00d174d5400e5e8fd687ad1049e2f578285fa914201b1af7e8b112a4546bd826"
 
 [[package]]
 name = "erased-serde"
@@ -2808,7 +2808,7 @@ checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 [[package]]
 name = "raknet"
 version = "0.1.0"
-source = "git+https://github.com/bedrock-crustaceans/raknet?branch=main#508bf2648e12e8e12c950c98b5ea6b9da0165de5"
+source = "git+https://github.com/bedrock-crustaceans/raknet?branch=main#1b15b7a590645ab80a8b1c35881d089d64e5683c"
 dependencies = [
  "byteorder",
  "facet 0.46.5",
@@ -3284,9 +3284,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.45"
+version = "0.23.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d41d731c7d2f962d1ccc364cec258de3c0e93b38c2fb3ba97ac74513048d634"
+checksum = "48e13bd8c0e9365c43cfa5c9e8f9ad49d3c8444926c9aac819e0e4dc503c8fdf"
 dependencies = [
  "log",
  "once_cell",
@@ -3847,9 +3847,9 @@ checksum = "fd3ca314f692efd6c868f8408f53fe444634a845f96c028b97d35f6a1f79f0ee"
 
 [[package]]
 name = "tokio"
-version = "1.53.2"
+version = "1.53.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e95f91fcc7a621e8b030f6aa23c71fe9838ae2fb4d8118b75602a328f5144044"
+checksum = "ce3335fa71841cda333a58d7615b03901380ecf09d59b3296d21f8bbac0dde4e"
 dependencies = [
  "pin-project-lite",
 ]
