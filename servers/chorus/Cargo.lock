@@ -391,7 +391,7 @@ dependencies = [
 [[package]]
 name = "bevy-raknet"
 version = "0.1.0"
-source = "git+https://github.com/bedrock-crustaceans/raknet?branch=main#1b15b7a590645ab80a8b1c35881d089d64e5683c"
+source = "git+https://github.com/bedrock-crustaceans/raknet?branch=main#e461de9304cb8d5a11018cc26ab22f2089e3a696"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
@@ -627,7 +627,7 @@ dependencies = [
  "arrayvec",
  "cc",
  "cfg-if",
- "constant_time_eq",
+ "constant_time_eq 0.4.2",
  "cpufeatures 0.3.1",
 ]
 
@@ -789,7 +789,7 @@ dependencies = [
 [[package]]
 name = "chorus"
 version = "0.0.1"
-source = "git+https://github.com/bedrock-crustaceans/chorus?rev=5c5ffd3962dcb1deedef3021b62aa2f3c33e9a6d#5c5ffd3962dcb1deedef3021b62aa2f3c33e9a6d"
+source = "git+https://github.com/bedrock-crustaceans/chorus?rev=2f9f633e681be0667ac741ef07a554c9745fa708#2f9f633e681be0667ac741ef07a554c9745fa708"
 dependencies = [
  "atomicow",
  "base64 0.23.1",
@@ -831,7 +831,7 @@ dependencies = [
 [[package]]
 name = "chorus_block"
 version = "0.0.1"
-source = "git+https://github.com/bedrock-crustaceans/chorus?rev=5c5ffd3962dcb1deedef3021b62aa2f3c33e9a6d#5c5ffd3962dcb1deedef3021b62aa2f3c33e9a6d"
+source = "git+https://github.com/bedrock-crustaceans/chorus?rev=2f9f633e681be0667ac741ef07a554c9745fa708#2f9f633e681be0667ac741ef07a554c9745fa708"
 dependencies = [
  "atomicow",
  "bedrock",
@@ -846,7 +846,7 @@ dependencies = [
 [[package]]
 name = "chorus_core"
 version = "0.0.1"
-source = "git+https://github.com/bedrock-crustaceans/chorus?rev=5c5ffd3962dcb1deedef3021b62aa2f3c33e9a6d#5c5ffd3962dcb1deedef3021b62aa2f3c33e9a6d"
+source = "git+https://github.com/bedrock-crustaceans/chorus?rev=2f9f633e681be0667ac741ef07a554c9745fa708#2f9f633e681be0667ac741ef07a554c9745fa708"
 dependencies = [
  "bedrock",
  "bevy_ecs",
@@ -864,7 +864,7 @@ dependencies = [
 [[package]]
 name = "chorus_entity"
 version = "0.0.1"
-source = "git+https://github.com/bedrock-crustaceans/chorus?rev=5c5ffd3962dcb1deedef3021b62aa2f3c33e9a6d#5c5ffd3962dcb1deedef3021b62aa2f3c33e9a6d"
+source = "git+https://github.com/bedrock-crustaceans/chorus?rev=2f9f633e681be0667ac741ef07a554c9745fa708#2f9f633e681be0667ac741ef07a554c9745fa708"
 dependencies = [
  "bevy_ecs",
  "chorus_core",
@@ -875,7 +875,7 @@ dependencies = [
 [[package]]
 name = "chorus_item"
 version = "0.0.1"
-source = "git+https://github.com/bedrock-crustaceans/chorus?rev=5c5ffd3962dcb1deedef3021b62aa2f3c33e9a6d#5c5ffd3962dcb1deedef3021b62aa2f3c33e9a6d"
+source = "git+https://github.com/bedrock-crustaceans/chorus?rev=2f9f633e681be0667ac741ef07a554c9745fa708#2f9f633e681be0667ac741ef07a554c9745fa708"
 dependencies = [
  "base64 0.23.1",
  "bedrock",
@@ -893,7 +893,7 @@ dependencies = [
 [[package]]
 name = "chorus_level"
 version = "0.0.1"
-source = "git+https://github.com/bedrock-crustaceans/chorus?rev=5c5ffd3962dcb1deedef3021b62aa2f3c33e9a6d#5c5ffd3962dcb1deedef3021b62aa2f3c33e9a6d"
+source = "git+https://github.com/bedrock-crustaceans/chorus?rev=2f9f633e681be0667ac741ef07a554c9745fa708#2f9f633e681be0667ac741ef07a554c9745fa708"
 dependencies = [
  "bedrock",
  "bevy_ecs",
@@ -914,7 +914,7 @@ dependencies = [
 [[package]]
 name = "chorus_worldgen"
 version = "0.0.1"
-source = "git+https://github.com/bedrock-crustaceans/chorus?rev=5c5ffd3962dcb1deedef3021b62aa2f3c33e9a6d#5c5ffd3962dcb1deedef3021b62aa2f3c33e9a6d"
+source = "git+https://github.com/bedrock-crustaceans/chorus?rev=2f9f633e681be0667ac741ef07a554c9745fa708#2f9f633e681be0667ac741ef07a554c9745fa708"
 dependencies = [
  "atomicow",
  "bedrock",
@@ -1026,6 +1026,15 @@ name = "constant_time_eq"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d52eff69cd5e647efe296129160853a42795992097e8af39800e1060caeea9b"
+
+[[package]]
+name = "constant_time_eq"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9eb6feb175df65d0a3ccd3e73484e940d0ac664e8034f0519fd49a93db3071d9"
+dependencies = [
+ "rustversion",
+]
 
 [[package]]
 name = "convert_case"
@@ -2269,9 +2278,9 @@ checksum = "f9f8bd3e56ce4dfc153cf470fffbfa98c7620958b312ca5c3a4b8d5181fd13c6"
 
 [[package]]
 name = "lzma-rust2"
-version = "0.16.5"
+version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca93e534d1142d1d0dcca6d25fe302508a5dfb40b302802904577725ea0b695b"
+checksum = "7277c9742229dc25243236d578b6471a798c554512c6f6a04365ec2e87c2a3bb"
 dependencies = [
  "sha2",
 ]
@@ -2808,7 +2817,7 @@ checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 [[package]]
 name = "raknet"
 version = "0.1.0"
-source = "git+https://github.com/bedrock-crustaceans/raknet?branch=main#1b15b7a590645ab80a8b1c35881d089d64e5683c"
+source = "git+https://github.com/bedrock-crustaceans/raknet?branch=main#e461de9304cb8d5a11018cc26ab22f2089e3a696"
 dependencies = [
  "byteorder",
  "facet 0.46.5",
@@ -4634,13 +4643,13 @@ dependencies = [
 
 [[package]]
 name = "zip"
-version = "8.6.0"
+version = "9.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d04a6b5381502aa6087c94c669499eb1602eb9c5e8198e534de571f7154809b"
+checksum = "6e04976da629d3b04204ba8105b396a193af8ad2583b2c79bfb3ab8af580a11e"
 dependencies = [
  "aes 0.9.3",
  "bzip2",
- "constant_time_eq",
+ "constant_time_eq 0.6.1",
  "crc32fast",
  "deflate64",
  "flate2",
@@ -4649,6 +4658,7 @@ dependencies = [
  "indexmap",
  "lzma-rust2",
  "memchr",
+ "nix",
  "pbkdf2",
  "ppmd-rust",
  "sha1 0.11.0",
@@ -4685,27 +4695,27 @@ dependencies = [
 
 [[package]]
 name = "zstd"
-version = "0.13.3"
+version = "0.14.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e91ee311a569c327171651566e07972200e76fcfe2242a4fa446149a3881c08a"
+checksum = "db3ae9bf90af6e40197bef767eeefc46ad6397420fe873830bd85e5fbbfb3c70"
 dependencies = [
  "zstd-safe",
 ]
 
 [[package]]
 name = "zstd-safe"
-version = "7.3.0"
+version = "8.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "64d80649ab6db9d9f6f9c80a40becd948eda4714a0a5ac8c4d157a32231c7882"
+checksum = "ded520f16b29e1a9b771c722221b2b0a0398c2316d9bb3c42b458a5414d7434b"
 dependencies = [
  "zstd-sys",
 ]
 
 [[package]]
 name = "zstd-sys"
-version = "2.1.1+zstd.1.5.7"
+version = "2.1.2+zstd.1.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aeec9eaf2dffbbd09201e23bd0ffcbaa33bb8e9266a10734fd7ed90a85eca078"
+checksum = "481ada9c543b2323cbb7bbdbb5249177fbf0188ed959ed2c15e4b22421c84ed3"
 dependencies = [
  "cc",
  "pkg-config",
