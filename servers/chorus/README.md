@@ -26,7 +26,7 @@ target/release/chorusbench -defaults    # the default chorus.toml
 ## Setup
 
 ```shell
-bbench fetch chorus@2f9f633
+bbench fetch chorus@e712f78
 ```
 
 Fetch needs Rust 1.95.0 (with rustup, `rustup toolchain install 1.95.0`; fetch selects it through
