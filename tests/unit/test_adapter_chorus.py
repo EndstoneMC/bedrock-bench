@@ -23,8 +23,8 @@ from workloads import WORKLOAD, with_overrides
 
 ROOT = Path(__file__).resolve().parents[2]
 LOGS = ROOT / "tests" / "fixtures" / "logs"
-VERSION = "e712f78"
-COMMIT = "e712f784ae5da7cdc8f0e7e70fd7b51de538df9b"
+VERSION = "e517a0f"
+COMMIT = "e517a0f8e5e72ab703db62436fa3985030a31fd8"
 
 #: 'chorusbench -defaults' of the pinned build.
 DEFAULTS = """\
