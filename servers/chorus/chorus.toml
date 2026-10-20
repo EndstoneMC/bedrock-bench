@@ -12,7 +12,7 @@ ip = "127.0.0.1"
 # Port from the machine profile, away from 19132 so a local game cannot collide.
 port = {{ run.port }}
 # The bots speak RakNet.
-transport = "RakNet"
+transport = "raknet"
 
 [network.chunks]
 # enable subchunk requests

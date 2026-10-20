@@ -391,7 +391,7 @@ dependencies = [
 [[package]]
 name = "bevy-raknet"
 version = "0.1.0"
-source = "git+https://github.com/bedrock-crustaceans/raknet?branch=main#e461de9304cb8d5a11018cc26ab22f2089e3a696"
+source = "git+https://github.com/bedrock-crustaceans/raknet?branch=main#9bd968ed3b72092f0817c29c6d065e026d9b2f1b"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
@@ -789,7 +789,7 @@ dependencies = [
 [[package]]
 name = "chorus"
 version = "0.0.1"
-source = "git+https://github.com/bedrock-crustaceans/chorus?rev=e517a0f8e5e72ab703db62436fa3985030a31fd8#e517a0f8e5e72ab703db62436fa3985030a31fd8"
+source = "git+https://github.com/bedrock-crustaceans/chorus?rev=dbaf26ee2838e7d28bfa92a4ac6bd8013934f942#dbaf26ee2838e7d28bfa92a4ac6bd8013934f942"
 dependencies = [
  "atomicow",
  "base64 0.23.1",
@@ -831,7 +831,7 @@ dependencies = [
 [[package]]
 name = "chorus_block"
 version = "0.0.1"
-source = "git+https://github.com/bedrock-crustaceans/chorus?rev=e517a0f8e5e72ab703db62436fa3985030a31fd8#e517a0f8e5e72ab703db62436fa3985030a31fd8"
+source = "git+https://github.com/bedrock-crustaceans/chorus?rev=dbaf26ee2838e7d28bfa92a4ac6bd8013934f942#dbaf26ee2838e7d28bfa92a4ac6bd8013934f942"
 dependencies = [
  "atomicow",
  "bedrock",
@@ -846,7 +846,7 @@ dependencies = [
 [[package]]
 name = "chorus_core"
 version = "0.0.1"
-source = "git+https://github.com/bedrock-crustaceans/chorus?rev=e517a0f8e5e72ab703db62436fa3985030a31fd8#e517a0f8e5e72ab703db62436fa3985030a31fd8"
+source = "git+https://github.com/bedrock-crustaceans/chorus?rev=dbaf26ee2838e7d28bfa92a4ac6bd8013934f942#dbaf26ee2838e7d28bfa92a4ac6bd8013934f942"
 dependencies = [
  "bedrock",
  "bevy_ecs",
@@ -864,7 +864,7 @@ dependencies = [
 [[package]]
 name = "chorus_entity"
 version = "0.0.1"
-source = "git+https://github.com/bedrock-crustaceans/chorus?rev=e517a0f8e5e72ab703db62436fa3985030a31fd8#e517a0f8e5e72ab703db62436fa3985030a31fd8"
+source = "git+https://github.com/bedrock-crustaceans/chorus?rev=dbaf26ee2838e7d28bfa92a4ac6bd8013934f942#dbaf26ee2838e7d28bfa92a4ac6bd8013934f942"
 dependencies = [
  "bevy_ecs",
  "chorus_core",
@@ -875,7 +875,7 @@ dependencies = [
 [[package]]
 name = "chorus_item"
 version = "0.0.1"
-source = "git+https://github.com/bedrock-crustaceans/chorus?rev=e517a0f8e5e72ab703db62436fa3985030a31fd8#e517a0f8e5e72ab703db62436fa3985030a31fd8"
+source = "git+https://github.com/bedrock-crustaceans/chorus?rev=dbaf26ee2838e7d28bfa92a4ac6bd8013934f942#dbaf26ee2838e7d28bfa92a4ac6bd8013934f942"
 dependencies = [
  "base64 0.23.1",
  "bedrock",
@@ -893,7 +893,7 @@ dependencies = [
 [[package]]
 name = "chorus_level"
 version = "0.0.1"
-source = "git+https://github.com/bedrock-crustaceans/chorus?rev=e517a0f8e5e72ab703db62436fa3985030a31fd8#e517a0f8e5e72ab703db62436fa3985030a31fd8"
+source = "git+https://github.com/bedrock-crustaceans/chorus?rev=dbaf26ee2838e7d28bfa92a4ac6bd8013934f942#dbaf26ee2838e7d28bfa92a4ac6bd8013934f942"
 dependencies = [
  "bedrock",
  "bevy_ecs",
@@ -914,7 +914,7 @@ dependencies = [
 [[package]]
 name = "chorus_worldgen"
 version = "0.0.1"
-source = "git+https://github.com/bedrock-crustaceans/chorus?rev=e517a0f8e5e72ab703db62436fa3985030a31fd8#e517a0f8e5e72ab703db62436fa3985030a31fd8"
+source = "git+https://github.com/bedrock-crustaceans/chorus?rev=dbaf26ee2838e7d28bfa92a4ac6bd8013934f942#dbaf26ee2838e7d28bfa92a4ac6bd8013934f942"
 dependencies = [
  "atomicow",
  "bedrock",
@@ -2817,7 +2817,7 @@ checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 [[package]]
 name = "raknet"
 version = "0.1.0"
-source = "git+https://github.com/bedrock-crustaceans/raknet?branch=main#e461de9304cb8d5a11018cc26ab22f2089e3a696"
+source = "git+https://github.com/bedrock-crustaceans/raknet?branch=main#9bd968ed3b72092f0817c29c6d065e026d9b2f1b"
 dependencies = [
  "byteorder",
  "facet 0.46.5",

@@ -23,8 +23,8 @@ from workloads import WORKLOAD, with_overrides
 
 ROOT = Path(__file__).resolve().parents[2]
 LOGS = ROOT / "tests" / "fixtures" / "logs"
-VERSION = "e517a0f"
-COMMIT = "e517a0f8e5e72ab703db62436fa3985030a31fd8"
+VERSION = "dbaf26e"
+COMMIT = "dbaf26ee2838e7d28bfa92a4ac6bd8013934f942"
 
 #: 'chorusbench -defaults' of the pinned build.
 DEFAULTS = """\
@@ -38,7 +38,7 @@ threads = "auto"
 [network]
 ip = "0.0.0.0"
 port = 19132
-transport = "RakNet"
+transport = "raknet"
 max_batch_size = 16777216
 compression = "zlib"
 
@@ -237,7 +237,7 @@ class TestPrepare:
         server = layout.server_dir
         written = tomllib.loads((server / chorus.CONFIG).read_text(encoding="utf-8"))
         assert written == {
-            "network": {"ip": "127.0.0.1", "port": 19672, "transport": "RakNet", "chunks": {"subchunks": True}},
+            "network": {"ip": "127.0.0.1", "port": 19672, "transport": "raknet", "chunks": {"subchunks": True}},
             "server": {"authentication": False, "max_players": 200, "threads": 4},
             "level": {
                 "name": "bench",
