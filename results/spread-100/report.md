@@ -16,7 +16,6 @@ Config `spread-100`, 100 bots.
 | Harness | bedrock-bench 0.1.0.dev0 (`158b54c`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`268fbf9`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`2748fde`) |
-| Harness | bedrock-bench 0.1.0.dev0 (`3796d4b`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`475ffa9`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`553358f`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`5dc7cd1`) |
@@ -24,7 +23,6 @@ Config `spread-100`, 100 bots.
 | Harness | bedrock-bench 0.1.0.dev0 (`6f6fa41`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`7a46b55`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`8cd8b64`) |
-| Harness | bedrock-bench 0.1.0.dev0 (`96fbe05`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`aaf8cd8`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`bb87871`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`d0c0996`) |
@@ -37,8 +35,9 @@ Config `spread-100`, 100 bots.
 | Harness | bedrock-bench 0.1.0.dev0 (`fa3334b`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`fba0cc0`) |
 | Harness | bedrock-bench 0.1.0.dev0 (`ff12261`) |
+| Harness | bedrock-bench 0.1.0.dev0 (`b8f7761`, dirty) |
 | Bots | loadbot, protocol 2193, gophertunnel v1.62.0 |
-| Servers | `altay@5.44.7`, `bds@1.26.52.3`, `chorus@5c5ffd3`, `dragonfly@1793369`, `endstone@0.11.14` (bds 1.26.52.3, python 3.13), `levilamina@26.51.6`, `nukkit@b3caad6`, `nukkitmot@a27d96c`, `powernukkitx@nightly.b9b8fd8` |
+| Servers | `altay@5.44.7`, `bds@1.26.52.3`, `chorus@dbaf26e`, `dragonfly@1793369`, `endstone@0.11.14` (bds 1.26.52.3, python 3.13), `levilamina@26.51.6`, `nukkit@b3caad6`, `nukkitmot@a27d96c`, `powernukkitx@nightly.b9b8fd8` |
 
 ## Results
 
@@ -48,7 +47,7 @@ Median [min, max] over the ok runs.
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | `altay@5.44.7` | 3/3 | 16.38 [16.35, 16.44] | 60.6 [60.3, 60.8] | 1.23 [1.21, 1.27] | 6151 [6148, 6160] | 3.99 [3.95, 3.99] | 33.8 [33.6, 34.7] | 87.2 [85.6, 89.1] | 124 [97.0, 129] | 109 [109, 111] | 376 [376, 376] |
 | `bds@1.26.52.3` | 3/3 | 11.15 [11.09, 11.22] | 89.5 [88.5, 89.8] | 2.34 [2.20, 2.35] | 7282 [7251, 7282] | 9.05 [8.86, 9.26] | 530 [525, 531] | 679 [679, 681] | 803 [728, 876] | 47.1 [46.7, 47.3] | 371 [371, 372] |
-| `chorus@5c5ffd3` | 0/2 | - | - | - | - | - | - | - | - | - | - |
+| `chorus@dbaf26e` | 3/3 | 20.00 [20.00, 20.00] | 10.2 [10.1, 12.1] | 8.53 [7.12, 9.00] | 9208 [9146, 9242] | 19.94 [19.93, 19.95] | 159 [154, 161] | 175 [167, 178] | 182 [175, 184] | 104 [103, 106] | 349 [347, 354] |
 | `dragonfly@1793369` | 3/3 | 20.00 [20.00, 20.00] | n/a | 0.49 [0.49, 0.53] | 1928 [1923, 1929] | 19.85 [19.84, 19.86] | 8.60 [8.57, 8.62] | 15.5 [14.7, 16.1] | 18.8 [18.6, 20.4] | 113 [111, 113] | 371 [371, 371] |
 | `endstone@0.11.14` | 3/3 | 19.81 [19.68, 19.92] | 50.3 [50.0, 50.6] | 2.43 [2.34, 2.45] | 8220 [8220, 8222] | 14.47 [13.59, 14.75] | 428 [427, 431] | 532 [531, 536] | 600 [550, 697] | 58.6 [58.5, 59.1] | 372 [370, 373] |
 | `levilamina@26.51.6` | 3/3 | 11.22 [11.13, 11.29] | 88.7 [88.1, 89.6] | 2.40 [2.32, 2.43] | 8232 [8202, 8254] | 9.08 [8.90, 9.30] | 531 [511, 533] | 684 [667, 692] | 759 [689, 795] | 47.1 [46.2, 47.2] | 373 [372, 373] |
@@ -58,9 +57,8 @@ Median [min, max] over the ok runs.
 
 ## Notes
 
-- `chorus@5c5ffd3` run `20261013T192017Z-chorus@5c5ffd3-r1-8675`: invalid: spread: 4 cells occupied by 35 joined bots; joined_all: joined 35/100
-- `chorus@5c5ffd3` run `20261018T223833Z-chorus@5c5ffd3-r1-a121`: invalid: spread: 1 cells occupied by 21 joined bots; joined_all: joined 21/100
-- `chorus@5c5ffd3`: the server dropped bots during steady
+- The harness checkout had uncommitted changes.
+- `chorus@dbaf26e`: the server crashed or exited with an error when stopped, after the measured windows
 - `dragonfly@1793369`: Tick-thread CPU per tick (ms): not applicable (the server has no single tick thread)
 - `nukkit@b3caad6` run `20261013T094045Z-nukkit@b3caad6-r1-bccb`: invalid: spread: up to 29 bots in one cell; joined_all: joined 72/100
 - `nukkit@b3caad6` run `20261013T095506Z-nukkit@b3caad6-r1-9a58`: invalid: spread: up to 51 bots in one cell; joined_all: joined 50/100
