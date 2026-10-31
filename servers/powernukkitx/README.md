@@ -2,8 +2,8 @@
 
 [PowerNukkitX](https://github.com/PowerNukkitX/PowerNukkitX) is a Nukkit fork written in Java, licensed under
 LGPL-3.0, that reimplements much more of vanilla gameplay: mobs with AI, redstone, fluids, dimensions. It shares no code
-with Mojang's server. The current pins are the 3.0.6 release and `nightly.fcdc68a`, the CI build at commit fcdc68a,
-both for Minecraft 1.26.60.
+with Mojang's server. The current pins are the 3.0.6 release and `nightly.fcdc68a`, the CI build of the `beta`
+branch at commit fcdc68a, both for Minecraft 1.26.60.
 
 Adapter: [powernukkitx.py](../../bedrock_bench/adapters/powernukkitx.py). There is no helper plugin.
 

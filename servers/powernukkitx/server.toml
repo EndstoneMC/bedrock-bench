@@ -77,7 +77,7 @@ url = "https://github.com/PowerNukkitX/PowerNukkitX/releases/download/3.0.6/powe
 sha256 = "10822d818c1f2c7d423092a235f3f04bd0eb915b2298b204ed1697d7a0dd9539"
 size = 93876523
 
-# Latest nightly for Minecraft 1.26.60 (2026-10-30).
+# Latest nightly for Minecraft 1.26.60, the head of the beta branch on 2026-10-30.
 [artifacts.version."nightly.fcdc68a"]
 commit = "fcdc68a290f05dda706223b4d40c2ce821872cc3"
 protocol = 2225
