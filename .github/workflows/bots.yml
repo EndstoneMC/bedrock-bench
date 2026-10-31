@@ -65,7 +65,7 @@ jobs:
       - name: Verify, tidy check, vet and test each module
         shell: bash
         run: |
-          for dir in bots/core bots/loadbot servers/dragonfly; do
+          for dir in bots/core bots/loadbot bots/legacy2193 servers/dragonfly; do
             echo "::group::$dir"
             (cd "$dir" && go mod verify && go mod tidy -diff && go vet ./... && go test ./...)
             echo "::endgroup::"

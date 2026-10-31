@@ -20,10 +20,10 @@ License Agreement.
 Third-party software
 --------------------------------------------------------------------------------------------------------------------
 
-The load bots (bots/) are built against gophertunnel and go-raknet. The release binaries, loadbot and legacy1001,
-contain code from these projects and from their module dependencies; `go version -m <binary>` lists every module
-compiled into a binary. The patch bots/legacy1001/0001-login-backport.patch is derived from gophertunnel and remains
-under its MIT license, as does the gophertunnel fork that legacy1001 is built against.
+The load bots (bots/) are built against gophertunnel and go-raknet. The release binaries, loadbot, legacy2193 and
+legacy1001, contain code from these projects and from their module dependencies; `go version -m <binary>` lists every
+module compiled into a binary. The patch bots/legacy1001/0001-login-backport.patch is derived from gophertunnel and
+remains under its MIT license, as does the gophertunnel fork that legacy1001 is built against.
 
 The Dragonfly and Chorus helpers (servers/dragonfly/ and servers/chorus/) are built against Dragonfly
 and Chorus by `bbench fetch` on the user's machine. They are not released as binaries.

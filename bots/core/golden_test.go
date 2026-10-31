@@ -20,7 +20,7 @@ func TestSelftestGolden(t *testing.T) {
 	var buf bytes.Buffer
 	build := BuildInfo{
 		Module: "loadbot", Version: "0.1.0", VCS: "0123456789ab", Go: "go1.26.3",
-		Gophertunnel: "v1.62.0", Protocol: 2193,
+		Gophertunnel: "v1.63.0", Protocol: 2225,
 	}
 	flags := map[string]any{"addr": "127.0.0.1:19672", "n": 100, "prefix": "a", "csg": true, "radius": 16}
 	Selftest(NewEmitter(&buf, &fakeClock{}), build, flags, Intervals{Progress: 5000, Stat: 10000, Pkt: 60000})

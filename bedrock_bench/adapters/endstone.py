@@ -241,7 +241,7 @@ class EndstoneAdapter(BdsFamily):
 
 
 def version_marker(bds_version: str) -> str:
-    """The launcher's ``version.txt`` marker for a BDS build: ``<minor>.<patch>``, e.g. ``26.52`` for 1.26.52.3."""
+    """The launcher's ``version.txt`` marker for a BDS build: ``<minor>.<patch>``, e.g. ``26.60`` for 1.26.60.6."""
     parts = bds_version.split(".")
     if len(parts) < 3 or not all(part.isdigit() for part in parts):
         raise ConfigError(f"not a BDS version: {bds_version!r}")

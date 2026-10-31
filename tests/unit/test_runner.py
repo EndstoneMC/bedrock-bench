@@ -89,8 +89,8 @@ class TestSessionServers:
         assert [arm.id for arm in found] == ["bds@1.26.52.3", "pocketmine@5.44.3"] and skipped == []
 
     def test_a_default_tag_brings_its_bds_and_python(self) -> None:
-        assert runner.tag_arm("endstone@0.11.14") == Arm("endstone@0.11.14", "endstone", "0.11.14", "1.26.52.3", "3.13")
-        assert runner.tag_arm("endstone@0.11.13") == Arm("endstone@0.11.13", "endstone", "0.11.13")
+        assert runner.tag_arm("endstone@0.11.15") == Arm("endstone@0.11.15", "endstone", "0.11.15", "1.26.60.6", "3.13")
+        assert runner.tag_arm("endstone@0.11.14") == Arm("endstone@0.11.14", "endstone", "0.11.14")
 
     def test_a_tag_twice(self) -> None:
         with pytest.raises(ConfigError, match="twice"):
@@ -100,23 +100,23 @@ class TestSessionServers:
         monkeypatch.setattr(runner, "host_os", lambda: "linux")
         found, skipped = session_arms([])
         tags = [arm.id for arm in found]
-        assert "bds@1.26.52.3" in tags and "endstone@0.11.14" in tags
+        assert "bds@1.26.60.6" in tags and "endstone@0.11.15" in tags
         assert not any(tag.startswith("levilamina@") for tag in tags)
         assert skipped == [
-            "allay@0.14.0: no release supports protocol 2193 (Bedrock 1.26.50)",
-            "levilamina@26.51.6: runs on windows only",
-            "pocketmine@5.44.3: no release supports protocol 2193 (Bedrock 1.26.50)",
+            "allay@0.14.0: no release supports protocol 2225 (Bedrock 1.26.60)",
+            "levilamina@26.51.9: runs on windows only",
+            "pocketmine@5.44.3: no release supports protocol 2225 (Bedrock 1.26.60)",
         ]
         monkeypatch.setattr(runner, "host_os", lambda: "windows")
-        assert "levilamina@26.51.6" in [arm.id for arm in session_arms([])[0]]
+        assert "levilamina@26.51.9" in [arm.id for arm in session_arms([])[0]]
 
     def test_defaults_skip_servers_whose_bot_is_missing(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(runner, "bot_missing", lambda a: "no loadbot bot" if a.name == "dragonfly" else None)
         found, skipped = session_arms([])
         assert not any(arm.server == "dragonfly" for arm in found)
-        assert "dragonfly@1793369: no loadbot bot" in skipped
-        found, skipped = session_arms(["dragonfly@1793369"])
-        assert [arm.id for arm in found] == ["dragonfly@1793369"] and skipped == []
+        assert "dragonfly@0.11.6: no loadbot bot" in skipped
+        found, skipped = session_arms(["dragonfly@0.11.6"])
+        assert [arm.id for arm in found] == ["dragonfly@0.11.6"] and skipped == []
 
 
 class TestBotMissing:
@@ -169,7 +169,7 @@ class TestRunSession:
             runner.run_session(run_args(config="missing"))
 
     def test_child_command(self, tmp_path: Path) -> None:
-        run = runner.PlannedRun(3, 2, runner.tag_arm("endstone@0.11.14"))
+        run = runner.PlannedRun(3, 2, runner.tag_arm("endstone@0.11.15"))
         workload = with_overrides(WORKLOAD, {"run": {"order": "seeded:4"}})
         config_file = CONFIGS / "spread-100.toml"
         command = runner._child_command(run_args(), config_file, workload, "S1", run, tmp_path)
@@ -177,7 +177,7 @@ class TestRunSession:
             "run-one",
             str(config_file.resolve()),
             "--server",
-            "endstone@0.11.14",
+            "endstone@0.11.15",
             "--session",
             "S1",
             "--repeat",
@@ -189,7 +189,7 @@ class TestRunSession:
             "--out",
             str(tmp_path),
             "--bds",
-            "1.26.52.3",
+            "1.26.60.6",
             "--python",
             "3.13",
         ]

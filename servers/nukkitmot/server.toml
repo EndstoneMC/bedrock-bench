@@ -5,7 +5,7 @@ server = "nukkitmot"
 
 # What `bbench run` measures when it is given no tag.
 [benchmark]
-version = "a27d96c"
+version = "acc7d2b"
 
 # Nukkit-MOT publishes rolling builds from the master branch on its Jenkins, so a version is the 7-character commit of
 # one build, pinned by its build number and sha256. Jenkins keeps only the last few builds; keep a copy of the jar and
@@ -49,3 +49,16 @@ runtime = "jdk-21.0.12.1"
 url = "https://motci.cn/job/Nukkit-MOT/job/master/1663/artifact/target/Nukkit-MOT-SNAPSHOT.jar"
 sha256 = "0a4c5288d11bf1c8be071eea94de35e357f14bab3d80ce2a8dbea16364fa2934"
 size = 98442629
+
+# Latest build on master (2026-10-31), after 1.26.60 support landed in #1245.
+[artifacts.version."acc7d2b"]
+commit = "acc7d2bbef66adc47fd70b5cc7b3d5dd3fdfe6ad"
+build = 1710
+protocol = 2225
+minecraft = "1.26.60"
+runtime = "jdk-21.0.12.1"
+
+[artifacts.version."acc7d2b".any]
+url = "https://motci.cn/job/Nukkit-MOT/job/master/1710/artifact/target/Nukkit-MOT-SNAPSHOT.jar"
+sha256 = "eb4790eb42f5e96595e3e55ceb2a097e9cae2966f9fa1eafd6aecc75727ea2c7"
+size = 99877003

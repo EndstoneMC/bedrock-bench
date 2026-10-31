@@ -38,7 +38,7 @@ from typing import Any, NoReturn
 
 MODULE = "loadbot"
 VERSION = "0.0.0-fake"
-PROTOCOL = 2193
+PROTOCOL = 2225
 BUILD = {
     "module": MODULE,
     "version": VERSION,

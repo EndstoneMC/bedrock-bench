@@ -180,7 +180,7 @@ class FakeAdapter(ServerAdapter):
 
     family: ClassVar[str]
     platforms = frozenset({"windows", "linux"})
-    protocol = 2193
+    protocol = 2225
     tick_thread_rule = "first_created"
     crash_paths = ("crash_reports",)
 

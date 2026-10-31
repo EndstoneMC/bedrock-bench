@@ -5,7 +5,7 @@ server = "dragonfly"
 
 # What `bbench run` measures when it is given no tag.
 [benchmark]
-version = "1793369"
+version = "0.11.6"
 
 # Dragonfly builds. Dragonfly is a Go library without binary releases: 'bbench fetch dragonfly@<version>' builds the
 # dfbench helper from the Go module in this folder, which links the Dragonfly module pinned here. Its go.mod must
@@ -18,16 +18,16 @@ version = "1793369"
 [artifacts]
 source = "web"
 
-# Latest commit on master when the cross-server runs were set up (2026-09-20).
-[artifacts.version."1793369"]
-commit = "1793369709ceed934675d69e86ff6c828e4216c8"
-protocol = 2193
+# First release for Minecraft 1.26.60 (protocol 2225), tagged 2026-10-28.
+[artifacts.version."0.11.6"]
+commit = "51dd9c1d615f17b70bbeef6ab2cbcee0545e66c0"
+protocol = 2225
 
-[artifacts.version."1793369".any]
-name = "dragonfly-v0.11.6-0.20260920163020-1793369709ce.zip"
-url = "https://proxy.golang.org/github.com/df-mc/dragonfly/@v/v0.11.6-0.20260920163020-1793369709ce.zip"
-sha256 = "2168b139b09a7a45f9998c748bf9d929053efb1a5e3af14910c5f0c9e7fbae6e"
-size = 1450678
+[artifacts.version."0.11.6".any]
+name = "dragonfly-v0.11.6.zip"
+url = "https://proxy.golang.org/github.com/df-mc/dragonfly/@v/v0.11.6.zip"
+sha256 = "6435deb5432d6b781f931719d8d4ac7faddad10d74b46ca437764ab1c1c68b56"
+size = 1441748
 module = "github.com/df-mc/dragonfly"
-module_version = "v0.11.6-0.20260920163020-1793369709ce"
-go_sum = "h1:/ciP7huZdFVByDcVz+ORyCqMgDbzyprRYDXCv3mzu94="
+module_version = "v0.11.6"
+go_sum = "h1:Qu3ikMiQbjpr6KcVa00ecrireCoCzgsVmzizr0mnv5M="

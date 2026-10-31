@@ -5,7 +5,7 @@ server = "powernukkitx"
 
 # What `bbench run` measures when it is given no tag.
 [benchmark]
-version = "nightly.b9b8fd8"
+version = "nightly.fcdc68a"
 
 # PowerNukkitX jars from GitHub, verified against the sha256 GitHub publishes for each release asset.
 # A release jar reports its version as <version>-SNAPSHOT with the commit it was built from; `commit` is that commit.
@@ -64,3 +64,28 @@ url = "https://github.com/PowerNukkitX/PowerNukkitX/releases/download/nightly/po
 name = "powernukkitx-nightly-b9b8fd8.jar"
 sha256 = "6f23b5d670cb64f368ac910c0fcb69653af50eecf02595bb69f8212e996100aa"
 size = 95489144
+
+# First release for Minecraft 1.26.60 (protocol 2225).
+[artifacts.version."3.0.6"]
+commit = "c57499365737654eca32df008751ef6bca5af142"
+protocol = 2225
+minecraft = "1.26.60"
+runtime = "jdk-21.0.12.1"
+
+[artifacts.version."3.0.6".any]
+url = "https://github.com/PowerNukkitX/PowerNukkitX/releases/download/3.0.6/powernukkitx.jar"
+sha256 = "10822d818c1f2c7d423092a235f3f04bd0eb915b2298b204ed1697d7a0dd9539"
+size = 93876523
+
+# Latest nightly for Minecraft 1.26.60 (2026-10-30).
+[artifacts.version."nightly.fcdc68a"]
+commit = "fcdc68a290f05dda706223b4d40c2ce821872cc3"
+protocol = 2225
+minecraft = "1.26.60"
+runtime = "jdk-25.0.4.1"
+
+[artifacts.version."nightly.fcdc68a".any]
+url = "https://github.com/PowerNukkitX/PowerNukkitX/releases/download/nightly/powernukkitx.jar"
+name = "powernukkitx-nightly-fcdc68a.jar"
+sha256 = "50d1ec62d80ed5023799dcea8c3b0080e255fe8c1af8b408abcedef310c450c0"
+size = 97219745

@@ -27,7 +27,7 @@ go run . -defaults    # the default configuration as TOML
 ## Setup
 
 ```shell
-bbench fetch dragonfly@1793369
+bbench fetch dragonfly@0.11.6
 ```
 
 Fetch needs the Go toolchain on PATH (`go.mod` names `toolchain go1.26.3`, which Go downloads if the installed one is

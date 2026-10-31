@@ -10,14 +10,14 @@ BDS behaviour in
 ## Setup
 
 ```shell
-bbench fetch levilamina@26.51.6 --accept-eula
+bbench fetch levilamina@26.51.9 --accept-eula
 ```
 
 - LeviLamina runs on Windows only, and the runner refuses it elsewhere.
 - Each release runs on one BDS build, pinned in its own `windows-bds` table in [`server.toml`](server.toml)
-  (1.26.51.1 for 26.51.6) and verified like every other download.
+  (1.26.51.1 for 26.51.9) and verified like every other download.
 - Two licences cover the downloads: the Minecraft EULA for the BDS zip, and the
-  [LeviMC closed-source software EULA](https://github.com/LiteLDev/PreLoader/blob/v1.16.3/EULA.en.md) for PreLoader and
+  [LeviMC closed-source software EULA](https://github.com/LiteLDev/PreLoader/blob/v1.16.5/EULA.en.md) for PreLoader and
   PeEditor. `--accept-eula` (or `BBENCH_ACCEPT_MINECRAFT_EULA=1`) accepts both. Files already in the cache, or in
   `--artifact-dir DIR` under their release names, need neither.
 - Every package is a GitHub release asset pinned with size and sha256, and is placed as the package's own `tooth.json`
@@ -54,7 +54,7 @@ bedrock_server_mod.exe       measured process, started directly in the run's ser
 - Console: `12:00:00.123 IFO [Server] text` on every line, with the logger in brackets. PreLoader logs before LeviLamina
   loads and spells its levels out (`INFO`). Colour codes are stripped before parsing.
 - Ready line: `Server started in (5.0s)! For help, type "help" or "?"`. The version banner,
-  `Version: 1.26.51.1(ProtocolVersion 2193) with LeviLamina-26.51.6`, must carry the arm's LeviLamina version.
+  `Version: 1.26.51.1(ProtocolVersion 2193) with LeviLamina-26.51.9`, must carry the arm's LeviLamina version.
 - Tick probe, in-world line, positions and tick thread are those of
   [vanilla BDS](../bds/README.md#how-a-run-starts). LeviLamina's own threads go in the diagnostic groups
   `levilamina_pool` (`ll_default_thread_pool[...]`) and `levilamina_logger` (`logger[...]`), and
@@ -76,8 +76,9 @@ Otherwise LeviLamina and PreLoader run with the configuration they generate.
 
 ## Caveats
 
-- LeviLamina 26.51.6 runs on BDS 1.26.51.1, an older build than vanilla BDS's 1.26.52.3, so the report flags it
-  `different_bds_build`.
+- LeviLamina 26.51.9 runs on BDS 1.26.51.1, an older build than vanilla BDS's 1.26.60.6, so the report flags it
+  `different_bds_build`. That build speaks protocol 2193, so its runs use the
+  [protocol 2193 bot](../../bots/README.md#protocol-2193) and are flagged `bot_protocol_differs` too.
 - mimalloc is linked into `LeviLamina.dll` and cannot be switched off. It does not show up as a separate module, so
   `facts.allocator` takes it from `allocator` in `[artifacts]`. The allocator is a disclosed confounder
   ([fairness](../../docs/methodology.md#server-configuration)).

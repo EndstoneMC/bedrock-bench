@@ -43,10 +43,10 @@ from bedrock_bench.workload import BotParams
 log = logging.getLogger(__name__)
 
 #: Bot modules, each a Go module under ``bots/``.
-MODULES = ("loadbot", "legacy1001")
+MODULES = ("loadbot", "legacy2193", "legacy1001")
 
 #: Network protocol spoken by each module. Adapters declare ``protocol``; :func:`module_for_protocol` picks the bot.
-MODULE_PROTOCOLS = {"loadbot": 2193, "legacy1001": 1001}
+MODULE_PROTOCOLS = {"loadbot": 2225, "legacy2193": 2193, "legacy1001": 1001}
 
 #: Where release binaries are published: ``<base>/<tag>/<asset>`` plus ``<base>/<tag>/SHA256SUMS``.
 RELEASE_BASE_URL = "https://github.com/EndstoneMC/bedrock-bench/releases/download"

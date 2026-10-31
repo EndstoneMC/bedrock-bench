@@ -10,7 +10,8 @@ Every server gets the same bot source and the same flags (rule R2 in
 | Module | Purpose |
 |---|---|
 | `core/` | Everything that does not depend on the protocol: flags, events, chunk accounting, the walk, identities, sub-chunk request ranges, the stdin commands and the fleet that runs the bots. It does not import gophertunnel. |
-| `loadbot/` | Protocol 2193 (Bedrock 1.26.5x), built on upstream [gophertunnel](https://github.com/Sandertv/gophertunnel) v1.62.0. Translates packets into `core.Session` calls. |
+| `loadbot/` | Protocol 2225 (Bedrock 1.26.6x), built on upstream [gophertunnel](https://github.com/Sandertv/gophertunnel) v1.63.0. Translates packets into `core.Session` calls. |
+| `legacy2193/` | Protocol 2193 (Bedrock 1.26.5x), for LeviLamina ([Protocol 2193](#protocol-2193)). Same core, upstream gophertunnel v1.62.0. |
 | `legacy1001/` | Protocol 1001, for PocketMine-MP and Allay ([Protocol 1001](#protocol-1001)). Same core, gophertunnel v1.57.1 plus one [patch](#patches). |
 
 Go cannot link two versions of one module into one binary, so each protocol is its own module and binary. A new
@@ -21,6 +22,7 @@ and then reports packets through the other `Session` methods until the session e
 
 ```sh
 uv run bbench bots build                          # loadbot, for this host
+uv run bbench bots build --module legacy2193      # the protocol 2193 bot
 uv run bbench bots build --module legacy1001      # the protocol 1001 bot
 uv run bbench bots build --target linux/amd64     # cross-compile
 uv run bbench bots fetch                          # loadbot from the release, checked against its SHA256SUMS
@@ -193,8 +195,9 @@ Shutdown (`quit`, `stop`, end of stdin, SIGINT, SIGTERM, Ctrl+Break, or a failed
 
 ## Protocol 1001
 
-`legacy1001` is the bot for servers that speak protocol 1001: `pocketmine@5.44.3` and `allay@0.14.0`. Every other
-server gets `loadbot`. Runs with it are flagged `bot_protocol_differs` (rule R2).
+`legacy1001` is the bot for servers that speak protocol 1001: `pocketmine@5.44.3` and `allay@0.14.0`. Servers on
+protocol 2193 get [`legacy2193`](#protocol-2193), and every other server gets `loadbot`. Runs with it are flagged
+`bot_protocol_differs` (rule R2).
 
 It is `loadbot` built against gophertunnel v1.57.1, the last release for protocol 1001. PocketMine-MP 5.44.3 rejects
 that release's offline login, so the module carries the login back-port listed under [Patches](#patches). Upstream
@@ -219,10 +222,29 @@ against unpatched v1.57.1. `TestLoopbackSession` runs a whole session against an
 Neither needs PocketMine-MP; the real-server check is `uv run bbench smoke configs/smoke.toml pocketmine@5.44.3`
 (4 bots) with no decode errors.
 
+## Protocol 2193
+
+`legacy2193` is the bot for servers that speak protocol 2193 (Bedrock 1.26.5x): `levilamina@26.51.9`, which has no
+release for Bedrock 1.26.60, and the older pins such as `bds@1.26.52.3` and `endstone@0.11.14`. Runs with it are
+flagged `bot_protocol_differs` (rule R2).
+
+It is `loadbot` built against upstream gophertunnel v1.62.0, the last release for protocol 2193, with no patches.
+Flags, events, the stdin commands and all bot behaviour come from `core`, and the non-test files mirror `loadbot`'s one
+for one. A behaviour change to `loadbot` must be made here too. It builds like `loadbot` and is part of the release.
+`GOWORK=off` is required for the same reason as for `legacy1001`:
+
+```sh
+cd bots/legacy2193
+GOWORK=off go vet ./...
+GOWORK=off go test ./...
+```
+
+The module goes when no pinned server a default session runs speaks protocol 2193.
+
 ## Patches
 
-`loadbot` builds against upstream gophertunnel v1.62.0 with no `replace` directive and carries no patches.
-`legacy1001` carries one:
+`loadbot` builds against upstream gophertunnel v1.63.0 and `legacy2193` against v1.62.0, both with no `replace`
+directive and no patches. `legacy1001` carries one:
 
 | Patch | Change | Upstream | Failing case | Drop when |
 |---|---|---|---|---|

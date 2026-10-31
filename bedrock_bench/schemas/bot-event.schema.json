@@ -51,7 +51,7 @@
           "type": "object",
           "required": ["module", "version", "protocol"],
           "properties": {
-            "module": { "enum": ["loadbot", "legacy1001"] },
+            "module": { "enum": ["loadbot", "legacy2193", "legacy1001"] },
             "version": { "type": "string" },
             "vcs": { "type": "string" },
             "go": { "type": "string" },

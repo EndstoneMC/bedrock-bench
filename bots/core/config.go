@@ -2,8 +2,8 @@
 
 // Package core is the protocol-independent half of the load bot: flags, the JSONL event stream, chunk accounting,
 // the circle walk, identities, sub-chunk request ranges, the stdin control protocol and the fleet that runs bots
-// staggered and reports on them. A protocol frontend (bots/loadbot, bots/legacy1001) implements Frontend and
-// translates packets into calls on Session. Nothing in this package imports gophertunnel.
+// staggered and reports on them. A protocol frontend (bots/loadbot, bots/legacy2193, bots/legacy1001) implements
+// Frontend and translates packets into calls on Session. Nothing in this package imports gophertunnel.
 package core
 
 import (

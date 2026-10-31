@@ -335,7 +335,11 @@ def bot_missing(adapter: ServerAdapter) -> str | None:
         found = bots.binary_path(module, bots.Target.host()).is_file()
     except bots.BotError as exc:
         return str(exc)
-    return None if found else f"no {module} bot; run 'bbench bots build' or 'bbench bots fetch'"
+    if found:
+        return None
+    # bots build and fetch default to loadbot, so the hint names any other module
+    flag = "" if module == "loadbot" else f" --module {module}"
+    return f"no {module} bot; run 'bbench bots build{flag}' or 'bbench bots fetch{flag}'"
 
 
 def session_arms(tags: Sequence[str], machine: Machine) -> tuple[list[Arm], list[str]]:

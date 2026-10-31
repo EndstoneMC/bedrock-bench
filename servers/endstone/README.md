@@ -2,15 +2,15 @@
 
 [Endstone](https://github.com/EndstoneMC/endstone) is a plugin API for Bedrock Dedicated Server, written in C++ with
 Python bindings and licensed Apache-2.0. It runs Mojang's BDS binary of a fixed build through its own Python launcher
-(`python -m endstone`), so gameplay is BDS's own. 0.11.14 also replaces some server paths with faster ones that are
-meant to behave identically. Adapter:
+(`python -m endstone`), so gameplay is BDS's own. Since 0.11.14 it also replaces some server paths with faster ones
+that are meant to behave identically. Adapter:
 [`endstone.py`](../../bedrock_bench/adapters/endstone.py), built on the BDS behaviour in
 [`bdsfamily.py`](../../bedrock_bench/adapters/bdsfamily.py).
 
 ## Setup
 
 ```shell
-bbench fetch endstone@0.11.14 --accept-eula
+bbench fetch endstone@0.11.15 --accept-eula
 ```
 
 Fetch needs [uv](https://docs.astral.sh/uv/). It does three things:
@@ -54,7 +54,7 @@ CheckNetIsolation LoopbackExempt -a -p=S-1-15-2-1958404141-86561845-1752920682-3
   └── bedrock_server(.exe)                             measured process
 ```
 
-- The adapter writes `version.txt` with the release's `version_marker` (`26.52` for `bds@1.26.52.3`). The launcher
+- The adapter writes `version.txt` with the release's `version_marker` (`26.60` for `bds@1.26.60.6`). The launcher
   compares it with the BDS build it supports and uses the verified copy instead of downloading BDS again. The server
   binary's sha256 is taken before and after the run, and a change fails the `harness_ok` gate.
 - The measured process is the launcher's `bedrock_server` child, found by its executable path. Endstone renames the
@@ -63,7 +63,7 @@ CheckNetIsolation LoopbackExempt -a -p=S-1-15-2-1958404141-86561845-1752920682-3
   above-normal priority class.
 - The launcher's process tree, without the server, is measured separately and reported as `aux_cores`.
 - Console: `[12:00:00 INFO]: text` or `[12:00:00 INFO]: [Logger] text` on every line, the launcher's own lines
-  included. The version banner, `This server is running Endstone version: 0.11.14 (Minecraft: 26.52)`, must equal the
+  included. The version banner, `This server is running Endstone version: 0.11.15 (Minecraft: 26.60)`, must equal the
   arm's version.
 - Ready line, tick probe, in-world line, positions and tick thread are those of
   [vanilla BDS](../bds/README.md#how-a-run-starts). An extra diagnostic thread group, `crash_reporter`, holds the
@@ -87,7 +87,7 @@ CheckNetIsolation LoopbackExempt -a -p=S-1-15-2-1958404141-86561845-1752920682-3
 
 ## Caveats
 
-- On Linux, 0.11.14 preloads the mimalloc it bundles and 0.11.13 uses glibc's allocator. `facts.allocator` is
+- On Linux, 0.11.14 and later preload the mimalloc they bundle, and 0.11.13 uses glibc's allocator. `facts.allocator` is
   `mimalloc` when the server maps it and `default` otherwise. The allocator is a disclosed confounder
   ([fairness](../../docs/methodology.md#server-configuration)).
 - At every start the launcher appends a rate limit for NetworkStackLatency (packet 115: a bucket of 20, drained at 5

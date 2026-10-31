@@ -129,6 +129,7 @@ fn teleport_player(context: &mut CommandContext, args: &CommandArgs) -> Result<S
         &mut transform,
         &mut pending,
         destination,
+        None,
     );
     Ok(format!(
         "Teleported {name} to {:.2}, {:.2}, {:.2}",

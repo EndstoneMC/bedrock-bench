@@ -12,7 +12,7 @@ Code and error messages cite these rules by number.
 | Rule | Statement | Enforcement |
 |---|---|---|
 | R1 | One workload config for every server in a session. Nothing in it changes per server. | `run.json` records the resolved config and its hash, and a report refuses runs with different hashes. |
-| R2 | One bot source with the same flags for every server. Only `-fake-xuid` may be added, for servers that need it. PocketMine-MP and Allay get the protocol 1001 build of the same bot, flagged `bot_protocol_differs`. | Adapter contract test; report flag. |
+| R2 | One bot source with the same flags for every server. Only `-fake-xuid` may be added, for servers that need it. PocketMine-MP and Allay get the protocol 1001 build of the same bot, and LeviLamina the protocol 2193 build, flagged `bot_protocol_differs`. | Adapter contract test; report flag. |
 | R3 | The same server CPU set, bot CPU set, priority and JVM heap for every server in a session. | One machine profile per session; a report refuses mixed machine profiles. |
 | R4 | One measured run at a time, with continuous interference sampling. | Machine lock, idle gate, per-window foreign-load gate. |
 | R5 | A fresh server copy and a fresh world for every run. Nothing is edited in place. | Run directory layout, install tree hash, `world_fresh` gate. |
@@ -212,10 +212,10 @@ server whose tick stalls is not helped: Nukkit's and Nukkit-MOT's watchdogs stay
   exempts the machine's own addresses. A server that drops bots is flagged `dropped`.
 - **Leftovers.** Where a server has no switch for an upload or update check, its README says so: Endstone uploads a
   crash report when it crashes, and Nukkit-MOT asks GitHub for its latest commit at start.
-- **BDS build.** A server that hosts BDS is compared with vanilla BDS of the same build. Endstone 0.11.14 hosts the
-  default BDS build, 1.26.52.3. LeviLamina 26.51.6 hosts 1.26.51.1, pinned with LeviLamina, so it is flagged
+- **BDS build.** A server that hosts BDS is compared with vanilla BDS of the same build. Endstone 0.11.15 hosts the
+  default BDS build, 1.26.60.6. LeviLamina 26.51.9 hosts 1.26.51.1, pinned with LeviLamina, so it is flagged
   `different_bds_build`.
-- **Confounders are disclosed, never subtracted.** The allocator (LeviLamina links mimalloc, and Endstone 0.11.14
+- **Confounders are disclosed, never subtracted.** The allocator (LeviLamina links mimalloc, and Endstone 0.11.15
   preloads it on Linux) and the JVM heap are recorded in `run.json`, and their cost stays in the numbers.
 
 ## Placement and interference
@@ -394,10 +394,10 @@ rules:
 The load generator decides what work a server is asked to do: how often clients send input, which chunks they request,
 how they move. With a bot build or flag set per server, a difference between two servers could come from the bots. All
 bot behaviour lives in one Go module, `bots/core`, and each protocol gets a thin frontend, because Go cannot link two
-versions of gophertunnel into one module: `bots/loadbot` for the current protocol and `bots/legacy1001` for
-PocketMine-MP and Allay. Every server gets the same flags (R2). Adapters may add only `-fake-xuid`, which the contract
-test enforces, and a server's needs are met with that flag or with config, never by changing what the bot does for one
-server. Patches follow [bots/README.md](../bots/README.md#patches).
+versions of gophertunnel into one module: `bots/loadbot` for the current protocol, `bots/legacy2193` for LeviLamina
+and `bots/legacy1001` for PocketMine-MP and Allay. Every server gets the same flags (R2). Adapters may add only
+`-fake-xuid`, which the contract test enforces, and a server's needs are met with that flag or with config, never by
+changing what the bot does for one server. Patches follow [bots/README.md](../bots/README.md#patches).
 
 ### No composite score
 

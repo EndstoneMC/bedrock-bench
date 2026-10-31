@@ -26,7 +26,7 @@ target/release/chorusbench -defaults    # the default chorus.toml
 ## Setup
 
 ```shell
-bbench fetch chorus@dbaf26e
+bbench fetch chorus@7fc446a
 ```
 
 Fetch needs Rust 1.95.0 (with rustup, `rustup toolchain install 1.95.0`; fetch selects it through
@@ -76,7 +76,7 @@ chorusbench
 - Positions: `positions` prints `positions: N`, then one `position: <name> <x> <y> <z> <dimension>` line per player,
   at foot height.
 - The ready line is `Started on <ip>:<port>.`. The banner `chorusbench <commit> (chorus <version>, Minecraft ...,
-  protocol ..., rustc ...)` must name the arm's commit; Chorus's own `Chorus v0.0.1 1.26.50 (2193)` follows it.
+  protocol ..., rustc ...)` must name the arm's commit; Chorus's own `Chorus v0.0.1 1.26.60 (2225)` follows it.
 - A player is in the world at `<name> joined the game`, which Chorus logs when the client reports it has spawned.
 - At start, chorusbench writes `chorusbench.json` into the server directory: build information, the thread count in
   effect and how the task pools split it, and the chunk saving, autosave, transport and compression settings in

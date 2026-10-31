@@ -163,7 +163,7 @@
       "additionalProperties": false,
       "required": ["module", "protocol", "argv"],
       "properties": {
-        "module": { "enum": ["loadbot", "legacy1001"] },
+        "module": { "enum": ["loadbot", "legacy2193", "legacy1001"] },
         "protocol": { "type": "integer", "minimum": 1 },
         "sha256": { "$ref": "#/$defs/sha256_or_null" },
         "version": { "type": ["string", "null"] },

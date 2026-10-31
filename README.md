@@ -15,17 +15,17 @@ are in bold.
 
 | Server | Language | Pinned versions | Folder | Notes |
 |---|---|---|---|---|
-| Bedrock Dedicated Server | C++ | **`bds@1.26.52.3`** | [`servers/bds/`](servers/bds/) | The vanilla reference. The download needs the Minecraft EULA. |
-| [Endstone](https://github.com/EndstoneMC/endstone) | C++ on BDS | **`endstone@0.11.14`** | [`servers/endstone/`](servers/endstone/) | Runs inside `bds@1.26.52.3` on Python 3.13. Installed from PyPI with hash-locked dependencies. |
-| [LeviLamina](https://github.com/LiteLDev/LeviLamina) | C++ on BDS | **`levilamina@26.51.6`** | [`servers/levilamina/`](servers/levilamina/) | Windows only. Runs inside BDS 1.26.51.1, pinned with LeviLamina. Two of its packages need the LeviMC EULA. |
+| Bedrock Dedicated Server | C++ | **`bds@1.26.60.6`**<br>`bds@1.26.61.1` | [`servers/bds/`](servers/bds/) | The vanilla reference. The download needs the Minecraft EULA. |
+| [Endstone](https://github.com/EndstoneMC/endstone) | C++ on BDS | **`endstone@0.11.15`** | [`servers/endstone/`](servers/endstone/) | Runs inside `bds@1.26.60.6` on Python 3.13. Installed from PyPI with hash-locked dependencies. |
+| [LeviLamina](https://github.com/LiteLDev/LeviLamina) | C++ on BDS | **`levilamina@26.51.9`** | [`servers/levilamina/`](servers/levilamina/) | Windows only. Runs inside BDS 1.26.51.1, pinned with LeviLamina, so it needs the [protocol 2193 bot](bots/README.md#protocol-2193). Two of its packages need the LeviMC EULA. |
 | [PocketMine-MP](https://github.com/pmmp/PocketMine-MP) | PHP | **`pocketmine@5.44.3`** | [`servers/pocketmine/`](servers/pocketmine/) | Speaks protocol 1001, so it needs the [protocol 1001 bot](bots/README.md#protocol-1001). |
-| [Altay](https://github.com/altayofficial/Altay) | PHP | **`altay@5.44.7`** | [`servers/altay/`](servers/altay/) | Fork of PocketMine-MP 5 that speaks protocol 2193. |
-| [Nukkit](https://github.com/CloudburstMC/Nukkit) | Java | **`nukkit@b3caad6`** | [`servers/nukkit/`](servers/nukkit/) | Snapshot build, versioned by commit. Old snapshots get pruned, so keep a copy of the jar for `--artifact-dir`. |
-| [Nukkit-MOT](https://github.com/MemoriesOfTime/Nukkit-MOT) | Java | **`nukkitmot@9cb0aba`** | [`servers/nukkitmot/`](servers/nukkitmot/) | Jenkins build 1592, versioned by commit. Jenkins keeps few builds, so keep a copy of the jar for `--artifact-dir`. |
-| [PowerNukkitX](https://github.com/PowerNukkitX/PowerNukkitX) | Java | `powernukkitx@3.0.5`<br>**`powernukkitx@nightly.86f70bc`** | [`servers/powernukkitx/`](servers/powernukkitx/) | The nightly runs on JDK 25. Upstream replaces the nightly jar with every build, so keep a copy for `--artifact-dir`. |
+| [Altay](https://github.com/altayofficial/Altay) | PHP | **`altay@5.45.1`** | [`servers/altay/`](servers/altay/) | Fork of PocketMine-MP 5 that speaks protocol 2225. |
+| [Nukkit](https://github.com/CloudburstMC/Nukkit) | Java | **`nukkit@4841947`** | [`servers/nukkit/`](servers/nukkit/) | Snapshot build, versioned by commit. Old snapshots get pruned, so keep a copy of the jar for `--artifact-dir`. |
+| [Nukkit-MOT](https://github.com/MemoriesOfTime/Nukkit-MOT) | Java | **`nukkitmot@acc7d2b`** | [`servers/nukkitmot/`](servers/nukkitmot/) | Jenkins build 1710, versioned by commit. Jenkins keeps few builds, so keep a copy of the jar for `--artifact-dir`. |
+| [PowerNukkitX](https://github.com/PowerNukkitX/PowerNukkitX) | Java | `powernukkitx@3.0.6`<br>**`powernukkitx@nightly.fcdc68a`** | [`servers/powernukkitx/`](servers/powernukkitx/) | The nightly runs on JDK 25. Upstream replaces the nightly jar with every build, so keep a copy for `--artifact-dir`. |
 | [Allay](https://github.com/AllayMC/Allay) | Java | **`allay@0.14.0`** | [`servers/allay/`](servers/allay/) | Speaks protocol 1001, so it needs the [protocol 1001 bot](bots/README.md#protocol-1001). |
-| [Dragonfly](https://github.com/df-mc/dragonfly) | Go | **`dragonfly@1793369`** | [`servers/dragonfly/`](servers/dragonfly/) | Built from source, so it needs Go 1.26 or newer. |
-| [Chorus](https://github.com/bedrock-crustaceans/chorus) | Rust | **`chorus@5cffd3`** | [`servers/chorus/`](servers/chorus/) | Built from source with Rust 1.95.0 |
+| [Dragonfly](https://github.com/df-mc/dragonfly) | Go | **`dragonfly@0.11.6`** | [`servers/dragonfly/`](servers/dragonfly/) | Built from source, so it needs Go 1.26 or newer. |
+| [Chorus](https://github.com/bedrock-crustaceans/chorus) | Rust | **`chorus@7fc446a`** | [`servers/chorus/`](servers/chorus/) | Built from source with Rust 1.95.0 |
 
 Evaluated, not supported: [MiNET](https://github.com/NiclasOlofsson/MiNET) (needs a NetherNet bot),
 [JSPrismarine](https://github.com/JSPrismarine/JSPrismarine) (protocol 748, client-authoritative movement),
@@ -62,8 +62,8 @@ A first run checks the machine, builds the bot, downloads one BDS build and runs
 ```shell
 uv run bbench doctor                                   # CPU layout, power plan, idle load, toolchains
 uv run bbench bots build                               # the load bot, from source
-uv run bbench fetch bds@1.26.52.3 --accept-eula        # pinned download, checked against its sha256
-uv run bbench smoke configs/smoke.toml bds@1.26.52.3   # 4 bots, short phases, strict checks
+uv run bbench fetch bds@1.26.60.6 --accept-eula        # pinned download, checked against its sha256
+uv run bbench smoke configs/smoke.toml bds@1.26.60.6   # 4 bots, short phases, strict checks
 ```
 
 `--accept-eula` accepts the [Minecraft End User License Agreement](https://www.minecraft.net/eula) for BDS, and the
@@ -108,11 +108,11 @@ PocketMine-MP and Allay until the protocol 1001 bot can be built, and LeviLamina
 To run a subset, name the servers:
 
 ```shell
-uv run bbench run configs/spread-100.toml bds@1.26.52.3 endstone@0.11.14
+uv run bbench run configs/spread-100.toml bds@1.26.60.6 endstone@0.11.15
 ```
 
-LeviLamina runs inside BDS 1.26.51.1, an older build than `bds@1.26.52.3`, so its row notes that the session has no
-vanilla run of that build.
+LeviLamina runs inside BDS 1.26.51.1, an older build than `bds@1.26.60.6`, so its row notes that the session has no
+vanilla run of that build, and its runs use the protocol 2193 bot.
 
 On a machine that cannot drive 100 bots, use [`configs/spread-50.toml`](configs/spread-50.toml) or
 [`configs/spread-25.toml`](configs/spread-25.toml), the same setup with fewer bots. Results are comparable only within

@@ -22,7 +22,7 @@ Go code is vetted and tested per module with `GOWORK=off`, so each module builds
 as the release does:
 
 ```sh
-for dir in bots/core bots/loadbot servers/dragonfly; do
+for dir in bots/core bots/loadbot bots/legacy2193 servers/dragonfly; do
   (cd "$dir" && GOWORK=off go vet ./... && GOWORK=off go test ./...)
 done
 gofmt -l bots servers/dragonfly   # prints nothing when every file is formatted
@@ -96,8 +96,8 @@ folder has no adapter or an adapter has no folder.
 
 Find out from the server's documentation or source:
 
-- **Protocol.** The bots speak protocol 2193 (`loadbot`) and 1001 (`legacy1001`). Another protocol needs a bot first
-  ([bots/README.md](../bots/README.md#protocol-1001)).
+- **Protocol.** The bots speak protocol 2225 (`loadbot`), 2193 (`legacy2193`) and 1001 (`legacy1001`). Another
+  protocol needs a bot first ([bots/README.md](../bots/README.md#protocol-1001)).
 - **Offline login.** The bots log in without Xbox authentication, so the server needs a switch for that.
 - **A tick counter.** A console command that prints a counter that advances once per executed tick
   ([rule R8](../docs/methodology.md#rules)). World time and day time do not qualify. Without one, a helper adds it.
@@ -138,7 +138,7 @@ version = "1.4.2"
 source = "github"                  # mojang, pypi, github, maven, web, build or local
 
 [artifacts.version."1.4.2"]
-protocol = 2193                    # picks the bot
+protocol = 2225                    # picks the bot
 runtime = "jdk-21.0.12.1"          # plain keys are for the adapter: runtime, commit, bds, python, ...
 
 [artifacts.version."1.4.2".any]    # or .windows and .linux
@@ -300,7 +300,7 @@ Produce the load with the harness, on the machine of the run you want to explain
 outside. `run-one` is the command `bbench run` starts for each run:
 
 ```shell
-uv run bbench run-one configs/spread-100.toml --server bds@1.26.52.3 --out runs/profiled
+uv run bbench run-one configs/spread-100.toml --server bds@1.26.60.6 --out runs/profiled
 ```
 
 - Watch `run.partial.json` for the marks `alljoined`, `settled` and `steady0` to know when to start and stop. Many
@@ -336,8 +336,8 @@ Before tagging:
       platform its adapter declares. CI runs only the Dragonfly smoke. A server that a default `bbench run` skips is
       exempt.
 - [ ] The decode smoke passes. CI never downloads BDS, so this runs by hand: against every pinned server except the
-      exempt ones above, run the bot its adapter uses (`legacy1001` for PocketMine-MP and Allay, `loadbot` for the
-      others) for at least five minutes of walking and teleports:
+      exempt ones above, run the bot its adapter uses (`legacy1001` for PocketMine-MP and Allay, `legacy2193` for
+      LeviLamina, `loadbot` for the others) for at least five minutes of walking and teleports:
 
       ```sh
       loadbot -addr 127.0.0.1:<port> -n 4 -decode-errors fail

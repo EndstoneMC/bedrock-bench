@@ -5,7 +5,7 @@ server = "nukkit"
 
 # What `bbench run` measures when it is given no tag.
 [benchmark]
-version = "b3caad6"
+version = "4841947"
 
 # Nukkit (CloudburstMC) publishes no releases, so a version is the 7-character commit of a snapshot build from the
 # OpenCollab Maven repository, pinned by its timestamped file name and sha256. Snapshot repositories prune old builds;
@@ -24,3 +24,15 @@ runtime = "jdk-21.0.12.1"
 url = "https://repo.opencollab.dev/maven-snapshots/cn/nukkit/nukkit/1.0-SNAPSHOT/nukkit-1.0-20260919.123832-1250.jar"
 sha256 = "b373dcdb240d0d32fccbc9e0f9e727c4591082580dad7d522f924b7b411daa49"
 size = 27105379
+
+# First snapshot for Minecraft 1.26.60 (protocol 2225), build 1252.
+[artifacts.version."4841947"]
+commit = "48419471008e284af427341783ff0eec5670b045"
+protocol = 2225
+minecraft = "1.26.60"
+runtime = "jdk-21.0.12.1"
+
+[artifacts.version."4841947".any]
+url = "https://repo.opencollab.dev/maven-snapshots/cn/nukkit/nukkit/1.0-SNAPSHOT/nukkit-1.0-20261027.214338-1252.jar"
+sha256 = "1ed570be49d694cdfd93da0174be6bba8bb7e64f3b4568eac9421159df145879"
+size = 27129197

@@ -348,7 +348,7 @@ def test_bot_version_is_json() -> None:
     assert result.returncode == 0
     build = json.loads(result.stdout)
     assert build["module"] == "loadbot"
-    assert build["protocol"] == 2193
+    assert build["protocol"] == 2225
 
 
 @pytest.mark.parametrize("args", [["-addr", "127.0.0.1:1", "-bogus"], ["-n", "2"], ["-addr", "x:1", "-n", "0"]])
