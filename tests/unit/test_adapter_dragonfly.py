@@ -461,8 +461,8 @@ class TestLaunchAndFacts:
 
 class TestDataFiles:
     def test_artifacts_pin_matches_go_mod_and_go_sum(self) -> None:
-        pin = dragonfly.ModulePin.load(VERSION)
-        assert pin.version.endswith("-" + "1793369709ce")
+        pin = dragonfly.ModulePin.load("0.11.6")
+        assert pin.version == "v0.11.6"
         dragonfly.check_source(config.server_dir("dragonfly"), pin)
 
     def test_required_version(self) -> None:

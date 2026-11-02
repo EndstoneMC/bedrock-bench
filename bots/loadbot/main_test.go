@@ -21,7 +21,7 @@ func TestVersionPrintsBuildInfo(t *testing.T) {
 	if err := json.Unmarshal(out.Bytes(), &b); err != nil {
 		t.Fatalf("not JSON: %q", out.String())
 	}
-	if b.Module != "loadbot" || b.Protocol != 2193 || b.Patches == nil || !strings.HasPrefix(b.Go, "go") {
+	if b.Module != "loadbot" || b.Protocol != 2225 || b.Patches == nil || !strings.HasPrefix(b.Go, "go") {
 		t.Errorf("build info = %+v", b)
 	}
 }

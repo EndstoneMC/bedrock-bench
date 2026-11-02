@@ -9,7 +9,7 @@ behaviour every BDS-hosted server shares in [`bdsfamily.py`](../../bedrock_bench
 ## Setup
 
 ```shell
-bbench fetch bds@1.26.52.3 --accept-eula
+bbench fetch bds@1.26.60.6 --accept-eula
 ```
 
 - Fetch downloads the zip pinned in `[artifacts]` and refuses one whose size or sha256 differs.
@@ -30,7 +30,7 @@ bbench fetch bds@1.26.52.3 --accept-eula
 | Linux | `./bedrock_server` | `LD_LIBRARY_PATH=.`, as Mojang's instructions say; `LD_PRELOAD` removed |
 
 - `bedrock_server` is the started and the measured process.
-- Ready line: `Server started.` The version banner, `Version: 1.26.52.3`, must equal the arm's version.
+- Ready line: `Server started.` The version banner, `Version: 1.26.60.6`, must equal the arm's version.
 - Tick probe: `time query gametime`, which replies `Gametime is N`. The counter advances once per executed tick.
 - In world: `Player Spawned: <name> xuid: ...`.
 - Positions: `querytarget @a`, a JSON array after `Target data:` over several lines. It prints no names, so positions

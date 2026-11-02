@@ -126,13 +126,13 @@ class TestContract:
             assert own == base | extra, name
 
     def test_pins(self) -> None:
-        version = config.load_artifacts("altay").versions["5.44.7"]
+        version = config.load_artifacts("altay").versions["5.45.1"]
         assert bots.module_for_protocol(version.meta["protocol"]) == "loadbot"
-        assert version.meta["minecraft"] == "1.26.50"
+        assert version.meta["minecraft"] == "1.26.60"
         assert len(version.meta["commit"]) == 40
         assert version.meta["runtime"] in config.load_artifacts(ROOT / config.RUNTIMES_FILE).versions
         spec = version.platforms["any"]
-        assert spec.url.startswith("https://github.com/altayofficial/Altay/releases/download/5.44.7/")
+        assert spec.url.startswith("https://github.com/altayofficial/Altay/releases/download/5.45.1/")
         assert spec.sha256 is not None and spec.size
 
     def test_dialect_samples(self) -> None:

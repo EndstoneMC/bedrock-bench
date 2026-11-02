@@ -8,7 +8,7 @@ __version__ = "0.1.0.dev0"
 SCHEMA_VERSION = 1
 
 #: Minor version of the result schemas. Additive changes bump it.
-SCHEMA_MINOR = 0
+SCHEMA_MINOR = 1
 
 #: Version of the metric formulas. Any change to a formula in ``metrics/`` bumps it.
 ANALYSIS_VERSION = 3

@@ -5,19 +5,20 @@
 #
 #   .github/scripts/build-go.sh OUT_DIR [PROGRAM...]
 #
-# Builds each PROGRAM (default: loadbot and dfbench) for linux/amd64 and windows/amd64 into OUT_DIR and writes
+# Builds each PROGRAM (default: loadbot, legacy2193 and dfbench) for linux/amd64 and windows/amd64 into OUT_DIR and writes
 # OUT_DIR/SHA256SUMS. legacy1001 builds only once its gophertunnel fork tag is published (bots/README.md#patches).
 # Each module is built on its own (GOWORK=off) with exactly the dependencies its go.mod pins. `bbench bots build` uses
 # the same build flags but stamps its own version and commit; only this script reproduces the release SHA256SUMS.
 set -euo pipefail
 
 TARGETS=(linux/amd64 windows/amd64)
-PROGRAMS=(loadbot legacy1001 dfbench)
-DEFAULT_PROGRAMS=(loadbot dfbench)
+PROGRAMS=(loadbot legacy2193 legacy1001 dfbench)
+DEFAULT_PROGRAMS=(loadbot legacy2193 dfbench)
 
 source_dir() {
     case "$1" in
         loadbot) echo bots/loadbot ;;
+        legacy2193) echo bots/legacy2193 ;;
         legacy1001) echo bots/legacy1001 ;;
         dfbench) echo servers/dragonfly ;;
         *)

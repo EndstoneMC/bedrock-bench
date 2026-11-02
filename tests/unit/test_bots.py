@@ -143,7 +143,8 @@ def test_targets_and_asset_names(tmp_path: Path) -> None:
 
 
 def test_module_for_protocol() -> None:
-    assert bots.module_for_protocol(2193) == "loadbot"
+    assert bots.module_for_protocol(2225) == "loadbot"
+    assert bots.module_for_protocol(2193) == "legacy2193"
     assert bots.module_for_protocol(1001) == "legacy1001"
     with pytest.raises(BotError):
         bots.module_for_protocol(1)

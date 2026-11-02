@@ -223,7 +223,7 @@
   },
   "run_id": "20261012T135800Z-synthetic@1.0-r1-df0f",
   "schema": "bedrock-bench/metrics/1",
-  "schema_minor": 0,
+  "schema_minor": 1,
   "status": "ok",
   "status_reasons": []
 }

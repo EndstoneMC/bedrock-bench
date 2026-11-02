@@ -5,7 +5,7 @@ server = "altay"
 
 # What `bbench run` measures when it is given no tag.
 [benchmark]
-version = "5.44.7"
+version = "5.45.1"
 
 # Altay release phars from GitHub, verified against the sha256 GitHub publishes for each release asset.
 # `runtime` names the PHP build in servers/runtimes.toml; `protocol` and `minecraft` are what the release
@@ -23,3 +23,14 @@ runtime = "php-8.2-pm5-524"
 url = "https://github.com/altayofficial/Altay/releases/download/5.44.7/Altay.phar"
 sha256 = "6d2e09fb96f3055dc72cbab43cf063ba1d148f35f55a4b132775cd3ca8f04071"
 size = 4498482
+
+[artifacts.version."5.45.1"]
+commit = "60bdbc9fb46c80559fd8413e3966bdaed9a20eb1"
+protocol = 2225
+minecraft = "1.26.60"
+runtime = "php-8.2-pm5-524"
+
+[artifacts.version."5.45.1".any]
+url = "https://github.com/altayofficial/Altay/releases/download/5.45.1/Altay.phar"
+sha256 = "35c50df58e2f228a6e6d3d8e2e999a4909b935272b20e696d7653311c6a94c69"
+size = 4510218

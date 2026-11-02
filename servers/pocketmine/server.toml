@@ -7,7 +7,7 @@ server = "pocketmine"
 [benchmark]
 version = "5.44.3"
 include = false
-reason = "no release supports protocol 2193 (Bedrock 1.26.50)"
+reason = "no release supports protocol 2225 (Bedrock 1.26.60)"
 
 # PocketMine-MP release phars from GitHub, verified against the sha256 GitHub publishes for each release asset.
 # `runtime` names the PHP build in servers/runtimes.toml; `protocol` and `minecraft` are what the release

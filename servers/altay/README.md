@@ -2,7 +2,7 @@
 
 [Altay](https://github.com/altayofficial/Altay) is a fork of PocketMine-MP 5, written in PHP and licensed under
 LGPL-3.0. It is not TuranicTeam's archived Altay. It keeps PocketMine-MP's gameplay code and console and follows the
-current Bedrock protocol: 5.44.7 speaks protocol 2193 (Minecraft 1.26.50), so its runs use the main load bot. Like
+current Bedrock protocol: 5.45.1 speaks protocol 2225 (Minecraft 1.26.60), so its runs use the main load bot. Like
 PocketMine-MP it shares no code with Mojang's server. Its version numbers follow PocketMine-MP's, so reports tell the two
 apart by the tag, `altay@<version>`.
 
@@ -13,7 +13,7 @@ templates: [server.properties](server.properties) and [pocketmine.yml](pocketmin
 ## Setup
 
 ```shell
-bbench fetch altay@5.44.7
+bbench fetch altay@5.45.1
 ```
 
 Fetch downloads `Altay.phar` from the GitHub release and PocketMine's PHP 8.2 build from

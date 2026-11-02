@@ -300,7 +300,7 @@ class TestCli:
         monkeypatch.setattr(runner, "bot_missing", lambda adapter: None)
         args = argparse.Namespace(tags=[], accept_eula=False, artifact_dir=None)
         assert fetch.fetch_cli(args) == ExitCode.ENV_GATE
-        assert "endstone@0.11.14" in fetched and "levilamina@26.51.6" in fetched
+        assert "endstone@0.11.15" in fetched and "levilamina@26.51.9" in fetched
 
     def test_unknown_server_is_a_config_error(self) -> None:
         args = argparse.Namespace(tags=["nosuchserver@1.0"], accept_eula=False, artifact_dir=None)

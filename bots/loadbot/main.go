@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-// Command loadbot joins offline-mode bots to a Minecraft Bedrock server over RakNet (protocol 2193), walks them
+// Command loadbot joins offline-mode bots to a Minecraft Bedrock server over RakNet (protocol 2225), walks them
 // in circles and reports what they receive as JSON lines on stdout. See bots/README.md for flags, events and the
 // stdin control protocol.
 package main

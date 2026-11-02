@@ -5,7 +5,7 @@ server = "bds"
 
 # What `bbench run` measures when it is given no tag.
 [benchmark]
-version = "1.26.52.3"
+version = "1.26.60.6"
 
 # Bedrock Dedicated Server builds, as published by Mojang. Downloading them needs the Minecraft EULA accepted
 # (bbench fetch --accept-eula, or BBENCH_ACCEPT_MINECRAFT_EULA=1). Nothing from these archives is ever committed.
@@ -30,5 +30,41 @@ eula = "minecraft"
 url = "https://www.minecraft.net/bedrockdedicatedserver/bin-linux/bedrock-server-1.26.52.3.zip"
 sha256 = "f6348d84fa714d04ca194f207e89453ca6bba0a1359396475271a52a150471c6"
 size = 94927522
+executables = ["bedrock_server"]
+eula = "minecraft"
+
+# Vanilla baseline for endstone@0.11.15, which hosts this build.
+[artifacts.version."1.26.60.6"]
+protocol = 2225
+
+[artifacts.version."1.26.60.6".windows]
+url = "https://www.minecraft.net/bedrockdedicatedserver/bin-win/bedrock-server-1.26.60.6.zip"
+sha256 = "21620db4f80d0fe206f21cb08f52f4e5f14252ce865ec49ccfbe0d9f93ce88b0"
+size = 88759231
+executables = ["bedrock_server.exe"]
+eula = "minecraft"
+
+[artifacts.version."1.26.60.6".linux]
+url = "https://www.minecraft.net/bedrockdedicatedserver/bin-linux/bedrock-server-1.26.60.6.zip"
+sha256 = "cbbd5414fa6a310353ed1fc76a0ba691c3fd1ea852fd04bb76764ee4c1afdb98"
+size = 98094690
+executables = ["bedrock_server"]
+eula = "minecraft"
+
+# Latest release build (2026-10-31). No Endstone release hosts it yet.
+[artifacts.version."1.26.61.1"]
+protocol = 2225
+
+[artifacts.version."1.26.61.1".windows]
+url = "https://www.minecraft.net/bedrockdedicatedserver/bin-win/bedrock-server-1.26.61.1.zip"
+sha256 = "63a98e36b4c5751a8563dff6635d16e02ed0fe5a3049b2c36d388c657af01a7f"
+size = 88760649
+executables = ["bedrock_server.exe"]
+eula = "minecraft"
+
+[artifacts.version."1.26.61.1".linux]
+url = "https://www.minecraft.net/bedrockdedicatedserver/bin-linux/bedrock-server-1.26.61.1.zip"
+sha256 = "b54095267d55fd401de42f71ac4daf2c1747a49515ad41810781f1f9bafde26e"
+size = 98093051
 executables = ["bedrock_server"]
 eula = "minecraft"

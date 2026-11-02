@@ -88,7 +88,7 @@ type fakeFrontend struct {
 }
 
 func (f *fakeFrontend) Build() BuildInfo {
-	return BuildInfo{Module: "loadbot", Version: "test", Protocol: 2193}
+	return BuildInfo{Module: "loadbot", Version: "test", Protocol: 2225}
 }
 
 func (f *fakeFrontend) PacketNames() map[uint32]string { return map[uint32]string{58: "LevelChunk"} }

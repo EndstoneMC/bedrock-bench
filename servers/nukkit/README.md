@@ -10,7 +10,7 @@ Adapter: [nukkit.py](../../bedrock_bench/adapters/nukkit.py). Helper plugin: [pl
 ## Setup
 
 ```shell
-bbench fetch nukkit@b3caad6
+bbench fetch nukkit@4841947
 ```
 
 Fetch downloads the snapshot jar from the OpenCollab Maven repository and the Temurin JDK, and checks each against the

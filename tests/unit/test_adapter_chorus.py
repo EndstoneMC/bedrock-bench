@@ -23,8 +23,8 @@ from workloads import WORKLOAD, with_overrides
 
 ROOT = Path(__file__).resolve().parents[2]
 LOGS = ROOT / "tests" / "fixtures" / "logs"
-VERSION = "dbaf26e"
-COMMIT = "dbaf26ee2838e7d28bfa92a4ac6bd8013934f942"
+VERSION = "7fc446a"
+COMMIT = "7fc446ab3eb1d49a4c6ffdc4dcfe71eb76cb43a5"
 
 #: 'chorusbench -defaults' of the pinned build.
 DEFAULTS = """\
@@ -93,9 +93,9 @@ BUILD_INFO = {
     "chorus": VERSION,
     "chorus_commit": COMMIT,
     "chorus_version": "0.0.1",
-    "minecraft": "1.26.50",
+    "minecraft": "1.26.60",
     "module": "chorusbench",
-    "protocol": 2193,
+    "protocol": 2225,
     "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
     "target": "x86_64-pc-windows-msvc",
     "version": "0.1.0",
@@ -154,7 +154,7 @@ class TestDialect:
 
     def test_pins(self) -> None:
         pin = chorus.SourcePin.load(VERSION)
-        assert (pin.commit, pin.protocol, pin.minecraft, pin.rust) == (COMMIT, 2193, "1.26.50", "1.95.0")
+        assert (pin.commit, pin.protocol, pin.minecraft, pin.rust) == (COMMIT, 2225, "1.26.60", "1.95.0")
         assert config.load_artifacts("chorus").get(VERSION, "windows").url.endswith(f"/archive/{COMMIT}.tar.gz")
 
     def test_session_log(self) -> None:

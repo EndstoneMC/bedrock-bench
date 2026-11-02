@@ -6,7 +6,7 @@ Fetch, launch, the console dialect and the commands come from
 ``servers/altay/BenchHelper.php`` lifts the per-IP packet limit through Altay's transport interface instead of
 RakLib's. The config templates in ``servers/altay/`` add ``network.transport`` to PocketMine-MP's.
 
-Altay 5.44.7 speaks protocol 2193 (Minecraft 1.26.50), so it gets the main load bot. Its version numbers follow
+Altay 5.45.1 speaks protocol 2225 (Minecraft 1.26.60), so it gets the main load bot. Its version numbers follow
 PocketMine-MP's. See servers/altay/README.md.
 """
 

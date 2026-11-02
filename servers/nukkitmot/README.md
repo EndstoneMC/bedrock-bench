@@ -1,7 +1,7 @@
 # Nukkit-MOT (`nukkitmot`)
 
 [Nukkit-MOT](https://github.com/MemoriesOfTime/Nukkit-MOT) (MemoriesOfTime) is a multi-version fork of Nukkit, written
-in Java and licensed under LGPL-3.0. It accepts clients from protocol 113 up to 2193 and generates its own terrain.
+in Java and licensed under LGPL-3.0. It accepts clients from protocol 113 up to 2225 and generates its own terrain.
 Nukkit-MOT publishes rolling builds of its master branch, so a version is the 7-character commit of one Jenkins build.
 
 Adapter: [nukkitmot.py](../../bedrock_bench/adapters/nukkitmot.py). Helper plugin: [plugin.yml](plugin.yml) and
@@ -10,7 +10,7 @@ Adapter: [nukkitmot.py](../../bedrock_bench/adapters/nukkitmot.py). Helper plugi
 ## Setup
 
 ```shell
-bbench fetch nukkitmot@9cb0aba
+bbench fetch nukkitmot@acc7d2b
 ```
 
 Fetch downloads `Nukkit-MOT-SNAPSHOT.jar` of master build #1592 from the project's Jenkins and the Temurin JDK, and

@@ -36,7 +36,7 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/dist"
           cd "$RUNNER_TEMP/build"
-          grep -E '^[0-9a-f]{64}  (loadbot|legacy1001)-' SHA256SUMS >"$RUNNER_TEMP/dist/SHA256SUMS"
+          grep -E '^[0-9a-f]{64}  (loadbot|legacy2193|legacy1001)-' SHA256SUMS >"$RUNNER_TEMP/dist/SHA256SUMS"
           awk '{ print $2 }' "$RUNNER_TEMP/dist/SHA256SUMS" | xargs -I{} cp {} "$RUNNER_TEMP/dist/"
           cd "$RUNNER_TEMP/dist"
           sha256sum --check --strict SHA256SUMS

@@ -2,26 +2,26 @@
 
 [PowerNukkitX](https://github.com/PowerNukkitX/PowerNukkitX) is a Nukkit fork written in Java, licensed under
 LGPL-3.0, that reimplements much more of vanilla gameplay: mobs with AI, redstone, fluids, dimensions. It shares no code
-with Mojang's server. Two versions are pinned: the 3.0.5 release, and `nightly.86f70bc`, the CI build of the `beta`
-branch at commit 86f70bc.
+with Mojang's server. The current pins are the 3.0.6 release and `nightly.fcdc68a`, the CI build of the `beta`
+branch at commit fcdc68a, both for Minecraft 1.26.60.
 
 Adapter: [powernukkitx.py](../../bedrock_bench/adapters/powernukkitx.py). There is no helper plugin.
 
 ## Setup
 
 ```shell
-bbench fetch powernukkitx@3.0.5
-bbench fetch powernukkitx@nightly.86f70bc
+bbench fetch powernukkitx@3.0.6
+bbench fetch powernukkitx@nightly.fcdc68a
 ```
 
-Fetch downloads the jar from GitHub and the Temurin JDK the version names (21 for 3.0.5, 25 for the nightly), and
+Fetch downloads the jar from GitHub and the Temurin JDK the version names (21 for 3.0.6, 25 for the nightly), and
 checks each against the sha256 pinned in [server.toml](server.toml) and [runtimes.toml](../runtimes.toml). Neither is
 Mojang software, so no licence flag is needed. The install is `server/powernukkitx.jar`. The release jar reports itself
-as `3.0.5-SNAPSHOT (git-9813b75)`: `commit` in server.toml is the commit it was built from, and the version check reads
-`3.0.5` from that banner. The nightly jar reports `nightly-SNAPSHOT (git-86f70bc)`, which reads as `nightly.86f70bc`.
+as `3.0.6-SNAPSHOT (git-c574993)`: `commit` in server.toml is the commit it was built from, and the version check reads
+`3.0.6` from that banner. The nightly jar reports `nightly-SNAPSHOT (git-fcdc68a)`, which reads as `nightly.fcdc68a`.
 
 The nightly jar is the asset of the `nightly` pre-release, which upstream replaces with every new build. Once it has
-moved, fetch fails on the sha256. Keep a copy named `powernukkitx-nightly-86f70bc.jar` and pass its folder with
+moved, fetch fails on the sha256. Keep a copy named `powernukkitx-nightly-fcdc68a.jar` and pass its folder with
 `--artifact-dir`.
 
 ## How a run starts

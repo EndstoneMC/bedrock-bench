@@ -1,4 +1,4 @@
-{"v":1,"ev":"hello","t":1791813524100,"mono_ms":100,"build":{"module":"loadbot","version":"0.1.0","vcs":"0123456789ab","go":"go1.26.3","gophertunnel":"v1.62.0","patches":[],"protocol":2193},"flags":{"addr":"127.0.0.1:19672","csg":true,"n":100,"prefix":"a","radius":16},"intervals_ms":{"progress":5000,"stat":10000,"pkt":60000}}
+{"v":1,"ev":"hello","t":1791813524100,"mono_ms":100,"build":{"module":"loadbot","version":"0.1.0","vcs":"0123456789ab","go":"go1.26.3","gophertunnel":"v1.63.0","patches":[],"protocol":2225},"flags":{"addr":"127.0.0.1:19672","csg":true,"n":100,"prefix":"a","radius":16},"intervals_ms":{"progress":5000,"stat":10000,"pkt":60000}}
 {"v":1,"ev":"dial","t":1791813524200,"mono_ms":200,"bot":"b00","i":0}
 {"v":1,"ev":"spawned","t":1791813524300,"mono_ms":300,"bot":"b00","i":0,"session":1,"join_ms":812.5,"radius":10,"dim":0}
 {"v":1,"ev":"join_failed","t":1791813524400,"mono_ms":400,"bot":"b01","i":1,"stage":"spawn","err":"context deadline exceeded","session":1,"attempt":1,"final":true}

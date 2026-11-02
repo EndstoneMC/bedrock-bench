@@ -28,7 +28,7 @@ import (
 // when it differs.
 const defaultRequestedRadius = 16
 
-// frontend implements core.Frontend for protocol 2193.
+// frontend implements core.Frontend for protocol 2225.
 type frontend struct{}
 
 func (frontend) Build() core.BuildInfo { return buildInfo() }

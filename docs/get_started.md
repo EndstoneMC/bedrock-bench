@@ -32,8 +32,9 @@ uv run bbench bots build
 ```
 
 - `uv sync` creates `.venv` with the harness and the development tools.
-- `bots build` builds `loadbot`, the bot for every server except PocketMine-MP and Allay, into
-  `bots/bin/<os>-<arch>/`. Those two need `legacy1001`, the protocol 1001 bot, which cannot be built until its
+- `bots build` builds `loadbot`, the bot for every server except LeviLamina, PocketMine-MP and Allay, into
+  `bots/bin/<os>-<arch>/`. LeviLamina needs `legacy2193`, the protocol 2193 bot
+  (`bbench bots build --module legacy2193`). PocketMine-MP and Allay need `legacy1001`, the protocol 1001 bot, which cannot be built until its
   gophertunnel fork tag is published ([bots/README.md#protocol-1001](../bots/README.md#protocol-1001)). On a released
   version, `uv run bbench bots fetch` downloads the release binary instead and checks it against the release's
   `SHA256SUMS`.
@@ -132,8 +133,8 @@ This checks the whole chain with vanilla BDS and 4 bots:
 
 ```shell
 uv run bbench doctor
-uv run bbench fetch bds@1.26.52.3 --accept-eula
-uv run bbench smoke configs/smoke.toml bds@1.26.52.3
+uv run bbench fetch bds@1.26.60.6 --accept-eula
+uv run bbench smoke configs/smoke.toml bds@1.26.60.6
 ```
 
 - `fetch` downloads the pinned BDS archive from Mojang, checks it against the sha256 in
@@ -144,7 +145,7 @@ uv run bbench smoke configs/smoke.toml bds@1.26.52.3
   example a build the upstream no longer serves.
 - [`configs/smoke.toml`](../configs/smoke.toml) is the spread setup with 4 bots, view distance 4, short phases and one
   run. `smoke` passes when the run is `ok` and the server answers every command the harness sends without an error.
-  It prints `smoke bds@1.26.52.3: passed` and writes the run under `runs/<session-id>/`. It takes a few minutes.
+  It prints `smoke bds@1.26.60.6: passed` and writes the run under `runs/<session-id>/`. It takes a few minutes.
 
 Check any other server the same way, with `uv run bbench smoke configs/smoke.toml <server>@<version>`.
 
@@ -206,7 +207,7 @@ uv run bbench run configs/spread-100.toml --machine local/my-machine.toml
 To run some servers only, name their tags:
 
 ```shell
-uv run bbench run configs/spread-100.toml bds@1.26.52.3 endstone@0.11.14 --machine local/my-machine.toml
+uv run bbench run configs/spread-100.toml bds@1.26.60.6 endstone@0.11.15 --machine local/my-machine.toml
 ```
 
 ## Reading the output
@@ -230,8 +231,8 @@ runs/<session-id>/
   [docs/methodology.md#results-files](methodology.md#results-files) has the full layout.
 - `report.md` starts with the config and its bot count, then an Environment table (CPU, the CPUs given to the server
   and to the bots, RAM, OS, Python, harness version, bot build and each server's tag), one Results table with a row per
-  server, and a one-line note for every run that was not `ok`, every flag and every skipped server. LeviLamina 26.51.6
-  hosts BDS 1.26.51.1, not the `bds@1.26.52.3` baseline, so its row gets a `different_bds_build` note.
+  server, and a one-line note for every run that was not `ok`, every flag and every skipped server. LeviLamina 26.51.9
+  hosts BDS 1.26.51.1, not the `bds@1.26.60.6` baseline, so its row gets a `different_bds_build` note.
 - The Results table has runs ok out of total, then one column per core metric: TPS, tick-thread CPU per tick, server
   CPU in cores, memory, the lowest TPS while views load, view load time for the median, p90 and slowest player, chunks
   per second while views load, and chunks in view per player. Each cell is the median over the `ok` runs with the

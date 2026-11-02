@@ -5,8 +5,8 @@ server = "endstone"
 
 # What `bbench run` measures when it is given no tag.
 [benchmark]
-version = "0.11.14"
-bds = "1.26.52.3"
+version = "0.11.15"
+bds = "1.26.60.6"
 python = "3.13"
 
 # Endstone releases from PyPI. One table per release says which BDS build it hosts; one sub-table per platform and
@@ -65,3 +65,49 @@ size = 47473153
 url = "https://files.pythonhosted.org/packages/fa/0d/a8b413f1dc13f182b4ae4aa265e5c64b88173b6a87ab379a1dd7ed127bbd/endstone-0.11.14-cp314-cp314-win_amd64.whl"
 sha256 = "497150e3514c54586a3de9796ebc4e2515630c07f613e1c4eb26a743c4da3246"
 size = 20887209
+
+[artifacts.version."0.11.15"]
+bds = "1.26.60.6"
+protocol = 2225
+python = "3.13"
+version_marker = "26.60"
+
+[artifacts.version."0.11.15".linux-cp311]
+url = "https://files.pythonhosted.org/packages/80/dd/662ccd09805d5e3e6b07319bb605c3e542fcc97979964d0054848f7094d6/endstone-0.11.15-cp311-cp311-manylinux_2_31_x86_64.whl"
+sha256 = "b6496e70a93304a80f0c8407b162ab386c5b0072c6171eff65d70238942fc28a"
+size = 48046320
+
+[artifacts.version."0.11.15".windows-cp311]
+url = "https://files.pythonhosted.org/packages/11/a3/702b90a16d64cd551f6c41051d970ef02ea0149a6774c2d94a331986d5ea/endstone-0.11.15-cp311-cp311-win_amd64.whl"
+sha256 = "fe3e4f907de1eb2f3119dd050e97e175ca0d9df593db6614641bc6890463156a"
+size = 21653242
+
+[artifacts.version."0.11.15".linux-cp312]
+url = "https://files.pythonhosted.org/packages/ec/ce/ba18b64d0d3b7e32ba27bd7f5b1e72597ce294619a879f710589dbe045ed/endstone-0.11.15-cp312-cp312-manylinux_2_31_x86_64.whl"
+sha256 = "47b6e2403a80b6e930a750c3057ce3625585f7319853bcee075de517ba6ca0ac"
+size = 48390203
+
+[artifacts.version."0.11.15".windows-cp312]
+url = "https://files.pythonhosted.org/packages/09/5c/b8a24f2e9342e5e48785d4c658e1ab84274516d5a6e65c122f9f1d516218/endstone-0.11.15-cp312-cp312-win_amd64.whl"
+sha256 = "5b4a3af35fbb8eeeb82143fac6c77941c3076e5659c5f65e76e0045ce618a9f2"
+size = 21403167
+
+[artifacts.version."0.11.15".linux-cp313]
+url = "https://files.pythonhosted.org/packages/d4/d1/8c0560892807c211396516177f74ac034412050148cf57aea0a85199eb50/endstone-0.11.15-cp313-cp313-manylinux_2_31_x86_64.whl"
+sha256 = "2ab6e01700f8690846ff61161b3fe9794395ab4aeb40d2996dae4dbc02fdac91"
+size = 48387538
+
+[artifacts.version."0.11.15".windows-cp313]
+url = "https://files.pythonhosted.org/packages/4b/9c/257f662eb97a415c00933b4bd7c67e1d80f796e6c9683eac4f39b735ef3a/endstone-0.11.15-cp313-cp313-win_amd64.whl"
+sha256 = "d7d3529992a9a39014ab9099331cd5c0937dad13970093d11f0959c580d74009"
+size = 21402788
+
+[artifacts.version."0.11.15".linux-cp314]
+url = "https://files.pythonhosted.org/packages/54/1f/d24a63159d63748780fa1ce6ed36e79e1076173ebec0101bbc06776dfff2/endstone-0.11.15-cp314-cp314-manylinux_2_31_x86_64.whl"
+sha256 = "05bf4ef25b54a82c3b393673ed4189f0d8d7988a952696a1b7c6eb89eb4dd19e"
+size = 48351394
+
+[artifacts.version."0.11.15".windows-cp314]
+url = "https://files.pythonhosted.org/packages/a9/46/e8595e9e9645ca58dbb36a26c195b297f639c19cdd17a02d8f053fea454a/endstone-0.11.15-cp314-cp314-win_amd64.whl"
+sha256 = "c2ac1cfc52e9eec4216d547e59567c610e253ec474a13a44ca122e9fefdd19d9"
+size = 21631757

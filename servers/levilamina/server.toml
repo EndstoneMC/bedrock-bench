@@ -5,7 +5,7 @@ server = "levilamina"
 
 # What `bbench run` measures when it is given no tag.
 [benchmark]
-version = "26.51.6"
+version = "26.51.9"
 
 # LeviLamina releases for Windows and the packages each one installs, all GitHub release assets. The BDS build comes
 # from servers/bds/server.toml, so a LeviLamina arm and its vanilla baseline run the same verified BDS zip.
@@ -76,4 +76,54 @@ url = "https://github.com/LiteLDev/bedrock-runtime-data/releases/download/v26.51
 sha256 = "44e548f693b2eb1bd5ccd8b56169cdbf2b9f01e7d1833717c6351bd8f7a2e385"
 size = 30122614
 release = "26.51.1-server.7"
+place = { "bedrock_runtime_data" = "bedrock_runtime_data" }
+
+[artifacts.version."26.51.9"]
+bds = "1.26.51.1"
+protocol = 2193
+allocator = "mimalloc"
+
+# The BDS build this release runs on, verified like any other download (Minecraft EULA).
+[artifacts.version."26.51.9".windows-bds]
+url = "https://www.minecraft.net/bedrockdedicatedserver/bin-win/bedrock-server-1.26.51.1.zip"
+sha256 = "a1c1ebefde3036223234179f7c1eab4b445b4727f0482a0554818c9bcaf8e4a5"
+size = 85766110
+executables = ["bedrock_server.exe"]
+eula = "minecraft"
+
+[artifacts.version."26.51.9".windows-levilamina]
+url = "https://github.com/LiteLDev/LeviLamina/releases/download/v26.51.9/levilamina-v26.51.9-server-release-windows-x64.zip"
+sha256 = "c0ee0ffadd2768a88549d15c830626ee18557d829cbedaa468ad38cb98f06dc2"
+size = 11749164
+release = "26.51.9"
+place = { "LeviLamina/" = "plugins/LeviLamina/" }
+
+[artifacts.version."26.51.9".windows-preloader]
+url = "https://github.com/LiteLDev/PreLoader/releases/download/v1.16.5/preloader-v1.16.5-windows-x64.zip"
+sha256 = "698667831e8336cf9d9accbfb25a84fb6755faea0d2ee9bb48f74d5a9f645967"
+size = 4200768
+release = "1.16.5"
+eula = "levimc"
+place = { "bin/PreLoader.dll" = "PreLoader.dll" }
+
+[artifacts.version."26.51.9".windows-peeditor]
+url = "https://github.com/LiteLDev/PeEditor/releases/download/v3.9.2/peeditor-windows-x64.zip"
+sha256 = "cfeba1e9c40fc65a1310853d5cd3d5431d7bc3855c68e23b3d9c7a26f1fe42c2"
+size = 1453932
+release = "3.9.2"
+eula = "levimc"
+place = { "PeEditor.exe" = "PeEditor.exe" }
+
+[artifacts.version."26.51.9".windows-crashlogger]
+url = "https://github.com/LiteLDev/CrashLogger/releases/download/v1.3.3/CrashLogger-windows-x64.zip"
+sha256 = "ade3fc37affbc187020fd9ecb31883a70ab1f3f8238e447a43174343deb33156"
+size = 828867
+release = "1.3.3"
+place = { "CrashLogger.exe" = "plugins/LeviLamina/CrashLogger.exe" }
+
+[artifacts.version."26.51.9".windows-runtime-data]
+url = "https://github.com/LiteLDev/bedrock-runtime-data/releases/download/v26.51.1-server.12/bedrock-runtime-data-v26.51.1-server.12-windows-x64.zip"
+sha256 = "9c7629ef82c1bc6de9c6be1a7659dc42f5903861462a18eafbe836a58dc4991c"
+size = 30122614
+release = "26.51.1-server.12"
 place = { "bedrock_runtime_data" = "bedrock_runtime_data" }
